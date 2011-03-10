@@ -1,0 +1,6 @@
+{
+    "name": "slot1",
+    "binary": "fruit:apple:1.0",
+    "config": "@prod:apple:1.0",
+    "status": "STOPPED"
+}

@@ -1,0 +1,14 @@
+[
+    {
+        "name": "slot1",
+        "binary": "fruit:apple:1.0",
+        "config": "@prod:apple:1.0",
+        "status": "STOPPED"
+    },
+    {
+        "name": "slot2",
+        "binary": "fruit:banana:1.0",
+        "config": "@prod:banana:1.0",
+        "status": "STOPPED"
+    }
+]
