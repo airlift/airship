@@ -96,15 +96,13 @@ public class MavenMetadata
         }
     }
 
-    @SuppressWarnings({"unchecked"})
-    public static MavenMetadata unmarshal(InputStream in)
+    public static MavenMetadata unmarshalMavenMetadata(InputStream in)
             throws Exception
     {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         return unmarshaller.unmarshal(new StreamSource(in), MavenMetadata.class).getValue();
     }
 
-    @SuppressWarnings({"unchecked"})
     public static MavenMetadata unmarshalMavenMetadata(String in)
             throws Exception
     {

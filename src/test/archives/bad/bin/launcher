@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+
+File.open("/tmp/galaxy_test_#{Process.ppid}", "w") do |f|
+  f.puts ARGV[0]
+end

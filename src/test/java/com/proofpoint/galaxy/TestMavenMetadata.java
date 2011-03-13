@@ -18,11 +18,11 @@ public class TestMavenMetadata
             throws Exception
     {
 
-        String xml = Files.toString(new File("src/test/repo/food/fruit/apple/2.0-SNAPSHOT/maven-metadata.xml"), Charsets.UTF_8);
+        String xml = Files.toString(new File("src/test/repo/food/fruit/banana/2.0-SNAPSHOT/maven-metadata.xml"), Charsets.UTF_8);
         MavenMetadata metadata = unmarshalMavenMetadata(xml);
         assertNotNull(metadata);
         assertEquals(metadata.groupId, "food.fruit");
-        assertEquals(metadata.artifactId, "apple");
+        assertEquals(metadata.artifactId, "banana");
         assertEquals(metadata.version, "2.0-SNAPSHOT");
 
         assertNotNull(metadata.versioning);
@@ -55,6 +55,6 @@ public class TestMavenMetadata
         assertNull(metadata.versioning.snapshot);
         assertNull(metadata.versioning.snapshotVersions);
 
-        assertEquals(metadata.versioning.lastUpdated, "20110311201909");
+        assertEquals(metadata.versioning.lastUpdated, "20110304215947");
     }
 }

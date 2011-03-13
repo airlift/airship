@@ -134,25 +134,29 @@ public class Command
     }
 
     public int execute(Executor executor)
-            throws CommandFailedException, InterruptedException
+            throws CommandFailedException
     {
         Preconditions.checkNotNull(executor, "executor is null");
         Preconditions.checkNotNull(command, "command is null");
 
         ProcessCallable processCallable = new ProcessCallable(this, executor);
         Future<Integer> future = submit(executor, processCallable);
+
         try {
             Integer result = future.get((long) timeLimit.toMillis(), TimeUnit.MILLISECONDS);
             return result;
         }
         catch (ExecutionException e) {
             Throwables.propagateIfPossible(e.getCause(), CommandFailedException.class);
-            Throwables.propagateIfPossible(e.getCause(), InterruptedException.class);
             Throwable cause = e.getCause();
             if (cause == null) {
                 cause = e;
             }
             throw new CommandFailedException(this, "unexpected exception", cause);
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CommandFailedException(this, "interrupted", e);
         }
         catch (TimeoutException e) {
             future.cancel(true);
