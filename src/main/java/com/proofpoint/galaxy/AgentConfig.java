@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 public class AgentConfig
 {
     private String slotsDir;
+    private Duration launcherTimeout = new Duration(1, TimeUnit.MINUTES);
+    private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);
 
     @NotNull
@@ -35,6 +37,32 @@ public class AgentConfig
     public AgentConfig setSlotsDir(String slotsDir)
     {
         this.slotsDir = slotsDir;
+        return this;
+    }
+
+    @NotNull
+    public Duration getLauncherTimeout()
+    {
+        return launcherTimeout;
+    }
+
+    @Config("agent.launcher-timeout")
+    public AgentConfig setLauncherTimeout(Duration launcherTimeout)
+    {
+        this.launcherTimeout = launcherTimeout;
+        return this;
+    }
+
+    @NotNull
+    public Duration getTarTimeout()
+    {
+        return tarTimeout;
+    }
+
+    @Config("agent.tar-timeout")
+    public AgentConfig setTarTimeout(Duration tarTimeout)
+    {
+        this.tarTimeout = tarTimeout;
         return this;
     }
 

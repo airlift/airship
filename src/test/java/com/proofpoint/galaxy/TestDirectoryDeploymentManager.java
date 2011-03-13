@@ -39,7 +39,9 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     @AfterClass
     public void removeRepository()
     {
-        DeploymentUtils.deleteRecursively(testRepository);
+        if (testRepository != null) {
+            DeploymentUtils.deleteRecursively(testRepository);
+        }
     }
 
     @BeforeMethod
@@ -53,6 +55,8 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     @AfterMethod
     public void tearDown()
     {
-        DeploymentUtils.deleteRecursively(tempDir);
+        if (tempDir != null) {
+            DeploymentUtils.deleteRecursively(tempDir);
+        }
     }
 }

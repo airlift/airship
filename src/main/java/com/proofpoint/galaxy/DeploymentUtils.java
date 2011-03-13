@@ -20,7 +20,7 @@ import static com.proofpoint.galaxy.MavenMetadata.unmarshalMavenMetadata;
 public class DeploymentUtils
 {
     private static final int TEMP_DIR_ATTEMPTS = 10000;
-    private static final Executor executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("shell-command-%s").build());
+    private static final Executor executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("tar-command-%s").build());
 
     public static URI toMavenRepositoryPath(URI repositoryBase, BinarySpec spec)
     {
