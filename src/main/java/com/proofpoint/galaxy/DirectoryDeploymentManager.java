@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.proofpoint.galaxy.DeploymentUtils.deleteRecursively;
+
 public class DirectoryDeploymentManager implements DeploymentManager
 {
     private static final Logger log = Logger.get(DirectoryDeploymentManager.class);
@@ -119,7 +121,10 @@ public class DirectoryDeploymentManager implements DeploymentManager
         if (activeDeployment != null && deploymentId.equals(activeDeployment.getDeploymentId())) {
             activeDeployment = null;
         }
-        deployments.remove(deploymentId);
+        Deployment deployment = deployments.remove(deploymentId);
+        if (deployment != null) {
+            deleteRecursively(deployment.getDeploymentDir());
+        }
     }
 
     public List<File> listFiles(File dir)
