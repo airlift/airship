@@ -32,7 +32,7 @@ public class MainModule
         binder.bind(LifecycleResource.class).in(Scopes.SINGLETON);
 
         binder.bind(DeploymentManagerFactory.class).to(DirectoryDeploymentManagerFactory.class).in(Scopes.SINGLETON);
-        binder.bind(LifecycleManager.class).to(MockLifecycleManager.class).in(Scopes.SINGLETON);
+        binder.bind(LifecycleManager.class).to(LauncherLifecycleManager.class).in(Scopes.SINGLETON);
 
         ConfigurationModule.bindConfig(binder).to(AgentConfig.class);
     }
