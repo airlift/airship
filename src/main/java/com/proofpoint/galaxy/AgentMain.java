@@ -19,7 +19,7 @@ import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.jmx.JmxModule;
 import org.weakref.jmx.guice.MBeanModule;
 
-public class Main
+public class AgentMain
 {
     public static void main(String[] args)
             throws Exception
@@ -29,7 +29,7 @@ public class Main
                 new JaxrsModule(),
                 new MBeanModule(),
                 new JmxModule(),
-                new MainModule());
+                new AgentMainModule());
 
         app.initialize();
     }

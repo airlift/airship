@@ -8,7 +8,7 @@
     </parent>
 
     <properties>
-        <main-class>com.proofpoint.galaxy.Main</main-class>
+        <main-class>com.proofpoint.galaxy.AgentMain</main-class>
     </properties>
 
     <groupId>com.proofpoint.galaxy</groupId>

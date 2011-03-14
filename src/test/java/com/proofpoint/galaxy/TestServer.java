@@ -81,7 +81,7 @@ public class TestServer
 
         Injector injector = Guice.createInjector(new TestingHttpServerModule(),
                 new JaxrsModule(),
-                new MainModule(),
+                new AgentMainModule(),
                 new ConfigurationModule(new ConfigurationFactory(properties)));
 
         server = injector.getInstance(TestingHttpServer.class);

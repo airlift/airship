@@ -19,7 +19,7 @@ import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
 import org.weakref.jmx.guice.MBeanModule;
 
-public class MainModule
+public class AgentMainModule
         implements Module
 {
     public void configure(Binder binder)
