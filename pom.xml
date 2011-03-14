@@ -76,7 +76,6 @@
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>experimental</artifactId>
             <version>0.35-SNAPSHOT</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- for packaging -->

@@ -1,0 +1,12 @@
+{
+    "deploymentId":"deployment1",
+    "assignment": {
+        "binary": "fruit:apple:1.0",
+        "binaryFile": "fetch://binary.tar.gz",
+        "config": "@prod:apple:1.0",
+        "configFiles": {
+            "etc/config.properties": "fetch://config.properties",
+            "readme.txt": "fetch://readme.txt"
+        }
+    }
+}

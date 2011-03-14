@@ -2,12 +2,14 @@ package com.proofpoint.galaxy;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.units.Duration;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -97,6 +99,24 @@ public class DeploymentUtils
                 .execute(executor);
     }
 
+    public static ImmutableList<File> listFiles(File dir)
+    {
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return ImmutableList.of();
+        }
+        return ImmutableList.copyOf(files);
+    }
+
+    public static ImmutableList<File> listFiles(File dir, FilenameFilter filter)
+    {
+        File[] files = dir.listFiles(filter);
+        if (files == null) {
+            return ImmutableList.of();
+        }
+        return ImmutableList.copyOf(files);
+    }
+
     public static File createTempDir(String prefix)
     {
         return createTempDir(new File(System.getProperty("java.io.tmpdir")), prefix);
@@ -136,13 +156,8 @@ public class DeploymentUtils
             return false;
         }
 
-        File[] files = directory.listFiles();
-        if (files == null) {
-            return false;
-        }
-
         boolean success = true;
-        for (File file : files) {
+        for (File file : listFiles(directory)) {
             success = deleteRecursively(file) && success;
         }
         return success;
@@ -172,16 +187,11 @@ public class DeploymentUtils
             return false;
         }
 
-        File[] files = src.listFiles();
-        if (files == null) {
-            return false;
-        }
-
         target.mkdirs();
         Preconditions.checkArgument(target.isDirectory(), "Target dir is not a directory: %s", src);
 
         boolean success = true;
-        for (File file : files) {
+        for (File file : listFiles(src)) {
             success = copyRecursively(file, new File(target, file.getName())) && success;
         }
         return success;
