@@ -16,6 +16,7 @@ package com.proofpoint.galaxy;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -30,6 +31,9 @@ public class TestMockDeploymentManager extends AbstractDeploymentManagerTest
             throws Exception
     {
         manager = new MockDeploymentManager();
+        apple = newAssignment("food.fruit:apple:1.0", "@prod:apple:1.0");
+        banana = newAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:2.0-SNAPSHOT");
+
     }
 
 }

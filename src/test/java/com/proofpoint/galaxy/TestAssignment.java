@@ -13,8 +13,11 @@
  */
 package com.proofpoint.galaxy;
 
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
+
+import java.net.URI;
 
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -24,17 +27,31 @@ public class TestAssignment
     @Test
     public void testStringConstructor()
     {
-        Assignment assignment = new Assignment("fruit:apple:1.0", "@prod:apple:1.0");
+        Assignment assignment = new Assignment(
+                "fruit:apple:1.0",
+                "fetch://binary.tar.gz",
+                "@prod:apple:1.0",
+                ImmutableMap.of("config", "fetch://config.txt"));
+
         assertEquals(assignment.getBinary(), BinarySpec.valueOf("fruit:apple:1.0"));
+        assertEquals(assignment.getBinaryFile(), URI.create("fetch://binary.tar.gz"));
         assertEquals(assignment.getConfig(), ConfigSpec.valueOf("@prod:apple:1.0"));
+        assertEquals(assignment.getConfigFiles(), ImmutableMap.of("config", URI.create("fetch://config.txt")));
     }
 
     @Test
     public void testObjectConstructor()
     {
-        Assignment assignment = new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"));
+        Assignment assignment = new Assignment(
+                BinarySpec.valueOf("fruit:apple:1.0"),
+                URI.create("fetch://binary.tar.gz"),
+                ConfigSpec.valueOf("@prod:apple:1.0"),
+                ImmutableMap.of("config", URI.create("fetch://config.txt")));
+
         assertEquals(assignment.getBinary(), BinarySpec.valueOf("fruit:apple:1.0"));
+        assertEquals(assignment.getBinaryFile(), URI.create("fetch://binary.tar.gz"));
         assertEquals(assignment.getConfig(), ConfigSpec.valueOf("@prod:apple:1.0"));
+        assertEquals(assignment.getConfigFiles(), ImmutableMap.of("config", URI.create("fetch://config.txt")));
     }
 
     @Test
@@ -42,13 +59,15 @@ public class TestAssignment
     {
         EquivalenceTester.check(
                 asList(
-                        new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0")),
-                        new Assignment("fruit:apple:1.0", "@prod:apple:1.0")
+                        new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), URI.create("fetch://binary.tar.gz"), ConfigSpec.valueOf("@prod:apple:1.0"), ImmutableMap.of("config", URI.create("fetch://config.txt"))),
+                        new Assignment("fruit:apple:1.0", "fetch://binary.tar.gz", "@prod:apple:1.0", ImmutableMap.of("config", "fetch://config.txt")),
+                        new Assignment("fruit:apple:1.0", "fetch://anything", "@prod:apple:1.0", ImmutableMap.of("config", "fetch://anything.txt"))
 
                 ),
                 asList(
-                        new Assignment(BinarySpec.valueOf("fruit:banana:1.0"), ConfigSpec.valueOf("@prod:banana:1.0")),
-                        new Assignment("fruit:banana:1.0", "@prod:banana:1.0")
+                        new Assignment(BinarySpec.valueOf("fruit:banana:1.0"), URI.create("fetch://binary.tar.gz"), ConfigSpec.valueOf("@prod:banana:1.0"), ImmutableMap.of("config", URI.create("fetch://config.txt"))),
+                        new Assignment("fruit:banana:1.0", "fetch://binary.tar.gz", "@prod:banana:1.0", ImmutableMap.of("config", "fetch://config.txt")),
+                        new Assignment("fruit:banana:1.0", "fetch://anything.gz", "@prod:banana:1.0", ImmutableMap.of("config", "fetch://anything.txt"))
 
                 )
         );

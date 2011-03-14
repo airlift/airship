@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
@@ -25,10 +26,19 @@ public class TestAssignmentRepresentation
 {
     private final JsonCodec<AssignmentRepresentation> codec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
 
+    private final AssignmentRepresentation expected = new AssignmentRepresentation("fruit:apple:1.0",
+            "fetch://binary.tar.gz",
+            "@prod:apple:1.0",
+            ImmutableMap.<String,String>builder()
+                    .put("etc/config.properties", "fetch://config.properties")
+                    .put("readme.txt", "fetch://readme.txt")
+                    .build()
+
+            );
+
     @Test
     public void testJsonRoundTrip()
     {
-        AssignmentRepresentation expected = new AssignmentRepresentation("fruit:apple:1.0", "@prod:apple:1.0");
         String json = codec.toJson(expected);
         AssignmentRepresentation actual = codec.fromJson(json);
         assertEquals(actual, expected);
@@ -38,8 +48,6 @@ public class TestAssignmentRepresentation
     public void testJsonDecode()
             throws Exception
     {
-        AssignmentRepresentation expected = new AssignmentRepresentation("fruit:apple:1.0", "@prod:apple:1.0");
-
         String json = Resources.toString(Resources.getResource("assignment.json"), Charsets.UTF_8);
         AssignmentRepresentation actual = codec.fromJson(json);
 

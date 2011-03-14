@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
@@ -62,8 +63,8 @@ public class TestSlotManager
     public void testAssignment()
             throws Exception
     {
-        Assignment apple = new Assignment("pp:apple:1.0", "@prod:apple:1.0");
-        Assignment banana = new Assignment("pp:banana:1.0", "@prod:banana:1.0");
+        Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
+        Assignment banana = newAssignment("pp:banana:1.0", "@prod:banana:1.0");
 
         SlotManager manager = new SlotManager("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
         assertEquals(manager.getName(), "slot");
@@ -97,7 +98,7 @@ public class TestSlotManager
     public void testLifecycle()
             throws Exception
     {
-        Assignment apple = new Assignment("pp:apple:1.0", "@prod:apple:1.0");
+        Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
         SlotStatus running = new SlotStatus("slot", apple, RUNNING);
         SlotStatus stopped = new SlotStatus("slot", apple, STOPPED);
         SlotStatus unassigned = new SlotStatus("slot");

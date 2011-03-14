@@ -13,12 +13,14 @@
  */
 package com.proofpoint.galaxy;
 
+import com.google.common.collect.ImmutableMap;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -27,6 +29,7 @@ public class TestAssignmentResource
     private AssignmentResource resource;
     private AgentManager agentManager;
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
+    private AssignmentRepresentation assignment = new AssignmentRepresentation("fruit:apple:1.0", "fetch://binary.tar.gz", "@prod:apple:1.0", ImmutableMap.of("readme.txt", "fetch://readme.txt"));
 
     @BeforeMethod
     public void setup()
@@ -39,7 +42,7 @@ public class TestAssignmentResource
     @Test
     public void testAssignUnknown()
     {
-        Response response = resource.assign("unknown", new AssignmentRepresentation("fruit:apple:1.0", "@prod:apple:1.0"), uriInfo);
+        Response response = resource.assign("unknown", assignment, uriInfo);
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
     }
 
@@ -48,7 +51,7 @@ public class TestAssignmentResource
     {
         SlotManager slotManager = agentManager.addNewSlot();
 
-        Assignment expectedAssignment = new Assignment("fruit:apple:1.0", "@prod:apple:1.0");
+        Assignment expectedAssignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
         SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment, LifecycleState.STOPPED);
 
         Response response = resource.assign(slotManager.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
@@ -63,7 +66,7 @@ public class TestAssignmentResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testAssignNullId()
     {
-        resource.assign(null, new AssignmentRepresentation("fruit:apple:1.0", "@prod:apple:1.0"), uriInfo);
+        resource.assign(null, assignment, uriInfo);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -77,9 +80,9 @@ public class TestAssignmentResource
     public void testReplaceAssignment()
     {
         SlotManager slotManager = agentManager.addNewSlot();
-        slotManager.assign(new Assignment("fruit:apple:1.0", "@prod:apple:1.0"));
+        slotManager.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
 
-        Assignment expectedAssignment = new Assignment("fruit:banana:1.0", "@prod:banana:1.0");
+        Assignment expectedAssignment = newAssignment("fruit:banana:1.0", "@prod:banana:1.0");
         SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment, LifecycleState.STOPPED);
 
         Response response = resource.assign(slotManager.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
@@ -95,7 +98,7 @@ public class TestAssignmentResource
     public void testClear()
     {
         SlotManager slotManager = agentManager.addNewSlot();
-        slotManager.assign(new Assignment("fruit:apple:1.0", "@prod:apple:1.0"));
+        slotManager.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
         SlotStatus expectedStatus = new SlotStatus(slotManager.getName());
 
         Response response = resource.clear(slotManager.getName(), uriInfo);

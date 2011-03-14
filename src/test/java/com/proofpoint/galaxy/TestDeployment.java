@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
@@ -27,7 +28,7 @@ public class TestDeployment
     @Test
     public void testConstructor()
     {
-        Assignment assignment = new Assignment("fruit:apple:1.0", "@prod:apple:1.0");
+        Assignment assignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
         Deployment deployment = new Deployment("one", new File("one"), assignment);
 
         assertEquals(deployment.getDeploymentId(), "one");
@@ -38,7 +39,7 @@ public class TestDeployment
     @Test
     public void testNullConstructorArgs()
     {
-        Assignment assignment = new Assignment("fruit:apple:1.0", "@prod:apple:1.0");
+        Assignment assignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
 
         try {
             new Deployment(null, new File("one"), assignment);
@@ -66,14 +67,14 @@ public class TestDeployment
         // identity is only based on deploymentId
         EquivalenceTester.check(
                 asList(
-                        new Deployment("one", new File("one"), new Assignment("fruit:apple:1.0", "@prod:apple:1.0")),
-                        new Deployment("one", new File("other"), new Assignment("fruit:apple:1.0", "@prod:apple:1.0")),
-                        new Deployment("one", new File("one"), new Assignment("fruit:apple:2.0", "@prod:apple:2.0"))
+                        new Deployment("one", new File("one"), newAssignment("fruit:apple:1.0", "@prod:apple:1.0")),
+                        new Deployment("one", new File("other"), newAssignment("fruit:apple:1.0", "@prod:apple:1.0")),
+                        new Deployment("one", new File("one"), newAssignment("fruit:apple:2.0", "@prod:apple:2.0"))
                 ),
                 asList(
-                        new Deployment("two", new File("one"), new Assignment("fruit:apple:1.0", "@prod:apple:1.0")),
-                        new Deployment("two", new File("other"), new Assignment("fruit:apple:1.0", "@prod:apple:1.0")),
-                        new Deployment("two", new File("one"), new Assignment("fruit:apple:2.0", "@prod:apple:2.0"))
+                        new Deployment("two", new File("one"), newAssignment("fruit:apple:1.0", "@prod:apple:1.0")),
+                        new Deployment("two", new File("other"), newAssignment("fruit:apple:1.0", "@prod:apple:1.0")),
+                        new Deployment("two", new File("one"), newAssignment("fruit:apple:2.0", "@prod:apple:2.0"))
                 )
         );
     }

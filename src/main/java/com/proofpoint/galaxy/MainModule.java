@@ -31,7 +31,7 @@ public class MainModule
         binder.bind(AssignmentResource.class).in(Scopes.SINGLETON);
         binder.bind(LifecycleResource.class).in(Scopes.SINGLETON);
 
-        binder.bind(DeploymentManagerFactory.class).to(MockDeploymentManagerFactory.class).in(Scopes.SINGLETON);
+        binder.bind(DeploymentManagerFactory.class).to(DirectoryDeploymentManagerFactory.class).in(Scopes.SINGLETON);
         binder.bind(LifecycleManager.class).to(MockLifecycleManager.class).in(Scopes.SINGLETON);
 
         ConfigurationModule.bindConfig(binder).to(AgentConfig.class);

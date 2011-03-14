@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
+
 public class TesLauncherLifecycleManager extends AbstractLifecycleManagerTest
 {
     private File tempDir;
@@ -53,7 +55,7 @@ public class TesLauncherLifecycleManager extends AbstractLifecycleManagerTest
         Files.copy(goodLauncher, launcher);
         launcher.setExecutable(true, true);
 
-        return new Deployment(name, deploymentDir, new Assignment("food.fruit:" + name + ":1.0", "@prod:" + name + ":1.0"));
+        return new Deployment(name, deploymentDir, newAssignment("food.fruit:" + name + ":1.0", "@prod:" + name + ":1.0"));
     }
 
     @AfterMethod

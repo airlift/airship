@@ -14,31 +14,51 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
 import javax.annotation.concurrent.Immutable;
+import java.net.URI;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @Immutable
 public class Assignment
 {
     private final BinarySpec binary;
+    private final URI binaryFile;
     private final ConfigSpec config;
+    private final Map<String, URI> configFiles;
 
-    public Assignment(String binary, String config)
+    public Assignment(String binary, String binaryFile, String config, Map<String, String> configFiles)
     {
         Preconditions.checkNotNull(binary, "binary is null");
+        Preconditions.checkNotNull(binaryFile, "binaryFile is null");
         Preconditions.checkNotNull(config, "config is null");
+        Preconditions.checkNotNull(configFiles, "configFiles is null");
 
         this.binary = BinarySpec.valueOf(binary);
+        this.binaryFile = URI.create(binaryFile);
+
         this.config = ConfigSpec.valueOf(config);
+        Builder<String,URI> builder = ImmutableMap.builder();
+        for (Entry<String, String> entry : configFiles.entrySet()) {
+            builder.put(entry.getKey(), URI.create(entry.getValue()));
+        }
+        this.configFiles = builder.build();
     }
 
-    public Assignment(BinarySpec binary, ConfigSpec config)
+    public Assignment(BinarySpec binary, URI binaryFile, ConfigSpec config, Map<String, URI> configFiles)
     {
         Preconditions.checkNotNull(binary, "binary is null");
+        Preconditions.checkNotNull(binaryFile, "binaryFile is null");
         Preconditions.checkNotNull(config, "config is null");
+        Preconditions.checkNotNull(configFiles, "configFiles is null");
 
         this.binary = binary;
+        this.binaryFile = binaryFile;
         this.config = config;
+        this.configFiles = ImmutableMap.copyOf(configFiles);
     }
 
     public BinarySpec getBinary()
@@ -46,9 +66,19 @@ public class Assignment
         return binary;
     }
 
+    public URI getBinaryFile()
+    {
+        return binaryFile;
+    }
+
     public ConfigSpec getConfig()
     {
         return config;
+    }
+
+    public Map<String, URI> getConfigFiles()
+    {
+        return configFiles;
     }
 
     @Override
@@ -88,6 +118,8 @@ public class Assignment
         sb.append("Assignment");
         sb.append("{binary=").append(binary);
         sb.append(", config=").append(config);
+        sb.append(", binaryFile=").append(binaryFile);
+        sb.append(", configFiles=").append(configFiles);
         sb.append('}');
         return sb.toString();
     }

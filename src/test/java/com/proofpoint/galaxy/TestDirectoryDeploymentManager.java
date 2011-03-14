@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.proofpoint.galaxy.RepositoryTestHelper.createTestRepository;
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 
 public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTest
 {
@@ -49,7 +50,10 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
             throws IOException
     {
         tempDir = Files.createTempDir().getCanonicalFile();
-        manager = new DirectoryDeploymentManager(tempDir, testRepository.toURI());
+        manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
+        apple = newAssignment("food.fruit:apple:1.0", "@prod:apple:1.0", testRepository);
+        banana = newAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:2.0-SNAPSHOT", testRepository);
+
     }
 
     @AfterMethod

@@ -11,13 +11,12 @@ import static org.testng.Assert.fail;
 public abstract class AbstractDeploymentManagerTest
 {
     protected DeploymentManager manager;
+    protected Assignment apple;
+    protected Assignment banana;
 
     @Test
     public void testStateMachine()
     {
-        Assignment apple = new Assignment("food.fruit:apple:1.0", "@prod:apple:1.0");
-        Assignment banana = new Assignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:2.0-SNAPSHOT");
-
         // no active deployment by default
         assertNull(manager.getActiveDeployment());
 

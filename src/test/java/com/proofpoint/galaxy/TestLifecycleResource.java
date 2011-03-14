@@ -21,12 +21,13 @@ import javax.ws.rs.core.UriInfo;
 
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 public class TestLifecycleResource
 {
-    private final Assignment assignment = new Assignment("pp:apple:1.0", "@prod:apple:1.0");
+    private final Assignment assignment = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/lifecycle");
     private LifecycleResource resource;
     private SlotManager slotManager;

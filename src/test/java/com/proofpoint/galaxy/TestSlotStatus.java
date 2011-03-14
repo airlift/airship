@@ -16,6 +16,7 @@ package com.proofpoint.galaxy;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static java.util.Arrays.asList;
 
 public class TestSlotStatus
@@ -30,28 +31,28 @@ public class TestSlotStatus
 
                 ),
                 asList(
-                        new SlotStatus("apple", new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0")), LifecycleState.RUNNING),
-                        new SlotStatus("apple", new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0")), LifecycleState.RUNNING)
+                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.RUNNING),
+                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.RUNNING)
 
                 ),
                 asList(
-                        new SlotStatus("banana", new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0")), LifecycleState.RUNNING),
-                        new SlotStatus("banana", new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0")), LifecycleState.RUNNING)
+                        new SlotStatus("banana", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.RUNNING),
+                        new SlotStatus("banana", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.RUNNING)
 
                 ),
                 asList(
-                        new SlotStatus("apple", new Assignment(BinarySpec.valueOf("fruit:apple:2.0"), ConfigSpec.valueOf("@prod:apple:1.0")), LifecycleState.RUNNING),
-                        new SlotStatus("apple", new Assignment(BinarySpec.valueOf("fruit:apple:2.0"), ConfigSpec.valueOf("@prod:apple:1.0")), LifecycleState.RUNNING)
+                        new SlotStatus("apple", newAssignment("fruit:apple:2.0", "@prod:apple:1.0"), LifecycleState.RUNNING),
+                        new SlotStatus("apple", newAssignment("fruit:apple:2.0", "@prod:apple:1.0"), LifecycleState.RUNNING)
 
                 ),
                 asList(
-                        new SlotStatus("apple", new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:2.0")), LifecycleState.RUNNING),
-                        new SlotStatus("apple", new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:2.0")), LifecycleState.RUNNING)
+                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:2.0"), LifecycleState.RUNNING),
+                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:2.0"), LifecycleState.RUNNING)
 
                 ),
                 asList(
-                        new SlotStatus("apple", new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0")), LifecycleState.STOPPED),
-                        new SlotStatus("apple", new Assignment(BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0")), LifecycleState.STOPPED)
+                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.STOPPED),
+                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.STOPPED)
 
                 )
         );

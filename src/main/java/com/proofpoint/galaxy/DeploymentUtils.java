@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.proofpoint.units.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -83,7 +84,7 @@ public class DeploymentUtils
                 .execute(executor);
     }
 
-    public static void extractTar(File tarFile, File targetDirectory)
+    public static void extractTar(File tarFile, File targetDirectory, Duration timeLimit)
             throws CommandFailedException
     {
         Preconditions.checkNotNull(tarFile, "tarFile is null");
@@ -92,7 +93,7 @@ public class DeploymentUtils
 
         new Command("tar", "zxf", tarFile.getAbsolutePath())
                 .setDirectory(targetDirectory)
-                .setTimeLimit(5, TimeUnit.MINUTES)
+                .setTimeLimit(timeLimit)
                 .execute(executor);
     }
 

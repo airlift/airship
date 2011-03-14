@@ -1,13 +1,34 @@
 package com.proofpoint.galaxy;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.io.File;
+import java.net.URI;
 
 import static com.proofpoint.galaxy.DeploymentUtils.createTar;
 import static com.proofpoint.galaxy.DeploymentUtils.createTempDir;
 import static com.proofpoint.galaxy.DeploymentUtils.deleteRecursively;
+import static com.proofpoint.galaxy.DeploymentUtils.toMavenRepositoryPath;
 
 public class RepositoryTestHelper
 {
+    private static final File DEFAULT_REPOSITORY_BASE = new File("src/test/repo");
+
+    public static Assignment newAssignment(String binary, String config)
+    {
+        return newAssignment(binary, config, DEFAULT_REPOSITORY_BASE);
+    }
+
+    public static Assignment newAssignment(String binary, String config, File repositoryBase)
+    {
+        BinarySpec binarySpec = BinarySpec.valueOf(binary);
+        ConfigSpec configSpec = ConfigSpec.valueOf(config);
+        URI binaryFile = toMavenRepositoryPath(repositoryBase.toURI(), binarySpec);
+        return new Assignment(binarySpec, binaryFile, configSpec, ImmutableMap.<String, URI>of());
+    }
+
+
+
     public static File createTestRepository()
             throws Exception
     {

@@ -35,10 +35,13 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import java.io.File;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static javax.ws.rs.core.Response.Status;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
@@ -57,19 +60,23 @@ public class TestServer
 
     private AgentManager agentManager;
 
+    private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
     private final JsonCodec<Map<String, Object>> mapCodec = new JsonCodecBuilder().build(new TypeLiteral<Map<String, Object>>() {});
     private final JsonCodec<List<Map<String, Object>>> listCodec = new JsonCodecBuilder().build(new TypeLiteral<List<Map<String, Object>>>() {});
 
-    private final Assignment appleAssignment = new Assignment("fruit:apple:1.0", "@prod:apple:1.0");
-    private final Assignment bananaAssignment = new Assignment("fruit:banana:1.0", "@prod:banana:1.0");
+    private Assignment appleAssignment;
+    private Assignment bananaAssignment;
+    private File tempDir;
+    private File testRepository;
 
 
     @BeforeClass
     public void startServer()
             throws Exception
     {
+        tempDir = DeploymentUtils.createTempDir("agent");
         Map<String, String> properties = ImmutableMap.<String, String>builder()
-                .put("agent.slots-dir", System.getProperty("java.io.tmpdir"))
+                .put("agent.slots-dir", tempDir.getAbsolutePath())
                 .build();
 
         Injector injector = Guice.createInjector(new TestingHttpServerModule(),
@@ -82,6 +89,17 @@ public class TestServer
 
         server.start();
         client = new AsyncHttpClient();
+
+        testRepository = RepositoryTestHelper.createTestRepository();
+        appleAssignment = newAssignment("apple", "1.0");
+        bananaAssignment = newAssignment("banana", "2.0-SNAPSHOT");
+    }
+
+    private Assignment newAssignment(String name, String binaryVersion)
+    {
+        BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:" + name + ":" + binaryVersion);
+        ConfigSpec configSpec = ConfigSpec.valueOf("@prod:" + name + ":1.0");
+        return new Assignment(binarySpec, DeploymentUtils.toMavenRepositoryPath(testRepository.toURI(), binarySpec), configSpec, ImmutableMap.<String, URI>of());
     }
 
     @BeforeMethod
@@ -103,6 +121,12 @@ public class TestServer
 
         if (client != null) {
             client.close();
+        }
+        if (tempDir != null) {
+            DeploymentUtils.deleteRecursively(tempDir);
+        }
+        if (testRepository != null) {
+            DeploymentUtils.deleteRecursively(testRepository);
         }
     }
 
@@ -221,7 +245,7 @@ public class TestServer
     {
         SlotManager slotManager = agentManager.addNewSlot();
 
-        String json = Resources.toString(Resources.getResource("assignment.json"), Charsets.UTF_8);
+        String json = assignmentCodec.toJson(AssignmentRepresentation.from(appleAssignment));
         Response response = client.preparePut(urlFor(slotManager) + "/assignment")
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
