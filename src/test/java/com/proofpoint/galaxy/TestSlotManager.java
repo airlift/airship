@@ -35,7 +35,8 @@ public class TestSlotManager
         // should start unassigned
         SlotStatus status = manager.status();
         assertEquals(status.getName(), "slot");
-        assertEquals(status.getAssignment(), null);
+        assertEquals(status.getBinary(), null);
+        assertEquals(status.getConfig(), null);
         assertEquals(status.getState(), UNASSIGNED);
 
         // lifecycle should fail when unassigned
@@ -73,7 +74,8 @@ public class TestSlotManager
         SlotStatus status = manager.assign(apple);
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
-        assertEquals(status.getAssignment(), apple);
+        assertEquals(status.getBinary(), apple.getBinary());
+        assertEquals(status.getConfig(), apple.getConfig());
         assertEquals(status.getState(), STOPPED);
         assertEquals(manager.status(), status);
 
@@ -81,7 +83,8 @@ public class TestSlotManager
         status = manager.assign(banana);
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
-        assertEquals(status.getAssignment(), banana);
+        assertEquals(status.getBinary(), banana.getBinary());
+        assertEquals(status.getConfig(), banana.getConfig());
         assertEquals(status.getState(), STOPPED);
         assertEquals(manager.status(), status);
 
@@ -89,7 +92,8 @@ public class TestSlotManager
         status = manager.clear();
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
-        assertEquals(status.getAssignment(), null);
+        assertEquals(status.getBinary(), null);
+        assertEquals(status.getConfig(), null);
         assertEquals(status.getState(), UNASSIGNED);
         assertEquals(manager.status(), status);
     }
@@ -99,8 +103,8 @@ public class TestSlotManager
             throws Exception
     {
         Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
-        SlotStatus running = new SlotStatus("slot", apple, RUNNING);
-        SlotStatus stopped = new SlotStatus("slot", apple, STOPPED);
+        SlotStatus running = new SlotStatus("slot", apple.getBinary(), apple.getConfig(), RUNNING);
+        SlotStatus stopped = new SlotStatus("slot", apple.getBinary(), apple.getConfig(), STOPPED);
         SlotStatus unassigned = new SlotStatus("slot");
 
         SlotManager manager = new SlotManager("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());

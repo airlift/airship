@@ -21,7 +21,8 @@ import javax.annotation.concurrent.Immutable;
 public class SlotStatus
 {
     private final String name;
-    private final Assignment assignment;
+    private final BinarySpec binary;
+    private final ConfigSpec config;
     private final LifecycleState state;
 
     public SlotStatus(String name)
@@ -29,18 +30,21 @@ public class SlotStatus
         Preconditions.checkNotNull(name, "name is null");
 
         this.name = name;
-        this.assignment = null;
+        this.binary = null;
+        this.config = null;
         this.state = LifecycleState.UNASSIGNED;
     }
 
-    public SlotStatus(String name, Assignment assignment, LifecycleState state)
+    public SlotStatus(String name, BinarySpec binary, ConfigSpec config, LifecycleState state)
     {
         Preconditions.checkNotNull(name, "name is null");
-        Preconditions.checkNotNull(assignment, "assignment is null");
+        Preconditions.checkNotNull(binary, "binary is null");
+        Preconditions.checkNotNull(config, "config is null");
         Preconditions.checkNotNull(state, "state is null");
 
         this.name = name;
-        this.assignment = assignment;
+        this.binary = binary;
+        this.config = config;
         this.state = state;
     }
 
@@ -49,9 +53,14 @@ public class SlotStatus
         return name;
     }
 
-    public Assignment getAssignment()
+    public BinarySpec getBinary()
     {
-        return assignment;
+        return binary;
+    }
+
+    public ConfigSpec getConfig()
+    {
+        return config;
     }
 
     public LifecycleState getState()
@@ -69,15 +78,18 @@ public class SlotStatus
             return false;
         }
 
-        SlotStatus slotStatus = (SlotStatus) o;
+        SlotStatus that = (SlotStatus) o;
 
-        if (assignment != null ? !assignment.equals(slotStatus.assignment) : slotStatus.assignment != null) {
+        if (binary != null ? !binary.equals(that.binary) : that.binary != null) {
             return false;
         }
-        if (!name.equals(slotStatus.name)) {
+        if (config != null ? !config.equals(that.config) : that.config != null) {
             return false;
         }
-        if (state != slotStatus.state) {
+        if (!name.equals(that.name)) {
+            return false;
+        }
+        if (state != that.state) {
             return false;
         }
 
@@ -88,8 +100,9 @@ public class SlotStatus
     public int hashCode()
     {
         int result = name.hashCode();
-        result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
-        result = 31 * result + (state != null ? state.hashCode() : 0);
+        result = 31 * result + (binary != null ? binary.hashCode() : 0);
+        result = 31 * result + (config != null ? config.hashCode() : 0);
+        result = 31 * result + state.hashCode();
         return result;
     }
 
@@ -97,9 +110,10 @@ public class SlotStatus
     public String toString()
     {
         final StringBuffer sb = new StringBuffer();
-        sb.append("Slot");
+        sb.append("SlotStatus");
         sb.append("{name='").append(name).append('\'');
-        sb.append(", assignment=").append(assignment);
+        sb.append(", binary=").append(binary);
+        sb.append(", config=").append(config);
         sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();

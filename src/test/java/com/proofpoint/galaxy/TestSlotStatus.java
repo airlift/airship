@@ -31,28 +31,68 @@ public class TestSlotStatus
 
                 ),
                 asList(
-                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.RUNNING),
-                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.RUNNING)
+                        new SlotStatus("apple",
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
+                                LifecycleState.RUNNING
+                        ),
+                        new SlotStatus("apple",
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
+                                LifecycleState.RUNNING
+                        )
 
                 ),
                 asList(
-                        new SlotStatus("banana", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.RUNNING),
-                        new SlotStatus("banana", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.RUNNING)
+                        new SlotStatus("banana",
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
+                                LifecycleState.RUNNING
+                        ),
+                        new SlotStatus("banana",
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
+                                LifecycleState.RUNNING
+                        )
 
                 ),
                 asList(
-                        new SlotStatus("apple", newAssignment("fruit:apple:2.0", "@prod:apple:1.0"), LifecycleState.RUNNING),
-                        new SlotStatus("apple", newAssignment("fruit:apple:2.0", "@prod:apple:1.0"), LifecycleState.RUNNING)
+                        new SlotStatus("apple",
+                                newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getBinary(),
+                                newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getConfig(),
+                                LifecycleState.RUNNING
+                        ),
+                        new SlotStatus("apple",
+                                newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getBinary(),
+                                newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getConfig(),
+                                LifecycleState.RUNNING
+                        )
 
                 ),
                 asList(
-                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:2.0"), LifecycleState.RUNNING),
-                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:2.0"), LifecycleState.RUNNING)
+                        new SlotStatus("apple",
+                                newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getBinary(),
+                                newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getConfig(),
+                                LifecycleState.RUNNING
+                        ),
+                        new SlotStatus("apple",
+                                newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getBinary(),
+                                newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getConfig(),
+                                LifecycleState.RUNNING
+                        )
 
                 ),
                 asList(
-                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.STOPPED),
-                        new SlotStatus("apple", newAssignment("fruit:apple:1.0", "@prod:apple:1.0"), LifecycleState.STOPPED)
+                        new SlotStatus("apple",
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
+                                LifecycleState.STOPPED
+                        ),
+                        new SlotStatus("apple",
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
+                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
+                                LifecycleState.STOPPED
+                        )
 
                 )
         );

@@ -52,7 +52,8 @@ public class TestAssignmentResource
         SlotManager slotManager = agentManager.addNewSlot();
 
         Assignment expectedAssignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
-        SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment, LifecycleState.STOPPED);
+        SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
+        );
 
         Response response = resource.assign(slotManager.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
@@ -83,7 +84,8 @@ public class TestAssignmentResource
         slotManager.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
 
         Assignment expectedAssignment = newAssignment("fruit:banana:1.0", "@prod:banana:1.0");
-        SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment, LifecycleState.STOPPED);
+        SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
+        );
 
         Response response = resource.assign(slotManager.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
