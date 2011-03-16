@@ -13,8 +13,12 @@
  */
 package com.proofpoint.galaxy;
 
+import java.util.UUID;
+
 public interface DeploymentManager
 {
+    UUID getSlotId();
+
     Deployment install(Assignment assignment);
 
     Deployment getActiveDeployment();

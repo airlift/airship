@@ -18,11 +18,13 @@ import com.google.common.base.Preconditions;
 import java.io.File;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MockDeploymentManager implements DeploymentManager
 {
     private final AtomicInteger nextId = new AtomicInteger(1);
+    private final UUID slotId = UUID.randomUUID();
     private final Map<String, Deployment> deployments = new TreeMap<String, Deployment>();
     private Deployment activeDeployment;
 
@@ -35,6 +37,11 @@ public class MockDeploymentManager implements DeploymentManager
         Deployment deployment = new Deployment(deploymentId, new File(deploymentId), assignment);
         deployments.put(deploymentId, deployment);
         return deployment;
+    }
+
+    public UUID getSlotId()
+    {
+        return slotId;
     }
 
     @Override

@@ -144,6 +144,7 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, Object> expected = mapCodec.fromJson(Resources.toString(Resources.getResource("slot-status.json"), Charsets.UTF_8));
+        expected.put("id", slot.getId().toString());
         expected.put("name", slot.getName());
         expected.put("self", urlFor(slot));
 
@@ -166,10 +167,10 @@ public class TestServer
     public void testGetAllSlotStatus()
             throws Exception
     {
-        Slot slotManager0 = agent.addNewSlot();
-        slotManager0.assign(appleAssignment);
-        Slot slotManager1 = agent.addNewSlot();
-        slotManager1.assign(bananaAssignment);
+        Slot slot0 = agent.addNewSlot();
+        slot0.assign(appleAssignment);
+        Slot slot1 = agent.addNewSlot();
+        slot1.assign(bananaAssignment);
 
         Response response = client.prepareGet(urlFor("/v1/slot")).execute().get();
 
@@ -177,10 +178,12 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         List<Map<String, Object>> expected = listCodec.fromJson(Resources.toString(Resources.getResource("slot-status-list.json"), Charsets.UTF_8));
-        expected.get(0).put("name", slotManager0.getName());
-        expected.get(0).put("self", urlFor(slotManager0));
-        expected.get(1).put("name", slotManager1.getName());
-        expected.get(1).put("self", urlFor(slotManager1));
+        expected.get(0).put("id", slot0.getId().toString());
+        expected.get(0).put("name", slot0.getName());
+        expected.get(0).put("self", urlFor(slot0));
+        expected.get(1).put("id", slot1.getId().toString());
+        expected.get(1).put("name", slot1.getName());
+        expected.get(1).put("self", urlFor(slot1));
 
         List<Map<String, Object>> actual = listCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -193,7 +196,7 @@ public class TestServer
         Response response = client.preparePost(urlFor("/v1/slot")).execute().get();
         assertEquals(response.getStatusCode(), Status.CREATED.getStatusCode());
 
-        // find the new slot manager
+        // find the new slot
         Slot slot = agent.getAllSlots().iterator().next();
 
         assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/slot/").resolve(slot.getName()).toString());
@@ -257,6 +260,7 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
+                .put("id", slot.getId().toString())
                 .put("name", slot.getName())
                 .put("binary", appleAssignment.getBinary().toString())
                 .put("config", appleAssignment.getConfig().toString())
@@ -280,6 +284,7 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
+                .put("id", slot.getId().toString())
                 .put("name", slot.getName())
                 .put("self", urlFor(slot))
                 .put("status", UNASSIGNED.toString())
@@ -305,6 +310,7 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
+                .put("id", slot.getId().toString())
                 .put("name", slot.getName())
                 .put("binary", appleAssignment.getBinary().toString())
                 .put("config", appleAssignment.getConfig().toString())
@@ -333,6 +339,7 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
+                .put("id", slot.getId().toString())
                 .put("name", slot.getName())
                 .put("binary", appleAssignment.getBinary().toString())
                 .put("config", appleAssignment.getConfig().toString())
@@ -360,6 +367,7 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
+                .put("id", slot.getId().toString())
                 .put("name", slot.getName())
                 .put("binary", appleAssignment.getBinary().toString())
                 .put("config", appleAssignment.getConfig().toString())

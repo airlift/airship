@@ -16,36 +16,47 @@ package com.proofpoint.galaxy;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.Immutable;
+import java.util.UUID;
 
 @Immutable
 public class SlotStatus
 {
+    private final UUID id;
     private final String name;
     private final BinarySpec binary;
     private final ConfigSpec config;
     private final LifecycleState state;
 
-    public SlotStatus(String name)
+    public SlotStatus(UUID id, String name)
     {
+        Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
 
+        this.id = id;
         this.name = name;
         this.binary = null;
         this.config = null;
         this.state = LifecycleState.UNASSIGNED;
     }
 
-    public SlotStatus(String name, BinarySpec binary, ConfigSpec config, LifecycleState state)
+    public SlotStatus(UUID id, String name, BinarySpec binary, ConfigSpec config, LifecycleState state)
     {
+        Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(binary, "binary is null");
         Preconditions.checkNotNull(config, "config is null");
         Preconditions.checkNotNull(state, "state is null");
 
+        this.id = id;
         this.name = name;
         this.binary = binary;
         this.config = config;
         this.state = state;
+    }
+
+    public UUID getId()
+    {
+        return id;
     }
 
     public String getName()
@@ -86,6 +97,9 @@ public class SlotStatus
         if (config != null ? !config.equals(that.config) : that.config != null) {
             return false;
         }
+        if (!id.equals(that.id)) {
+            return false;
+        }
         if (!name.equals(that.name)) {
             return false;
         }
@@ -99,10 +113,11 @@ public class SlotStatus
     @Override
     public int hashCode()
     {
-        int result = name.hashCode();
+        int result = id.hashCode();
+        result = 31 * result + name.hashCode();
         result = 31 * result + (binary != null ? binary.hashCode() : 0);
         result = 31 * result + (config != null ? config.hashCode() : 0);
-        result = 31 * result + state.hashCode();
+        result = 31 * result + (state != null ? state.hashCode() : 0);
         return result;
     }
 
@@ -111,7 +126,8 @@ public class SlotStatus
     {
         final StringBuffer sb = new StringBuffer();
         sb.append("SlotStatus");
-        sb.append("{name='").append(name).append('\'');
+        sb.append("{id=").append(id);
+        sb.append(", name='").append(name).append('\'');
         sb.append(", binary=").append(binary);
         sb.append(", config=").append(config);
         sb.append(", state=").append(state);

@@ -14,17 +14,24 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.google.common.base.Charsets.UTF_8;
 
 public class Slot
 {
     private static final Logger log = Logger.get(Slot.class);
 
+    private final UUID id;
     private final String name;
     private final Duration lockWait;
     private final DeploymentManager deploymentManager;
@@ -46,6 +53,12 @@ public class Slot
         this.lifecycleManager = lifecycleManager;
 
         lockWait = config.getMaxLockWait();
+        id = deploymentManager.getSlotId();
+    }
+
+    public UUID getId()
+    {
+        return id;
     }
 
     public String getName()
@@ -80,7 +93,7 @@ public class Slot
             // todo should this be done after the lock is released
             // @event_dispatcher.dispatch_become_success_event status
             // announce
-            return new SlotStatus(name, assignment.getBinary(), assignment.getConfig(), LifecycleState.STOPPED);
+            return new SlotStatus(id, name, assignment.getBinary(), assignment.getConfig(), LifecycleState.STOPPED);
         }
         finally {
             lock.unlock();
@@ -93,7 +106,7 @@ public class Slot
         try {
             Deployment activeDeployment = deploymentManager.getActiveDeployment();
             if (activeDeployment == null) {
-                return new SlotStatus(name);
+                return new SlotStatus(id, name);
             }
 
             // Stop server
@@ -104,7 +117,7 @@ public class Slot
 
             // remove deployment
             deploymentManager.remove(activeDeployment.getDeploymentId());
-            return new SlotStatus(name);
+            return new SlotStatus(id, name);
         }
         finally {
             lock.unlock();
@@ -117,11 +130,11 @@ public class Slot
         try {
             Deployment activeDeployment = deploymentManager.getActiveDeployment();
             if (activeDeployment == null) {
-                return new SlotStatus(name);
+                return new SlotStatus(id, name);
             }
 
             LifecycleState state = lifecycleManager.status(activeDeployment);
-            return new SlotStatus(name, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
+            return new SlotStatus(id, name, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
         }
         finally {
             lock.unlock();
@@ -137,7 +150,7 @@ public class Slot
                 throw new IllegalStateException("Slot can not be started because the slot is not assigned");
             }
             LifecycleState state = lifecycleManager.start(activeDeployment);
-            return new SlotStatus(name, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
+            return new SlotStatus(id, name, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
         }
         finally {
             lock.unlock();
@@ -153,7 +166,7 @@ public class Slot
                 throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
             }
             LifecycleState state = lifecycleManager.restart(activeDeployment);
-            return new SlotStatus(name, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
+            return new SlotStatus(id, name, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
         }
         finally {
             lock.unlock();
@@ -169,7 +182,7 @@ public class Slot
                 throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
             }
             LifecycleState state = lifecycleManager.stop(activeDeployment);
-            return new SlotStatus(name, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
+            return new SlotStatus(id, name, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
         }
         finally {
             lock.unlock();
@@ -185,5 +198,41 @@ public class Slot
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Slot slot = (Slot) o;
+
+        if (!id.equals(slot.id)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("Slot");
+        sb.append("{slotId=").append(id);
+        sb.append(", name='").append(name).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

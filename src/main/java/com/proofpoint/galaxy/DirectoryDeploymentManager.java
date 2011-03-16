@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +30,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
     private static final Logger log = Logger.get(DirectoryDeploymentManager.class);
     private final JsonCodec<DeploymentRepresentation> jsonCodec = new JsonCodecBuilder().prettyPrint().build(DeploymentRepresentation.class);
 
+    private final UUID slotId;
     private final Duration tarTimeout;
     private final File baseDir;
 
@@ -93,6 +95,45 @@ public class DirectoryDeploymentManager implements DeploymentManager
                 Preconditions.checkArgument(activeDeploymentFile.canRead(), "can not read " + activeDeploymentFile.getAbsolutePath());
             }
         }
+
+        File slotIdFile = new File(baseDir, "galaxy-slot-id.txt");
+        UUID uuid = null;
+        if (slotIdFile.exists()) {
+            Preconditions.checkArgument(slotIdFile.canRead(), "can not read " + slotIdFile.getAbsolutePath());
+            try {
+                String slotIdString = Files.toString(slotIdFile, UTF_8).trim();
+                try {
+                    uuid = UUID.fromString(slotIdString);
+                }
+                catch (IllegalArgumentException e) {
+
+                }
+                if (uuid == null) {
+                    log.warn("Invalid slot id [" + slotIdString + "]: attempting to delete galaxy-slot-id.txt file and recreating a new one");
+                    slotIdFile.delete();
+                }
+            }
+            catch (IOException e) {
+                Preconditions.checkArgument(slotIdFile.canRead(), "can not read " + slotIdFile.getAbsolutePath());
+            }
+        }
+
+        if (uuid == null) {
+            uuid = UUID.randomUUID();
+            try {
+                Files.write(uuid.toString(), slotIdFile, UTF_8);
+            }
+            catch (IOException e) {
+                Preconditions.checkArgument(slotIdFile.canRead(), "can not write " + slotIdFile.getAbsolutePath());
+            }
+        }
+        slotId = uuid;
+    }
+
+    @Override
+    public UUID getSlotId()
+    {
+        return slotId;
     }
 
     @Override

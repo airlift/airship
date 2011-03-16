@@ -103,40 +103,40 @@ public class TestSlot
             throws Exception
     {
         Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
-        SlotStatus running = new SlotStatus("slot", apple.getBinary(), apple.getConfig(), RUNNING);
-        SlotStatus stopped = new SlotStatus("slot", apple.getBinary(), apple.getConfig(), STOPPED);
-        SlotStatus unassigned = new SlotStatus("slot");
 
-        Slot manager = new Slot("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot slot = new Slot("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
+        SlotStatus running = new SlotStatus(slot.getId(), slot.getName(), apple.getBinary(), apple.getConfig(), RUNNING);
+        SlotStatus stopped = new SlotStatus(slot.getId(), slot.getName(), apple.getBinary(), apple.getConfig(), STOPPED);
+        SlotStatus unassigned = new SlotStatus(slot.getId(), slot.getName());
 
         // default state is unassigned
-        assertEquals(manager.status(), unassigned);
+        assertEquals(slot.status(), unassigned);
 
         // assign => stopped
-        assertEquals(manager.assign(apple), stopped);
+        assertEquals(slot.assign(apple), stopped);
 
         // stopped.start => running
-        assertEquals(manager.start(), running);
-        assertEquals(manager.status(), running);
+        assertEquals(slot.start(), running);
+        assertEquals(slot.status(), running);
 
         // running.start => running
-        assertEquals(manager.start(), running);
-        assertEquals(manager.status(), running);
+        assertEquals(slot.start(), running);
+        assertEquals(slot.status(), running);
 
         // running.stop => stopped
-        assertEquals(manager.stop(), stopped);
-        assertEquals(manager.status(), stopped);
+        assertEquals(slot.stop(), stopped);
+        assertEquals(slot.status(), stopped);
 
         // stopped.stop => stopped
-        assertEquals(manager.stop(), stopped);
-        assertEquals(manager.status(), stopped);
+        assertEquals(slot.stop(), stopped);
+        assertEquals(slot.status(), stopped);
 
         // stopped.restart => running
-        assertEquals(manager.restart(), running);
-        assertEquals(manager.status(), running);
+        assertEquals(slot.restart(), running);
+        assertEquals(slot.status(), running);
 
         // running.restart => running
-        assertEquals(manager.restart(), running);
-        assertEquals(manager.status(), running);
+        assertEquals(slot.restart(), running);
+        assertEquals(slot.status(), running);
     }
 }

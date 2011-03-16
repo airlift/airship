@@ -21,10 +21,12 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.net.URI;
+import java.util.UUID;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class SlotStatusRepresentation
 {
+    private final UUID id;
     private final String name;
     private final String binary;
     private final String config;
@@ -35,14 +37,15 @@ public class SlotStatusRepresentation
     {
         URI self = getSelfUri(slotStatus.getName(), baseUri);
         if (slotStatus.getBinary() != null) {
-            return new SlotStatusRepresentation(slotStatus.getName(),
+            return new SlotStatusRepresentation(slotStatus.getId(),
+                    slotStatus.getName(),
                     slotStatus.getBinary().toString(),
                     slotStatus.getConfig().toString(),
                     slotStatus.getState().toString(),
                     self);
         }
         else {
-            return new SlotStatusRepresentation(slotStatus.getName(), null, null, slotStatus.getState().toString(), self);
+            return new SlotStatusRepresentation(slotStatus.getId(), slotStatus.getName(), null, null, slotStatus.getState().toString(), self);
         }
     }
 
@@ -52,18 +55,26 @@ public class SlotStatusRepresentation
     }
 
     @JsonCreator
-    public SlotStatusRepresentation(@JsonProperty("name") String name, @JsonProperty("binary") String binary, @JsonProperty("config") String config)
+    public SlotStatusRepresentation(@JsonProperty("id") UUID id, @JsonProperty("name") String name, @JsonProperty("binary") String binary, @JsonProperty("config") String config)
     {
-        this(name, binary, config, null, null);
+        this(id, name, binary, config, null, null);
     }
 
-    public SlotStatusRepresentation(String name, String binary, String config, String status, URI self)
+    public SlotStatusRepresentation(UUID id, String name, String binary, String config, String status, URI self)
     {
+        this.id = id;
         this.name = name;
         this.binary = binary;
         this.config = config;
         this.status = status;
         this.self = self;
+    }
+
+    @JsonProperty
+    @NotNull(message = "is missing")
+    public UUID getId()
+    {
+        return id;
     }
 
     @JsonProperty
@@ -104,12 +115,13 @@ public class SlotStatusRepresentation
     public SlotStatus toSlotStatus()
     {
         if (binary != null) {
-            return new SlotStatus(name, BinarySpec.valueOf(binary), ConfigSpec.valueOf(config), LifecycleState.valueOf(status));
+            return new SlotStatus(id, name, BinarySpec.valueOf(binary), ConfigSpec.valueOf(config), LifecycleState.valueOf(status));
         }
         else {
-            return new SlotStatus(name);
+            return new SlotStatus(id, name);
         }
     }
+
     @Override
     public boolean equals(Object o)
     {
@@ -128,6 +140,9 @@ public class SlotStatusRepresentation
         if (config != null ? !config.equals(that.config) : that.config != null) {
             return false;
         }
+        if (id != null ? !id.equals(that.id) : that.id != null) {
+            return false;
+        }
         if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
         }
@@ -144,7 +159,8 @@ public class SlotStatusRepresentation
     @Override
     public int hashCode()
     {
-        int result = name != null ? name.hashCode() : 0;
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (binary != null ? binary.hashCode() : 0);
         result = 31 * result + (config != null ? config.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
@@ -156,8 +172,9 @@ public class SlotStatusRepresentation
     public String toString()
     {
         final StringBuffer sb = new StringBuffer();
-        sb.append("SlotRepresentation");
-        sb.append("{name='").append(name).append('\'');
+        sb.append("SlotStatusRepresentation");
+        sb.append("{id=").append(id);
+        sb.append(", name='").append(name).append('\'');
         sb.append(", binary='").append(binary).append('\'');
         sb.append(", config='").append(config).append('\'');
         sb.append(", status='").append(status).append('\'');

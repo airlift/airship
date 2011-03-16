@@ -42,8 +42,8 @@ public class TestAnnounceResource
     {
         store = new Console();
         resource = new AnnounceResource(store);
-        fooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus("foo")));
-        barAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus("bar")));
+        fooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo")));
+        barAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "bar")));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class TestAnnounceResource
     public void testUpdateAgentStatus()
     {
         store.updateAgentStatus(fooAgent);
-        AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus("foo"), new SlotStatus("moo")));
+        AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo"), new SlotStatus(UUID.randomUUID(), "moo")));
 
         Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, uriInfo.getBaseUri()), uriInfo);
 

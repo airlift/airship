@@ -16,6 +16,8 @@ package com.proofpoint.galaxy;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
+import java.util.UUID;
+
 import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static java.util.Arrays.asList;
 
@@ -24,19 +26,26 @@ public class TestSlotStatus
     @Test
     public void testEquivalence()
     {
+        UUID appleId = UUID.randomUUID();
+        UUID bananaId = UUID.randomUUID();
         EquivalenceTester.check(
                 asList(
-                        new SlotStatus("apple"),
-                        new SlotStatus("apple")
+                        new SlotStatus(appleId, "apple"),
+                        new SlotStatus(appleId, "apple")
 
                 ),
                 asList(
-                        new SlotStatus("apple",
+                        new SlotStatus(bananaId, "apple"),
+                        new SlotStatus(bananaId, "apple")
+
+                ),
+                asList(
+                        new SlotStatus(appleId, "apple",
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
                                 LifecycleState.RUNNING
                         ),
-                        new SlotStatus("apple",
+                        new SlotStatus(appleId, "apple",
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
                                 LifecycleState.RUNNING
@@ -44,12 +53,12 @@ public class TestSlotStatus
 
                 ),
                 asList(
-                        new SlotStatus("banana",
+                        new SlotStatus(bananaId, "banana",
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
                                 LifecycleState.RUNNING
                         ),
-                        new SlotStatus("banana",
+                        new SlotStatus(bananaId, "banana",
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
                                 LifecycleState.RUNNING
@@ -57,12 +66,12 @@ public class TestSlotStatus
 
                 ),
                 asList(
-                        new SlotStatus("apple",
+                        new SlotStatus(appleId, "apple",
                                 newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getBinary(),
                                 newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getConfig(),
                                 LifecycleState.RUNNING
                         ),
-                        new SlotStatus("apple",
+                        new SlotStatus(appleId, "apple",
                                 newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getBinary(),
                                 newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getConfig(),
                                 LifecycleState.RUNNING
@@ -70,12 +79,12 @@ public class TestSlotStatus
 
                 ),
                 asList(
-                        new SlotStatus("apple",
+                        new SlotStatus(appleId, "apple",
                                 newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getBinary(),
                                 newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getConfig(),
                                 LifecycleState.RUNNING
                         ),
-                        new SlotStatus("apple",
+                        new SlotStatus(appleId, "apple",
                                 newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getBinary(),
                                 newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getConfig(),
                                 LifecycleState.RUNNING
@@ -83,12 +92,12 @@ public class TestSlotStatus
 
                 ),
                 asList(
-                        new SlotStatus("apple",
+                        new SlotStatus(appleId, "apple",
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
                                 LifecycleState.STOPPED
                         ),
-                        new SlotStatus("apple",
+                        new SlotStatus(appleId, "apple",
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
                                 newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
                                 LifecycleState.STOPPED

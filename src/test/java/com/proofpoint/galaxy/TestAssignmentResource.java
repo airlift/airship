@@ -52,8 +52,7 @@ public class TestAssignmentResource
         Slot slot = agent.addNewSlot();
 
         Assignment expectedAssignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
-        SlotStatus expectedStatus = new SlotStatus(slot.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
-        );
+        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED);
 
         Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
@@ -84,7 +83,7 @@ public class TestAssignmentResource
         slot.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
 
         Assignment expectedAssignment = newAssignment("fruit:banana:1.0", "@prod:banana:1.0");
-        SlotStatus expectedStatus = new SlotStatus(slot.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
+        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
         );
 
         Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
@@ -101,7 +100,7 @@ public class TestAssignmentResource
     {
         Slot slot = agent.addNewSlot();
         slot.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
-        SlotStatus expectedStatus = new SlotStatus(slot.getName());
+        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName());
 
         Response response = resource.clear(slot.getName(), uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
