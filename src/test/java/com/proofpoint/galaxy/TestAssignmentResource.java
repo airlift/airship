@@ -49,19 +49,19 @@ public class TestAssignmentResource
     @Test
     public void testAssign()
     {
-        SlotManager slotManager = agent.addNewSlot();
+        Slot slot = agent.addNewSlot();
 
         Assignment expectedAssignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
-        SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
+        SlotStatus expectedStatus = new SlotStatus(slot.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
         );
 
-        Response response = resource.assign(slotManager.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
+        Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
-        assertEquals(slotManager.status(), expectedStatus);
+        assertEquals(slot.status(), expectedStatus);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -73,42 +73,42 @@ public class TestAssignmentResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testAssignNullAssignment()
     {
-        SlotManager slotManager = agent.addNewSlot();
-        resource.assign(slotManager.getName(), null, uriInfo);
+        Slot slot = agent.addNewSlot();
+        resource.assign(slot.getName(), null, uriInfo);
     }
 
     @Test
     public void testReplaceAssignment()
     {
-        SlotManager slotManager = agent.addNewSlot();
-        slotManager.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
+        Slot slot = agent.addNewSlot();
+        slot.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
 
         Assignment expectedAssignment = newAssignment("fruit:banana:1.0", "@prod:banana:1.0");
-        SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
+        SlotStatus expectedStatus = new SlotStatus(slot.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
         );
 
-        Response response = resource.assign(slotManager.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
+        Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
-        assertEquals(slotManager.status(), expectedStatus);
+        assertEquals(slot.status(), expectedStatus);
     }
 
     @Test
     public void testClear()
     {
-        SlotManager slotManager = agent.addNewSlot();
-        slotManager.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
-        SlotStatus expectedStatus = new SlotStatus(slotManager.getName());
+        Slot slot = agent.addNewSlot();
+        slot.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
+        SlotStatus expectedStatus = new SlotStatus(slot.getName());
 
-        Response response = resource.clear(slotManager.getName(), uriInfo);
+        Response response = resource.clear(slot.getName(), uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
-        assertEquals(slotManager.status(), expectedStatus);
+        assertEquals(slot.status(), expectedStatus);
     }
 
     @Test

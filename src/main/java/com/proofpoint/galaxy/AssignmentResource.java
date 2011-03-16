@@ -55,8 +55,8 @@ public class AssignmentResource
         Preconditions.checkNotNull(slotName, "slotName must not be null");
         Preconditions.checkNotNull(assignment, "assignment must not be null");
 
-        SlotManager slotManager = agent.getSlot(slotName);
-        if (slotManager == null) {
+        Slot slot = agent.getSlot(slotName);
+        if (slot == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }
 
@@ -67,7 +67,7 @@ public class AssignmentResource
                     .build();
         }
 
-        SlotStatus status = slotManager.assign(assignment.toAssignment());
+        SlotStatus status = slot.assign(assignment.toAssignment());
         return Response.ok(SlotStatusRepresentation.from(status, uriInfo.getBaseUri())).build();
     }
 
@@ -78,12 +78,12 @@ public class AssignmentResource
     {
         Preconditions.checkNotNull(slotName, "slotName must not be null");
 
-        SlotManager slotManager = agent.getSlot(slotName);
-        if (slotManager == null) {
+        Slot slot = agent.getSlot(slotName);
+        if (slot == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        SlotStatus status = slotManager.clear();
+        SlotStatus status = slot.clear();
         return Response.ok(SlotStatusRepresentation.from(status, uriInfo.getBaseUri())).build();
     }
 

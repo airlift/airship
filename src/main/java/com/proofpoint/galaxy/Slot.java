@@ -21,9 +21,9 @@ import com.proofpoint.units.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SlotManager
+public class Slot
 {
-    private static final Logger log = Logger.get(SlotManager.class);
+    private static final Logger log = Logger.get(Slot.class);
 
     private final String name;
     private final Duration lockWait;
@@ -34,7 +34,7 @@ public class SlotManager
 
 
     @Inject
-    public SlotManager(String name, AgentConfig config, DeploymentManager deploymentManager, LifecycleManager lifecycleManager)
+    public Slot(String name, AgentConfig config, DeploymentManager deploymentManager, LifecycleManager lifecycleManager)
     {
         Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(config, "config is null");

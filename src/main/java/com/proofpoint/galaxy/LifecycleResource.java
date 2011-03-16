@@ -45,20 +45,20 @@ public class LifecycleResource
         Preconditions.checkNotNull(slotName, "slotName must not be null");
         Preconditions.checkNotNull(newState, "newState must not be null");
 
-        SlotManager slotManager = agent.getSlot(slotName);
-        if (slotManager == null) {
+        Slot slot = agent.getSlot(slotName);
+        if (slot == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }
 
         SlotStatus status;
         if ("start".equals(newState)) {
-            status = slotManager.start();
+            status = slot.start();
         }
         else if ("restart".equals(newState)) {
-            status = slotManager.restart();
+            status = slot.restart();
         }
         else if ("stop".equals(newState)) {
-            status = slotManager.stop();
+            status = slot.stop();
         }
         else {
             return Response.status(Response.Status.BAD_REQUEST).build();

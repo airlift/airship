@@ -45,12 +45,12 @@ public class TestSlotResource
     @Test
     public void testGetSlotStatus()
     {
-        SlotManager slotManager = agent.addNewSlot();
+        Slot slot = agent.addNewSlot();
 
-        URI requestUri = URI.create("http://localhost/v1/slot/" + slotManager.getName());
-        Response response = resource.getSlotStatus(slotManager.getName(), MockUriInfo.from(requestUri));
+        URI requestUri = URI.create("http://localhost/v1/slot/" + slot.getName());
+        Response response = resource.getSlotStatus(slot.getName(), MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(slotManager.status(), uriInfo.getBaseUri()));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(slot.status(), uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -79,8 +79,8 @@ public class TestSlotResource
     @Test
     public void testGetAllSlotStatus()
     {
-        SlotManager slotManager1 = agent.addNewSlot();
-        SlotManager slotManager2 = agent.addNewSlot();
+        Slot slotManager1 = agent.addNewSlot();
+        Slot slotManager2 = agent.addNewSlot();
 
         Response response = resource.getAllSlotsStatus(uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
@@ -97,10 +97,10 @@ public class TestSlotResource
         Response response = resource.addSlot(uriInfo);
 
         // find the new slot manager
-        SlotManager slotManager = agent.getAllSlots().iterator().next();
+        Slot slot = agent.getAllSlots().iterator().next();
 
         assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
-        assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/slot/" + slotManager.getName()));
+        assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/slot/" + slot.getName()));
 
         assertNull(response.getEntity());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
@@ -109,13 +109,13 @@ public class TestSlotResource
     @Test
     public void testRemoveSlot()
     {
-        SlotManager slotManager = agent.addNewSlot();
+        Slot slot = agent.addNewSlot();
 
-        Response response = resource.removeSlot(slotManager.getName());
+        Response response = resource.removeSlot(slot.getName());
         assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
         assertNull(response.getEntity());
 
-        assertNull(agent.getSlot(slotManager.getName()));
+        assertNull(agent.getSlot(slot.getName()));
     }
 
     @Test

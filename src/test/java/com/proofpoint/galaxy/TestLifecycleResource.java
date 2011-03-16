@@ -30,7 +30,7 @@ public class TestLifecycleResource
     private final Assignment assignment = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/lifecycle");
     private LifecycleResource resource;
-    private SlotManager slotManager;
+    private Slot slot;
 
     @BeforeMethod
     public void setup()
@@ -39,8 +39,8 @@ public class TestLifecycleResource
         Agent agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());
-        slotManager = agent.addNewSlot();
-        slotManager.assign(assignment);
+        slot = agent.addNewSlot();
+        slot.assign(assignment);
         resource = new LifecycleResource(agent);
     }
 
@@ -49,31 +49,31 @@ public class TestLifecycleResource
     {
 
         // default state is stopped
-        assertEquals(slotManager.status().getState(), STOPPED);
+        assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.start => running
-        assertOkResponse(resource.setState(slotManager.getName(), "start", uriInfo), RUNNING);
-        assertEquals(slotManager.status().getState(), RUNNING);
+        assertOkResponse(resource.setState(slot.getName(), "start", uriInfo), RUNNING);
+        assertEquals(slot.status().getState(), RUNNING);
 
         // running.start => running
-        assertOkResponse(resource.setState(slotManager.getName(), "start", uriInfo), RUNNING);
-        assertEquals(slotManager.status().getState(), RUNNING);
+        assertOkResponse(resource.setState(slot.getName(), "start", uriInfo), RUNNING);
+        assertEquals(slot.status().getState(), RUNNING);
 
         // running.stop => stopped
-        assertOkResponse(resource.setState(slotManager.getName(), "stop", uriInfo), STOPPED);
-        assertEquals(slotManager.status().getState(), STOPPED);
+        assertOkResponse(resource.setState(slot.getName(), "stop", uriInfo), STOPPED);
+        assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.stop => stopped
-        assertOkResponse(resource.setState(slotManager.getName(), "stop", uriInfo), STOPPED);
-        assertEquals(slotManager.status().getState(), STOPPED);
+        assertOkResponse(resource.setState(slot.getName(), "stop", uriInfo), STOPPED);
+        assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.restart => running
-        assertOkResponse(resource.setState(slotManager.getName(), "restart", uriInfo), RUNNING);
-        assertEquals(slotManager.status().getState(), RUNNING);
+        assertOkResponse(resource.setState(slot.getName(), "restart", uriInfo), RUNNING);
+        assertEquals(slot.status().getState(), RUNNING);
 
         // running.restart => running
-        assertOkResponse(resource.setState(slotManager.getName(), "restart", uriInfo), RUNNING);
-        assertEquals(slotManager.status().getState(), RUNNING);
+        assertOkResponse(resource.setState(slot.getName(), "restart", uriInfo), RUNNING);
+        assertEquals(slot.status().getState(), RUNNING);
     }
 
     @Test
@@ -86,7 +86,7 @@ public class TestLifecycleResource
     @Test
     public void testSetStateUnknownState()
     {
-        Response response = resource.setState(slotManager.getName(), "unknown", uriInfo);
+        Response response = resource.setState(slot.getName(), "unknown", uriInfo);
         assertEquals(response.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertNull(response.getEntity());
     }
@@ -100,13 +100,13 @@ public class TestLifecycleResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetStateNullState()
     {
-        resource.setState(slotManager.getName(), null, uriInfo);
+        resource.setState(slot.getName(), null, uriInfo);
     }
 
     private void assertOkResponse(Response response, LifecycleState state)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(new SlotStatus(slotManager.getName(), assignment.getBinary(), assignment.getConfig(), state),
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(new SlotStatus(slot.getName(), assignment.getBinary(), assignment.getConfig(), state),
                 uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }

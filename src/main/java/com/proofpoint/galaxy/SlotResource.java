@@ -47,8 +47,8 @@ public class SlotResource
     @POST
     public Response addSlot(@Context UriInfo uriInfo)
     {
-        SlotManager slotManager = agent.addNewSlot();
-        return Response.created(getSelfUri(slotManager.getName(), uriInfo.getBaseUri())).build();
+        Slot slot = agent.addNewSlot();
+        return Response.created(getSelfUri(slot.getName(), uriInfo.getBaseUri())).build();
     }
 
     @Path("{slotName: [a-z0-9]+}")
@@ -71,12 +71,12 @@ public class SlotResource
     {
         Preconditions.checkNotNull(slotName, "slotName must not be null");
 
-        SlotManager slotManager = agent.getSlot(slotName);
-        if (slotManager == null) {
+        Slot slot = agent.getSlot(slotName);
+        if (slot == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }
 
-        SlotStatus slotStatus = slotManager.status();
+        SlotStatus slotStatus = slot.status();
         return Response.ok(SlotStatusRepresentation.from(slotStatus, uriInfo.getBaseUri())).build();
     }
 
@@ -85,8 +85,8 @@ public class SlotResource
     public Response getAllSlotsStatus(@Context UriInfo uriInfo)
     {
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
-        for (SlotManager slotManager : agent.getAllSlots()) {
-            SlotStatus slotStatus = slotManager.status();
+        for (Slot slot : agent.getAllSlots()) {
+            SlotStatus slotStatus = slot.status();
             representations.add(SlotStatusRepresentation.from(slotStatus, uriInfo.getBaseUri()));
         }
         return Response.ok(representations).build();

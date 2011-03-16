@@ -106,8 +106,8 @@ public class TestServer
     @BeforeMethod
     public void resetState()
     {
-        for (SlotManager slotManager : agent.getAllSlots()) {
-            agent.deleteSlot(slotManager.getName());
+        for (Slot slot : agent.getAllSlots()) {
+            agent.deleteSlot(slot.getName());
         }
         assertTrue(agent.getAllSlots().isEmpty());
     }
@@ -135,17 +135,17 @@ public class TestServer
     public void testGetSlotStatus()
             throws Exception
     {
-        SlotManager slotManager = agent.addNewSlot();
-        slotManager.assign(appleAssignment);
+        Slot slot = agent.addNewSlot();
+        slot.assign(appleAssignment);
 
-        Response response = client.prepareGet(urlFor("/v1/slot/" + slotManager.getName())).execute().get();
+        Response response = client.prepareGet(urlFor("/v1/slot/" + slot.getName())).execute().get();
 
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, Object> expected = mapCodec.fromJson(Resources.toString(Resources.getResource("slot-status.json"), Charsets.UTF_8));
-        expected.put("name", slotManager.getName());
-        expected.put("self", urlFor(slotManager));
+        expected.put("name", slot.getName());
+        expected.put("self", urlFor(slot));
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
         assertEquals(actual, expected);
@@ -166,9 +166,9 @@ public class TestServer
     public void testGetAllSlotStatus()
             throws Exception
     {
-        SlotManager slotManager0 = agent.addNewSlot();
+        Slot slotManager0 = agent.addNewSlot();
         slotManager0.assign(appleAssignment);
-        SlotManager slotManager1 = agent.addNewSlot();
+        Slot slotManager1 = agent.addNewSlot();
         slotManager1.assign(bananaAssignment);
 
         Response response = client.prepareGet(urlFor("/v1/slot")).execute().get();
@@ -194,9 +194,9 @@ public class TestServer
         assertEquals(response.getStatusCode(), Status.CREATED.getStatusCode());
 
         // find the new slot manager
-        SlotManager slotManager = agent.getAllSlots().iterator().next();
+        Slot slot = agent.getAllSlots().iterator().next();
 
-        assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/slot/").resolve(slotManager.getName()).toString());
+        assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/slot/").resolve(slot.getName()).toString());
     }
 
 
@@ -204,14 +204,14 @@ public class TestServer
     public void testRemoveSlot()
             throws Exception
     {
-        SlotManager slotManager = agent.addNewSlot();
-        slotManager.assign(appleAssignment);
+        Slot slot = agent.addNewSlot();
+        slot.assign(appleAssignment);
 
-        Response response = client.prepareDelete(urlFor("/v1/slot/" + slotManager.getName())).execute().get();
+        Response response = client.prepareDelete(urlFor("/v1/slot/" + slot.getName())).execute().get();
 
         assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
 
-        assertNull(agent.getSlot(slotManager.getName()));
+        assertNull(agent.getSlot(slot.getName()));
     }
 
     @Test
@@ -244,10 +244,10 @@ public class TestServer
     public void testAssign()
             throws Exception
     {
-        SlotManager slotManager = agent.addNewSlot();
+        Slot slot = agent.addNewSlot();
 
         String json = assignmentCodec.toJson(AssignmentRepresentation.from(appleAssignment));
-        Response response = client.preparePut(urlFor(slotManager) + "/assignment")
+        Response response = client.preparePut(urlFor(slot) + "/assignment")
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .execute()
@@ -257,10 +257,10 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("name", slotManager.getName())
+                .put("name", slot.getName())
                 .put("binary", appleAssignment.getBinary().toString())
                 .put("config", appleAssignment.getConfig().toString())
-                .put("self", urlFor(slotManager))
+                .put("self", urlFor(slot))
                 .put("status", STOPPED.toString())
                 .build();
 
@@ -272,16 +272,16 @@ public class TestServer
     public void testClear()
             throws Exception
     {
-        SlotManager slotManager = agent.addNewSlot();
+        Slot slot = agent.addNewSlot();
 
-        Response response = client.prepareDelete(urlFor(slotManager) + "/assignment").execute().get();
+        Response response = client.prepareDelete(urlFor(slot) + "/assignment").execute().get();
 
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("name", slotManager.getName())
-                .put("self", urlFor(slotManager))
+                .put("name", slot.getName())
+                .put("self", urlFor(slot))
                 .put("status", UNASSIGNED.toString())
                 .build();
 
@@ -293,10 +293,10 @@ public class TestServer
     public void testStart()
             throws Exception
     {
-        SlotManager slotManager = agent.addNewSlot();
-        slotManager.assign(appleAssignment);
+        Slot slot = agent.addNewSlot();
+        slot.assign(appleAssignment);
 
-        Response response = client.preparePut(urlFor(slotManager) + "/lifecycle")
+        Response response = client.preparePut(urlFor(slot) + "/lifecycle")
                 .setBody("start")
                 .execute()
                 .get();
@@ -305,10 +305,10 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("name", slotManager.getName())
+                .put("name", slot.getName())
                 .put("binary", appleAssignment.getBinary().toString())
                 .put("config", appleAssignment.getConfig().toString())
-                .put("self", urlFor(slotManager))
+                .put("self", urlFor(slot))
                 .put("status", RUNNING.toString())
                 .build();
 
@@ -320,11 +320,11 @@ public class TestServer
     public void testStop()
             throws Exception
     {
-        SlotManager slotManager = agent.addNewSlot();
-        slotManager.assign(appleAssignment);
-        slotManager.start();
+        Slot slot = agent.addNewSlot();
+        slot.assign(appleAssignment);
+        slot.start();
 
-        Response response = client.preparePut(urlFor(slotManager) + "/lifecycle")
+        Response response = client.preparePut(urlFor(slot) + "/lifecycle")
                 .setBody("stop")
                 .execute()
                 .get();
@@ -333,10 +333,10 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("name", slotManager.getName())
+                .put("name", slot.getName())
                 .put("binary", appleAssignment.getBinary().toString())
                 .put("config", appleAssignment.getConfig().toString())
-                .put("self", urlFor(slotManager))
+                .put("self", urlFor(slot))
                 .put("status", STOPPED.toString())
                 .build();
 
@@ -348,10 +348,10 @@ public class TestServer
     public void testRestart()
             throws Exception
     {
-        SlotManager slotManager = agent.addNewSlot();
-        slotManager.assign(appleAssignment);
+        Slot slot = agent.addNewSlot();
+        slot.assign(appleAssignment);
 
-        Response response = client.preparePut(urlFor(slotManager) + "/lifecycle")
+        Response response = client.preparePut(urlFor(slot) + "/lifecycle")
                 .setBody("restart")
                 .execute()
                 .get();
@@ -360,10 +360,10 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("name", slotManager.getName())
+                .put("name", slot.getName())
                 .put("binary", appleAssignment.getBinary().toString())
                 .put("config", appleAssignment.getConfig().toString())
-                .put("self", urlFor(slotManager))
+                .put("self", urlFor(slot))
                 .put("status", RUNNING.toString())
                 .build();
 
@@ -375,10 +375,10 @@ public class TestServer
     public void testLifecycleUnknown()
             throws Exception
     {
-        SlotManager slotManager = agent.addNewSlot();
-        slotManager.assign(appleAssignment);
+        Slot slot = agent.addNewSlot();
+        slot.assign(appleAssignment);
 
-        Response response = client.preparePut(urlFor(slotManager) + "/lifecycle")
+        Response response = client.preparePut(urlFor(slot) + "/lifecycle")
                 .setBody("unknown")
                 .execute()
                 .get();
@@ -391,8 +391,8 @@ public class TestServer
         return server.getBaseUrl().resolve(path).toString();
     }
 
-    private String urlFor(SlotManager slotManager)
+    private String urlFor(Slot slot)
     {
-        return server.getBaseUrl().resolve("/v1/slot/").resolve(slotManager.getName()).toString();
+        return server.getBaseUrl().resolve("/v1/slot/").resolve(slot.getName()).toString();
     }
 }

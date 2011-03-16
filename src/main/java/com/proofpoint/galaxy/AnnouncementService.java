@@ -79,8 +79,8 @@ public class AnnouncementService
     {
         try {
             Builder<SlotStatus> builder = ImmutableList.builder();
-            for (SlotManager slotManager : agent.getAllSlots()) {
-                SlotStatus slotStatus = slotManager.start();
+            for (Slot slot : agent.getAllSlots()) {
+                SlotStatus slotStatus = slot.start();
                 builder.add(slotStatus);
             }
             AgentStatus agentStatus = new AgentStatus(agent.getAgentId(), builder.build());

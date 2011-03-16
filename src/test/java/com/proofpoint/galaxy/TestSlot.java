@@ -23,13 +23,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
-public class TestSlotManager
+public class TestSlot
 {
     @Test
     public void testInitialState()
             throws Exception
     {
-        SlotManager manager = new SlotManager("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot manager = new Slot("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
         assertEquals(manager.getName(), "slot");
 
         // should start unassigned
@@ -67,7 +67,7 @@ public class TestSlotManager
         Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
         Assignment banana = newAssignment("pp:banana:1.0", "@prod:banana:1.0");
 
-        SlotManager manager = new SlotManager("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot manager = new Slot("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
         assertEquals(manager.getName(), "slot");
 
         // assign apple and verify state
@@ -107,7 +107,7 @@ public class TestSlotManager
         SlotStatus stopped = new SlotStatus("slot", apple.getBinary(), apple.getConfig(), STOPPED);
         SlotStatus unassigned = new SlotStatus("slot");
 
-        SlotManager manager = new SlotManager("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot manager = new Slot("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
 
         // default state is unassigned
         assertEquals(manager.status(), unassigned);

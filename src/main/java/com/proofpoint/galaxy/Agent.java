@@ -28,7 +28,7 @@ public class Agent
 {
     private final AtomicInteger nextId = new AtomicInteger();
     private final UUID agentId = UUID.randomUUID(); // todo make persistent
-    private final ConcurrentMap<String, SlotManager> slots;
+    private final ConcurrentMap<String, Slot> slots;
     private final AgentConfig config;
     private final File slotDir;
     private final DeploymentManagerFactory deploymentManager;
@@ -52,7 +52,7 @@ public class Agent
         this.deploymentManager = deploymentManagerFactory;
         this.lifecycleManager = lifecycleManager;
 
-        slots = new ConcurrentHashMap<String, SlotManager>();
+        slots = new ConcurrentHashMap<String, Slot>();
     }
 
     public UUID getAgentId()
@@ -60,36 +60,36 @@ public class Agent
         return agentId;
     }
 
-    public SlotManager getSlot(String name)
+    public Slot getSlot(String name)
     {
         Preconditions.checkNotNull(name, "name must not be null");
 
-        SlotManager slot = slots.get(name);
+        Slot slot = slots.get(name);
         return slot;
     }
 
-    public SlotManager addNewSlot()
+    public Slot addNewSlot()
     {
         String slotName = "slot" + nextId.incrementAndGet();
-        SlotManager slotManager = new SlotManager(slotName, config, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
-        slots.put(slotName, slotManager);
-        return slotManager;
+        Slot slot = new Slot(slotName, config, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
+        slots.put(slotName, slot);
+        return slot;
     }
 
     public boolean deleteSlot(String name)
     {
         Preconditions.checkNotNull(name, "name must not be null");
 
-        SlotManager slotManager = slots.remove(name);
-        if (slotManager == null) {
+        Slot slot = slots.remove(name);
+        if (slot == null) {
             return false;
         }
 
-        slotManager.clear();
+        slot.clear();
         return true;
     }
 
-    public Collection<SlotManager> getAllSlots()
+    public Collection<Slot> getAllSlots()
     {
         return ImmutableList.copyOf(slots.values());
     }
