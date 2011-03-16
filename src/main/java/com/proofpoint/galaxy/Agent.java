@@ -23,17 +23,20 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.lang.Math.max;
 
 public class Agent
 {
-    private final AtomicInteger nextId = new AtomicInteger();
     private final UUID agentId = UUID.randomUUID(); // todo make persistent
     private final ConcurrentMap<String, Slot> slots;
     private final AgentConfig config;
     private final File slotDir;
     private final DeploymentManagerFactory deploymentManager;
     private final LifecycleManager lifecycleManager;
+    private final File slotsDir;
 
     @Inject
     public Agent(AgentConfig config, DeploymentManagerFactory deploymentManagerFactory, LifecycleManager lifecycleManager)
@@ -54,6 +57,7 @@ public class Agent
         this.lifecycleManager = lifecycleManager;
 
         slots = new ConcurrentHashMap<String, Slot>();
+        slotsDir = new File(this.config.getSlotsDir());
     }
 
     public UUID getAgentId()
@@ -82,7 +86,7 @@ public class Agent
 
     public Slot addNewSlot()
     {
-        String slotName = "slot" + nextId.incrementAndGet();
+        String slotName = getNextSlotName();
         Slot slot = new Slot(slotName, config, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
         slots.put(slotName, slot);
         return slot;
@@ -105,4 +109,33 @@ public class Agent
     {
         return ImmutableList.copyOf(slots.values());
     }
+
+
+    private static final Pattern SLOT_ID_PATTERN = Pattern.compile("slot(\\d+)");
+
+    private String getNextSlotName()
+    {
+        int nextId = 1;
+        for (String deploymentId : slots.keySet()) {
+            Matcher matcher = SLOT_ID_PATTERN.matcher(deploymentId);
+            if (matcher.matches()) {
+                try {
+                    int id = Integer.parseInt(matcher.group(1));
+                    nextId = max(id, nextId + 1);
+                }
+                catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        for (int i = 0; i < 10000; i++) {
+            String deploymentId = "slot" + nextId++;
+            if (!new File(slotsDir, deploymentId).exists()) {
+                return deploymentId;
+            }
+        }
+        throw new IllegalStateException("Could not find an valid slot name");
+    }
+
 }
+
