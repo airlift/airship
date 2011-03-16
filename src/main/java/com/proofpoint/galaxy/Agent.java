@@ -16,9 +16,12 @@ package com.proofpoint.galaxy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.io.Files;
 import com.google.inject.Inject;
+import com.proofpoint.log.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,11 +29,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static java.lang.Math.max;
 
 public class Agent
 {
-    private final UUID agentId = UUID.randomUUID(); // todo make persistent
+    private static final Logger log = Logger.get(Agent.class);
+    private final UUID agentId;
     private final ConcurrentMap<String, Slot> slots;
     private final AgentConfig config;
     private final File slotDir;
@@ -58,6 +63,42 @@ public class Agent
 
         slots = new ConcurrentHashMap<String, Slot>();
         slotsDir = new File(this.config.getSlotsDir());
+
+        //
+        // Load agent id or create a new one (and save it)
+        //
+        File agentIdFile = new File(config.getSlotsDir(), "galaxy-agent-id.txt");
+        UUID uuid = null;
+        if (agentIdFile.exists()) {
+            Preconditions.checkArgument(agentIdFile.canRead(), "can not read " + agentIdFile.getAbsolutePath());
+            try {
+                String agentIdString = Files.toString(agentIdFile, UTF_8).trim();
+                try {
+                    uuid = UUID.fromString(agentIdString);
+                }
+                catch (IllegalArgumentException e) {
+
+                }
+                if (uuid == null) {
+                    log.warn("Invalid agent id [" + agentIdString + "]: attempting to delete galaxy-agent-id.txt file and recreating a new one");
+                    agentIdFile.delete();
+                }
+            }
+            catch (IOException e) {
+                Preconditions.checkArgument(agentIdFile.canRead(), "can not read " + agentIdFile.getAbsolutePath());
+            }
+        }
+
+        if (uuid == null) {
+            uuid = UUID.randomUUID();
+            try {
+                Files.write(uuid.toString(), agentIdFile, UTF_8);
+            }
+            catch (IOException e) {
+                Preconditions.checkArgument(agentIdFile.canRead(), "can not write " + agentIdFile.getAbsolutePath());
+            }
+        }
+        agentId = uuid;
     }
 
     public UUID getAgentId()
