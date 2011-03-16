@@ -18,14 +18,43 @@ import com.proofpoint.configuration.Config;
 import com.proofpoint.units.Duration;
 
 import javax.validation.constraints.NotNull;
+import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 public class AgentConfig
 {
+    private URI agentBaseURI;
+    private URI consoleBaseURI;
     private String slotsDir;
     private Duration launcherTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);
+
+    @NotNull
+    public URI getAgentBaseURI()
+    {
+        return agentBaseURI;
+    }
+
+    @Config("agent.agent-uri")
+    public AgentConfig setAgentBaseURI(URI agentBaseURI)
+    {
+        this.agentBaseURI = agentBaseURI;
+        return this;
+    }
+
+    @NotNull
+    public URI getConsoleBaseURI()
+    {
+        return consoleBaseURI;
+    }
+
+    @Config("agent.console-uri")
+    public AgentConfig setConsoleBaseURI(URI consoleBaseURI)
+    {
+        this.consoleBaseURI = consoleBaseURI;
+        return this;
+    }
 
     @NotNull
     public String getSlotsDir()

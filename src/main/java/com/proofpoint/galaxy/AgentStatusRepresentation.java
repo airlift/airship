@@ -6,7 +6,6 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -17,17 +16,17 @@ public class AgentStatusRepresentation
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
 
-    public static AgentStatusRepresentation from(AgentStatus status, UriInfo uriInfo) {
+    public static AgentStatusRepresentation from(AgentStatus status, URI baseUri) {
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (SlotStatus slot : status.getSlots()) {
-            builder.add(SlotStatusRepresentation.from(slot, uriInfo));
+            builder.add(SlotStatusRepresentation.from(slot, baseUri));
         }
-        return new AgentStatusRepresentation(status.getAgentId().toString(), builder.build(), getSelfUri(uriInfo, status));
+        return new AgentStatusRepresentation(status.getAgentId().toString(), builder.build(), getSelfUri(status, baseUri));
     }
 
-    public static URI getSelfUri(UriInfo uriInfo, AgentStatus status)
+    public static URI getSelfUri(AgentStatus status, URI baseUri)
     {
-        return uriInfo.getBaseUriBuilder().path("/v1/agent/" + status.getAgentId()).build();
+        return baseUri.resolve("/v1/agent/" + status.getAgentId());
     }
 
 

@@ -58,7 +58,7 @@ public class TestAssignmentResource
         Response response = resource.assign(slotManager.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(slotManager.status(), expectedStatus);
@@ -90,7 +90,7 @@ public class TestAssignmentResource
         Response response = resource.assign(slotManager.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(slotManager.status(), expectedStatus);
@@ -105,7 +105,7 @@ public class TestAssignmentResource
 
         Response response = resource.clear(slotManager.getName(), uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(slotManager.status(), expectedStatus);

@@ -72,7 +72,7 @@ public class AgentResource
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        return Response.ok(AgentStatusRepresentation.from(agentStatus, uriInfo)).build();
+        return Response.ok(AgentStatusRepresentation.from(agentStatus, uriInfo.getBaseUri())).build();
     }
 
     @GET
@@ -82,7 +82,7 @@ public class AgentResource
         List<AgentStatus> allAgentStatus = store.getAllAgentStatus();
         Builder<AgentStatusRepresentation> builder = ImmutableList.builder();
         for (AgentStatus agentStatus : allAgentStatus) {
-            builder.add(AgentStatusRepresentation.from(agentStatus, uriInfo));
+            builder.add(AgentStatusRepresentation.from(agentStatus, uriInfo.getBaseUri()));
         }
         return Response.ok(builder.build()).build();
     }

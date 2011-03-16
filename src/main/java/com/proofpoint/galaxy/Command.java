@@ -263,6 +263,7 @@ public class Command
             }
             catch (InterruptedException e) {
                 outputFuture.cancel(true);
+                process.destroy();
                 throw e;
             }
             finally {

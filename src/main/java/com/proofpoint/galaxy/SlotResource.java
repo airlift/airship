@@ -48,7 +48,7 @@ public class SlotResource
     public Response addSlot(@Context UriInfo uriInfo)
     {
         SlotManager slotManager = agentManager.addNewSlot();
-        return Response.created(getSelfUri(uriInfo, slotManager.getName())).build();
+        return Response.created(getSelfUri(slotManager.getName(), uriInfo.getBaseUri())).build();
     }
 
     @Path("{slotName: [a-z0-9]+}")
@@ -77,7 +77,7 @@ public class SlotResource
         }
 
         SlotStatus slotStatus = slotManager.status();
-        return Response.ok(SlotStatusRepresentation.from(slotStatus, uriInfo)).build();
+        return Response.ok(SlotStatusRepresentation.from(slotStatus, uriInfo.getBaseUri())).build();
     }
 
     @GET
@@ -87,7 +87,7 @@ public class SlotResource
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (SlotManager slotManager : agentManager.getAllSlots()) {
             SlotStatus slotStatus = slotManager.status();
-            representations.add(SlotStatusRepresentation.from(slotStatus, uriInfo));
+            representations.add(SlotStatusRepresentation.from(slotStatus, uriInfo.getBaseUri()));
         }
         return Response.ok(representations).build();
     }

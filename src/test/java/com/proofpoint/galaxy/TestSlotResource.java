@@ -50,7 +50,7 @@ public class TestSlotResource
         URI requestUri = URI.create("http://localhost/v1/slot/" + slotManager.getName());
         Response response = resource.getSlotStatus(slotManager.getName(), MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(slotManager.status(), uriInfo));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(slotManager.status(), uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -86,8 +86,8 @@ public class TestSlotResource
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertInstanceOf(response.getEntity(), Collection.class);
         ExtraAssertions.assertEqualsNoOrder((Collection<?>) response.getEntity(), ImmutableMultiset.of(
-                SlotStatusRepresentation.from(slotManager1.status(), uriInfo),
-                SlotStatusRepresentation.from(slotManager2.status(), uriInfo)
+                SlotStatusRepresentation.from(slotManager1.status(), uriInfo.getBaseUri()),
+                SlotStatusRepresentation.from(slotManager2.status(), uriInfo.getBaseUri())
         ));
     }
 

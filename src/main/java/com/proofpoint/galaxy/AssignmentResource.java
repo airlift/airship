@@ -68,7 +68,7 @@ public class AssignmentResource
         }
 
         SlotStatus status = slotManager.assign(assignment.toAssignment());
-        return Response.ok(SlotStatusRepresentation.from(status, uriInfo)).build();
+        return Response.ok(SlotStatusRepresentation.from(status, uriInfo.getBaseUri())).build();
     }
 
     @DELETE
@@ -84,7 +84,7 @@ public class AssignmentResource
         }
 
         SlotStatus status = slotManager.clear();
-        return Response.ok(SlotStatusRepresentation.from(status, uriInfo)).build();
+        return Response.ok(SlotStatusRepresentation.from(status, uriInfo.getBaseUri())).build();
     }
 
     private static <T> Set<ConstraintViolation<T>> validate(T object)

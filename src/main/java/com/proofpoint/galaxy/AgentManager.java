@@ -19,6 +19,7 @@ import com.google.inject.Inject;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AgentManager
 {
     private final AtomicInteger nextId = new AtomicInteger();
+    private final UUID agentId = UUID.randomUUID(); // todo make persistent
     private final ConcurrentMap<String, SlotManager> slots;
     private final AgentConfig config;
     private final File slotDir;
@@ -51,6 +53,11 @@ public class AgentManager
         this.lifecycleManager = lifecycleManager;
 
         slots = new ConcurrentHashMap<String, SlotManager>();
+    }
+
+    public UUID getAgentId()
+    {
+        return agentId;
     }
 
     public SlotManager getSlot(String name)

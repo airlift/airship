@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static javax.ws.rs.core.Response.Status;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
@@ -76,6 +75,8 @@ public class TestServer
     {
         tempDir = DeploymentUtils.createTempDir("agent");
         Map<String, String> properties = ImmutableMap.<String, String>builder()
+                .put("agent.agent-uri", "http://localhost:9999/")
+                .put("agent.console-uri", "http://localhost:9999/")
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
                 .build();
 

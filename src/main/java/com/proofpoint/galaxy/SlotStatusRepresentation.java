@@ -20,7 +20,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 
 @JsonAutoDetect(JsonMethod.NONE)
@@ -32,9 +31,9 @@ public class SlotStatusRepresentation
     private final String status;
     private final URI self;
 
-    public static SlotStatusRepresentation from(SlotStatus slotStatus, UriInfo uriInfo)
+    public static SlotStatusRepresentation from(SlotStatus slotStatus, URI baseUri)
     {
-        URI self = getSelfUri(uriInfo, slotStatus.getName());
+        URI self = getSelfUri(slotStatus.getName(), baseUri);
         if (slotStatus.getBinary() != null) {
             return new SlotStatusRepresentation(slotStatus.getName(),
                     slotStatus.getBinary().toString(),
@@ -47,9 +46,9 @@ public class SlotStatusRepresentation
         }
     }
 
-    public static URI getSelfUri(UriInfo uriInfo, String slotName)
+    public static URI getSelfUri(String slotName, URI baseUri)
     {
-        return uriInfo.getBaseUriBuilder().path("/v1/slot/" + slotName).build();
+        return baseUri.resolve("/v1/slot/" + slotName);
     }
 
     @JsonCreator

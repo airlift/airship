@@ -54,7 +54,7 @@ public class TestAgentResource
         URI requestUri = URI.create("http://localhost/v1/agent/" + fooAgent.getAgentId());
         Response response = resource.getAgentStatus(fooAgent.getAgentId(), MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), AgentStatusRepresentation.from(fooAgent, uriInfo));
+        assertEquals(response.getEntity(), AgentStatusRepresentation.from(fooAgent, uriInfo.getBaseUri()));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -90,8 +90,8 @@ public class TestAgentResource
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertInstanceOf(response.getEntity(), Collection.class);
         ExtraAssertions.assertEqualsNoOrder((Collection<?>) response.getEntity(), ImmutableMultiset.of(
-                AgentStatusRepresentation.from(fooAgent, uriInfo),
-                AgentStatusRepresentation.from(barAgent, uriInfo)
+                AgentStatusRepresentation.from(fooAgent, uriInfo.getBaseUri()),
+                AgentStatusRepresentation.from(barAgent, uriInfo.getBaseUri())
         ));
     }
 
@@ -101,7 +101,7 @@ public class TestAgentResource
         store.updateAgentStatus(fooAgent);
         AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus("foo"), new SlotStatus("moo")));
 
-        Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, uriInfo), uriInfo);
+        Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, uriInfo.getBaseUri()), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
         assertNull(response.getEntity());
