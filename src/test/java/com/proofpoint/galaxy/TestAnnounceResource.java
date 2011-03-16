@@ -29,10 +29,10 @@ import static com.proofpoint.testing.Assertions.assertInstanceOf;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
-public class TestAgentResource
+public class TestAnnounceResource
 {
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/agent");
-    private AgentResource resource;
+    private AnnounceResource resource;
     private Console store;
     private AgentStatus fooAgent;
     private AgentStatus barAgent;
@@ -41,7 +41,7 @@ public class TestAgentResource
     public void setup()
     {
         store = new Console();
-        resource = new AgentResource(store);
+        resource = new AnnounceResource(store);
         fooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus("foo")));
         barAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus("bar")));
     }

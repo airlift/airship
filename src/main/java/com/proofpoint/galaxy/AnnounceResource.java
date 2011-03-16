@@ -18,13 +18,13 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.UUID;
 
-@Path("/v1/agent")
-public class AgentResource
+@Path("/v1/announce")
+public class AnnounceResource
 {
     private final Console store;
 
     @Inject
-    public AgentResource(Console store)
+    public AnnounceResource(Console store)
     {
         this.store = store;
     }
