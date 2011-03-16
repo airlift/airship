@@ -15,6 +15,7 @@ package com.proofpoint.galaxy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.inject.Inject;
 
 import java.io.File;
@@ -58,6 +59,17 @@ public class Agent
     public UUID getAgentId()
     {
         return agentId;
+    }
+
+    public AgentStatus getAgentStatus()
+    {
+        Builder<SlotStatus> builder = ImmutableList.builder();
+        for (Slot slot : slots.values()) {
+            SlotStatus slotStatus = slot.status();
+            builder.add(slotStatus);
+        }
+        AgentStatus agentStatus = new AgentStatus(agentId, builder.build());
+        return agentStatus;
     }
 
     public Slot getSlot(String name)

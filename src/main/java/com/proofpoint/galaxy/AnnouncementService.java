@@ -78,12 +78,7 @@ public class AnnouncementService
             throws InterruptedException
     {
         try {
-            Builder<SlotStatus> builder = ImmutableList.builder();
-            for (Slot slot : agent.getAllSlots()) {
-                SlotStatus slotStatus = slot.start();
-                builder.add(slotStatus);
-            }
-            AgentStatus agentStatus = new AgentStatus(agent.getAgentId(), builder.build());
+            AgentStatus agentStatus = agent.getAgentStatus();
             AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus, agentBaseURI);
             String json = codec.toJson(agentStatusRepresentation);
 
