@@ -8,11 +8,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-public class ConsoleStore
+public class Console
 {
     private final ConcurrentMap<UUID, AgentStatus> agents;
 
-    public ConsoleStore()
+    public Console()
     {
         agents = new MapMaker().expiration(30, TimeUnit.SECONDS).makeMap();
     }

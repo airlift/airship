@@ -21,10 +21,10 @@ import java.util.UUID;
 @Path("/v1/agent")
 public class AgentResource
 {
-    private final ConsoleStore store;
+    private final Console store;
 
     @Inject
-    public AgentResource(ConsoleStore store)
+    public AgentResource(Console store)
     {
         this.store = store;
     }

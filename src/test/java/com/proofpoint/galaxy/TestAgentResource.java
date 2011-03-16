@@ -33,14 +33,14 @@ public class TestAgentResource
 {
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/agent");
     private AgentResource resource;
-    private ConsoleStore store;
+    private Console store;
     private AgentStatus fooAgent;
     private AgentStatus barAgent;
 
     @BeforeMethod
     public void setup()
     {
-        store = new ConsoleStore();
+        store = new Console();
         resource = new AgentResource(store);
         fooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus("foo")));
         barAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus("bar")));
