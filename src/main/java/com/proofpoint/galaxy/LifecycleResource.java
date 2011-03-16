@@ -28,14 +28,14 @@ import javax.ws.rs.core.UriInfo;
 @Path("/v1/slot/{slotName: [a-z0-9]+}/lifecycle")
 public class LifecycleResource
 {
-    private final AgentManager agentManager;
+    private final Agent agent;
 
     @Inject
-    public LifecycleResource(AgentManager agentManager)
+    public LifecycleResource(Agent agent)
     {
-        Preconditions.checkNotNull(agentManager, "slotsManager must not be null");
+        Preconditions.checkNotNull(agent, "slotsManager must not be null");
 
-        this.agentManager = agentManager;
+        this.agent = agent;
     }
 
     @PUT
@@ -45,7 +45,7 @@ public class LifecycleResource
         Preconditions.checkNotNull(slotName, "slotName must not be null");
         Preconditions.checkNotNull(newState, "newState must not be null");
 
-        SlotManager slotManager = agentManager.getSlot(slotName);
+        SlotManager slotManager = agent.getSlot(slotName);
         if (slotManager == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }

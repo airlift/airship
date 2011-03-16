@@ -34,20 +34,20 @@ import static com.proofpoint.galaxy.SlotStatusRepresentation.getSelfUri;
 @Path("/v1/slot")
 public class SlotResource
 {
-    private final AgentManager agentManager;
+    private final Agent agent;
 
     @Inject
-    public SlotResource(AgentManager agentManager)
+    public SlotResource(Agent agent)
     {
-        Preconditions.checkNotNull(agentManager, "slotsManager must not be null");
+        Preconditions.checkNotNull(agent, "slotsManager must not be null");
 
-        this.agentManager = agentManager;
+        this.agent = agent;
     }
 
     @POST
     public Response addSlot(@Context UriInfo uriInfo)
     {
-        SlotManager slotManager = agentManager.addNewSlot();
+        SlotManager slotManager = agent.addNewSlot();
         return Response.created(getSelfUri(slotManager.getName(), uriInfo.getBaseUri())).build();
     }
 
@@ -57,7 +57,7 @@ public class SlotResource
     {
         Preconditions.checkNotNull(id, "id must not be null");
 
-        if (!agentManager.deleteSlot(id)) {
+        if (!agent.deleteSlot(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -71,7 +71,7 @@ public class SlotResource
     {
         Preconditions.checkNotNull(slotName, "slotName must not be null");
 
-        SlotManager slotManager = agentManager.getSlot(slotName);
+        SlotManager slotManager = agent.getSlot(slotName);
         if (slotManager == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }
@@ -85,7 +85,7 @@ public class SlotResource
     public Response getAllSlotsStatus(@Context UriInfo uriInfo)
     {
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
-        for (SlotManager slotManager : agentManager.getAllSlots()) {
+        for (SlotManager slotManager : agent.getAllSlots()) {
             SlotStatus slotStatus = slotManager.status();
             representations.add(SlotStatusRepresentation.from(slotStatus, uriInfo.getBaseUri()));
         }

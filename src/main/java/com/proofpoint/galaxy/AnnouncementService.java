@@ -21,7 +21,7 @@ public class AnnouncementService
     private static final Logger log = Logger.get(AnnouncementService.class);
     private static final JsonCodec<AgentStatusRepresentation> codec = new JsonCodecBuilder().build(AgentStatusRepresentation.class);
 
-    private final AgentManager agentManager;
+    private final Agent agent;
     private final URI agentBaseURI;
     private final AsyncHttpClient client;
     private String announcementUrl;
@@ -29,11 +29,11 @@ public class AnnouncementService
     private ScheduledFuture<?> announcementTask;
 
     @Inject
-    public AnnouncementService(AgentConfig agentConfig, AgentManager agentManager)
+    public AnnouncementService(AgentConfig agentConfig, Agent agent)
     {
-        this.agentManager = agentManager;
+        this.agent = agent;
         this.agentBaseURI = agentConfig.getAgentBaseURI();
-        this.announcementUrl = agentConfig.getConsoleBaseURI().resolve("v1/agent/" + agentManager.getAgentId()).toString();
+        this.announcementUrl = agentConfig.getConsoleBaseURI().resolve("v1/agent/" + agent.getAgentId()).toString();
         this.client = new AsyncHttpClient();
         this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("announce-%s").build());
     }
@@ -79,11 +79,11 @@ public class AnnouncementService
     {
         try {
             Builder<SlotStatus> builder = ImmutableList.builder();
-            for (SlotManager slotManager : agentManager.getAllSlots()) {
+            for (SlotManager slotManager : agent.getAllSlots()) {
                 SlotStatus slotStatus = slotManager.start();
                 builder.add(slotStatus);
             }
-            AgentStatus agentStatus = new AgentStatus(agentManager.getAgentId(), builder.build());
+            AgentStatus agentStatus = new AgentStatus(agent.getAgentId(), builder.build());
             AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus, agentBaseURI);
             String json = codec.toJson(agentStatusRepresentation);
 

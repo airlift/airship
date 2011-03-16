@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class AgentManager
+public class Agent
 {
     private final AtomicInteger nextId = new AtomicInteger();
     private final UUID agentId = UUID.randomUUID(); // todo make persistent
@@ -35,7 +35,7 @@ public class AgentManager
     private final LifecycleManager lifecycleManager;
 
     @Inject
-    public AgentManager(AgentConfig config, DeploymentManagerFactory deploymentManagerFactory, LifecycleManager lifecycleManager)
+    public Agent(AgentConfig config, DeploymentManagerFactory deploymentManagerFactory, LifecycleManager lifecycleManager)
     {
         Preconditions.checkNotNull(config, "config is null");
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");

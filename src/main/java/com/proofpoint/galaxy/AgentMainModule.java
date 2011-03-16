@@ -24,8 +24,8 @@ public class AgentMainModule
 {
     public void configure(Binder binder)
     {
-        binder.bind(AgentManager.class).in(Scopes.SINGLETON);
-        MBeanModule.newExporter(binder).export(AgentManager.class).withGeneratedName();
+        binder.bind(Agent.class).in(Scopes.SINGLETON);
+        MBeanModule.newExporter(binder).export(Agent.class).withGeneratedName();
 
         binder.bind(SlotResource.class).in(Scopes.SINGLETON);
         binder.bind(AssignmentResource.class).in(Scopes.SINGLETON);

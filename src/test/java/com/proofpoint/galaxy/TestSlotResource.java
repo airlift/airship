@@ -31,21 +31,21 @@ import static org.testng.Assert.assertNull;
 public class TestSlotResource
 {
     private SlotResource resource;
-    private AgentManager agentManager;
+    private Agent agent;
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot");
 
     @BeforeMethod
     public void setup()
     {
 
-        agentManager = new AgentManager(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")), new MockDeploymentManagerFactory(), new MockLifecycleManager());
-        resource = new SlotResource(agentManager);
+        agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")), new MockDeploymentManagerFactory(), new MockLifecycleManager());
+        resource = new SlotResource(agent);
     }
 
     @Test
     public void testGetSlotStatus()
     {
-        SlotManager slotManager = agentManager.addNewSlot();
+        SlotManager slotManager = agent.addNewSlot();
 
         URI requestUri = URI.create("http://localhost/v1/slot/" + slotManager.getName());
         Response response = resource.getSlotStatus(slotManager.getName(), MockUriInfo.from(requestUri));
@@ -79,8 +79,8 @@ public class TestSlotResource
     @Test
     public void testGetAllSlotStatus()
     {
-        SlotManager slotManager1 = agentManager.addNewSlot();
-        SlotManager slotManager2 = agentManager.addNewSlot();
+        SlotManager slotManager1 = agent.addNewSlot();
+        SlotManager slotManager2 = agent.addNewSlot();
 
         Response response = resource.getAllSlotsStatus(uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
@@ -97,7 +97,7 @@ public class TestSlotResource
         Response response = resource.addSlot(uriInfo);
 
         // find the new slot manager
-        SlotManager slotManager = agentManager.getAllSlots().iterator().next();
+        SlotManager slotManager = agent.getAllSlots().iterator().next();
 
         assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
         assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/slot/" + slotManager.getName()));
@@ -109,13 +109,13 @@ public class TestSlotResource
     @Test
     public void testRemoveSlot()
     {
-        SlotManager slotManager = agentManager.addNewSlot();
+        SlotManager slotManager = agent.addNewSlot();
 
         Response response = resource.removeSlot(slotManager.getName());
         assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
         assertNull(response.getEntity());
 
-        assertNull(agentManager.getSlot(slotManager.getName()));
+        assertNull(agent.getSlot(slotManager.getName()));
     }
 
     @Test

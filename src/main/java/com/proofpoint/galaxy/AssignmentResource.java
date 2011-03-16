@@ -37,14 +37,14 @@ import java.util.Set;
 @Path("/v1/slot/{slotName: [a-z0-9]+}/assignment")
 public class AssignmentResource
 {
-    private final AgentManager agentManager;
+    private final Agent agent;
 
     @Inject
-    public AssignmentResource(AgentManager agentManager)
+    public AssignmentResource(Agent agent)
     {
-        Preconditions.checkNotNull(agentManager, "slotsManager must not be null");
+        Preconditions.checkNotNull(agent, "slotsManager must not be null");
 
-        this.agentManager = agentManager;
+        this.agent = agent;
     }
 
     @PUT
@@ -55,7 +55,7 @@ public class AssignmentResource
         Preconditions.checkNotNull(slotName, "slotName must not be null");
         Preconditions.checkNotNull(assignment, "assignment must not be null");
 
-        SlotManager slotManager = agentManager.getSlot(slotName);
+        SlotManager slotManager = agent.getSlot(slotName);
         if (slotManager == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }
@@ -78,7 +78,7 @@ public class AssignmentResource
     {
         Preconditions.checkNotNull(slotName, "slotName must not be null");
 
-        SlotManager slotManager = agentManager.getSlot(slotName);
+        SlotManager slotManager = agent.getSlot(slotName);
         if (slotManager == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

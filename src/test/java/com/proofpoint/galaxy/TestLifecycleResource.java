@@ -36,12 +36,12 @@ public class TestLifecycleResource
     public void setup()
     {
 
-        AgentManager agentManager = new AgentManager(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
+        Agent agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());
-        slotManager = agentManager.addNewSlot();
+        slotManager = agent.addNewSlot();
         slotManager.assign(assignment);
-        resource = new LifecycleResource(agentManager);
+        resource = new LifecycleResource(agent);
     }
 
     @Test

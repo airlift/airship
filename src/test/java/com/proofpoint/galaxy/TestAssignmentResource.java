@@ -27,7 +27,7 @@ import static org.testng.Assert.assertNull;
 public class TestAssignmentResource
 {
     private AssignmentResource resource;
-    private AgentManager agentManager;
+    private Agent agent;
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
     private AssignmentRepresentation assignment = new AssignmentRepresentation("fruit:apple:1.0", "fetch://binary.tar.gz", "@prod:apple:1.0", ImmutableMap.of("readme.txt", "fetch://readme.txt"));
 
@@ -35,8 +35,8 @@ public class TestAssignmentResource
     public void setup()
     {
 
-        agentManager = new AgentManager(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")), new MockDeploymentManagerFactory(), new MockLifecycleManager());
-        resource = new AssignmentResource(agentManager);
+        agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")), new MockDeploymentManagerFactory(), new MockLifecycleManager());
+        resource = new AssignmentResource(agent);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class TestAssignmentResource
     @Test
     public void testAssign()
     {
-        SlotManager slotManager = agentManager.addNewSlot();
+        SlotManager slotManager = agent.addNewSlot();
 
         Assignment expectedAssignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
         SlotStatus expectedStatus = new SlotStatus(slotManager.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
@@ -73,14 +73,14 @@ public class TestAssignmentResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testAssignNullAssignment()
     {
-        SlotManager slotManager = agentManager.addNewSlot();
+        SlotManager slotManager = agent.addNewSlot();
         resource.assign(slotManager.getName(), null, uriInfo);
     }
 
     @Test
     public void testReplaceAssignment()
     {
-        SlotManager slotManager = agentManager.addNewSlot();
+        SlotManager slotManager = agent.addNewSlot();
         slotManager.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
 
         Assignment expectedAssignment = newAssignment("fruit:banana:1.0", "@prod:banana:1.0");
@@ -99,7 +99,7 @@ public class TestAssignmentResource
     @Test
     public void testClear()
     {
-        SlotManager slotManager = agentManager.addNewSlot();
+        SlotManager slotManager = agent.addNewSlot();
         slotManager.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
         SlotStatus expectedStatus = new SlotStatus(slotManager.getName());
 
