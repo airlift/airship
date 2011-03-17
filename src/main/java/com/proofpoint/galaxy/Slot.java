@@ -14,18 +14,12 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Files;
-import com.google.inject.Inject;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static com.google.common.base.Charsets.UTF_8;
 
 public class Slot
 {
@@ -40,7 +34,6 @@ public class Slot
     private final ReentrantLock lock = new ReentrantLock();
 
 
-    @Inject
     public Slot(String name, AgentConfig config, DeploymentManager deploymentManager, LifecycleManager lifecycleManager)
     {
         Preconditions.checkNotNull(name, "name is null");
