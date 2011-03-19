@@ -19,6 +19,8 @@ import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+
 @Immutable
 public class SlotStatus
 {
@@ -40,7 +42,22 @@ public class SlotStatus
         this.self = self;
         this.binary = null;
         this.config = null;
-        this.state = LifecycleState.UNASSIGNED;
+        this.state = UNASSIGNED;
+    }
+
+    public SlotStatus(UUID id, String name, URI self, LifecycleState state)
+    {
+        Preconditions.checkNotNull(id, "id is null");
+        Preconditions.checkNotNull(name, "name is null");
+        Preconditions.checkNotNull(self, "self is null");
+        Preconditions.checkNotNull(state, "state is null");
+
+        this.id = id;
+        this.name = name;
+        this.self = self;
+        this.binary = null;
+        this.config = null;
+        this.state = state;
     }
 
     public SlotStatus(UUID id, String name, URI self, BinarySpec binary, ConfigSpec config, LifecycleState state)

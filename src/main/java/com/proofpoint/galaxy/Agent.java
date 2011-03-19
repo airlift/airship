@@ -133,7 +133,7 @@ public class Agent
     {
         String slotName = getNextSlotName();
         URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/slot/").resolve(slotName);
-        Slot slot = new Slot(slotName, config, slotUri, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
+        Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
         slots.put(slotName, slot);
         return slot;
     }

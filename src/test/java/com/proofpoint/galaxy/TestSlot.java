@@ -32,7 +32,7 @@ public class TestSlot
     public void testInitialState()
             throws Exception
     {
-        Slot manager = new Slot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot manager = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
         assertEquals(manager.getName(), "slot");
 
         // should start unassigned
@@ -70,7 +70,7 @@ public class TestSlot
         Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
         Assignment banana = newAssignment("pp:banana:1.0", "@prod:banana:1.0");
 
-        Slot manager = new Slot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot manager = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
         assertEquals(manager.getName(), "slot");
 
         // assign apple and verify state
@@ -107,7 +107,7 @@ public class TestSlot
     {
         Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
 
-        Slot slot = new Slot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
         SlotStatus running = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), apple.getBinary(), apple.getConfig(), RUNNING);
         SlotStatus stopped = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), apple.getBinary(), apple.getConfig(), STOPPED);
         SlotStatus unassigned = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
