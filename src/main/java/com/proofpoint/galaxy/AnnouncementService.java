@@ -1,16 +1,14 @@
 package com.proofpoint.galaxy;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 
 import javax.annotation.PostConstruct;
-import java.net.URI;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -22,17 +20,17 @@ public class AnnouncementService
     private static final JsonCodec<AgentStatusRepresentation> codec = new JsonCodecBuilder().build(AgentStatusRepresentation.class);
 
     private final Agent agent;
-    private final URI agentBaseURI;
+    private final HttpServerInfo httpServerInfo;
     private final AsyncHttpClient client;
     private String announcementUrl;
     private ScheduledExecutorService executor;
     private ScheduledFuture<?> announcementTask;
 
     @Inject
-    public AnnouncementService(AgentConfig agentConfig, Agent agent)
+    public AnnouncementService(AgentConfig agentConfig, Agent agent, HttpServerInfo httpServerInfo)
     {
         this.agent = agent;
-        this.agentBaseURI = agentConfig.getAgentBaseURI();
+        this.httpServerInfo = httpServerInfo;
         this.announcementUrl = agentConfig.getConsoleBaseURI().resolve("v1/agent/" + agent.getAgentId()).toString();
         this.client = new AsyncHttpClient();
         this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("announce-%s").build());
@@ -79,7 +77,7 @@ public class AnnouncementService
     {
         try {
             AgentStatus agentStatus = agent.getAgentStatus();
-            AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus, agentBaseURI);
+            AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus, httpServerInfo.getHttpUri());
             String json = codec.toJson(agentStatusRepresentation);
 
             client.preparePut(announcementUrl)

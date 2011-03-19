@@ -1,6 +1,8 @@
 {
-    "name": "slot1",
-    "binary": "food.fruit:apple:1.0",
-    "config": "@prod:apple:1.0",
-    "status": "STOPPED"
+    "id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "name":"slot1",
+    "self":"fake://apple",
+    "binary":"food.fruit:apple:1.0",
+    "config":"@prod:apple:1.0",
+    "status":"STOPPED"
 }

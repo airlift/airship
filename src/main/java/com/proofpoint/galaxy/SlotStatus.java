@@ -16,6 +16,7 @@ package com.proofpoint.galaxy;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.Immutable;
+import java.net.URI;
 import java.util.UUID;
 
 @Immutable
@@ -23,32 +24,37 @@ public class SlotStatus
 {
     private final UUID id;
     private final String name;
+    private final URI self;
     private final BinarySpec binary;
     private final ConfigSpec config;
     private final LifecycleState state;
 
-    public SlotStatus(UUID id, String name)
+    public SlotStatus(UUID id, String name, URI self)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
+        Preconditions.checkNotNull(self, "self is null");
 
         this.id = id;
         this.name = name;
+        this.self = self;
         this.binary = null;
         this.config = null;
         this.state = LifecycleState.UNASSIGNED;
     }
 
-    public SlotStatus(UUID id, String name, BinarySpec binary, ConfigSpec config, LifecycleState state)
+    public SlotStatus(UUID id, String name, URI self, BinarySpec binary, ConfigSpec config, LifecycleState state)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
+        Preconditions.checkNotNull(self, "self is null");
         Preconditions.checkNotNull(binary, "binary is null");
         Preconditions.checkNotNull(config, "config is null");
         Preconditions.checkNotNull(state, "state is null");
 
         this.id = id;
         this.name = name;
+        this.self = self;
         this.binary = binary;
         this.config = config;
         this.state = state;
@@ -62,6 +68,11 @@ public class SlotStatus
     public String getName()
     {
         return name;
+    }
+
+    public URI getSelf()
+    {
+        return self;
     }
 
     public BinarySpec getBinary()
@@ -103,6 +114,9 @@ public class SlotStatus
         if (!name.equals(that.name)) {
             return false;
         }
+        if (!self.equals(that.self)) {
+            return false;
+        }
         if (state != that.state) {
             return false;
         }
@@ -115,9 +129,10 @@ public class SlotStatus
     {
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
+        result = 31 * result + self.hashCode();
         result = 31 * result + (binary != null ? binary.hashCode() : 0);
         result = 31 * result + (config != null ? config.hashCode() : 0);
-        result = 31 * result + (state != null ? state.hashCode() : 0);
+        result = 31 * result + state.hashCode();
         return result;
     }
 
@@ -128,6 +143,7 @@ public class SlotStatus
         sb.append("SlotStatus");
         sb.append("{id=").append(id);
         sb.append(", name='").append(name).append('\'');
+        sb.append(", self=").append(self);
         sb.append(", binary=").append(binary);
         sb.append(", config=").append(config);
         sb.append(", state=").append(state);

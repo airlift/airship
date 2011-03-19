@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.collect.ImmutableMap;
+import com.proofpoint.http.server.testing.MockHttpServerInfo;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -34,8 +35,10 @@ public class TestAssignmentResource
     @BeforeMethod
     public void setup()
     {
-
-        agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")), new MockDeploymentManagerFactory(), new MockLifecycleManager());
+        agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
+                new MockHttpServerInfo("fake://localhost"),
+                new MockDeploymentManagerFactory(),
+                new MockLifecycleManager());
         resource = new AssignmentResource(agent);
     }
 
@@ -52,12 +55,12 @@ public class TestAssignmentResource
         Slot slot = agent.addNewSlot();
 
         Assignment expectedAssignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
-        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED);
+        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED);
 
         Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(slot.status(), expectedStatus);
@@ -83,13 +86,13 @@ public class TestAssignmentResource
         slot.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
 
         Assignment expectedAssignment = newAssignment("fruit:banana:1.0", "@prod:banana:1.0");
-        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
+        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
         );
 
         Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(slot.status(), expectedStatus);
@@ -100,11 +103,11 @@ public class TestAssignmentResource
     {
         Slot slot = agent.addNewSlot();
         slot.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
-        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName());
+        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
 
         Response response = resource.clear(slot.getName(), uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus, uriInfo.getBaseUri()));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(slot.status(), expectedStatus);

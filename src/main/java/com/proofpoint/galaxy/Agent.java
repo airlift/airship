@@ -18,10 +18,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,15 +44,17 @@ public class Agent
     private final DeploymentManagerFactory deploymentManager;
     private final LifecycleManager lifecycleManager;
     private final File slotsDir;
+    private final HttpServerInfo httpServerInfo;
 
     @Inject
-    public Agent(AgentConfig config, DeploymentManagerFactory deploymentManagerFactory, LifecycleManager lifecycleManager)
+    public Agent(AgentConfig config, HttpServerInfo httpServerInfo, DeploymentManagerFactory deploymentManagerFactory, LifecycleManager lifecycleManager)
     {
         Preconditions.checkNotNull(config, "config is null");
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
 
         this.config = config;
+        this.httpServerInfo = httpServerInfo;
         this.slotDir = new File(config.getSlotsDir());
 
         slotDir.mkdirs();
@@ -128,7 +132,8 @@ public class Agent
     public Slot addNewSlot()
     {
         String slotName = getNextSlotName();
-        Slot slot = new Slot(slotName, config, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
+        URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/slot/").resolve(slotName);
+        Slot slot = new Slot(slotName, config, slotUri, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
         slots.put(slotName, slot);
         return slot;
     }

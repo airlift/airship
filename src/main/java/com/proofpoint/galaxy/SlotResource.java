@@ -27,9 +27,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.List;
-
-import static com.proofpoint.galaxy.SlotStatusRepresentation.getSelfUri;
 
 @Path("/v1/slot")
 public class SlotResource
@@ -77,7 +76,7 @@ public class SlotResource
         }
 
         SlotStatus slotStatus = slot.status();
-        return Response.ok(SlotStatusRepresentation.from(slotStatus, uriInfo.getBaseUri())).build();
+        return Response.ok(SlotStatusRepresentation.from(slotStatus)).build();
     }
 
     @GET
@@ -87,8 +86,14 @@ public class SlotResource
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (Slot slot : agent.getAllSlots()) {
             SlotStatus slotStatus = slot.status();
-            representations.add(SlotStatusRepresentation.from(slotStatus, uriInfo.getBaseUri()));
+            representations.add(SlotStatusRepresentation.from(slotStatus));
         }
         return Response.ok(representations).build();
+    }
+
+
+    private static URI getSelfUri(String slotName, URI baseUri)
+    {
+        return baseUri.resolve("/v1/slot/" + slotName);
     }
 }

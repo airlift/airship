@@ -28,46 +28,45 @@ public class SlotStatusRepresentation
 {
     private final UUID id;
     private final String name;
+    private final URI self;
     private final String binary;
     private final String config;
     private final String status;
-    private final URI self;
 
-    public static SlotStatusRepresentation from(SlotStatus slotStatus, URI baseUri)
+    public static SlotStatusRepresentation from(SlotStatus slotStatus)
     {
-        URI self = getSelfUri(slotStatus.getName(), baseUri);
         if (slotStatus.getBinary() != null) {
             return new SlotStatusRepresentation(slotStatus.getId(),
                     slotStatus.getName(),
-                    slotStatus.getBinary().toString(),
+                    slotStatus.getSelf(), slotStatus.getBinary().toString(),
                     slotStatus.getConfig().toString(),
-                    slotStatus.getState().toString(),
-                    self);
+                    slotStatus.getState().toString()
+            );
         }
         else {
-            return new SlotStatusRepresentation(slotStatus.getId(), slotStatus.getName(), null, null, slotStatus.getState().toString(), self);
+            return new SlotStatusRepresentation(slotStatus.getId(),
+                    slotStatus.getName(),
+                    slotStatus.getSelf(),
+                    null,
+                    null,
+                    slotStatus.getState().toString());
         }
-    }
-
-    public static URI getSelfUri(String slotName, URI baseUri)
-    {
-        return baseUri.resolve("/v1/slot/" + slotName);
     }
 
     @JsonCreator
-    public SlotStatusRepresentation(@JsonProperty("id") UUID id, @JsonProperty("name") String name, @JsonProperty("binary") String binary, @JsonProperty("config") String config)
-    {
-        this(id, name, binary, config, null, null);
-    }
-
-    public SlotStatusRepresentation(UUID id, String name, String binary, String config, String status, URI self)
+    public SlotStatusRepresentation(@JsonProperty("id") UUID id,
+            @JsonProperty("name") String name,
+            @JsonProperty("self") URI self,
+            @JsonProperty("binary") String binary,
+            @JsonProperty("config") String config,
+            @JsonProperty("status") String status)
     {
         this.id = id;
         this.name = name;
+        this.self = self;
         this.binary = binary;
         this.config = config;
         this.status = status;
-        this.self = self;
     }
 
     @JsonProperty
@@ -82,6 +81,13 @@ public class SlotStatusRepresentation
     public String getName()
     {
         return name;
+    }
+
+    @JsonProperty
+    @NotNull(message = "is missing")
+    public URI getSelf()
+    {
+        return self;
     }
 
     @JsonProperty
@@ -106,19 +112,13 @@ public class SlotStatusRepresentation
         return status;
     }
 
-    @JsonProperty
-    public URI getSelf()
-    {
-        return self;
-    }
-
     public SlotStatus toSlotStatus()
     {
         if (binary != null) {
-            return new SlotStatus(id, name, BinarySpec.valueOf(binary), ConfigSpec.valueOf(config), LifecycleState.valueOf(status));
+            return new SlotStatus(id, name, self, BinarySpec.valueOf(binary), ConfigSpec.valueOf(config), LifecycleState.valueOf(status));
         }
         else {
-            return new SlotStatus(id, name);
+            return new SlotStatus(id, name, self);
         }
     }
 
@@ -175,10 +175,10 @@ public class SlotStatusRepresentation
         sb.append("SlotStatusRepresentation");
         sb.append("{id=").append(id);
         sb.append(", name='").append(name).append('\'');
+        sb.append(", self=").append(self);
         sb.append(", binary='").append(binary).append('\'');
         sb.append(", config='").append(config).append('\'');
         sb.append(", status='").append(status).append('\'');
-        sb.append(", self=").append(self);
         sb.append('}');
         return sb.toString();
     }

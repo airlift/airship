@@ -13,6 +13,7 @@
  */
 package com.proofpoint.galaxy;
 
+import com.proofpoint.http.server.testing.MockHttpServerInfo;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -35,8 +36,8 @@ public class TestLifecycleResource
     @BeforeMethod
     public void setup()
     {
-
         Agent agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
+                new MockHttpServerInfo("fake://localhost"),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());
         slot = agent.addNewSlot();
@@ -106,8 +107,8 @@ public class TestLifecycleResource
     private void assertOkResponse(Response response, LifecycleState state)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), assignment.getBinary(), assignment.getConfig(), state),
-                uriInfo.getBaseUri()));
+        assertEquals(response.getEntity(), SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), assignment.getBinary(), assignment.getConfig(), state)
+        ));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 }

@@ -1,0 +1,22 @@
+{
+    "agentId":"44444444-4444-4444-4444-444444444444",
+    "slots":[
+        {
+            "id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "name":"slot1",
+            "self":"fake://apple",
+            "binary":"food.fruit:apple:1.0",
+            "config":"@prod:apple:1.0",
+            "status":"STOPPED"
+        },
+        {
+            "id":"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+            "name":"slot2",
+            "self":"fake://banana",
+            "binary":"food.fruit:banana:2.0-SNAPSHOT",
+            "config":"@prod:banana:1.0",
+            "status":"STOPPED"
+        }
+    ],
+    "self":"fake://agent"
+}

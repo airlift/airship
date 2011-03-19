@@ -16,8 +16,11 @@ package com.proofpoint.galaxy;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
+import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static java.util.Arrays.asList;
 
@@ -28,82 +31,44 @@ public class TestSlotStatus
     {
         UUID appleId = UUID.randomUUID();
         UUID bananaId = UUID.randomUUID();
+        String binary = "fruit:apple:1.0";
+        String config = "@prod:apple:1.0";
         EquivalenceTester.check(
                 asList(
-                        new SlotStatus(appleId, "apple"),
-                        new SlotStatus(appleId, "apple")
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple")),
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"))
 
                 ),
                 asList(
-                        new SlotStatus(bananaId, "apple"),
-                        new SlotStatus(bananaId, "apple")
+                        new SlotStatus(bananaId, "apple", URI.create("fake://apple")),
+                        new SlotStatus(bananaId, "apple", URI.create("fake://apple"))
 
                 ),
                 asList(
-                        new SlotStatus(appleId, "apple",
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
-                                LifecycleState.RUNNING
-                        ),
-                        new SlotStatus(appleId, "apple",
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
-                                LifecycleState.RUNNING
-                        )
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf(binary), ConfigSpec.valueOf(config), RUNNING),
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING)
 
                 ),
                 asList(
-                        new SlotStatus(bananaId, "banana",
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
-                                LifecycleState.RUNNING
-                        ),
-                        new SlotStatus(bananaId, "banana",
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
-                                LifecycleState.RUNNING
-                        )
+                        new SlotStatus(bananaId, "banana", URI.create("fake://banana"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING),
+                        new SlotStatus(bananaId, "banana", URI.create("fake://banana"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING)
 
                 ),
                 asList(
-                        new SlotStatus(appleId, "apple",
-                                newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getBinary(),
-                                newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getConfig(),
-                                LifecycleState.RUNNING
-                        ),
-                        new SlotStatus(appleId, "apple",
-                                newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getBinary(),
-                                newAssignment("fruit:apple:2.0", "@prod:apple:1.0").getConfig(),
-                                LifecycleState.RUNNING
-                        )
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:2.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING),
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:2.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING)
 
                 ),
                 asList(
-                        new SlotStatus(appleId, "apple",
-                                newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getBinary(),
-                                newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getConfig(),
-                                LifecycleState.RUNNING
-                        ),
-                        new SlotStatus(appleId, "apple",
-                                newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getBinary(),
-                                newAssignment("fruit:apple:1.0", "@prod:apple:2.0").getConfig(),
-                                LifecycleState.RUNNING
-                        )
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:2.0"), RUNNING),
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:2.0"), RUNNING)
 
                 ),
                 asList(
-                        new SlotStatus(appleId, "apple",
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
-                                LifecycleState.STOPPED
-                        ),
-                        new SlotStatus(appleId, "apple",
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getBinary(),
-                                newAssignment("fruit:apple:1.0", "@prod:apple:1.0").getConfig(),
-                                LifecycleState.STOPPED
-                        )
-
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), STOPPED),
+                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), STOPPED)
                 )
         );
     }
+
 }

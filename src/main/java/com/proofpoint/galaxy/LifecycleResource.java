@@ -63,6 +63,6 @@ public class LifecycleResource
         else {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        return Response.ok(SlotStatusRepresentation.from(status, uriInfo.getBaseUri())).build();
+        return Response.ok(SlotStatusRepresentation.from(status)).build();
     }
 }

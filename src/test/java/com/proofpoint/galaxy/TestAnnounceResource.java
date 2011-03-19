@@ -14,110 +14,53 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultiset;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.Collection;
 import java.util.UUID;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.testing.Assertions.assertInstanceOf;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 public class TestAnnounceResource
 {
-    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/agent");
     private AnnounceResource resource;
-    private Console store;
-    private AgentStatus fooAgent;
-    private AgentStatus barAgent;
+    private Console console;
+    private AgentStatus agentStatus;
 
     @BeforeMethod
     public void setup()
     {
-        store = new Console();
-        resource = new AnnounceResource(store);
-        fooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo")));
-        barAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "bar")));
-    }
-
-    @Test
-    public void testGetAgentStatus()
-    {
-        store.updateAgentStatus(fooAgent);
-
-        URI requestUri = URI.create("http://localhost/v1/agent/" + fooAgent.getAgentId());
-        Response response = resource.getAgentStatus(fooAgent.getAgentId(), MockUriInfo.from(requestUri));
-        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), AgentStatusRepresentation.from(fooAgent, uriInfo.getBaseUri()));
-        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-    }
-
-    @Test
-    public void testGetAgentStatusUnknown()
-    {
-        Response response = resource.getAgentStatus(UUID.randomUUID(), MockUriInfo.from("http://localhost/v1/agent/unknown"));
-        assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void testGetAgentStatusNull()
-    {
-        resource.getAgentStatus(null, MockUriInfo.from(URI.create("http://localhost/v1/agent/null")));
-    }
-
-    @Test
-    public void testGetAllAgentStatusEmpty()
-    {
-        Response response = resource.getAllAgentStatus(uriInfo);
-        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertInstanceOf(response.getEntity(), Collection.class);
-        assertEquals((Collection<?>) response.getEntity(), newArrayList());
-    }
-
-    @Test
-    public void testGetAllAgentStatus()
-    {
-        store.updateAgentStatus(fooAgent);
-        store.updateAgentStatus(barAgent);
-
-        Response response = resource.getAllAgentStatus(uriInfo);
-        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertInstanceOf(response.getEntity(), Collection.class);
-        ExtraAssertions.assertEqualsNoOrder((Collection<?>) response.getEntity(), ImmutableMultiset.of(
-                AgentStatusRepresentation.from(fooAgent, uriInfo.getBaseUri()),
-                AgentStatusRepresentation.from(barAgent, uriInfo.getBaseUri())
-        ));
+        console = new Console();
+        resource = new AnnounceResource(console);
+        agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
     }
 
     @Test
     public void testUpdateAgentStatus()
     {
-        store.updateAgentStatus(fooAgent);
-        AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo"), new SlotStatus(UUID.randomUUID(), "moo")));
+        console.updateAgentStatus(agentStatus);
+        AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo")), new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"))));
 
-        Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, uriInfo.getBaseUri()), uriInfo);
+        Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, URI.create("http://localhost/v1/agent")));
 
         assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
         assertNull(response.getEntity());
-        assertEquals(store.getAgentStatus(fooAgent.getAgentId()), fooAgent);
+        assertEquals(console.getAgentStatus(agentStatus.getAgentId()), agentStatus);
     }
 
     @Test
     public void testRemoveAgentStatus()
     {
-        store.updateAgentStatus(fooAgent);
+        console.updateAgentStatus(agentStatus);
 
-        Response response = resource.removeAgentStatus(fooAgent.getAgentId());
+        Response response = resource.removeAgentStatus(agentStatus.getAgentId());
         assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
         assertNull(response.getEntity());
 
-        assertNull(store.getAgentStatus(fooAgent.getAgentId()));
+        assertNull(console.getAgentStatus(agentStatus.getAgentId()));
     }
 
     @Test

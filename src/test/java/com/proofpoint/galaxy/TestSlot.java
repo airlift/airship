@@ -15,6 +15,8 @@ package com.proofpoint.galaxy;
 
 import org.testng.annotations.Test;
 
+import java.net.URI;
+
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
@@ -25,11 +27,12 @@ import static org.testng.Assert.fail;
 
 public class TestSlot
 {
+
     @Test
     public void testInitialState()
             throws Exception
     {
-        Slot manager = new Slot("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot manager = new Slot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
         assertEquals(manager.getName(), "slot");
 
         // should start unassigned
@@ -67,7 +70,7 @@ public class TestSlot
         Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
         Assignment banana = newAssignment("pp:banana:1.0", "@prod:banana:1.0");
 
-        Slot manager = new Slot("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot manager = new Slot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
         assertEquals(manager.getName(), "slot");
 
         // assign apple and verify state
@@ -104,10 +107,10 @@ public class TestSlot
     {
         Assignment apple = newAssignment("pp:apple:1.0", "@prod:apple:1.0");
 
-        Slot slot = new Slot("slot", new AgentConfig(), new MockDeploymentManager(), new MockLifecycleManager());
-        SlotStatus running = new SlotStatus(slot.getId(), slot.getName(), apple.getBinary(), apple.getConfig(), RUNNING);
-        SlotStatus stopped = new SlotStatus(slot.getId(), slot.getName(), apple.getBinary(), apple.getConfig(), STOPPED);
-        SlotStatus unassigned = new SlotStatus(slot.getId(), slot.getName());
+        Slot slot = new Slot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        SlotStatus running = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), apple.getBinary(), apple.getConfig(), RUNNING);
+        SlotStatus stopped = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), apple.getBinary(), apple.getConfig(), STOPPED);
+        SlotStatus unassigned = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
 
         // default state is unassigned
         assertEquals(slot.status(), unassigned);
