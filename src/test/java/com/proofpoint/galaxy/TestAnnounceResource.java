@@ -14,12 +14,14 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.collect.ImmutableList;
+import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -33,7 +35,7 @@ public class TestAnnounceResource
     @BeforeMethod
     public void setup()
     {
-        console = new Console();
+        console = new Console(new ConsoleConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
         resource = new AnnounceResource(console);
         agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
     }

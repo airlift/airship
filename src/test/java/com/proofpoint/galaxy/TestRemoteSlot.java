@@ -93,7 +93,7 @@ public class TestRemoteSlot
         assertTrue(agent.getAllSlots().isEmpty());
 
         slot = agent.addNewSlot();
-        remoteSlot = new RemoteSlot(slot.getId(), slot.getName(), slot.getSelf(), slot.status());
+        remoteSlot = new RemoteSlot(slot.status());
     }
 
     @AfterClass

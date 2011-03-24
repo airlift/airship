@@ -14,13 +14,16 @@
 package com.proofpoint.galaxy;
 
 import com.proofpoint.configuration.Config;
+import com.proofpoint.units.Duration;
 
 import javax.validation.constraints.NotNull;
+import java.util.concurrent.TimeUnit;
 
 public class ConsoleConfig
 {
     private String binaryRepoBase;
     private String configRepoBase;
+    private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
     @NotNull
     public String getBinaryRepoBase()
@@ -45,6 +48,19 @@ public class ConsoleConfig
     public ConsoleConfig setConfigRepoBase(String configRepoBase)
     {
         this.configRepoBase = configRepoBase;
+        return this;
+    }
+
+    @NotNull
+    public Duration getStatusExpiration()
+    {
+        return statusExpiration;
+    }
+
+    @Config("console.status.expiration")
+    public ConsoleConfig setStatusExpiration(Duration statusExpiration)
+    {
+        this.statusExpiration = statusExpiration;
         return this;
     }
 }
