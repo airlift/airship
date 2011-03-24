@@ -75,7 +75,6 @@ public class TestServer
     {
         tempDir = DeploymentUtils.createTempDir("agent");
         Map<String, String> properties = ImmutableMap.<String, String>builder()
-                .put("agent.agent-uri", "http://localhost:9999/")
                 .put("agent.console-uri", "http://localhost:9999/")
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
                 .build();

@@ -3,12 +3,15 @@ package com.proofpoint.galaxy;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Response;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -31,7 +34,7 @@ public class AnnouncementService
     {
         this.agent = agent;
         this.httpServerInfo = httpServerInfo;
-        this.announcementUrl = agentConfig.getConsoleBaseURI().resolve("v1/agent/" + agent.getAgentId()).toString();
+        this.announcementUrl = agentConfig.getConsoleBaseURI().resolve("/v1/announce/" + agent.getAgentId()).toString();
         this.client = new AsyncHttpClient();
         this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("announce-%s").build());
     }
@@ -80,10 +83,14 @@ public class AnnouncementService
             AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus, httpServerInfo.getHttpUri());
             String json = codec.toJson(agentStatusRepresentation);
 
-            client.preparePut(announcementUrl)
+            Response response = client.preparePut(announcementUrl)
                     .setBody(json)
+                    .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                     .execute()
                     .get();
+            if (response.getStatusCode() != 200) {
+                log.warn("Announcement to " + announcementUrl + " failed: " + response.getStatusText());
+            }
         }
         catch (InterruptedException e) {
             throw e;
