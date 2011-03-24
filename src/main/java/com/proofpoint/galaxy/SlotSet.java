@@ -19,34 +19,32 @@ import com.google.common.collect.ImmutableMap.Builder;
 
 import java.util.Map;
 
-public enum LifecycleState
+public enum SlotSet
 {
-    STOPPED("s"),
-    RUNNING("r"),
-    UNASSIGNED(null),
-    UNKNOWN("u");
+    EMPTY("e"),
+    TAKEN("t"),
+    ALL("a");
 
-    private static Map<String, LifecycleState> byName;
+    private static Map<String, SlotSet> byName;
 
     static {
-        Builder<String, LifecycleState> builder = ImmutableMap.builder();
-        for (LifecycleState state : LifecycleState.values()) {
+        Builder<String, SlotSet> builder = ImmutableMap.builder();
+        for (SlotSet state : SlotSet.values()) {
             builder.put(state.name().toLowerCase(), state);
-            if (state.shortName != null) {
-                builder.put(state.shortName.toLowerCase(), state);
-            }
+            builder.put(state.shortName.toLowerCase(), state);
         }
         byName = builder.build();
     }
 
-    public static LifecycleState lookup(String name) {
+    public static SlotSet lookup(String name)
+    {
         Preconditions.checkNotNull(name, "name is null");
         return byName.get(name.toLowerCase());
     }
 
     private final String shortName;
 
-    LifecycleState(String shortName)
+    SlotSet(String shortName)
     {
         this.shortName = shortName;
     }

@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.LifecycleState.UNKNOWN;
 import static com.proofpoint.testing.Assertions.assertEqualsIgnoreOrder;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -45,6 +46,21 @@ public class TestConsoleSlotResource
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEqualsIgnoreOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1), SlotStatusRepresentation.from(slot2)));
+        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
+    }
+
+    @Test
+    public void testGetAllSlotsWithFilter()
+    {
+        SlotStatus slot1 = createSlotStatus("slot1", UNASSIGNED);
+        SlotStatus slot2 = createSlotStatus("slot2", UNKNOWN);
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(slot1, slot2));
+        console.updateAgentStatus(agentStatus);
+
+        URI requestUri = URI.create("http://localhost/v1/slot?state=unassigned");
+        Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
+        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        assertEqualsIgnoreOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1)));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 

@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
@@ -43,9 +44,12 @@ public class ConsoleSlotResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllSlots(@Context UriInfo uriInfo)
     {
+        Predicate<Slot> slotFilter = SlotFilterBuilder.build(uriInfo);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (RemoteSlot remoteSlot : console.getAllSlots()) {
-            representations.add(SlotStatusRepresentation.from(remoteSlot.status()));
+            if (slotFilter.apply(remoteSlot)) {
+                representations.add(SlotStatusRepresentation.from(remoteSlot.status()));
+            }
         }
         return Response.ok(representations).build();
     }
