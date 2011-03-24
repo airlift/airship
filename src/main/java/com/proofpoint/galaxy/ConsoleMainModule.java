@@ -24,6 +24,7 @@ public class ConsoleMainModule
     public void configure(Binder binder)
     {
         binder.bind(Console.class).in(Scopes.SINGLETON);
+        binder.bind(ConsoleSlotResource.class).in(Scopes.SINGLETON);
         binder.bind(AnnounceResource.class).in(Scopes.SINGLETON);
         ConfigurationModule.bindConfig(binder).to(ConsoleConfig.class);
     }

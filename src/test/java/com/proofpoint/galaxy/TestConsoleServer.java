@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.TypeLiteral;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
@@ -34,11 +35,12 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
-import java.io.File;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -52,17 +54,19 @@ public class TestConsoleServer
     private Console console;
 
     private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = new JsonCodecBuilder().build(AgentStatusRepresentation.class);
+    private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>()
+    {
+    });
 
     private AgentStatus agentStatus;
-    private File tempDir;
-    private File testRepository;
+    private SlotStatus slot0;
+    private SlotStatus slot1;
 
 
     @BeforeClass
     public void startServer()
             throws Exception
     {
-        tempDir = DeploymentUtils.createTempDir("agent");
         Map<String, String> properties = ImmutableMap.<String, String>builder()
                 .put("console.binary-repo", "http://localhost:9999/")
                 .put("console.config-repo", "http://localhost:8888/")
@@ -79,22 +83,19 @@ public class TestConsoleServer
         server.start();
         client = new AsyncHttpClient();
 
-        testRepository = RepositoryTestHelper.createTestRepository();
-        agentStatus = new AgentStatus(UUID.randomUUID(),
-                ImmutableList.of(
-                        new SlotStatus(UUID.randomUUID(),
-                                "slot1",
-                                URI.create("fake://foo"),
-                                BinarySpec.valueOf("food.fruit:apple:1.0"),
-                                ConfigSpec.valueOf("@prod:apple:1.0"),
-                                STOPPED),
-                        new SlotStatus(UUID.randomUUID(),
-                                "slot2",
-                                URI.create("fake://foo"),
-                                BinarySpec.valueOf("food.fruit:banana:2.0-SNAPSHOT"),
-                                ConfigSpec.valueOf("@prod:banana:1.0"),
-                                STOPPED)));
-
+        slot0 = new SlotStatus(UUID.randomUUID(),
+                "slot1",
+                URI.create("fake://foo"),
+                BinarySpec.valueOf("food.fruit:apple:1.0"),
+                ConfigSpec.valueOf("@prod:apple:1.0"),
+                STOPPED);
+        slot1 = new SlotStatus(UUID.randomUUID(),
+                "slot2",
+                URI.create("fake://foo"),
+                BinarySpec.valueOf("food.fruit:banana:2.0-SNAPSHOT"),
+                ConfigSpec.valueOf("@prod:banana:1.0"),
+                STOPPED);
+        agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(slot0, slot1));
     }
 
     @BeforeMethod
@@ -117,12 +118,23 @@ public class TestConsoleServer
         if (client != null) {
             client.close();
         }
-        if (tempDir != null) {
-            DeploymentUtils.deleteRecursively(tempDir);
-        }
-        if (testRepository != null) {
-            DeploymentUtils.deleteRecursively(testRepository);
-        }
+    }
+
+    @Test
+    public void testGetAllSlots()
+            throws Exception
+    {
+        console.updateAgentStatus(agentStatus);
+
+        Response response = client.prepareGet(urlFor("/v1/slot/"))
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, ImmutableList.of(SlotStatusRepresentation.from(slot0), SlotStatusRepresentation.from(slot1)));
     }
 
     @Test
