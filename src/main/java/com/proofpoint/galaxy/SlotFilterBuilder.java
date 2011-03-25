@@ -116,7 +116,7 @@ public class SlotFilterBuilder
 
     public Predicate<SlotStatus> buildStatusFilter()
     {
-        // set | host | (env & version & type)
+        // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<SlotStatus>> orPredicates = Lists.newArrayListWithCapacity(6);
         if (!stateFilters.isEmpty()) {
             Predicate<SlotStatus> predicate = Predicates.and(stateFilters);

@@ -24,7 +24,7 @@ public class ExtraAssertions
 {
     private static final Joiner ERROR_JOINER = Joiner.on("\n        ").useForNull("<null>");
 
-    public static void assertEqualsNoOrder(Collection<?> actual, Collection<?> expected)
+    public static void assertEqualsNoOrder(Iterable<?> actual, Iterable<?> expected)
     {
         if (actual == expected) {
             return;

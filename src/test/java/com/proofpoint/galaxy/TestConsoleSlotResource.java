@@ -10,9 +10,9 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
 import static com.proofpoint.galaxy.LifecycleState.UNKNOWN;
-import static com.proofpoint.testing.Assertions.assertEqualsIgnoreOrder;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -25,13 +25,13 @@ public class TestConsoleSlotResource
     public void setUp()
             throws Exception
     {
-        console = new Console(new ConsoleConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
+        console = new Console(new MockRemoteSlotFactory(), new ConsoleConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
         resource = new ConsoleSlotResource(console);
     }
 
     private SlotStatus createSlotStatus(String slotName, LifecycleState state)
     {
-        return new SlotStatus(UUID.randomUUID(), slotName, URI.create("fake://localhost/" + slotName), state);
+        return new SlotStatus(UUID.randomUUID(), slotName, URI.create("fake://localhost/v1/slot/" + slotName), state);
     }
 
     @Test
@@ -45,7 +45,7 @@ public class TestConsoleSlotResource
         URI requestUri = URI.create("http://localhost/v1/slot");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEqualsIgnoreOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1), SlotStatusRepresentation.from(slot2)));
+        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1), SlotStatusRepresentation.from(slot2)));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -60,7 +60,7 @@ public class TestConsoleSlotResource
         URI requestUri = URI.create("http://localhost/v1/slot?state=unassigned");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEqualsIgnoreOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1)));
+        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1)));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -70,7 +70,7 @@ public class TestConsoleSlotResource
         URI requestUri = URI.create("http://localhost/v1/slot?state=unassigned");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEqualsIgnoreOrder((Iterable<?>) response.getEntity(), ImmutableList.of());
+        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 }

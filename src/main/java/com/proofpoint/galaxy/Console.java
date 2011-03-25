@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapEvictionListener;
 import com.google.common.collect.MapMaker;
@@ -15,6 +16,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Console
 {
+    private final RemoteSlotFactory remoteSlotFactory;
     private final ConcurrentMap<UUID, AgentStatus> agents;
 
     // write access to agents and slots must be protected by a
@@ -23,8 +25,11 @@ public class Console
     private final Map<UUID, RemoteSlot> slots;
 
     @Inject
-    public Console(ConsoleConfig config)
+    public Console(RemoteSlotFactory remoteSlotFactory, ConsoleConfig config)
     {
+        Preconditions.checkNotNull(remoteSlotFactory, "remoteSlotFactory is null");
+
+        this.remoteSlotFactory = remoteSlotFactory;
         agents = new MapMaker()
                 .expiration((long) config.getStatusExpiration().toMillis(), TimeUnit.MILLISECONDS)
                 .evictionListener(new MapEvictionListener<UUID, AgentStatus>()
@@ -70,7 +75,7 @@ public class Console
                     remoteSlot.setStatus(slotStatus);
                 }
                 else {
-                    slots.put(slotStatus.getId(), new RemoteSlot(slotStatus));
+                    slots.put(slotStatus.getId(), remoteSlotFactory.createRemoteSlot(slotStatus));
                 }
             }
         }
@@ -98,6 +103,11 @@ public class Console
             slotsLock.writeLock().unlock();
         }
 
+    }
+
+    public Slot getSlot(UUID slotId)
+    {
+        return slots.get(slotId);
     }
 
     public List<RemoteSlot> getAllSlots()

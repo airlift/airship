@@ -35,7 +35,7 @@ public class TestAnnounceResource
     @BeforeMethod
     public void setup()
     {
-        console = new Console(new ConsoleConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
+        console = new Console(new MockRemoteSlotFactory(), new ConsoleConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
         resource = new AnnounceResource(console);
         agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
     }

@@ -13,12 +13,17 @@
  */
 package com.proofpoint.galaxy;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.TypeLiteral;
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.experimental.json.JsonCodec;
+import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -27,10 +32,16 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
+import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
+import static com.proofpoint.galaxy.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -44,9 +55,15 @@ public class TestServerIntegration
     private AnnouncementService announcementService;
     private Console console;
 
+    private Slot appleSlot1;
+    private Slot appleSlot2;
+    private Slot bananaSlot;
     private Assignment appleAssignment;
+    private Assignment bananaAssignment;
     private File tempDir;
     private File testRepository;
+
+    private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>(){});
 
     @BeforeClass
     public void startServer()
@@ -90,6 +107,7 @@ public class TestServerIntegration
 
         testRepository = RepositoryTestHelper.createTestRepository();
         appleAssignment = newAssignment("apple", "1.0");
+        bananaAssignment = newAssignment("banana", "2.0-SNAPSHOT");
     }
 
     private Assignment newAssignment(String name, String binaryVersion)
@@ -101,6 +119,7 @@ public class TestServerIntegration
 
     @BeforeMethod
     public void resetState()
+            throws Exception
     {
         for (Slot slot : agent.getAllSlots()) {
             agent.deleteSlot(slot.getName());
@@ -110,6 +129,15 @@ public class TestServerIntegration
         }
         assertTrue(agent.getAllSlots().isEmpty());
         assertTrue(console.getAllAgentStatus().isEmpty());
+
+
+        appleSlot1 = agent.addNewSlot();
+        appleSlot1.assign(appleAssignment);
+        appleSlot2 = agent.addNewSlot();
+        appleSlot2.assign(appleAssignment);
+        bananaSlot = agent.addNewSlot();
+        bananaSlot.assign(bananaAssignment);
+        announcementService.announce();
     }
 
     @AfterClass
@@ -139,12 +167,83 @@ public class TestServerIntegration
     public void testAnnounce()
             throws Exception
     {
-        Slot slot = agent.addNewSlot();
-        slot.assign(appleAssignment);
-        announcementService.announce();
-
         AgentStatus agentStatus = console.getAgentStatus(agent.getAgentId());
-
         assertEquals(agentStatus, agent.getAgentStatus());
+    }
+
+
+    @Test
+    public void testStart()
+            throws Exception
+    {
+        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
+                .setBody("start")
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(RUNNING, appleSlot1.status().getState());
+        assertEquals(RUNNING, appleSlot2.status().getState());
+        assertEquals(STOPPED, bananaSlot.status().getState());
+    }
+
+    @Test
+    public void testRestart()
+            throws Exception
+    {
+        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
+                .setBody("restart")
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(RUNNING, appleSlot1.status().getState());
+        assertEquals(RUNNING, appleSlot2.status().getState());
+        assertEquals(STOPPED, bananaSlot.status().getState());
+    }
+
+    @Test
+    public void testStop()
+            throws Exception
+    {
+        appleSlot1.start();
+        appleSlot2.start();
+        bananaSlot.start();
+
+        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
+                .setBody("stop")
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(STOPPED, appleSlot1.status().getState());
+        assertEquals(STOPPED, appleSlot2.status().getState());
+        assertEquals(RUNNING, bananaSlot.status().getState());
+    }
+
+    private String urlFor(String path)
+    {
+        return consoleServer.getBaseUrl().resolve(path).toString();
     }
 }

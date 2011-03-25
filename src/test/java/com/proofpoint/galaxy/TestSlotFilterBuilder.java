@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy;
 
 import com.google.common.base.Predicate;
+import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.galaxy.SlotFilterBuilder.BinarySpecPredicate;
 import com.proofpoint.galaxy.SlotFilterBuilder.ConfigSpecPredicate;
 import com.proofpoint.galaxy.SlotFilterBuilder.GlobPredicate;
@@ -28,7 +29,7 @@ public class TestSlotFilterBuilder extends TestCase
             BinarySpec.valueOf("fruit:apple:1.0"),
             ConfigSpec.valueOf("@prod:apple:1.0"),
             UNKNOWN);
-    private final Slot slot = new RemoteSlot(status);
+    private final Slot slot = new HttpRemoteSlot(status, new AsyncHttpClient());
 
     private Predicate<Slot> buildFilter(String key, String value)
     {

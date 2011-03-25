@@ -33,7 +33,7 @@ public class LifecycleResource
     @Inject
     public LifecycleResource(Agent agent)
     {
-        Preconditions.checkNotNull(agent, "slotsManager must not be null");
+        Preconditions.checkNotNull(agent, "agent must not be null");
 
         this.agent = agent;
     }
