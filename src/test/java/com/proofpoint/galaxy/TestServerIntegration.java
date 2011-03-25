@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
@@ -42,6 +43,7 @@ import java.util.Map;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -63,6 +65,7 @@ public class TestServerIntegration
     private File tempDir;
     private File testRepository;
 
+    private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>(){});
 
     @BeforeClass
@@ -171,7 +174,6 @@ public class TestServerIntegration
         assertEquals(agentStatus, agent.getAgentStatus());
     }
 
-
     @Test
     public void testStart()
             throws Exception
@@ -189,9 +191,62 @@ public class TestServerIntegration
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(RUNNING, appleSlot1.status().getState());
-        assertEquals(RUNNING, appleSlot2.status().getState());
-        assertEquals(STOPPED, bananaSlot.status().getState());
+        assertEquals(appleSlot1.status().getState(), RUNNING);
+        assertEquals(appleSlot2.status().getState(), RUNNING);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
+    }
+
+    @Test
+    public void testAssign()
+            throws Exception
+    {
+        appleSlot1.clear();
+        appleSlot2.clear();
+        announcementService.announce();
+
+        String json = assignmentCodec.toJson(AssignmentRepresentation.from(appleAssignment));
+        Response response = client.preparePut(urlFor("/v1/slot/assignment?set=empty"))
+                .setBody(json)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(appleSlot1.status().getState(), STOPPED);
+        assertEquals(appleSlot1.status().getBinary(), appleAssignment.getBinary());
+        assertEquals(appleSlot2.status().getState(), STOPPED);
+        assertEquals(appleSlot2.status().getBinary(), appleAssignment.getBinary());
+        assertEquals(bananaSlot.status().getState(), STOPPED);
+        assertEquals(bananaSlot.status().getBinary(), bananaAssignment.getBinary());
+    }
+
+
+    @Test
+    public void testClear()
+            throws Exception
+    {
+        Response response = client.prepareDelete(urlFor("/v1/slot/assignment?binary=*:apple:*"))
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(appleSlot1.status().getState(), UNASSIGNED);
+        assertEquals(appleSlot2.status().getState(), UNASSIGNED);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 
     @Test
@@ -211,9 +266,9 @@ public class TestServerIntegration
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(RUNNING, appleSlot1.status().getState());
-        assertEquals(RUNNING, appleSlot2.status().getState());
-        assertEquals(STOPPED, bananaSlot.status().getState());
+        assertEquals(appleSlot1.status().getState(), RUNNING);
+        assertEquals(appleSlot2.status().getState(), RUNNING);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 
     @Test
@@ -237,9 +292,9 @@ public class TestServerIntegration
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(STOPPED, appleSlot1.status().getState());
-        assertEquals(STOPPED, appleSlot2.status().getState());
-        assertEquals(RUNNING, bananaSlot.status().getState());
+        assertEquals(appleSlot1.status().getState(), STOPPED);
+        assertEquals(appleSlot2.status().getState(), STOPPED);
+        assertEquals(bananaSlot.status().getState(), RUNNING);
     }
 
     private String urlFor(String path)

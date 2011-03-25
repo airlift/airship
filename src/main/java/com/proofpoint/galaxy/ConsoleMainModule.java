@@ -25,6 +25,7 @@ public class ConsoleMainModule
     {
         binder.bind(Console.class).in(Scopes.SINGLETON);
         binder.bind(ConsoleSlotResource.class).in(Scopes.SINGLETON);
+        binder.bind(ConsoleAssignmentResource.class).in(Scopes.SINGLETON);
         binder.bind(ConsoleLifecycleResource.class).in(Scopes.SINGLETON);
         binder.bind(AnnounceResource.class).in(Scopes.SINGLETON);
         binder.bind(RemoteSlotFactory.class).to(HttpRemoteSlotFactory.class).in(Scopes.SINGLETON);

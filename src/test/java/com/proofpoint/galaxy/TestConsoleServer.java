@@ -47,6 +47,7 @@ import java.util.UUID;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -58,6 +59,7 @@ public class TestConsoleServer
 
     private Console console;
 
+    private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
     private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = new JsonCodecBuilder().build(AgentStatusRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>() { });
 
@@ -65,6 +67,9 @@ public class TestConsoleServer
     private Slot appleSlot1;
     private Slot appleSlot2;
     private Slot bananaSlot;
+
+    private Assignment appleAssignment;
+    private Assignment bananaAssignment;
 
     @BeforeClass
     public void startServer()
@@ -90,6 +95,16 @@ public class TestConsoleServer
 
         server.start();
         client = new AsyncHttpClient();
+
+        appleAssignment = newAssignment("apple", "1.0");
+        bananaAssignment = newAssignment("banana", "2.0-SNAPSHOT");
+    }
+
+    private Assignment newAssignment(String name, String binaryVersion)
+    {
+        BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:" + name + ":" + binaryVersion);
+        ConfigSpec configSpec = ConfigSpec.valueOf("@prod:" + name + ":1.0");
+        return new Assignment(binarySpec, URI.create("fake://localhost/binary/repo"), configSpec, ImmutableMap.<String, URI>of());
     }
 
     @BeforeMethod
@@ -103,21 +118,21 @@ public class TestConsoleServer
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
-                URI.create("fake://foo/v1/slot/apple1"),
-                BinarySpec.valueOf("food.fruit:apple:1.0"),
-                ConfigSpec.valueOf("@prod:apple:1.0"),
+                URI.create("fake://appleServer1/v1/slot/apple1"),
+                appleAssignment.getBinary(),
+                appleAssignment.getConfig(),
                 STOPPED);
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
-                URI.create("fake://foo/v1/slot/apple1"),
-                BinarySpec.valueOf("food.fruit:apple:1.0"),
-                ConfigSpec.valueOf("@prod:apple:1.0"),
+                URI.create("fake://appleServer2/v1/slot/apple1"),
+                appleAssignment.getBinary(),
+                appleAssignment.getConfig(),
                 STOPPED);
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
-                URI.create("fake://foo/v1/slot/banana"),
-                BinarySpec.valueOf("food.fruit:banana:2.0-SNAPSHOT"),
-                ConfigSpec.valueOf("@prod:banana:1.0"),
+                URI.create("fake://bananaServer/v1/slot/banana"),
+                bananaAssignment.getBinary(),
+                bananaAssignment.getConfig(),
                 STOPPED);
 
         agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
@@ -160,6 +175,54 @@ public class TestConsoleServer
                 SlotStatusRepresentation.from(bananaSlot.status())));
     }
 
+
+    @Test
+    public void testAssign()
+            throws Exception
+    {
+        appleSlot1.clear();
+        appleSlot2.clear();
+        bananaSlot.clear();
+
+        String json = assignmentCodec.toJson(AssignmentRepresentation.from(appleAssignment));
+        Response response = client.preparePut(urlFor("/v1/slot/assignment?host=apple*"))
+                .setBody(json)
+                .setHeader(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(appleSlot1.status().getState(), STOPPED);
+        assertEquals(appleSlot2.status().getState(), STOPPED);
+        assertEquals(bananaSlot.status().getState(), UNASSIGNED);
+    }
+
+    @Test
+    public void testClear()
+            throws Exception
+    {
+        Response response = client.prepareDelete(urlFor("/v1/slot/assignment?host=apple*"))
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(appleSlot1.status().getState(), UNASSIGNED);
+        assertEquals(appleSlot2.status().getState(), UNASSIGNED);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
+    }
+
     @Test
     public void testStart()
             throws Exception
@@ -177,7 +240,9 @@ public class TestConsoleServer
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(STOPPED, bananaSlot.status().getState());
+        assertEquals(appleSlot1.status().getState(), RUNNING);
+        assertEquals(appleSlot2.status().getState(), RUNNING);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 
     @Test
@@ -197,7 +262,9 @@ public class TestConsoleServer
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(STOPPED, bananaSlot.status().getState());
+        assertEquals(appleSlot1.status().getState(), RUNNING);
+        assertEquals(appleSlot2.status().getState(), RUNNING);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 
     @Test
@@ -221,7 +288,9 @@ public class TestConsoleServer
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(RUNNING, bananaSlot.status().getState());
+        assertEquals(appleSlot1.status().getState(), STOPPED);
+        assertEquals(appleSlot2.status().getState(), STOPPED);
+        assertEquals(bananaSlot.status().getState(), RUNNING);
     }
 
     @Test
@@ -234,9 +303,9 @@ public class TestConsoleServer
                 .get();
 
         assertEquals(response.getStatusCode(), Status.BAD_REQUEST.getStatusCode());
-        assertEquals(STOPPED, appleSlot1.status().getState());
-        assertEquals(STOPPED, appleSlot2.status().getState());
-        assertEquals(STOPPED, bananaSlot.status().getState());
+        assertEquals(appleSlot1.status().getState(), STOPPED);
+        assertEquals(appleSlot2.status().getState(), STOPPED);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 
     @Test
