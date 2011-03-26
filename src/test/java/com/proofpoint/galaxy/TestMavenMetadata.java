@@ -18,7 +18,7 @@ public class TestMavenMetadata
             throws Exception
     {
 
-        String xml = Files.toString(new File("src/test/repo/food/fruit/banana/2.0-SNAPSHOT/maven-metadata.xml"), Charsets.UTF_8);
+        String xml = Files.toString(new File("src/test/repo/binary/food/fruit/banana/2.0-SNAPSHOT/maven-metadata.xml"), Charsets.UTF_8);
         MavenMetadata metadata = unmarshalMavenMetadata(xml);
         assertNotNull(metadata);
         assertEquals(metadata.groupId, "food.fruit");
@@ -41,7 +41,7 @@ public class TestMavenMetadata
             throws Exception
     {
 
-        String xml = Files.toString(new File("src/test/repo/food/fruit/apple/maven-metadata.xml"), Charsets.UTF_8);
+        String xml = Files.toString(new File("src/test/repo/binary/food/fruit/apple/maven-metadata.xml"), Charsets.UTF_8);
         MavenMetadata metadata = unmarshalMavenMetadata(xml);
         assertNotNull(metadata);
         assertEquals(metadata.groupId, "food.fruit");

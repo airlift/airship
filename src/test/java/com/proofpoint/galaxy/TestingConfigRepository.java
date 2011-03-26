@@ -31,7 +31,7 @@ public class TestingConfigRepository extends SimpleConfigRepository
     {
         File targetRepo = null;
         try {
-            File sourceRepo = new File("src/test/config/");
+            File sourceRepo = new File("src/test/repo/config/");
             if (!sourceRepo.isDirectory()) {
                 throw new IllegalStateException("Expected source repository to exist: " + sourceRepo.getAbsolutePath());
             }

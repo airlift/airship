@@ -32,7 +32,7 @@ public class TestingBinaryRepository extends MavenBinaryRepository
     {
         File targetRepo = null;
         try {
-            File sourceRepo = new File("src/test/repo/");
+            File sourceRepo = new File("src/test/repo/binary/");
             if (!sourceRepo.isDirectory()) {
                 throw new IllegalStateException("Expected source repository to exist: " + sourceRepo.getAbsolutePath());
             }
