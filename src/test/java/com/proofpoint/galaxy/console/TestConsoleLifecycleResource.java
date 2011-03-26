@@ -21,7 +21,6 @@ import com.proofpoint.galaxy.MockUriInfo;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
-import com.proofpoint.galaxy.agent.Assignment;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -33,17 +32,16 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 public class TestConsoleLifecycleResource
 {
-    private final Assignment apple = newAssignment("food.fruit:apple:1.0", "@prod:apple:1.0");
-    private final Assignment banana = newAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:1.0");
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/lifecycle");
     private ConsoleLifecycleResource resource;
 
@@ -60,20 +58,20 @@ public class TestConsoleLifecycleResource
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
                 URI.create("fake://foo/v1/slot/apple1"),
-                apple.getBinary(),
-                apple.getConfig(),
+                MOCK_APPLE_ASSIGNMENT.getBinary(),
+                MOCK_APPLE_ASSIGNMENT.getConfig(),
                 STOPPED);
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
                 URI.create("fake://foo/v1/slot/apple1"),
-                apple.getBinary(),
-                apple.getConfig(),
+                MOCK_APPLE_ASSIGNMENT.getBinary(),
+                MOCK_APPLE_ASSIGNMENT.getConfig(),
                 STOPPED);
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
                 URI.create("fake://foo/v1/slot/banana"),
-                banana.getBinary(),
-                banana.getConfig(),
+                MOCK_BANANA_ASSIGNMENT.getBinary(),
+                MOCK_BANANA_ASSIGNMENT.getConfig(),
                 STOPPED);
 
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
@@ -153,7 +151,7 @@ public class TestConsoleLifecycleResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (Slot slot : slots) {
-            builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), apple.getBinary(), apple.getConfig(), state)));
+            builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), MOCK_APPLE_ASSIGNMENT.getBinary(), MOCK_APPLE_ASSIGNMENT.getConfig(), state)));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

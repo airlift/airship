@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static java.util.Arrays.asList;
 
 public class TestSlotStatus

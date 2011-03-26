@@ -32,10 +32,10 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.AssignmentHelper.createMockAssignment;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
-import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -94,9 +94,9 @@ public class TestConsoleAssignmentResource
     @Test
     public void testReplaceAssignment()
     {
-        appleSlot1.assign(newAssignment(banana));
+        appleSlot1.assign(createMockAssignment(banana.getBinary(), banana.getConfig()));
         assertEquals(appleSlot1.status().getBinary(), banana.getBinary());
-        appleSlot2.assign(newAssignment(banana));
+        appleSlot2.assign(createMockAssignment(banana.getBinary(), banana.getConfig()));
         assertEquals(appleSlot2.status().getBinary(), banana.getBinary());
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
@@ -138,11 +138,11 @@ public class TestConsoleAssignmentResource
     @Test
     public void testClear()
     {
-        appleSlot1.assign(newAssignment(apple));
+        appleSlot1.assign(createMockAssignment(apple.getBinary(), apple.getConfig()));
         assertEquals(appleSlot1.status().getBinary(), apple.getBinary());
-        appleSlot2.assign(newAssignment(apple));
+        appleSlot2.assign(createMockAssignment(apple.getBinary(), apple.getConfig()));
         assertEquals(appleSlot2.status().getBinary(), apple.getBinary());
-        bananaSlot.assign(newAssignment(banana));
+        bananaSlot.assign(createMockAssignment(banana.getBinary(), banana.getConfig()));
         assertEquals(bananaSlot.status().getBinary(), banana.getBinary());
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");

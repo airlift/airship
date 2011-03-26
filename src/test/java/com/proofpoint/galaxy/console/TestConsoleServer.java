@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.AssignmentHelper.createAssignment;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
@@ -107,8 +108,8 @@ public class TestConsoleServer
         server.start();
         client = new AsyncHttpClient();
 
-        appleAssignment = new Assignment("food.fruit:apple:1.0", binaryRepository, "@prod:apple:1.0", configRepository);
-        bananaAssignment = new Assignment("food.fruit:banana:2.0-SNAPSHOT", binaryRepository, "@prod:banana:2.0-SNAPSHOT", configRepository);
+        appleAssignment = createAssignment("food.fruit:apple:1.0", binaryRepository, "@prod:apple:1.0", configRepository);
+        bananaAssignment = createAssignment("food.fruit:banana:2.0-SNAPSHOT", binaryRepository, "@prod:banana:2.0-SNAPSHOT", configRepository);
     }
 
     @BeforeMethod

@@ -14,9 +14,8 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
+import com.proofpoint.galaxy.AssignmentHelper;
 import com.proofpoint.galaxy.DeploymentUtils;
-import com.proofpoint.galaxy.console.TestingBinaryRepository;
-import com.proofpoint.galaxy.console.TestingConfigRepository;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -33,25 +32,22 @@ import static org.testng.Assert.fail;
 public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTest
 {
     private File tempDir;
-    private TestingBinaryRepository binaryRepository;
-    private TestingConfigRepository configRepository;
+    private AssignmentHelper assignmentHelper;
 
     @BeforeClass
     public void createRepository()
             throws Exception
     {
-        binaryRepository = new TestingBinaryRepository();
-        configRepository = new TestingConfigRepository();
+        assignmentHelper = new AssignmentHelper();
+        apple = assignmentHelper.getAppleAssignment();
+        banana = assignmentHelper.getBananaAssignment();
     }
 
     @AfterClass
     public void removeRepository()
     {
-        if (binaryRepository != null) {
-            binaryRepository.destroy();
-        }
-        if (configRepository != null) {
-            configRepository.destroy();
+        if (assignmentHelper != null) {
+            assignmentHelper.destroy();
         }
     }
 
@@ -61,8 +57,6 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     {
         tempDir = Files.createTempDir().getCanonicalFile();
         manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
-        apple = new Assignment("food.fruit:apple:1.0", binaryRepository, "@prod:apple:1.0", configRepository);
-        banana = new Assignment("food.fruit:banana:2.0-SNAPSHOT", binaryRepository, "@prod:banana:2.0-SNAPSHOT", configRepository);
     }
 
     @AfterMethod

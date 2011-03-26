@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
+import com.proofpoint.galaxy.AssignmentHelper;
 import com.proofpoint.galaxy.DeploymentUtils;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
@@ -22,8 +23,6 @@ import org.testng.annotations.BeforeMethod;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-
-import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 
 public class TesLauncherLifecycleManager extends AbstractLifecycleManagerTest
 {
@@ -56,7 +55,7 @@ public class TesLauncherLifecycleManager extends AbstractLifecycleManagerTest
         Files.copy(goodLauncher, launcher);
         launcher.setExecutable(true, true);
 
-        return new Deployment(name, deploymentDir, newAssignment("food.fruit:" + name + ":1.0", "@prod:" + name + ":1.0"));
+        return new Deployment(name, deploymentDir, AssignmentHelper.createMockAssignment("food.fruit:" + name + ":1.0", "@prod:" + name + ":1.0"));
     }
 
     @AfterMethod

@@ -27,7 +27,8 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
+import static com.proofpoint.galaxy.AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -60,7 +61,7 @@ public class TestAssignmentResource
     {
         Slot slot = agent.addNewSlot();
 
-        Assignment expectedAssignment = newAssignment("fruit:apple:1.0", "@prod:apple:1.0");
+        Assignment expectedAssignment = MOCK_APPLE_ASSIGNMENT;
         SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED);
 
         Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
@@ -89,9 +90,9 @@ public class TestAssignmentResource
     public void testReplaceAssignment()
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
+        slot.assign(MOCK_APPLE_ASSIGNMENT);
 
-        Assignment expectedAssignment = newAssignment("fruit:banana:1.0", "@prod:banana:1.0");
+        Assignment expectedAssignment = MOCK_BANANA_ASSIGNMENT;
         SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
         );
 
@@ -108,7 +109,7 @@ public class TestAssignmentResource
     public void testClear()
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(newAssignment("fruit:apple:1.0", "@prod:apple:1.0"));
+        slot.assign(MOCK_APPLE_ASSIGNMENT);
         SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
 
         Response response = resource.clear(slot.getName(), uriInfo);

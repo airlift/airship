@@ -13,21 +13,17 @@
  */
 package com.proofpoint.galaxy.agent;
 
+import com.proofpoint.galaxy.AssignmentHelper;
 import org.testng.annotations.BeforeMethod;
-
-import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 
 public class TestMockDeploymentManager extends AbstractDeploymentManagerTest
 {
-
     @BeforeMethod
     protected void setUp()
             throws Exception
     {
         manager = new MockDeploymentManager();
-        apple = newAssignment("food.fruit:apple:1.0", "@prod:apple:1.0");
-        banana = newAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:2.0-SNAPSHOT");
-
+        apple = AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
+        banana = AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
     }
-
 }

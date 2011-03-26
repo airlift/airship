@@ -25,10 +25,9 @@ import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
+import com.proofpoint.galaxy.AssignmentHelper;
 import com.proofpoint.galaxy.DeploymentUtils;
 import com.proofpoint.galaxy.Slot;
-import com.proofpoint.galaxy.console.TestingBinaryRepository;
-import com.proofpoint.galaxy.console.TestingConfigRepository;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -66,11 +65,10 @@ public class TestServer
     private final JsonCodec<Map<String, Object>> mapCodec = new JsonCodecBuilder().build(new TypeLiteral<Map<String, Object>>() { });
     private final JsonCodec<List<Map<String, Object>>> listCodec = new JsonCodecBuilder().build(new TypeLiteral<List<Map<String, Object>>>() { });
 
+    private AssignmentHelper assignmentHelper;
     private Assignment appleAssignment;
     private Assignment bananaAssignment;
     private File tempDir;
-    private TestingBinaryRepository binaryRepository;
-    private TestingConfigRepository configRepository;
 
 
     @BeforeClass
@@ -94,10 +92,9 @@ public class TestServer
         server.start();
         client = new AsyncHttpClient();
 
-        binaryRepository = new TestingBinaryRepository();
-        configRepository = new TestingConfigRepository();
-        appleAssignment = new Assignment("food.fruit:apple:1.0", binaryRepository, "@prod:apple:1.0", configRepository);
-        bananaAssignment = new Assignment("food.fruit:banana:2.0-SNAPSHOT", binaryRepository, "@prod:banana:2.0-SNAPSHOT", configRepository);
+        assignmentHelper = new AssignmentHelper();
+        appleAssignment = assignmentHelper.getAppleAssignment();
+        bananaAssignment = assignmentHelper.getBananaAssignment();
     }
 
     @BeforeMethod
@@ -123,11 +120,8 @@ public class TestServer
         if (tempDir != null) {
             DeploymentUtils.deleteRecursively(tempDir);
         }
-        if (binaryRepository != null) {
-            binaryRepository.destroy();
-        }
-        if (configRepository != null) {
-            configRepository.destroy();
+        if (assignmentHelper != null) {
+            assignmentHelper.destroy();
         }
     }
 

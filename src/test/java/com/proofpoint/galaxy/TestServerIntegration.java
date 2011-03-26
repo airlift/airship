@@ -27,7 +27,6 @@ import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.AnnouncementService;
-import com.proofpoint.galaxy.agent.Assignment;
 import com.proofpoint.galaxy.console.BinaryRepository;
 import com.proofpoint.galaxy.console.ConfigRepository;
 import com.proofpoint.galaxy.console.Console;
@@ -51,6 +50,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import static com.proofpoint.galaxy.AssignmentHelper.createAssignment;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
@@ -146,11 +146,11 @@ public class TestServerIntegration
 
 
         appleSlot1 = agent.addNewSlot();
-        appleSlot1.assign(new Assignment(appleAssignment.getBinary(), binaryRepository, appleAssignment.getConfig(), configRepository));
+        appleSlot1.assign(createAssignment(appleAssignment.getBinary(), binaryRepository, appleAssignment.getConfig(), configRepository));
         appleSlot2 = agent.addNewSlot();
-        appleSlot2.assign(new Assignment(appleAssignment.getBinary(), binaryRepository, appleAssignment.getConfig(), configRepository));
+        appleSlot2.assign(createAssignment(appleAssignment.getBinary(), binaryRepository, appleAssignment.getConfig(), configRepository));
         bananaSlot = agent.addNewSlot();
-        bananaSlot.assign(new Assignment(bananaAssignment.getBinary(), binaryRepository, bananaAssignment.getConfig(), configRepository));
+        bananaSlot.assign(createAssignment(bananaAssignment.getBinary(), binaryRepository, bananaAssignment.getConfig(), configRepository));
         announcementService.announce();
     }
 

@@ -19,8 +19,7 @@ import com.google.inject.Injector;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.galaxy.BinarySpec;
-import com.proofpoint.galaxy.ConfigSpec;
+import com.proofpoint.galaxy.AssignmentHelper;
 import com.proofpoint.galaxy.DeploymentUtils;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
@@ -53,11 +52,9 @@ public class TestRemoteSlot
 
     private Assignment appleAssignment;
     private File tempDir;
-    private TestingBinaryRepository binaryRepository;
-    private TestingConfigRepository configRepository;
     private RemoteSlot remoteSlot;
     private Slot slot;
-
+    private AssignmentHelper assignmentHelper;
 
     @BeforeClass
     public void startServer()
@@ -80,16 +77,8 @@ public class TestRemoteSlot
         server.start();
         client = new AsyncHttpClient();
 
-        binaryRepository = new TestingBinaryRepository();
-        configRepository = new TestingConfigRepository();
-        appleAssignment = newAssignment("apple", "1.0");
-    }
-
-    private Assignment newAssignment(String name, String binaryVersion)
-    {
-        BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:" + name + ":" + binaryVersion);
-        ConfigSpec configSpec = ConfigSpec.valueOf("@prod:" + name + ":1.0");
-        return new Assignment(binarySpec, binaryRepository, configSpec, configRepository);
+        assignmentHelper = new AssignmentHelper();
+        appleAssignment = assignmentHelper.getAppleAssignment();
     }
 
     @BeforeMethod
@@ -118,11 +107,8 @@ public class TestRemoteSlot
         if (tempDir != null) {
             DeploymentUtils.deleteRecursively(tempDir);
         }
-        if (binaryRepository != null) {
-            binaryRepository.destroy();
-        }
-        if (configRepository != null) {
-            configRepository.destroy();
+        if (assignmentHelper != null) {
+            assignmentHelper.destroy();
         }
         remoteSlot = null;
     }
