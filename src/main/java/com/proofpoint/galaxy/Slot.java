@@ -1,5 +1,7 @@
 package com.proofpoint.galaxy;
 
+import com.proofpoint.galaxy.agent.Assignment;
+
 import java.net.URI;
 import java.util.UUID;
 

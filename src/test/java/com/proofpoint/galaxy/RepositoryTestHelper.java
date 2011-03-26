@@ -1,5 +1,10 @@
 package com.proofpoint.galaxy;
 
+import com.proofpoint.galaxy.agent.Assignment;
+import com.proofpoint.galaxy.console.ConsoleAssignment;
+import com.proofpoint.galaxy.console.MockBinaryRepository;
+import com.proofpoint.galaxy.console.MockConfigRepository;
+
 public class RepositoryTestHelper
 {
     private static final MockBinaryRepository binaryRepository = new MockBinaryRepository();

@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.proofpoint.galaxy.agent.Command;
+import com.proofpoint.galaxy.agent.CommandFailedException;
 import com.proofpoint.units.Duration;
 
 import java.io.File;
