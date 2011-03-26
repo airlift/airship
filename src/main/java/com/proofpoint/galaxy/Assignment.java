@@ -61,6 +61,30 @@ public class Assignment
         this.configFiles = ImmutableMap.copyOf(configFiles);
     }
 
+    public Assignment(String binary, BinaryRepository binaryRepository, String config, ConfigRepository configRepository) {
+        Preconditions.checkNotNull(binary, "binary is null");
+        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
+        Preconditions.checkNotNull(config, "configSpec is null");
+        Preconditions.checkNotNull(configRepository, "configRepository is null");
+
+        this.binary = BinarySpec.valueOf(binary);
+        this.binaryFile = binaryRepository.getBinaryUri(this.binary);
+        this.config = ConfigSpec.valueOf(config);
+        this.configFiles = configRepository.getConfigMap(this.config);
+    }
+
+    public Assignment(BinarySpec binary, BinaryRepository binaryRepository, ConfigSpec config, ConfigRepository configRepository) {
+        Preconditions.checkNotNull(binary, "binary is null");
+        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
+        Preconditions.checkNotNull(config, "configSpec is null");
+        Preconditions.checkNotNull(configRepository, "configRepository is null");
+
+        this.binary = binary;
+        this.binaryFile = binaryRepository.getBinaryUri(binary);
+        this.config = config;
+        this.configFiles = configRepository.getConfigMap(config);
+    }
+
     public BinarySpec getBinary()
     {
         return binary;

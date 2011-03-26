@@ -8,7 +8,7 @@
     {
         "name": "slot2",
         "binary": "food.fruit:banana:2.0-SNAPSHOT",
-        "config": "@prod:banana:1.0",
+        "config": "@prod:banana:2.0-SNAPSHOT",
         "status": "STOPPED"
     }
 ]

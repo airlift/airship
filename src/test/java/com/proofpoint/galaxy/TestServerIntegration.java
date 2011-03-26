@@ -36,7 +36,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -60,23 +59,28 @@ public class TestServerIntegration
     private Slot appleSlot1;
     private Slot appleSlot2;
     private Slot bananaSlot;
-    private Assignment appleAssignment;
-    private Assignment bananaAssignment;
+    private ConsoleAssignment appleAssignment;
+    private ConsoleAssignment bananaAssignment;
     private File tempDir;
-    private File testRepository;
 
-    private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
+    private final JsonCodec<ConsoleAssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(ConsoleAssignmentRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>(){});
+
+    private File binaryRepoDir;
+    private File configRepoDir;
+    private BinaryRepository binaryRepository;
+    private ConfigRepository configRepository;
 
     @BeforeClass
     public void startServer()
             throws Exception
     {
-        tempDir = DeploymentUtils.createTempDir("agent");
+        binaryRepoDir = TestingBinaryRepository.createBinaryRepoDir();
+        configRepoDir = TestingConfigRepository.createConfigRepoDir();
 
         Map<String, String> consoleProperties = ImmutableMap.<String, String>builder()
-                .put("console.binary-repo", "fake://binary,repo/")
-                .put("console.config-repo", "fake://config.repo/")
+                .put("console.binary-repo", binaryRepoDir.toURI().toString())
+                .put("console.config-repo", configRepoDir.toURI().toString())
                 .put("console.status.expiration", "100d")
                 .build();
 
@@ -87,10 +91,13 @@ public class TestServerIntegration
 
         consoleServer = consoleInjector.getInstance(TestingHttpServer.class);
         console = consoleInjector.getInstance(Console.class);
+        binaryRepository = consoleInjector.getInstance(BinaryRepository.class);
+        configRepository = consoleInjector.getInstance(ConfigRepository.class);
 
         consoleServer.start();
         client = new AsyncHttpClient();
 
+        tempDir = DeploymentUtils.createTempDir("agent");
         Map<String, String> agentProperties = ImmutableMap.<String, String>builder()
                 .put("agent.console-uri", consoleServer.getBaseUrl().toString())
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
@@ -108,16 +115,8 @@ public class TestServerIntegration
         agentServer.start();
         client = new AsyncHttpClient();
 
-        testRepository = RepositoryTestHelper.createTestRepository();
-        appleAssignment = newAssignment("apple", "1.0");
-        bananaAssignment = newAssignment("banana", "2.0-SNAPSHOT");
-    }
-
-    private Assignment newAssignment(String name, String binaryVersion)
-    {
-        BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:" + name + ":" + binaryVersion);
-        ConfigSpec configSpec = ConfigSpec.valueOf("@prod:" + name + ":1.0");
-        return new Assignment(binarySpec, DeploymentUtils.toMavenRepositoryPath(testRepository.toURI(), binarySpec), configSpec, ImmutableMap.<String, URI>of());
+        appleAssignment = new ConsoleAssignment("food.fruit:apple:1.0", "@prod:apple:1.0");
+        bananaAssignment = new ConsoleAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:2.0-SNAPSHOT");
     }
 
     @BeforeMethod
@@ -135,11 +134,11 @@ public class TestServerIntegration
 
 
         appleSlot1 = agent.addNewSlot();
-        appleSlot1.assign(appleAssignment);
+        appleSlot1.assign(new Assignment(appleAssignment.getBinary(), binaryRepository, appleAssignment.getConfig(), configRepository));
         appleSlot2 = agent.addNewSlot();
-        appleSlot2.assign(appleAssignment);
+        appleSlot2.assign(new Assignment(appleAssignment.getBinary(), binaryRepository, appleAssignment.getConfig(), configRepository));
         bananaSlot = agent.addNewSlot();
-        bananaSlot.assign(bananaAssignment);
+        bananaSlot.assign(new Assignment(bananaAssignment.getBinary(), binaryRepository, bananaAssignment.getConfig(), configRepository));
         announcementService.announce();
     }
 
@@ -161,8 +160,11 @@ public class TestServerIntegration
         if (tempDir != null) {
             DeploymentUtils.deleteRecursively(tempDir);
         }
-        if (testRepository != null) {
-            DeploymentUtils.deleteRecursively(testRepository);
+        if (binaryRepoDir != null) {
+            DeploymentUtils.deleteRecursively(binaryRepoDir);
+        }
+        if (configRepoDir != null) {
+            DeploymentUtils.deleteRecursively(configRepoDir);
         }
     }
 
@@ -204,7 +206,7 @@ public class TestServerIntegration
         appleSlot2.clear();
         announcementService.announce();
 
-        String json = assignmentCodec.toJson(AssignmentRepresentation.from(appleAssignment));
+        String json = assignmentCodec.toJson(ConsoleAssignmentRepresentation.from(appleAssignment));
         Response response = client.preparePut(urlFor("/v1/slot/assignment?set=empty"))
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)

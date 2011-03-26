@@ -1,10 +1,8 @@
 package com.proofpoint.galaxy;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.units.Duration;
 
@@ -18,49 +16,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.MavenMetadata.unmarshalMavenMetadata;
-
 public class DeploymentUtils
 {
     private static final int TEMP_DIR_ATTEMPTS = 10000;
     private static final Executor executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("tar-command-%s").build());
-
-    public static URI toMavenRepositoryPath(URI repositoryBase, BinarySpec spec)
-    {
-        String fileVersion = spec.getVersion();
-        if (spec.getVersion().contains("SNAPSHOT")) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(spec.getGroupId().replace('.', '/')).append('/');
-            builder.append(spec.getArtifactId()).append('/');
-            builder.append(spec.getVersion()).append('/');
-            builder.append("maven-metadata.xml");
-
-            URI uri = repositoryBase.resolve(builder.toString());
-            try {
-                MavenMetadata metadata = unmarshalMavenMetadata(Resources.toString(toURL(uri), Charsets.UTF_8));
-                fileVersion = String.format("%s-%s-%s",
-                        spec.getVersion().replaceAll("-SNAPSHOT", ""),
-                        metadata.versioning.snapshot.timestamp,
-                        metadata.versioning.snapshot.buildNumber);
-            }
-            catch (Exception ignored) {
-                // no maven-metadata.xml file... hope this is laid out normally
-            }
-
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append(spec.getGroupId().replace('.', '/')).append('/');
-        builder.append(spec.getArtifactId()).append('/');
-        builder.append(spec.getVersion()).append('/');
-        builder.append(spec.getArtifactId()).append('-').append(fileVersion);
-        if (spec.getClassifier() != null) {
-            builder.append('-').append(spec.getArtifactId());
-        }
-        builder.append('.').append(spec.getPackaging());
-
-        return repositoryBase.resolve(builder.toString());
-    }
 
     public static URL toURL(URI uri)
     {

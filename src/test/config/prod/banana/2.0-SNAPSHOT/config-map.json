@@ -1,0 +1,4 @@
+{
+    "etc/banana" : "banana.txt",
+    "etc/config.properties" : "config.properties"
+}

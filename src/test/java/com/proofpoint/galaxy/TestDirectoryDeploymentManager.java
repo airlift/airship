@@ -23,31 +23,32 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 
-import static com.proofpoint.galaxy.RepositoryTestHelper.createTestRepository;
-import static com.proofpoint.galaxy.RepositoryTestHelper.newAssignment;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
 
 public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTest
 {
     private File tempDir;
-    private File testRepository;
+    private TestingBinaryRepository binaryRepository;
+    private TestingConfigRepository configRepository;
 
     @BeforeClass
     public void createRepository()
             throws Exception
     {
-        testRepository = createTestRepository();
+        binaryRepository = new TestingBinaryRepository();
+        configRepository = new TestingConfigRepository();
     }
 
     @AfterClass
     public void removeRepository()
     {
-        if (testRepository != null) {
-            DeploymentUtils.deleteRecursively(testRepository);
+        if (binaryRepository != null) {
+            binaryRepository.destroy();
+        }
+        if (configRepository != null) {
+            configRepository.destroy();
         }
     }
 
@@ -57,9 +58,8 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     {
         tempDir = Files.createTempDir().getCanonicalFile();
         manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
-        apple = newAssignment("food.fruit:apple:1.0", "@prod:apple:1.0", testRepository);
-        banana = newAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:2.0-SNAPSHOT", testRepository);
-
+        apple = new Assignment("food.fruit:apple:1.0", binaryRepository, "@prod:apple:1.0", configRepository);
+        banana = new Assignment("food.fruit:banana:2.0-SNAPSHOT", binaryRepository, "@prod:banana:2.0-SNAPSHOT", configRepository);
     }
 
     @AfterMethod
@@ -83,7 +83,6 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
 
 
-
         // active deployment should still be apple
         assertEquals(manager.getActiveDeployment(), appleDeployment);
 
@@ -96,10 +95,8 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         assertNull(manager.getActiveDeployment());
 
 
-
         // replace the deployment manager again: this time no deployments are active
         manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
-
 
 
         // no deployment should be active
@@ -121,11 +118,8 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         assertNull(manager.getActiveDeployment());
 
 
-
         // replace the deployment manager one last time: this time there are no deployments
         manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
-
-
 
 
         // activate apple and banana: throws exception: no active deployment

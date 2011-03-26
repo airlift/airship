@@ -1,59 +1,19 @@
 package com.proofpoint.galaxy;
 
-import com.google.common.collect.ImmutableMap;
-
-import java.io.File;
-import java.net.URI;
-
-import static com.proofpoint.galaxy.DeploymentUtils.createTar;
-import static com.proofpoint.galaxy.DeploymentUtils.createTempDir;
-import static com.proofpoint.galaxy.DeploymentUtils.deleteRecursively;
-import static com.proofpoint.galaxy.DeploymentUtils.toMavenRepositoryPath;
-
 public class RepositoryTestHelper
 {
-    private static final File DEFAULT_REPOSITORY_BASE = new File("src/test/repo");
+    private static final MockBinaryRepository binaryRepository = new MockBinaryRepository();
+    private static final MockConfigRepository configRepository = new MockConfigRepository();
 
     public static Assignment newAssignment(String binary, String config)
     {
-        return newAssignment(binary, config, DEFAULT_REPOSITORY_BASE);
-    }
-
-    public static Assignment newAssignment(String binary, String config, File repositoryBase)
-    {
         BinarySpec binarySpec = BinarySpec.valueOf(binary);
         ConfigSpec configSpec = ConfigSpec.valueOf(config);
-        URI binaryFile = toMavenRepositoryPath(repositoryBase.toURI(), binarySpec);
-        return new Assignment(binarySpec, binaryFile, configSpec, ImmutableMap.<String, URI>of());
+        return new Assignment(binarySpec, binaryRepository, configSpec, configRepository);
     }
 
-
-
-    public static File createTestRepository()
-            throws Exception
+    public static Assignment newAssignment(ConsoleAssignment assignment)
     {
-        File targetRepo = null;
-        try {
-            File sourceRepo = new File("src/test/repo/");
-            if (!sourceRepo.isDirectory()) {
-                throw new IllegalStateException("Expected source repository to exist: " + sourceRepo.getAbsolutePath());
-            }
-            targetRepo = createTempDir("repo");
-
-            // copy the source repository
-            DeploymentUtils.copyRecursively(sourceRepo, targetRepo);
-
-            // tar up the archive and add them to the repository
-            createTar(new File("src/test/archives/good"), new File(targetRepo, "food/fruit/apple/1.0/apple-1.0.tar.gz"));
-            createTar(new File("src/test/archives/good"), new File(targetRepo, "food/fruit/banana/2.0-SNAPSHOT/banana-2.0-20110311.201909-1.tar.gz"));
-
-            return targetRepo;
-        }
-        catch (Exception e) {
-            if (targetRepo != null) {
-                deleteRecursively(targetRepo);
-            }
-            throw e;
-        }
+        return new Assignment(assignment.getBinary(), binaryRepository, assignment.getConfig(), configRepository);
     }
 }

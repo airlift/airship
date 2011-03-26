@@ -178,7 +178,9 @@ public class DirectoryDeploymentManager implements DeploymentManager
                 String configFile = entry.getKey();
                 URI configUri = entry.getValue();
                 try {
-                    Files.copy(Resources.newInputStreamSupplier(DeploymentUtils.toURL(configUri)), new File(binaryRootDir, configFile));
+                    File targetFile = new File(binaryRootDir, configFile);
+                    targetFile.getParentFile().mkdirs();
+                    Files.copy(Resources.newInputStreamSupplier(DeploymentUtils.toURL(configUri)), targetFile);
                 }
                 catch (IOException e) {
                     throw new RuntimeException(String.format("Unable to download config file %s from %s for config %s",

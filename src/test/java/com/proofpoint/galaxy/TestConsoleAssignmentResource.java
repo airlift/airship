@@ -35,8 +35,8 @@ import static org.testng.Assert.assertNull;
 
 public class TestConsoleAssignmentResource
 {
-    private final Assignment apple = newAssignment("food.fruit:apple:1.0", "@prod:apple:1.0");
-    private final Assignment banana = newAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:1.0");
+    private final ConsoleAssignment apple = new ConsoleAssignment("food.fruit:apple:1.0", "@prod:apple:1.0");
+    private final ConsoleAssignment banana = new ConsoleAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:1.0");
     private ConsoleAssignmentResource resource;
 
     private Slot appleSlot1;
@@ -47,7 +47,7 @@ public class TestConsoleAssignmentResource
     public void setup()
     {
         Console console = new Console(new MockRemoteSlotFactory(), new ConsoleConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
-        resource = new ConsoleAssignmentResource(console);
+        resource = new ConsoleAssignmentResource(console, new MockBinaryRepository(), new MockConfigRepository());
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
@@ -75,7 +75,7 @@ public class TestConsoleAssignmentResource
     public void testAssign()
     {
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.assign(AssignmentRepresentation.from(apple), uriInfo);
+        Response response = resource.assign(ConsoleAssignmentRepresentation.from(apple), uriInfo);
 
         assertOkResponse(response, LifecycleState.STOPPED, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
@@ -88,13 +88,13 @@ public class TestConsoleAssignmentResource
     @Test
     public void testReplaceAssignment()
     {
-        appleSlot1.assign(banana);
+        appleSlot1.assign(newAssignment(banana));
         assertEquals(appleSlot1.status().getBinary(), banana.getBinary());
-        appleSlot2.assign(banana);
+        appleSlot2.assign(newAssignment(banana));
         assertEquals(appleSlot2.status().getBinary(), banana.getBinary());
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.assign(AssignmentRepresentation.from(apple), uriInfo);
+        Response response = resource.assign(ConsoleAssignmentRepresentation.from(apple), uriInfo);
 
         assertOkResponse(response, LifecycleState.STOPPED, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
@@ -132,11 +132,11 @@ public class TestConsoleAssignmentResource
     @Test
     public void testClear()
     {
-        appleSlot1.assign(apple);
+        appleSlot1.assign(newAssignment(apple));
         assertEquals(appleSlot1.status().getBinary(), apple.getBinary());
-        appleSlot2.assign(apple);
+        appleSlot2.assign(newAssignment(apple));
         assertEquals(appleSlot2.status().getBinary(), apple.getBinary());
-        bananaSlot.assign(banana);
+        bananaSlot.assign(newAssignment(banana));
         assertEquals(bananaSlot.status().getBinary(), banana.getBinary());
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");

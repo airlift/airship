@@ -36,16 +36,15 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static javax.ws.rs.core.Response.Status;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static javax.ws.rs.core.Response.Status;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -60,13 +59,14 @@ public class TestServer
     private Agent agent;
 
     private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
-    private final JsonCodec<Map<String, Object>> mapCodec = new JsonCodecBuilder().build(new TypeLiteral<Map<String, Object>>() {});
-    private final JsonCodec<List<Map<String, Object>>> listCodec = new JsonCodecBuilder().build(new TypeLiteral<List<Map<String, Object>>>() {});
+    private final JsonCodec<Map<String, Object>> mapCodec = new JsonCodecBuilder().build(new TypeLiteral<Map<String, Object>>() { });
+    private final JsonCodec<List<Map<String, Object>>> listCodec = new JsonCodecBuilder().build(new TypeLiteral<List<Map<String, Object>>>() { });
 
     private Assignment appleAssignment;
     private Assignment bananaAssignment;
     private File tempDir;
-    private File testRepository;
+    private TestingBinaryRepository binaryRepository;
+    private TestingConfigRepository configRepository;
 
 
     @BeforeClass
@@ -90,16 +90,10 @@ public class TestServer
         server.start();
         client = new AsyncHttpClient();
 
-        testRepository = RepositoryTestHelper.createTestRepository();
-        appleAssignment = newAssignment("apple", "1.0");
-        bananaAssignment = newAssignment("banana", "2.0-SNAPSHOT");
-    }
-
-    private Assignment newAssignment(String name, String binaryVersion)
-    {
-        BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:" + name + ":" + binaryVersion);
-        ConfigSpec configSpec = ConfigSpec.valueOf("@prod:" + name + ":1.0");
-        return new Assignment(binarySpec, DeploymentUtils.toMavenRepositoryPath(testRepository.toURI(), binarySpec), configSpec, ImmutableMap.<String, URI>of());
+        binaryRepository = new TestingBinaryRepository();
+        configRepository = new TestingConfigRepository();
+        appleAssignment = new Assignment("food.fruit:apple:1.0", binaryRepository, "@prod:apple:1.0", configRepository);
+        bananaAssignment = new Assignment("food.fruit:banana:2.0-SNAPSHOT", binaryRepository, "@prod:banana:2.0-SNAPSHOT", configRepository);
     }
 
     @BeforeMethod
@@ -125,8 +119,11 @@ public class TestServer
         if (tempDir != null) {
             DeploymentUtils.deleteRecursively(tempDir);
         }
-        if (testRepository != null) {
-            DeploymentUtils.deleteRecursively(testRepository);
+        if (binaryRepository != null) {
+            binaryRepository.destroy();
+        }
+        if (configRepository != null) {
+            configRepository.destroy();
         }
     }
 

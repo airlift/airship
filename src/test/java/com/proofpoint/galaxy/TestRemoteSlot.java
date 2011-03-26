@@ -28,7 +28,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.net.URI;
 import java.util.Map;
 
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
@@ -46,7 +45,8 @@ public class TestRemoteSlot
 
     private Assignment appleAssignment;
     private File tempDir;
-    private File testRepository;
+    private TestingBinaryRepository binaryRepository;
+    private TestingConfigRepository configRepository;
     private RemoteSlot remoteSlot;
     private Slot slot;
 
@@ -72,7 +72,8 @@ public class TestRemoteSlot
         server.start();
         client = new AsyncHttpClient();
 
-        testRepository = RepositoryTestHelper.createTestRepository();
+        binaryRepository = new TestingBinaryRepository();
+        configRepository = new TestingConfigRepository();
         appleAssignment = newAssignment("apple", "1.0");
     }
 
@@ -80,7 +81,7 @@ public class TestRemoteSlot
     {
         BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:" + name + ":" + binaryVersion);
         ConfigSpec configSpec = ConfigSpec.valueOf("@prod:" + name + ":1.0");
-        return new Assignment(binarySpec, DeploymentUtils.toMavenRepositoryPath(testRepository.toURI(), binarySpec), configSpec, ImmutableMap.<String, URI>of());
+        return new Assignment(binarySpec, binaryRepository, configSpec, configRepository);
     }
 
     @BeforeMethod
@@ -109,8 +110,11 @@ public class TestRemoteSlot
         if (tempDir != null) {
             DeploymentUtils.deleteRecursively(tempDir);
         }
-        if (testRepository != null) {
-            DeploymentUtils.deleteRecursively(testRepository);
+        if (binaryRepository != null) {
+            binaryRepository.destroy();
+        }
+        if (configRepository != null) {
+            configRepository.destroy();
         }
         remoteSlot = null;
     }

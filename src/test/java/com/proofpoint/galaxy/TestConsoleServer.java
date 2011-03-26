@@ -86,25 +86,22 @@ public class TestConsoleServer
                     public void configure(Binder binder)
                     {
                         binder.bind(RemoteSlotFactory.class).to(MockRemoteSlotFactory.class).in(Scopes.SINGLETON);
+                        binder.bind(BinaryRepository.class).to(MockBinaryRepository.class) .in(Scopes.SINGLETON);
+                        binder.bind(ConfigRepository.class).to(MockConfigRepository.class).in(Scopes.SINGLETON);
                     }
                 }),
                 new ConfigurationModule(new ConfigurationFactory(properties)));
 
         server = injector.getInstance(TestingHttpServer.class);
         console = injector.getInstance(Console.class);
+        BinaryRepository binaryRepository = injector.getInstance(BinaryRepository.class);
+        ConfigRepository configRepository = injector.getInstance(ConfigRepository.class);
 
         server.start();
         client = new AsyncHttpClient();
 
-        appleAssignment = newAssignment("apple", "1.0");
-        bananaAssignment = newAssignment("banana", "2.0-SNAPSHOT");
-    }
-
-    private Assignment newAssignment(String name, String binaryVersion)
-    {
-        BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:" + name + ":" + binaryVersion);
-        ConfigSpec configSpec = ConfigSpec.valueOf("@prod:" + name + ":1.0");
-        return new Assignment(binarySpec, URI.create("fake://localhost/binary/repo"), configSpec, ImmutableMap.<String, URI>of());
+        appleAssignment = new Assignment("food.fruit:apple:1.0", binaryRepository, "@prod:apple:1.0", configRepository);
+        bananaAssignment = new Assignment("food.fruit:banana:2.0-SNAPSHOT", binaryRepository, "@prod:banana:2.0-SNAPSHOT", configRepository);
     }
 
     @BeforeMethod

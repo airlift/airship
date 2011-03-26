@@ -39,34 +39,42 @@ import java.util.Set;
 public class ConsoleAssignmentResource
 {
     private final Console console;
+    private final BinaryRepository binaryRepository;
+    private final ConfigRepository configRepository;
 
     @Inject
-    public ConsoleAssignmentResource(Console console)
+    public ConsoleAssignmentResource(Console console, BinaryRepository binaryRepository, ConfigRepository configRepository)
     {
         Preconditions.checkNotNull(console, "console must not be null");
+        Preconditions.checkNotNull(configRepository, "repository is null");
+        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
 
         this.console = console;
+        this.binaryRepository = binaryRepository;
+        this.configRepository = configRepository;
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response assign(AssignmentRepresentation assignment, @Context UriInfo uriInfo)
+    public Response assign(ConsoleAssignmentRepresentation consoleAssignment, @Context UriInfo uriInfo)
     {
-        Preconditions.checkNotNull(assignment, "assignment must not be null");
+        Preconditions.checkNotNull(consoleAssignment, "assignment must not be null");
 
-        Set<ConstraintViolation<AssignmentRepresentation>> violations = validate(assignment);
+        Set<ConstraintViolation<ConsoleAssignmentRepresentation>> violations = validate(consoleAssignment);
         if (!violations.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(messagesFor(violations))
                     .build();
         }
 
+        Assignment assignment = new Assignment(consoleAssignment.getBinary(), binaryRepository, consoleAssignment.getConfig(), configRepository);
+
         Predicate<Slot> slotFilter = SlotFilterBuilder.build(uriInfo);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (RemoteSlot remoteSlot : console.getAllSlots()) {
             if (slotFilter.apply(remoteSlot)) {
-                SlotStatus slotStatus = remoteSlot.assign(assignment.toAssignment());
+                SlotStatus slotStatus = remoteSlot.assign(assignment);
                 representations.add(SlotStatusRepresentation.from(slotStatus));
 
             }
