@@ -40,9 +40,7 @@ public class TestCommand
     public void buildCommandChainNewObjects()
             throws Exception
     {
-        Command command = new Command();
-        assertNotSame(command.setCommand("foo"), command);
-        assertNotSame(command.setCommand(ImmutableList.of("foo")), command);
+        Command command = new Command("foo");
         assertNotSame(command.setDirectory("foo"), command);
         assertNotSame(command.setDirectory(new File("foo")), command);
         assertNotSame(command.setSuccessfulExitCodes(42), command);
@@ -67,12 +65,6 @@ public class TestCommand
         assertEquals(actual, expected);
 
         // call every setter and make sure the actual, command never changes
-        assertNotSame(actual.setCommand("foo"), actual);
-        assertEquals(actual, expected);
-
-        assertNotSame(actual.setCommand(ImmutableList.of("foo")), actual);
-        assertEquals(actual, expected);
-
         assertNotSame(actual.setDirectory("foo"), actual);
         assertEquals(actual, expected);
 
@@ -154,10 +146,10 @@ public class TestCommand
     public void testEquivalence()
     {
         EquivalenceTester.check(
-                asList(new Command("command"), new Command().setCommand("command")),
-                asList(new Command().setDirectory("foo"), new Command().setDirectory(new File("foo"))),
-                asList(new Command().setTimeLimit(5, TimeUnit.SECONDS), new Command().setTimeLimit(new Duration(5, TimeUnit.SECONDS))),
-                asList(new Command().setSuccessfulExitCodes(5, 6), new Command().setSuccessfulExitCodes(ImmutableSet.of(6, 5)))
+                asList(new Command("command"), new Command("command")),
+                asList(new Command("command").setDirectory("foo"), new Command("command").setDirectory(new File("foo"))),
+                asList(new Command("command").setTimeLimit(5, TimeUnit.SECONDS), new Command("command").setTimeLimit(new Duration(5, TimeUnit.SECONDS))),
+                asList(new Command("command").setSuccessfulExitCodes(5, 6), new Command("command").setSuccessfulExitCodes(ImmutableSet.of(6, 5)))
         );
     }
 

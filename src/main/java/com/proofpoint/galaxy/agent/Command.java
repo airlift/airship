@@ -34,11 +34,6 @@ public class Command
     private final File directory;
     private final Duration timeLimit;
 
-    public Command()
-    {
-        this(null, DEFAULT_SUCCESSFUL_EXIT_CODES, DEFAULT_DIRECTORY, DEFAULT_TIME_LIMIT);
-    }
-
     public Command(String... command)
     {
         this(ImmutableList.copyOf(command), DEFAULT_SUCCESSFUL_EXIT_CODES, DEFAULT_DIRECTORY, DEFAULT_TIME_LIMIT);
@@ -46,17 +41,14 @@ public class Command
 
     public Command(List<String> command, Set<Integer> successfulExitCodes, File directory, Duration timeLimit)
     {
+        Preconditions.checkNotNull(command, "command is null");
+        Preconditions.checkArgument(!command.isEmpty(), "command is empty");
         Preconditions.checkNotNull(successfulExitCodes, "successfulExitCodes is null");
         Preconditions.checkArgument(!successfulExitCodes.isEmpty(), "successfulExitCodes is empty");
         Preconditions.checkNotNull(directory, "directory is null");
         Preconditions.checkNotNull(timeLimit, "timeLimit is null");
 
-        // there is no default command
-        if (command != null) {
-            Preconditions.checkArgument(!command.isEmpty(), "command is empty");
-            command = ImmutableList.copyOf(command);
-        }
-        this.command = command;
+        this.command = ImmutableList.copyOf(command);
 
         // these have default so are required
         this.successfulExitCodes = ImmutableSet.copyOf(successfulExitCodes);
@@ -67,19 +59,6 @@ public class Command
     public List<String> getCommand()
     {
         return command;
-    }
-
-    public Command setCommand(String... command)
-    {
-        Preconditions.checkNotNull(command, "command is null");
-        return setCommand(ImmutableList.copyOf(command));
-    }
-
-    public Command setCommand(List<String> command)
-    {
-        Preconditions.checkNotNull(command, "command is null");
-        Preconditions.checkArgument(!command.isEmpty(), "command is empty");
-        return new Command(command, successfulExitCodes, directory, timeLimit);
     }
 
     public Set<Integer> getSuccessfulExitCodes()
@@ -176,7 +155,7 @@ public class Command
 
         Command other = (Command) o;
 
-        if (command != null ? !command.equals(other.command) : other.command != null) {
+        if (!command.equals(other.command)) {
             return false;
         }
         if (!directory.equals(other.directory)) {
@@ -195,7 +174,7 @@ public class Command
     @Override
     public int hashCode()
     {
-        int result = command != null ? command.hashCode() : 0;
+        int result = command.hashCode();
         result = 31 * result + successfulExitCodes.hashCode();
         result = 31 * result + directory.hashCode();
         result = 31 * result + timeLimit.hashCode();
