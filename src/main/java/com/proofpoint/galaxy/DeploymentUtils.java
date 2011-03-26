@@ -58,6 +58,37 @@ public class DeploymentUtils
                 .execute(executor);
     }
 
+    public static void createSymbolicLink(File source, File target)
+            throws CommandFailedException
+    {
+        Preconditions.checkNotNull(source, "source is null");
+        Preconditions.checkArgument(source.exists(), "source does not exist: " + source.getAbsolutePath());
+        Preconditions.checkNotNull(target, "source is null");
+        Preconditions.checkArgument(!target.exists(), "target already exists: " + target.getAbsolutePath());
+
+        target.getParentFile().mkdirs();
+        new Command("ln", "-s", source.getAbsolutePath(), target.getAbsolutePath())
+                .setDirectory(target.getParent())
+                .setTimeLimit(5, TimeUnit.MINUTES)
+                .execute(executor);
+    }
+
+    public static boolean isSymbolicLink(File file)
+    {
+        try {
+            File canonicalFile = file.getCanonicalFile();
+            File absoluteFile = file.getAbsoluteFile();
+            // a symbolic link has a different name between the canonical and absolute path
+            return !canonicalFile.getName().equals(absoluteFile.getName()) ||
+                    // or the canonical parent path is not the same as the files parent path
+                    !canonicalFile.getParent().equals(file.getParentFile().getCanonicalPath());
+        }
+        catch (IOException e) {
+            // error on the side of caution
+            return true;
+        }
+    }
+
     public static ImmutableList<File> listFiles(File dir)
     {
         File[] files = dir.listFiles();
@@ -104,14 +135,8 @@ public class DeploymentUtils
     {
         Preconditions.checkArgument(directory.isDirectory(), "Not a directory: %s", directory);
 
-        // Symbolic links will have different canonical and absolute paths
-        try {
-            if (!directory.getCanonicalPath().equals(directory.getAbsolutePath())) {
-                return false;
-            }
-        }
-        catch (IOException e) {
-            // something strange is happening, give up
+        // Don't delete symbolic link directories
+        if (isSymbolicLink(directory)) {
             return false;
         }
 
@@ -135,14 +160,9 @@ public class DeploymentUtils
     public static boolean copyDirectoryContents(File src, File target)
     {
         Preconditions.checkArgument(src.isDirectory(), "Source dir is not a directory: %s", src);
-        // Symbolic links will have different canonical and absolute paths
-        try {
-            if (!src.getCanonicalPath().equals(src.getAbsolutePath())) {
-                return false;
-            }
-        }
-        catch (IOException e) {
-            // something strange is happening, give up
+
+        // Don't delete symbolic link directories
+        if (isSymbolicLink(src)) {
             return false;
         }
 
