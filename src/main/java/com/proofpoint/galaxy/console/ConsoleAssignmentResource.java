@@ -18,7 +18,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
 import com.proofpoint.galaxy.agent.Assignment;
@@ -74,7 +73,7 @@ public class ConsoleAssignmentResource
 
         Assignment assignment = new Assignment(consoleAssignment.getBinary(), binaryRepository, consoleAssignment.getConfig(), configRepository);
 
-        Predicate<Slot> slotFilter = SlotFilterBuilder.build(uriInfo);
+        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (RemoteSlot remoteSlot : console.getAllSlots()) {
             if (slotFilter.apply(remoteSlot)) {
@@ -91,7 +90,7 @@ public class ConsoleAssignmentResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response clear(@Context UriInfo uriInfo)
     {
-        Predicate<Slot> slotFilter = SlotFilterBuilder.build(uriInfo);
+        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (RemoteSlot remoteSlot : console.getAllSlots()) {
             if (slotFilter.apply(remoteSlot)) {

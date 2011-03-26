@@ -6,7 +6,6 @@ import com.google.common.collect.MapEvictionListener;
 import com.google.common.collect.MapMaker;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.AgentStatus;
-import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 
 import java.util.List;
@@ -75,7 +74,7 @@ public class Console
             for (SlotStatus slotStatus : status.getSlots()) {
                 RemoteSlot remoteSlot = slots.get(slotStatus.getId());
                 if (remoteSlot != null) {
-                    remoteSlot.setStatus(slotStatus);
+                    remoteSlot.updateStatus(slotStatus);
                 }
                 else {
                     slots.put(slotStatus.getId(), remoteSlotFactory.createRemoteSlot(slotStatus));
@@ -108,7 +107,7 @@ public class Console
 
     }
 
-    public Slot getSlot(UUID slotId)
+    public RemoteSlot getSlot(UUID slotId)
     {
         return slots.get(slotId);
     }

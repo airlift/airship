@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.proofpoint.galaxy.AgentStatus;
 import com.proofpoint.galaxy.LifecycleState;
 import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
 import com.proofpoint.units.Duration;
@@ -45,9 +44,9 @@ public class TestConsoleLifecycleResource
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/lifecycle");
     private ConsoleLifecycleResource resource;
 
-    private Slot appleSlot1;
-    private Slot appleSlot2;
-    private Slot bananaSlot;
+    private RemoteSlot appleSlot1;
+    private RemoteSlot appleSlot2;
+    private RemoteSlot bananaSlot;
 
     @BeforeMethod
     public void setup()
@@ -145,12 +144,12 @@ public class TestConsoleLifecycleResource
         resource.setState(null, uriInfo);
     }
 
-    private void assertOkResponse(Response response, LifecycleState state, Slot... slots)
+    private void assertOkResponse(Response response, LifecycleState state, RemoteSlot... slots)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
-        for (Slot slot : slots) {
+        for (RemoteSlot slot : slots) {
             builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), MOCK_APPLE_ASSIGNMENT.getBinary(), MOCK_APPLE_ASSIGNMENT.getConfig(), state)));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());

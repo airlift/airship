@@ -30,7 +30,6 @@ import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.galaxy.AgentStatus;
 import com.proofpoint.galaxy.AgentStatusRepresentation;
-import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
 import com.proofpoint.galaxy.agent.Assignment;
@@ -72,9 +71,9 @@ public class TestConsoleServer
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>() { });
 
     private AgentStatus agentStatus;
-    private Slot appleSlot1;
-    private Slot appleSlot2;
-    private Slot bananaSlot;
+    private RemoteSlot appleSlot1;
+    private RemoteSlot appleSlot2;
+    private RemoteSlot bananaSlot;
 
     private Assignment appleAssignment;
     private Assignment bananaAssignment;

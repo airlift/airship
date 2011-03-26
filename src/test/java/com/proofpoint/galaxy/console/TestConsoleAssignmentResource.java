@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.proofpoint.galaxy.AgentStatus;
 import com.proofpoint.galaxy.LifecycleState;
 import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
 import com.proofpoint.units.Duration;
@@ -45,9 +44,9 @@ public class TestConsoleAssignmentResource
     private final ConsoleAssignment banana = new ConsoleAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:1.0");
     private ConsoleAssignmentResource resource;
 
-    private Slot appleSlot1;
-    private Slot appleSlot2;
-    private Slot bananaSlot;
+    private RemoteSlot appleSlot1;
+    private RemoteSlot appleSlot2;
+    private RemoteSlot bananaSlot;
 
     @BeforeMethod
     public void setup()
@@ -117,13 +116,13 @@ public class TestConsoleAssignmentResource
         resource.assign(null, uriInfo);
     }
 
-    private void assertOkResponse(Response response, LifecycleState state, Slot... slots)
+    private void assertOkResponse(Response response, LifecycleState state, RemoteSlot... slots)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
-        for (Slot slot : slots) {
+        for (RemoteSlot slot : slots) {
             if (state != UNASSIGNED) {
                 builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), apple.getBinary(), apple.getConfig(), state)));
             }

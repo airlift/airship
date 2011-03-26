@@ -61,7 +61,7 @@ public class HttpRemoteSlot implements RemoteSlot
     }
 
     @Override
-    public void setStatus(SlotStatus slotStatus)
+    public void updateStatus(SlotStatus slotStatus)
     {
         this.slotStatus = slotStatus;
     }

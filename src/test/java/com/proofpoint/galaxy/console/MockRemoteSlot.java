@@ -43,7 +43,7 @@ public class MockRemoteSlot implements RemoteSlot
     }
 
     @Override
-    public void setStatus(SlotStatus slotStatus)
+    public void updateStatus(SlotStatus slotStatus)
     {
         Preconditions.checkNotNull(slotStatus, "slotStatus is null");
         Preconditions.checkArgument(slotStatus.getId().equals(this.slotStatus.getId()));

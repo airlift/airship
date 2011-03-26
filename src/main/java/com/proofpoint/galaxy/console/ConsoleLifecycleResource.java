@@ -18,7 +18,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.LifecycleState;
-import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
 
@@ -64,7 +63,7 @@ public class ConsoleLifecycleResource
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        Predicate<Slot> slotFilter = SlotFilterBuilder.build(uriInfo);
+        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (RemoteSlot remoteSlot : console.getAllSlots()) {
             if (slotFilter.apply(remoteSlot)) {

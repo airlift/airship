@@ -5,7 +5,6 @@ import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.galaxy.BinarySpec;
 import com.proofpoint.galaxy.ConfigSpec;
 import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.BinarySpecPredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.ConfigSpecPredicate;
@@ -34,9 +33,9 @@ public class TestSlotFilterBuilder extends TestCase
             BinarySpec.valueOf("fruit:apple:1.0"),
             ConfigSpec.valueOf("@prod:apple:1.0"),
             UNKNOWN);
-    private final Slot slot = new HttpRemoteSlot(status, new AsyncHttpClient());
+    private final RemoteSlot slot = new HttpRemoteSlot(status, new AsyncHttpClient());
 
-    private Predicate<Slot> buildFilter(String key, String value)
+    private Predicate<RemoteSlot> buildFilter(String key, String value)
     {
         return SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value));
     }

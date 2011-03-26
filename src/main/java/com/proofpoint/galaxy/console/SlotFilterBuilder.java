@@ -9,7 +9,6 @@ import com.google.common.net.InetAddresses;
 import com.proofpoint.galaxy.BinarySpec;
 import com.proofpoint.galaxy.ConfigSpec;
 import com.proofpoint.galaxy.LifecycleState;
-import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 
 import javax.annotation.Nullable;
@@ -22,7 +21,7 @@ import java.util.regex.Pattern;
 
 public class SlotFilterBuilder
 {
-    public static Predicate<Slot> build(UriInfo uriInfo)
+    public static Predicate<RemoteSlot> build(UriInfo uriInfo)
     {
         SlotFilterBuilder builder = new SlotFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
@@ -107,12 +106,12 @@ public class SlotFilterBuilder
         configSpecPredicates.add(new ConfigSpecPredicate(configGlob));
     }
 
-    public Predicate<Slot> build()
+    public Predicate<RemoteSlot> build()
     {
-        return Predicates.compose(buildStatusFilter(), new Function<Slot, SlotStatus>()
+        return Predicates.compose(buildStatusFilter(), new Function<RemoteSlot, SlotStatus>()
         {
             @Override
-            public SlotStatus apply(Slot slot)
+            public SlotStatus apply(RemoteSlot slot)
             {
                 return slot.status();
             }
