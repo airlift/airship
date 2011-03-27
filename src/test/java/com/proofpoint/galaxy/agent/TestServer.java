@@ -31,6 +31,7 @@ import com.proofpoint.galaxy.Slot;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.node.NodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -81,7 +82,9 @@ public class TestServer
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
                 .build();
 
-        Injector injector = Guice.createInjector(new TestingHttpServerModule(),
+        Injector injector = Guice.createInjector(
+                new NodeModule(),
+                new TestingHttpServerModule(),
                 new JaxrsModule(),
                 new AgentMainModule(),
                 new ConfigurationModule(new ConfigurationFactory(properties)));

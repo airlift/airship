@@ -19,7 +19,7 @@ import com.proofpoint.galaxy.MockUriInfo;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
-import com.proofpoint.http.server.testing.MockHttpServerInfo;
+import com.proofpoint.http.server.HttpServerInfo;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -43,7 +43,7 @@ public class TestAssignmentResource
     public void setup()
     {
         agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
-                new MockHttpServerInfo("fake://localhost"),
+                new HttpServerInfo(),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());
         resource = new AssignmentResource(agent);
