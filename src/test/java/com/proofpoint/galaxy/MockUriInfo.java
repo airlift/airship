@@ -117,7 +117,7 @@ public class MockUriInfo implements UriInfo
     public List<PathSegment> getPathSegments(boolean decode)
     {
         Builder<PathSegment> builder = ImmutableList.builder();
-        for (final String path : PATH_SPLITTER.split(getPath(decode))) {
+        for (String path : PATH_SPLITTER.split(getPath(decode))) {
             builder.add(new ImmutablePathSegment(path));
         }
         return builder.build();
