@@ -37,30 +37,30 @@ public class TestSlot
     public void testInitialState()
             throws Exception
     {
-        Slot manager = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
-        assertEquals(manager.getName(), "slot");
+        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        assertEquals(slot.getName(), "slot");
 
         // should start unassigned
-        SlotStatus status = manager.status();
+        SlotStatus status = slot.status();
         assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), null);
         assertEquals(status.getState(), UNASSIGNED);
 
         // lifecycle should fail when unassigned
         try {
-            manager.start();
+            slot.start();
             fail("expected IllegalStateException");
         }
         catch (IllegalStateException expected) {
         }
         try {
-            manager.restart();
+            slot.restart();
             fail("expected IllegalStateException");
         }
         catch (IllegalStateException expected) {
         }
         try {
-            manager.stop();
+            slot.stop();
             fail("expected IllegalStateException");
         }
         catch (IllegalStateException expected) {
@@ -72,32 +72,32 @@ public class TestSlot
             throws Exception
     {
 
-        Slot manager = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
-        assertEquals(manager.getName(), "slot");
+        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        assertEquals(slot.getName(), "slot");
 
         // assign apple and verify state
-        SlotStatus status = manager.assign(APPLE_INSTALLATION);
+        SlotStatus status = slot.assign(APPLE_INSTALLATION);
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
-        assertEquals(manager.status(), status);
+        assertEquals(slot.status(), status);
 
         // assign banana and verify state
-        status = manager.assign(BANANA_INSTALLATION);
+        status = slot.assign(BANANA_INSTALLATION);
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), BANANA_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
-        assertEquals(manager.status(), status);
+        assertEquals(slot.status(), status);
 
         // clear and verify unassigned
-        status = manager.clear();
+        status = slot.clear();
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), null);
         assertEquals(status.getState(), UNASSIGNED);
-        assertEquals(manager.status(), status);
+        assertEquals(slot.status(), status);
     }
 
     @Test

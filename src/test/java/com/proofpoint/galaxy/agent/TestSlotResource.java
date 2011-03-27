@@ -88,15 +88,15 @@ public class TestSlotResource
     @Test
     public void testGetAllSlotStatus()
     {
-        Slot slotManager1 = agent.addNewSlot();
-        Slot slotManager2 = agent.addNewSlot();
+        Slot slot1 = agent.addNewSlot();
+        Slot slot2 = agent.addNewSlot();
 
         Response response = resource.getAllSlotsStatus(uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertInstanceOf(response.getEntity(), Collection.class);
         ExtraAssertions.assertEqualsNoOrder((Collection<?>) response.getEntity(), ImmutableMultiset.of(
-                SlotStatusRepresentation.from(slotManager1.status()),
-                SlotStatusRepresentation.from(slotManager2.status())
+                SlotStatusRepresentation.from(slot1.status()),
+                SlotStatusRepresentation.from(slot2.status())
         ));
     }
 
@@ -105,7 +105,7 @@ public class TestSlotResource
     {
         Response response = resource.addSlot(uriInfo);
 
-        // find the new slot manager
+        // find the new slot
         Slot slot = agent.getAllSlots().iterator().next();
 
         assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
