@@ -123,11 +123,12 @@ public class TestConsoleAssignmentResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (RemoteSlot slot : slots) {
+            SlotStatus status = slot.status();
             if (state != UNASSIGNED) {
-                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), apple.getBinary(), apple.getConfig(), state)));
+                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), status.getName(), status.getSelf(), apple.getBinary(), apple.getConfig(), state)));
             }
             else {
-                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), state)));
+                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), status.getName(), status.getSelf(), state)));
             }
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());

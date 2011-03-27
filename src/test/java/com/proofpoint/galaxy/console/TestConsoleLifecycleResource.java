@@ -150,7 +150,7 @@ public class TestConsoleLifecycleResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (RemoteSlot slot : slots) {
-            builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), MOCK_APPLE_ASSIGNMENT.getBinary(), MOCK_APPLE_ASSIGNMENT.getConfig(), state)));
+            builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.status().getName(), slot.status().getSelf(), MOCK_APPLE_ASSIGNMENT.getBinary(), MOCK_APPLE_ASSIGNMENT.getConfig(), state)));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

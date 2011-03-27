@@ -5,7 +5,6 @@ import com.proofpoint.galaxy.LifecycleState;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.agent.Assignment;
 
-import java.net.URI;
 import java.util.UUID;
 
 public class MockRemoteSlot implements RemoteSlot
@@ -21,18 +20,6 @@ public class MockRemoteSlot implements RemoteSlot
     public UUID getId()
     {
         return slotStatus.getId();
-    }
-
-    @Override
-    public String getName()
-    {
-        return slotStatus.getName();
-    }
-
-    @Override
-    public URI getSelf()
-    {
-        return slotStatus.getSelf();
     }
 
 

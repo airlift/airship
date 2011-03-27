@@ -10,10 +10,6 @@ public interface RemoteSlot
 {
     UUID getId();
 
-    String getName();
-
-    URI getSelf();
-
     SlotStatus assign(Assignment assignment);
 
     SlotStatus clear();
