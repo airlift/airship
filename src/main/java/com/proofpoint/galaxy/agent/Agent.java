@@ -17,8 +17,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.io.Files;
+import com.google.common.io.PatternFilenameFilter;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.AgentStatus;
+import com.proofpoint.galaxy.DeploymentUtils;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.http.server.HttpServerInfo;
@@ -106,6 +108,15 @@ public class Agent
             }
         }
         agentId = uuid;
+
+        //
+        // Load existing slots
+        //
+        for (File dir : DeploymentUtils.listFiles(slotDir, new PatternFilenameFilter(SLOT_ID_PATTERN))) {
+            if (dir.isDirectory()) {
+                createSlot(dir.getName());
+            }
+        }
     }
 
     public UUID getAgentId()
@@ -135,6 +146,12 @@ public class Agent
     public Slot addNewSlot()
     {
         String slotName = getNextSlotName();
+        Slot slot = createSlot(slotName);
+        return slot;
+    }
+
+    private Slot createSlot(String slotName)
+    {
         URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/slot/").resolve(slotName);
         Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
         slots.put(slotName, slot);
