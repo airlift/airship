@@ -55,7 +55,7 @@ public class MavenBinaryRepository implements BinaryRepository
         builder.append(binarySpec.getVersion()).append('/');
         builder.append(binarySpec.getArtifactId()).append('-').append(fileVersion);
         if (binarySpec.getClassifier() != null) {
-            builder.append('-').append(binarySpec.getArtifactId());
+            builder.append('-').append(binarySpec.getClassifier());
         }
         builder.append('.').append(binarySpec.getPackaging());
 
