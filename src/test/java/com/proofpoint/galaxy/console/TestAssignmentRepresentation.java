@@ -11,29 +11,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.console;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
-import com.proofpoint.galaxy.console.AssignmentRepresentation;
 import org.testng.annotations.Test;
 
 import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
 
-public class TestDeploymentRepresentation
+public class TestAssignmentRepresentation
 {
-    private final JsonCodec<DeploymentRepresentation> codec = new JsonCodecBuilder().build(DeploymentRepresentation.class);
+    private final JsonCodec<AssignmentRepresentation> codec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
 
-    private final DeploymentRepresentation expected = new DeploymentRepresentation("deployment1", AssignmentRepresentation.from(APPLE_ASSIGNMENT));
+    private final AssignmentRepresentation expected = new AssignmentRepresentation(
+            APPLE_ASSIGNMENT.getBinary().toString(),
+            APPLE_ASSIGNMENT.getConfig().toString());
 
     @Test
     public void testJsonRoundTrip()
     {
         String json = codec.toJson(expected);
-        DeploymentRepresentation actual = codec.fromJson(json);
+        AssignmentRepresentation actual = codec.fromJson(json);
         assertEquals(actual, expected);
     }
 
@@ -41,8 +42,8 @@ public class TestDeploymentRepresentation
     public void testJsonDecode()
             throws Exception
     {
-        String json = Resources.toString(Resources.getResource("deployment.json"), Charsets.UTF_8);
-        DeploymentRepresentation actual = codec.fromJson(json);
+        String json = Resources.toString(Resources.getResource("assignment.json"), Charsets.UTF_8);
+        AssignmentRepresentation actual = codec.fromJson(json);
 
         assertEquals(actual, expected);
     }

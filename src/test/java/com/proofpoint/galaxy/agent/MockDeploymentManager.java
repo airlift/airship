@@ -29,12 +29,12 @@ public class MockDeploymentManager implements DeploymentManager
     private Deployment activeDeployment;
 
     @Override
-    public Deployment install(Assignment assignment)
+    public Deployment install(Installation installation)
     {
-        Preconditions.checkNotNull(assignment, "assignment is null");
+        Preconditions.checkNotNull(installation, "installation is null");
 
         String deploymentId = "Deployment-" + nextId.getAndIncrement();
-        Deployment deployment = new Deployment(deploymentId, new File(deploymentId), assignment);
+        Deployment deployment = new Deployment(deploymentId, new File(deploymentId), installation.getAssignment());
         deployments.put(deploymentId, deployment);
         return deployment;
     }

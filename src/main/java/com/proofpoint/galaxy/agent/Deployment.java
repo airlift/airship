@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
+import com.proofpoint.galaxy.Assignment;
 
 import java.io.File;
 

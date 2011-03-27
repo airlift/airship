@@ -11,10 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.console;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
+import com.proofpoint.galaxy.Assignment;
 import com.proofpoint.galaxy.BinarySpec;
 import com.proofpoint.galaxy.ConfigSpec;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
@@ -24,40 +23,23 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.net.URI;
-import java.util.Map;
-import java.util.Map.Entry;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class AssignmentRepresentation
 {
     private final String binary;
-    private final String binaryFile;
     private final String config;
-    private final Map<String,String> configFiles;
 
     public static AssignmentRepresentation from(Assignment assignment)
     {
-        Builder<String, String> builder = ImmutableMap.builder();
-        for (Entry<String, URI> entry : assignment.getConfigFiles().entrySet()) {
-            builder.put(entry.getKey(), entry.getValue().toString());
-        }
-        return new AssignmentRepresentation(assignment.getBinary().toString(),
-                assignment.getBinaryFile().toString(),
-                assignment.getConfig().toString(),
-                builder.build());
+        return new AssignmentRepresentation(assignment.getBinary().toString(), assignment.getConfig().toString());
     }
 
     @JsonCreator
-    public AssignmentRepresentation(@JsonProperty("binary") String binary,
-            @JsonProperty("binaryFile") String binaryFile,
-            @JsonProperty("config") String config,
-            @JsonProperty("configFiles") Map<String,String> configFiles)
+    public AssignmentRepresentation(@JsonProperty("binary") String binary, @JsonProperty("config") String config)
     {
         this.binary = binary;
-        this.binaryFile = binaryFile;
         this.config = config;
-        this.configFiles = configFiles;
     }
 
     @JsonProperty
@@ -70,29 +52,15 @@ public class AssignmentRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    public String getBinaryFile()
-    {
-        return binaryFile;
-    }
-
-    @JsonProperty
-    @NotNull(message = "is missing")
     @Pattern(regexp = ConfigSpec.CONFIG_SPEC_REGEX, message = "is malformed")
     public String getConfig()
     {
         return config;
     }
 
-    @JsonProperty
-    @NotNull(message = "is missing")
-    public Map<String, String> getConfigFiles()
-    {
-        return configFiles;
-    }
-
     public Assignment toAssignment()
     {
-        Assignment assignment = new Assignment(binary, binaryFile, config, configFiles);
+        Assignment assignment = new Assignment(binary, config);
         return assignment;
     }
 

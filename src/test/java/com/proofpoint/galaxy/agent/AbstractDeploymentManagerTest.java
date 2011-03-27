@@ -11,8 +11,8 @@ import static org.testng.Assert.fail;
 public abstract class AbstractDeploymentManagerTest
 {
     protected DeploymentManager manager;
-    protected Assignment apple;
-    protected Assignment banana;
+    protected Installation appleInstallation;
+    protected Installation bananaInstallation;
 
     @Test
     public void testStateMachine()
@@ -21,16 +21,16 @@ public abstract class AbstractDeploymentManagerTest
         assertNull(manager.getActiveDeployment());
 
         // install apple: no active deployment
-        Deployment appleDeployment = manager.install(apple);
+        Deployment appleDeployment = manager.install(appleInstallation);
         assertNotNull(appleDeployment);
         assertNull(manager.getActiveDeployment());
-        assertEquals(appleDeployment.getAssignment(), apple);
+        assertEquals(appleDeployment.getAssignment(), appleInstallation.getAssignment());
 
         // install banana: no active deployment
-        Deployment bananaDeployment = manager.install(banana);
+        Deployment bananaDeployment = manager.install(bananaInstallation);
         assertNotNull(bananaDeployment);
         assertNull(manager.getActiveDeployment());
-        assertEquals(bananaDeployment.getAssignment(), banana);
+        assertEquals(bananaDeployment.getAssignment(), bananaInstallation.getAssignment());
 
         // apple and banana should be in different deployments
         assertFalse(appleDeployment.equals(bananaDeployment));

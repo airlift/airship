@@ -17,8 +17,8 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
 
 public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
 {
@@ -27,7 +27,7 @@ public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
             throws Exception
     {
         manager = new MockLifecycleManager();
-        apple = new Deployment("apple", new File("apple"), MOCK_APPLE_ASSIGNMENT);
-        banana = new Deployment("banana", new File("banana"), MOCK_BANANA_ASSIGNMENT);
+        appleDeployment = new Deployment("apple", new File("apple"), APPLE_ASSIGNMENT);
+        bananaDeployment = new Deployment("banana", new File("banana"), BANANA_ASSIGNMENT);
     }
 }

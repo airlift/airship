@@ -35,11 +35,12 @@ public class SlotStatusRepresentation
 
     public static SlotStatusRepresentation from(SlotStatus slotStatus)
     {
-        if (slotStatus.getBinary() != null) {
+        if (slotStatus.getAssignment() != null) {
             return new SlotStatusRepresentation(slotStatus.getId(),
                     slotStatus.getName(),
-                    slotStatus.getSelf(), slotStatus.getBinary().toString(),
-                    slotStatus.getConfig().toString(),
+                    slotStatus.getSelf(),
+                    slotStatus.getAssignment().getBinary().toString(),
+                    slotStatus.getAssignment().getConfig().toString(),
                     slotStatus.getState().toString()
             );
         }
@@ -115,7 +116,7 @@ public class SlotStatusRepresentation
     public SlotStatus toSlotStatus()
     {
         if (binary != null) {
-            return new SlotStatus(id, name, self, BinarySpec.valueOf(binary), ConfigSpec.valueOf(config), LifecycleState.valueOf(status));
+            return new SlotStatus(id, name, self, LifecycleState.valueOf(status), new Assignment(binary, config));
         }
         else {
             return new SlotStatus(id, name, self);

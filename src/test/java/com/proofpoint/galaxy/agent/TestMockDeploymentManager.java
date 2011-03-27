@@ -13,7 +13,7 @@
  */
 package com.proofpoint.galaxy.agent;
 
-import com.proofpoint.galaxy.AssignmentHelper;
+import com.proofpoint.galaxy.InstallationHelper;
 import org.testng.annotations.BeforeMethod;
 
 public class TestMockDeploymentManager extends AbstractDeploymentManagerTest
@@ -23,7 +23,7 @@ public class TestMockDeploymentManager extends AbstractDeploymentManagerTest
             throws Exception
     {
         manager = new MockDeploymentManager();
-        apple = AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
-        banana = AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
+        appleInstallation = InstallationHelper.APPLE_INSTALLATION;
+        bananaInstallation = InstallationHelper.BANANA_INSTALLATION;
     }
 }

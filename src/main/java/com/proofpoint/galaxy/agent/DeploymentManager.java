@@ -19,7 +19,7 @@ public interface DeploymentManager
 {
     UUID getSlotId();
 
-    Deployment install(Assignment assignment);
+    Deployment install(Installation installation);
 
     Deployment getActiveDeployment();
 

@@ -25,6 +25,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+
 public class DeploymentSlot implements Slot
 {
     private static final Logger log = Logger.get(DeploymentSlot.class);
@@ -74,22 +76,22 @@ public class DeploymentSlot implements Slot
     }
 
     @Override
-    public SlotStatus assign(Assignment assignment)
+    public SlotStatus assign(Installation installation)
     {
-        Preconditions.checkNotNull(assignment, "assignment is null");
+        Preconditions.checkNotNull(installation, "installation is null");
 
         lock();
         try {
-            log.info("Becoming %s with %s", assignment.getBinary(), assignment.getConfig());
+            log.info("Becoming %s with %s", installation.getAssignment().getBinary(), installation.getAssignment().getConfig());
 
             // deploy new server
-            Deployment deployment = deploymentManager.install(assignment);
+            Deployment deployment = deploymentManager.install(installation);
 
             // stop current server
             Deployment activeDeployment = deploymentManager.getActiveDeployment();
             if (activeDeployment != null) {
                 LifecycleState state = lifecycleManager.stop(activeDeployment);
-                if (state != LifecycleState.STOPPED) {
+                if (state != STOPPED) {
                     // todo error
                 }
             }
@@ -101,7 +103,7 @@ public class DeploymentSlot implements Slot
             // todo should this be done after the lock is released
             // @event_dispatcher.dispatch_become_success_event status
             // announce
-            return new SlotStatus(id, name, self, assignment.getBinary(), assignment.getConfig(), LifecycleState.STOPPED);
+            return new SlotStatus(id, name, self, STOPPED, installation.getAssignment());
         }
         finally {
             lock.unlock();
@@ -120,7 +122,7 @@ public class DeploymentSlot implements Slot
 
             // Stop server
             LifecycleState state = lifecycleManager.stop(activeDeployment);
-            if (state != LifecycleState.STOPPED) {
+            if (state != STOPPED) {
                 // todo error
             }
 
@@ -144,7 +146,7 @@ public class DeploymentSlot implements Slot
             }
 
             LifecycleState state = lifecycleManager.status(activeDeployment);
-            return new SlotStatus(id, name, self, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
+            return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
             lock.unlock();
@@ -161,7 +163,7 @@ public class DeploymentSlot implements Slot
                 throw new IllegalStateException("Slot can not be started because the slot is not assigned");
             }
             LifecycleState state = lifecycleManager.start(activeDeployment);
-            return new SlotStatus(id, name, self, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
+            return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
             lock.unlock();
@@ -178,7 +180,7 @@ public class DeploymentSlot implements Slot
                 throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
             }
             LifecycleState state = lifecycleManager.restart(activeDeployment);
-            return new SlotStatus(id, name, self, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
+            return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
             lock.unlock();
@@ -195,7 +197,7 @@ public class DeploymentSlot implements Slot
                 throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
             }
             LifecycleState state = lifecycleManager.stop(activeDeployment);
-            return new SlotStatus(id, name, self, activeDeployment.getAssignment().getBinary(), activeDeployment.getAssignment().getConfig(), state);
+            return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
             lock.unlock();

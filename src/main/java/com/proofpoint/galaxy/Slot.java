@@ -1,6 +1,6 @@
 package com.proofpoint.galaxy;
 
-import com.proofpoint.galaxy.agent.Assignment;
+import com.proofpoint.galaxy.agent.Installation;
 
 import java.net.URI;
 import java.util.UUID;
@@ -13,7 +13,7 @@ public interface Slot
 
     URI getSelf();
 
-    SlotStatus assign(Assignment assignment);
+    SlotStatus assign(Installation installation);
 
     SlotStatus clear();
 

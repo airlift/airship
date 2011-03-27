@@ -19,6 +19,8 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static java.util.Arrays.asList;
@@ -29,43 +31,42 @@ public class TestSlotStatus
     public void testEquivalence()
     {
         UUID appleId = UUID.randomUUID();
+        String appleSlotName = "apple";
+        URI appleSelf = URI.create("fake://apple");
+
         UUID bananaId = UUID.randomUUID();
-        String binary = "fruit:apple:1.0";
-        String config = "@prod:apple:1.0";
+        String bananaSlotName = "banana";
+        URI bananaSelf = URI.create("fake://banana");
+
         EquivalenceTester.check(
                 asList(
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple")),
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"))
+                        new SlotStatus(appleId, appleSlotName, appleSelf),
+                        new SlotStatus(appleId, appleSlotName, appleSelf)
 
                 ),
                 asList(
-                        new SlotStatus(bananaId, "apple", URI.create("fake://apple")),
-                        new SlotStatus(bananaId, "apple", URI.create("fake://apple"))
+                        new SlotStatus(bananaId, appleSlotName, appleSelf),
+                        new SlotStatus(bananaId, appleSlotName, appleSelf)
 
                 ),
                 asList(
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf(binary), ConfigSpec.valueOf(config), RUNNING),
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING)
+                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, APPLE_ASSIGNMENT),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, APPLE_ASSIGNMENT)
 
                 ),
                 asList(
-                        new SlotStatus(bananaId, "banana", URI.create("fake://banana"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING),
-                        new SlotStatus(bananaId, "banana", URI.create("fake://banana"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING)
+                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, RUNNING, APPLE_ASSIGNMENT),
+                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, RUNNING, APPLE_ASSIGNMENT)
 
                 ),
                 asList(
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:2.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING),
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:2.0"), ConfigSpec.valueOf("@prod:apple:1.0"), RUNNING)
+                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, BANANA_ASSIGNMENT),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, BANANA_ASSIGNMENT)
 
                 ),
                 asList(
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:2.0"), RUNNING),
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:2.0"), RUNNING)
-
-                ),
-                asList(
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), STOPPED),
-                        new SlotStatus(appleId, "apple", URI.create("fake://apple"), BinarySpec.valueOf("fruit:apple:1.0"), ConfigSpec.valueOf("@prod:apple:1.0"), STOPPED)
+                        new SlotStatus(appleId, appleSlotName, appleSelf, STOPPED, APPLE_ASSIGNMENT),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, STOPPED, APPLE_ASSIGNMENT)
                 )
         );
     }

@@ -23,6 +23,8 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
@@ -35,14 +37,14 @@ public class TestAgentStatusRepresentation
                     new SlotStatusRepresentation(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             "slot1",
                             URI.create("fake://apple"),
-                            "food.fruit:apple:1.0",
-                            "@prod:apple:1.0",
+                            APPLE_ASSIGNMENT.getBinary().toString(),
+                            APPLE_ASSIGNMENT.getConfig().toString(),
                             STOPPED.toString()),
                     new SlotStatusRepresentation(UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             "slot2",
                             URI.create("fake://banana"),
-                            "food.fruit:banana:2.0-SNAPSHOT",
-                            "@prod:banana:1.0",
+                            BANANA_ASSIGNMENT.getBinary().toString(),
+                            BANANA_ASSIGNMENT.getConfig().toString(),
                             STOPPED.toString())),
             URI.create("fake://agent"));
 

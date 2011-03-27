@@ -25,8 +25,8 @@ import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
-import com.proofpoint.galaxy.AssignmentHelper;
 import com.proofpoint.galaxy.DeploymentUtils;
+import com.proofpoint.galaxy.RepoHelper;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
@@ -62,13 +62,13 @@ public class TestServer
 
     private Agent agent;
 
-    private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
+    private final JsonCodec<InstallationRepresentation> installationCodec = new JsonCodecBuilder().build(InstallationRepresentation.class);
     private final JsonCodec<Map<String, Object>> mapCodec = new JsonCodecBuilder().build(new TypeLiteral<Map<String, Object>>() { });
     private final JsonCodec<List<Map<String, Object>>> listCodec = new JsonCodecBuilder().build(new TypeLiteral<List<Map<String, Object>>>() { });
 
-    private AssignmentHelper assignmentHelper;
-    private Assignment appleAssignment;
-    private Assignment bananaAssignment;
+    private RepoHelper repoHelper;
+    private Installation appleInstallation;
+    private Installation bananaInstallation;
     private File tempDir;
 
 
@@ -95,9 +95,9 @@ public class TestServer
         server.start();
         client = new AsyncHttpClient();
 
-        assignmentHelper = new AssignmentHelper();
-        appleAssignment = assignmentHelper.getAppleAssignment();
-        bananaAssignment = assignmentHelper.getBananaAssignment();
+        repoHelper = new RepoHelper();
+        appleInstallation = repoHelper.getAppleInstallation();
+        bananaInstallation = repoHelper.getBananaInstallation();
     }
 
     @BeforeMethod
@@ -123,8 +123,8 @@ public class TestServer
         if (tempDir != null) {
             DeploymentUtils.deleteRecursively(tempDir);
         }
-        if (assignmentHelper != null) {
-            assignmentHelper.destroy();
+        if (repoHelper != null) {
+            repoHelper.destroy();
         }
     }
 
@@ -133,7 +133,7 @@ public class TestServer
             throws Exception
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(appleAssignment);
+        slot.assign(appleInstallation);
 
         Response response = client.prepareGet(urlFor("/v1/slot/" + slot.getName())).execute().get();
 
@@ -165,9 +165,9 @@ public class TestServer
             throws Exception
     {
         Slot slot0 = agent.addNewSlot();
-        slot0.assign(appleAssignment);
+        slot0.assign(appleInstallation);
         Slot slot1 = agent.addNewSlot();
-        slot1.assign(bananaAssignment);
+        slot1.assign(bananaInstallation);
 
         Response response = client.prepareGet(urlFor("/v1/slot")).execute().get();
 
@@ -205,7 +205,7 @@ public class TestServer
             throws Exception
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(appleAssignment);
+        slot.assign(appleInstallation);
 
         Response response = client.prepareDelete(urlFor("/v1/slot/" + slot.getName())).execute().get();
 
@@ -246,7 +246,7 @@ public class TestServer
     {
         Slot slot = agent.addNewSlot();
 
-        String json = assignmentCodec.toJson(AssignmentRepresentation.from(appleAssignment));
+        String json = installationCodec.toJson(InstallationRepresentation.from(appleInstallation));
         Response response = client.preparePut(urlFor(slot) + "/assignment")
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
@@ -259,8 +259,8 @@ public class TestServer
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slot.getId().toString())
                 .put("name", slot.getName())
-                .put("binary", appleAssignment.getBinary().toString())
-                .put("config", appleAssignment.getConfig().toString())
+                .put("binary", appleInstallation.getAssignment().getBinary().toString())
+                .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slot))
                 .put("status", STOPPED.toString())
                 .build();
@@ -296,7 +296,7 @@ public class TestServer
             throws Exception
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(appleAssignment);
+        slot.assign(appleInstallation);
 
         Response response = client.preparePut(urlFor(slot) + "/lifecycle")
                 .setBody("start")
@@ -309,8 +309,8 @@ public class TestServer
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slot.getId().toString())
                 .put("name", slot.getName())
-                .put("binary", appleAssignment.getBinary().toString())
-                .put("config", appleAssignment.getConfig().toString())
+                .put("binary", appleInstallation.getAssignment().getBinary().toString())
+                .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slot))
                 .put("status", RUNNING.toString())
                 .build();
@@ -324,7 +324,7 @@ public class TestServer
             throws Exception
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(appleAssignment);
+        slot.assign(appleInstallation);
         slot.start();
 
         Response response = client.preparePut(urlFor(slot) + "/lifecycle")
@@ -338,8 +338,8 @@ public class TestServer
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slot.getId().toString())
                 .put("name", slot.getName())
-                .put("binary", appleAssignment.getBinary().toString())
-                .put("config", appleAssignment.getConfig().toString())
+                .put("binary", appleInstallation.getAssignment().getBinary().toString())
+                .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slot))
                 .put("status", STOPPED.toString())
                 .build();
@@ -353,7 +353,7 @@ public class TestServer
             throws Exception
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(appleAssignment);
+        slot.assign(appleInstallation);
 
         Response response = client.preparePut(urlFor(slot) + "/lifecycle")
                 .setBody("restart")
@@ -366,8 +366,8 @@ public class TestServer
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slot.getId().toString())
                 .put("name", slot.getName())
-                .put("binary", appleAssignment.getBinary().toString())
-                .put("config", appleAssignment.getConfig().toString())
+                .put("binary", appleInstallation.getAssignment().getBinary().toString())
+                .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slot))
                 .put("status", RUNNING.toString())
                 .build();
@@ -381,7 +381,7 @@ public class TestServer
             throws Exception
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(appleAssignment);
+        slot.assign(appleInstallation);
 
         Response response = client.preparePut(urlFor(slot) + "/lifecycle")
                 .setBody("unknown")

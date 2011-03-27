@@ -34,16 +34,11 @@ public class TestConsoleSlotResource
         resource = new ConsoleSlotResource(console);
     }
 
-    private SlotStatus createSlotStatus(String slotName, LifecycleState state)
-    {
-        return new SlotStatus(UUID.randomUUID(), slotName, URI.create("fake://localhost/v1/slot/" + slotName), state);
-    }
-
     @Test
     public void testGetAllSlots()
     {
-        SlotStatus slot1 = createSlotStatus("slot1", UNASSIGNED);
-        SlotStatus slot2 = createSlotStatus("slot2", UNASSIGNED);
+        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/slot/" + "slot1"));
+        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/slot/" + "slot2"));
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(slot1, slot2));
         console.updateAgentStatus(agentStatus);
 
@@ -57,12 +52,12 @@ public class TestConsoleSlotResource
     @Test
     public void testGetAllSlotsWithFilter()
     {
-        SlotStatus slot1 = createSlotStatus("slot1", UNASSIGNED);
-        SlotStatus slot2 = createSlotStatus("slot2", UNKNOWN);
+        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/slot/" + "slot1"));
+        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/slot/" + "slot2"));
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(slot1, slot2));
         console.updateAgentStatus(agentStatus);
 
-        URI requestUri = URI.create("http://localhost/v1/slot?state=unassigned");
+        URI requestUri = URI.create("http://localhost/v1/slot?host=foo");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1)));

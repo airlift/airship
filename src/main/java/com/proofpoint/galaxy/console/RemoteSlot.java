@@ -1,16 +1,15 @@
 package com.proofpoint.galaxy.console;
 
 import com.proofpoint.galaxy.SlotStatus;
-import com.proofpoint.galaxy.agent.Assignment;
+import com.proofpoint.galaxy.agent.Installation;
 
-import java.net.URI;
 import java.util.UUID;
 
 public interface RemoteSlot
 {
     UUID getId();
 
-    SlotStatus assign(Assignment assignment);
+    SlotStatus assign(Installation installation);
 
     SlotStatus clear();
 

@@ -32,8 +32,6 @@ import com.proofpoint.galaxy.AgentStatus;
 import com.proofpoint.galaxy.AgentStatusRepresentation;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
-import com.proofpoint.galaxy.agent.Assignment;
-import com.proofpoint.galaxy.agent.AssignmentRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -50,11 +48,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.AssignmentHelper.createAssignment;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.RepoHelper.MOCK_CONFIG_REPO;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -75,9 +76,6 @@ public class TestConsoleServer
     private RemoteSlot appleSlot2;
     private RemoteSlot bananaSlot;
 
-    private Assignment appleAssignment;
-    private Assignment bananaAssignment;
-
     @BeforeClass
     public void startServer()
             throws Exception
@@ -93,22 +91,17 @@ public class TestConsoleServer
                     public void configure(Binder binder)
                     {
                         binder.bind(RemoteSlotFactory.class).to(MockRemoteSlotFactory.class).in(Scopes.SINGLETON);
-                        binder.bind(BinaryRepository.class).to(MockBinaryRepository.class) .in(Scopes.SINGLETON);
-                        binder.bind(ConfigRepository.class).to(MockConfigRepository.class).in(Scopes.SINGLETON);
+                        binder.bind(BinaryRepository.class).toInstance(MOCK_BINARY_REPO);
+                        binder.bind(ConfigRepository.class).toInstance(MOCK_CONFIG_REPO);
                     }
                 }),
                 new ConfigurationModule(new ConfigurationFactory(properties)));
 
         server = injector.getInstance(TestingHttpServer.class);
         console = injector.getInstance(Console.class);
-        BinaryRepository binaryRepository = injector.getInstance(BinaryRepository.class);
-        ConfigRepository configRepository = injector.getInstance(ConfigRepository.class);
 
         server.start();
         client = new AsyncHttpClient();
-
-        appleAssignment = createAssignment("food.fruit:apple:1.0", binaryRepository, "@prod:apple:1.0", configRepository);
-        bananaAssignment = createAssignment("food.fruit:banana:2.0-SNAPSHOT", binaryRepository, "@prod:banana:2.0-SNAPSHOT", configRepository);
     }
 
     @BeforeMethod
@@ -123,21 +116,18 @@ public class TestConsoleServer
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
                 URI.create("fake://appleServer1/v1/slot/apple1"),
-                appleAssignment.getBinary(),
-                appleAssignment.getConfig(),
-                STOPPED);
+                STOPPED,
+                APPLE_ASSIGNMENT);
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
                 URI.create("fake://appleServer2/v1/slot/apple1"),
-                appleAssignment.getBinary(),
-                appleAssignment.getConfig(),
-                STOPPED);
+                STOPPED,
+                APPLE_ASSIGNMENT);
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
                 URI.create("fake://bananaServer/v1/slot/banana"),
-                bananaAssignment.getBinary(),
-                bananaAssignment.getConfig(),
-                STOPPED);
+                STOPPED,
+                BANANA_ASSIGNMENT);
 
         agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
@@ -188,7 +178,7 @@ public class TestConsoleServer
         appleSlot2.clear();
         bananaSlot.clear();
 
-        String json = assignmentCodec.toJson(AssignmentRepresentation.from(appleAssignment));
+        String json = assignmentCodec.toJson(AssignmentRepresentation.from(APPLE_ASSIGNMENT));
         Response response = client.preparePut(urlFor("/v1/slot/assignment?host=apple*"))
                 .setBody(json)
                 .setHeader(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)

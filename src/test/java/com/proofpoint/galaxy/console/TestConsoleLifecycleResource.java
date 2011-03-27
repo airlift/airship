@@ -31,8 +31,8 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
@@ -57,21 +57,18 @@ public class TestConsoleLifecycleResource
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
                 URI.create("fake://foo/v1/slot/apple1"),
-                MOCK_APPLE_ASSIGNMENT.getBinary(),
-                MOCK_APPLE_ASSIGNMENT.getConfig(),
-                STOPPED);
+                STOPPED,
+                APPLE_ASSIGNMENT);
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
                 URI.create("fake://foo/v1/slot/apple1"),
-                MOCK_APPLE_ASSIGNMENT.getBinary(),
-                MOCK_APPLE_ASSIGNMENT.getConfig(),
-                STOPPED);
+                STOPPED,
+                APPLE_ASSIGNMENT);
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
                 URI.create("fake://foo/v1/slot/banana"),
-                MOCK_BANANA_ASSIGNMENT.getBinary(),
-                MOCK_BANANA_ASSIGNMENT.getConfig(),
-                STOPPED);
+                STOPPED,
+                BANANA_ASSIGNMENT);
 
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
@@ -150,7 +147,8 @@ public class TestConsoleLifecycleResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (RemoteSlot slot : slots) {
-            builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.status().getName(), slot.status().getSelf(), MOCK_APPLE_ASSIGNMENT.getBinary(), MOCK_APPLE_ASSIGNMENT.getConfig(), state)));
+            builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
+            assertEquals(slot.status().getAssignment(), APPLE_ASSIGNMENT);
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

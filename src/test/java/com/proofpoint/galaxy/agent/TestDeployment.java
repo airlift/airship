@@ -18,8 +18,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
@@ -29,10 +29,10 @@ public class TestDeployment
     @Test
     public void testConstructor()
     {
-        Deployment deployment = new Deployment("one", new File("one"), MOCK_APPLE_ASSIGNMENT);
+        Deployment deployment = new Deployment("one", new File("one"), APPLE_ASSIGNMENT);
 
         assertEquals(deployment.getDeploymentId(), "one");
-        assertEquals(deployment.getAssignment(), MOCK_APPLE_ASSIGNMENT);
+        assertEquals(deployment.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(deployment.getDeploymentDir(), new File("one"));
     }
 
@@ -40,13 +40,13 @@ public class TestDeployment
     public void testNullConstructorArgs()
     {
         try {
-            new Deployment(null, new File("one"), MOCK_APPLE_ASSIGNMENT);
+            new Deployment(null, new File("one"), APPLE_ASSIGNMENT);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("one", null, MOCK_APPLE_ASSIGNMENT);
+            new Deployment("one", null, APPLE_ASSIGNMENT);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
@@ -65,14 +65,14 @@ public class TestDeployment
         // identity is only based on deploymentId
         EquivalenceTester.check(
                 asList(
-                        new Deployment("one", new File("one"), MOCK_APPLE_ASSIGNMENT),
-                        new Deployment("one", new File("other"), MOCK_APPLE_ASSIGNMENT),
-                        new Deployment("one", new File("one"), MOCK_BANANA_ASSIGNMENT)
+                        new Deployment("one", new File("one"), APPLE_ASSIGNMENT),
+                        new Deployment("one", new File("other"), APPLE_ASSIGNMENT),
+                        new Deployment("one", new File("one"), BANANA_ASSIGNMENT)
                 ),
                 asList(
-                        new Deployment("two", new File("one"), MOCK_APPLE_ASSIGNMENT),
-                        new Deployment("two", new File("other"), MOCK_APPLE_ASSIGNMENT),
-                        new Deployment("two", new File("one"), MOCK_BANANA_ASSIGNMENT)
+                        new Deployment("two", new File("one"), APPLE_ASSIGNMENT),
+                        new Deployment("two", new File("other"), APPLE_ASSIGNMENT),
+                        new Deployment("two", new File("one"), BANANA_ASSIGNMENT)
                 )
         );
     }

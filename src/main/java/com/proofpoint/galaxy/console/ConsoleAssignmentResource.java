@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
-import com.proofpoint.galaxy.agent.Assignment;
+import com.proofpoint.galaxy.agent.Installation;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -60,24 +60,24 @@ public class ConsoleAssignmentResource
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response assign(ConsoleAssignmentRepresentation consoleAssignment, @Context UriInfo uriInfo)
+    public Response assign(AssignmentRepresentation assignmentRepresentation, @Context UriInfo uriInfo)
     {
-        Preconditions.checkNotNull(consoleAssignment, "assignment must not be null");
+        Preconditions.checkNotNull(assignmentRepresentation, "assignment must not be null");
 
-        Set<ConstraintViolation<ConsoleAssignmentRepresentation>> violations = validate(consoleAssignment);
+        Set<ConstraintViolation<AssignmentRepresentation>> violations = validate(assignmentRepresentation);
         if (!violations.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(messagesFor(violations))
                     .build();
         }
 
-        Assignment assignment = new Assignment(consoleAssignment.getBinary(), binaryRepository, consoleAssignment.getConfig(), configRepository);
+        Installation installation = new Installation(assignmentRepresentation.toAssignment(), binaryRepository, configRepository);
 
         Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (RemoteSlot remoteSlot : console.getAllSlots()) {
             if (slotFilter.apply(remoteSlot)) {
-                SlotStatus slotStatus = remoteSlot.assign(assignment);
+                SlotStatus slotStatus = remoteSlot.assign(installation);
                 representations.add(SlotStatusRepresentation.from(slotStatus));
 
             }

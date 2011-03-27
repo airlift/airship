@@ -27,11 +27,11 @@ import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.AnnouncementService;
+import com.proofpoint.galaxy.agent.Installation;
+import com.proofpoint.galaxy.console.AssignmentRepresentation;
 import com.proofpoint.galaxy.console.BinaryRepository;
 import com.proofpoint.galaxy.console.ConfigRepository;
 import com.proofpoint.galaxy.console.Console;
-import com.proofpoint.galaxy.console.ConsoleAssignment;
-import com.proofpoint.galaxy.console.ConsoleAssignmentRepresentation;
 import com.proofpoint.galaxy.console.ConsoleMainModule;
 import com.proofpoint.galaxy.console.TestingBinaryRepository;
 import com.proofpoint.galaxy.console.TestingConfigRepository;
@@ -50,7 +50,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static com.proofpoint.galaxy.AssignmentHelper.createAssignment;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
@@ -71,11 +72,9 @@ public class TestServerIntegration
     private Slot appleSlot1;
     private Slot appleSlot2;
     private Slot bananaSlot;
-    private ConsoleAssignment appleAssignment;
-    private ConsoleAssignment bananaAssignment;
     private File tempDir;
 
-    private final JsonCodec<ConsoleAssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(ConsoleAssignmentRepresentation.class);
+    private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>(){});
 
     private File binaryRepoDir;
@@ -126,9 +125,6 @@ public class TestServerIntegration
 
         agentServer.start();
         client = new AsyncHttpClient();
-
-        appleAssignment = new ConsoleAssignment("food.fruit:apple:1.0", "@prod:apple:1.0");
-        bananaAssignment = new ConsoleAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:2.0-SNAPSHOT");
     }
 
     @BeforeMethod
@@ -146,11 +142,11 @@ public class TestServerIntegration
 
 
         appleSlot1 = agent.addNewSlot();
-        appleSlot1.assign(createAssignment(appleAssignment.getBinary(), binaryRepository, appleAssignment.getConfig(), configRepository));
+        appleSlot1.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository, configRepository));
         appleSlot2 = agent.addNewSlot();
-        appleSlot2.assign(createAssignment(appleAssignment.getBinary(), binaryRepository, appleAssignment.getConfig(), configRepository));
+        appleSlot2.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository, configRepository));
         bananaSlot = agent.addNewSlot();
-        bananaSlot.assign(createAssignment(bananaAssignment.getBinary(), binaryRepository, bananaAssignment.getConfig(), configRepository));
+        bananaSlot.assign(new Installation(BANANA_ASSIGNMENT, binaryRepository, configRepository));
         announcementService.announce();
     }
 
@@ -218,7 +214,7 @@ public class TestServerIntegration
         appleSlot2.clear();
         announcementService.announce();
 
-        String json = assignmentCodec.toJson(ConsoleAssignmentRepresentation.from(appleAssignment));
+        String json = assignmentCodec.toJson(AssignmentRepresentation.from(APPLE_ASSIGNMENT));
         Response response = client.preparePut(urlFor("/v1/slot/assignment?set=empty"))
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
@@ -234,11 +230,11 @@ public class TestServerIntegration
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot1.status().getBinary(), appleAssignment.getBinary());
+        assertEquals(appleSlot1.status().getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getBinary(), appleAssignment.getBinary());
+        assertEquals(appleSlot2.status().getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(bananaSlot.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getBinary(), bananaAssignment.getBinary());
+        assertEquals(bananaSlot.status().getAssignment(), BANANA_ASSIGNMENT);
     }
 
 

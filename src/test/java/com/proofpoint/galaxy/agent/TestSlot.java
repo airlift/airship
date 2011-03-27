@@ -19,8 +19,10 @@ import org.testng.annotations.Test;
 
 import java.net.URI;
 
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.InstallationHelper.BANANA_INSTALLATION;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
@@ -41,8 +43,7 @@ public class TestSlot
         // should start unassigned
         SlotStatus status = manager.status();
         assertEquals(status.getName(), "slot");
-        assertEquals(status.getBinary(), null);
-        assertEquals(status.getConfig(), null);
+        assertEquals(status.getAssignment(), null);
         assertEquals(status.getState(), UNASSIGNED);
 
         // lifecycle should fail when unassigned
@@ -75,20 +76,18 @@ public class TestSlot
         assertEquals(manager.getName(), "slot");
 
         // assign apple and verify state
-        SlotStatus status = manager.assign(MOCK_APPLE_ASSIGNMENT);
+        SlotStatus status = manager.assign(APPLE_INSTALLATION);
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
-        assertEquals(status.getBinary(), MOCK_APPLE_ASSIGNMENT.getBinary());
-        assertEquals(status.getConfig(), MOCK_APPLE_ASSIGNMENT.getConfig());
+        assertEquals(status.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
         assertEquals(manager.status(), status);
 
         // assign banana and verify state
-        status = manager.assign(MOCK_BANANA_ASSIGNMENT);
+        status = manager.assign(BANANA_INSTALLATION);
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
-        assertEquals(status.getBinary(), MOCK_BANANA_ASSIGNMENT.getBinary());
-        assertEquals(status.getConfig(), MOCK_BANANA_ASSIGNMENT.getConfig());
+        assertEquals(status.getAssignment(), BANANA_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
         assertEquals(manager.status(), status);
 
@@ -96,8 +95,7 @@ public class TestSlot
         status = manager.clear();
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
-        assertEquals(status.getBinary(), null);
-        assertEquals(status.getConfig(), null);
+        assertEquals(status.getAssignment(), null);
         assertEquals(status.getState(), UNASSIGNED);
         assertEquals(manager.status(), status);
     }
@@ -108,15 +106,15 @@ public class TestSlot
     {
 
         Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
-        SlotStatus running = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), MOCK_APPLE_ASSIGNMENT.getBinary(), MOCK_APPLE_ASSIGNMENT.getConfig(), RUNNING);
-        SlotStatus stopped = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), MOCK_APPLE_ASSIGNMENT.getBinary(), MOCK_APPLE_ASSIGNMENT.getConfig(), STOPPED);
+        SlotStatus running = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
+        SlotStatus stopped = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
         SlotStatus unassigned = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
 
         // default state is unassigned
         assertEquals(slot.status(), unassigned);
 
         // assign => stopped
-        assertEquals(slot.assign(MOCK_APPLE_ASSIGNMENT), stopped);
+        assertEquals(slot.assign(APPLE_INSTALLATION), stopped);
 
         // stopped.start => running
         assertEquals(slot.start(), running);

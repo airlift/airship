@@ -14,18 +14,24 @@
 package com.proofpoint.galaxy.console;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Scopes;
+import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.galaxy.AssignmentHelper;
 import com.proofpoint.galaxy.DeploymentUtils;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
-import com.proofpoint.galaxy.agent.Assignment;
+import com.proofpoint.galaxy.agent.DeploymentManagerFactory;
+import com.proofpoint.galaxy.agent.LifecycleManager;
+import com.proofpoint.galaxy.agent.MockDeploymentManagerFactory;
+import com.proofpoint.galaxy.agent.MockLifecycleManager;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -37,6 +43,8 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.Map;
 
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
@@ -50,11 +58,9 @@ public class TestRemoteSlot
 
     private Agent agent;
 
-    private Assignment appleAssignment;
     private File tempDir;
     private RemoteSlot remoteSlot;
     private Slot slot;
-    private AssignmentHelper assignmentHelper;
 
     @BeforeClass
     public void startServer()
@@ -68,17 +74,22 @@ public class TestRemoteSlot
 
         Injector injector = Guice.createInjector(new TestingHttpServerModule(),
                 new JaxrsModule(),
-                new AgentMainModule(),
-                new ConfigurationModule(new ConfigurationFactory(properties)));
+                new ConfigurationModule(new ConfigurationFactory(properties)),
+                Modules.override(new AgentMainModule()).with(new Module()
+                {
+                    @Override
+                    public void configure(Binder binder)
+                    {
+                        binder.bind(DeploymentManagerFactory.class).to(MockDeploymentManagerFactory.class).in(Scopes.SINGLETON);
+                        binder.bind(LifecycleManager.class).to(MockLifecycleManager.class).in(Scopes.SINGLETON);
+                    }
+                }));
 
         server = injector.getInstance(TestingHttpServer.class);
         agent = injector.getInstance(Agent.class);
 
         server.start();
         client = new AsyncHttpClient();
-
-        assignmentHelper = new AssignmentHelper();
-        appleAssignment = assignmentHelper.getAppleAssignment();
     }
 
     @BeforeMethod
@@ -107,9 +118,6 @@ public class TestRemoteSlot
         if (tempDir != null) {
             DeploymentUtils.deleteRecursively(tempDir);
         }
-        if (assignmentHelper != null) {
-            assignmentHelper.destroy();
-        }
         remoteSlot = null;
     }
 
@@ -125,13 +133,13 @@ public class TestRemoteSlot
             throws Exception
     {
         // setup
-        assertNull(slot.status().getBinary());
+        assertNull(slot.status().getAssignment());
 
         // test
-        SlotStatus actual = remoteSlot.assign(appleAssignment);
+        SlotStatus actual = remoteSlot.assign(APPLE_INSTALLATION);
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), appleAssignment.getBinary(), appleAssignment.getConfig(), STOPPED);
+        SlotStatus expected = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
         assertEquals(actual, expected);
     }
 
@@ -140,7 +148,7 @@ public class TestRemoteSlot
             throws Exception
     {
         // setup
-        assertEquals(slot.assign(appleAssignment).getBinary(), appleAssignment.getBinary());
+        assertEquals(slot.assign(APPLE_INSTALLATION).getAssignment(), APPLE_ASSIGNMENT);
 
         // test
         SlotStatus actual = remoteSlot.clear();
@@ -155,13 +163,13 @@ public class TestRemoteSlot
             throws Exception
     {
         // setup
-        assertEquals(slot.assign(appleAssignment).getState(), STOPPED);
+        assertEquals(slot.assign(APPLE_INSTALLATION).getState(), STOPPED);
 
         // test
         SlotStatus actual = remoteSlot.start();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), appleAssignment.getBinary(), appleAssignment.getConfig(), RUNNING);
+        SlotStatus expected = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
         assertEquals(actual, expected);
     }
 
@@ -170,14 +178,14 @@ public class TestRemoteSlot
             throws Exception
     {
         // setup
-        slot.assign(appleAssignment);
+        slot.assign(APPLE_INSTALLATION);
         assertEquals(slot.start().getState(), RUNNING);
 
         // test
         SlotStatus actual = remoteSlot.stop();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), appleAssignment.getBinary(), appleAssignment.getConfig(), STOPPED);
+        SlotStatus expected = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
         assertEquals(actual, expected);
     }
 
@@ -186,13 +194,13 @@ public class TestRemoteSlot
             throws Exception
     {
         // setup
-        assertEquals(slot.assign(appleAssignment).getState(), STOPPED);
+        assertEquals(slot.assign(APPLE_INSTALLATION).getState(), STOPPED);
 
         // test
         SlotStatus actual = remoteSlot.restart();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), appleAssignment.getBinary(), appleAssignment.getConfig(), RUNNING);
+        SlotStatus expected = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
         assertEquals(actual, expected);
     }
 }

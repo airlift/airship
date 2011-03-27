@@ -18,29 +18,31 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
+import com.proofpoint.galaxy.console.AssignmentRepresentation;
 import org.testng.annotations.Test;
 
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
 
-public class TestAssignmentRepresentation
+public class TestInstallationRepresentation
 {
-    private final JsonCodec<AssignmentRepresentation> codec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
+    private final JsonCodec<InstallationRepresentation> codec = new JsonCodecBuilder().build(InstallationRepresentation.class);
 
-    private final AssignmentRepresentation expected = new AssignmentRepresentation("fruit:apple:1.0",
+    private final InstallationRepresentation expected = new InstallationRepresentation(
+            AssignmentRepresentation.from(APPLE_ASSIGNMENT),
             "fetch://binary.tar.gz",
-            "@prod:apple:1.0",
             ImmutableMap.<String,String>builder()
                     .put("etc/config.properties", "fetch://config.properties")
                     .put("readme.txt", "fetch://readme.txt")
                     .build()
 
-            );
+    );
 
     @Test
     public void testJsonRoundTrip()
     {
         String json = codec.toJson(expected);
-        AssignmentRepresentation actual = codec.fromJson(json);
+        InstallationRepresentation actual = codec.fromJson(json);
         assertEquals(actual, expected);
     }
 
@@ -48,8 +50,8 @@ public class TestAssignmentRepresentation
     public void testJsonDecode()
             throws Exception
     {
-        String json = Resources.toString(Resources.getResource("assignment.json"), Charsets.UTF_8);
-        AssignmentRepresentation actual = codec.fromJson(json);
+        String json = Resources.toString(Resources.getResource("installation.json"), Charsets.UTF_8);
+        InstallationRepresentation actual = codec.fromJson(json);
 
         assertEquals(actual, expected);
     }

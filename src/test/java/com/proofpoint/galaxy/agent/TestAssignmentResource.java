@@ -14,11 +14,11 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.LifecycleState;
 import com.proofpoint.galaxy.MockUriInfo;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
+import com.proofpoint.galaxy.console.AssignmentRepresentation;
 import com.proofpoint.http.server.HttpServerInfo;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -27,8 +27,11 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.InstallationHelper.BANANA_INSTALLATION;
+import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -37,7 +40,10 @@ public class TestAssignmentResource
     private AssignmentResource resource;
     private Agent agent;
     private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
-    private AssignmentRepresentation assignment = new AssignmentRepresentation("fruit:apple:1.0", "fetch://binary.tar.gz", "@prod:apple:1.0", ImmutableMap.of("readme.txt", "fetch://readme.txt"));
+    private InstallationRepresentation installation = new InstallationRepresentation(AssignmentRepresentation.from(APPLE_ASSIGNMENT),
+            "fetch://binary.tar.gz",
+            ImmutableMap.of("readme.txt", "fetch://readme.txt")
+    );
 
     @BeforeMethod
     public void setup()
@@ -52,7 +58,7 @@ public class TestAssignmentResource
     @Test
     public void testAssignUnknown()
     {
-        Response response = resource.assign("unknown", assignment, uriInfo);
+        Response response = resource.assign("unknown", installation, uriInfo);
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
     }
 
@@ -61,10 +67,9 @@ public class TestAssignmentResource
     {
         Slot slot = agent.addNewSlot();
 
-        Assignment expectedAssignment = MOCK_APPLE_ASSIGNMENT;
-        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED);
+        SlotStatus expectedStatus = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
 
-        Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
+        Response response = resource.assign(slot.getName(), InstallationRepresentation.from(APPLE_INSTALLATION), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
@@ -76,7 +81,7 @@ public class TestAssignmentResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testAssignNullId()
     {
-        resource.assign(null, assignment, uriInfo);
+        resource.assign(null, installation, uriInfo);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -90,13 +95,11 @@ public class TestAssignmentResource
     public void testReplaceAssignment()
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(MOCK_APPLE_ASSIGNMENT);
+        slot.assign(APPLE_INSTALLATION);
 
-        Assignment expectedAssignment = MOCK_BANANA_ASSIGNMENT;
-        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), expectedAssignment.getBinary(), expectedAssignment.getConfig(), LifecycleState.STOPPED
-        );
+        SlotStatus expectedStatus = new SlotStatus(slot.status(), STOPPED, BANANA_ASSIGNMENT);
 
-        Response response = resource.assign(slot.getName(), AssignmentRepresentation.from(expectedAssignment), uriInfo);
+        Response response = resource.assign(slot.getName(), InstallationRepresentation.from(BANANA_INSTALLATION), uriInfo);
 
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
@@ -109,7 +112,7 @@ public class TestAssignmentResource
     public void testClear()
     {
         Slot slot = agent.addNewSlot();
-        slot.assign(MOCK_APPLE_ASSIGNMENT);
+        slot.assign(APPLE_INSTALLATION);
         SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
 
         Response response = resource.clear(slot.getName(), uriInfo);

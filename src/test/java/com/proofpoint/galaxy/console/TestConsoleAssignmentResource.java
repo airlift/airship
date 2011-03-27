@@ -31,17 +31,20 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.AssignmentHelper.createMockAssignment;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.InstallationHelper.BANANA_INSTALLATION;
 import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.RepoHelper.MOCK_BINARY_REPO;
+import static com.proofpoint.galaxy.RepoHelper.MOCK_CONFIG_REPO;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 public class TestConsoleAssignmentResource
 {
-    private final ConsoleAssignment apple = new ConsoleAssignment("food.fruit:apple:1.0", "@prod:apple:1.0");
-    private final ConsoleAssignment banana = new ConsoleAssignment("food.fruit:banana:2.0-SNAPSHOT", "@prod:banana:1.0");
     private ConsoleAssignmentResource resource;
 
     private RemoteSlot appleSlot1;
@@ -52,20 +55,17 @@ public class TestConsoleAssignmentResource
     public void setup()
     {
         Console console = new Console(new MockRemoteSlotFactory(), new ConsoleConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
-        resource = new ConsoleAssignmentResource(console, new MockBinaryRepository(), new MockConfigRepository());
+        resource = new ConsoleAssignmentResource(console, MOCK_BINARY_REPO, MOCK_CONFIG_REPO);
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
-                URI.create("fake://appleServer1/v1/slot/apple1"),
-                UNASSIGNED);
+                URI.create("fake://appleServer1/v1/slot/apple1"));
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
-                URI.create("fake://appleServer2/v1/slot/apple1"),
-                UNASSIGNED);
+                URI.create("fake://appleServer2/v1/slot/apple1"));
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
-                URI.create("fake://bananaServer/v1/slot/banana"),
-                UNASSIGNED);
+                URI.create("fake://bananaServer/v1/slot/banana"));
 
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
@@ -80,7 +80,7 @@ public class TestConsoleAssignmentResource
     public void testAssign()
     {
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.assign(ConsoleAssignmentRepresentation.from(apple), uriInfo);
+        Response response = resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
 
         assertOkResponse(response, LifecycleState.STOPPED, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
@@ -93,13 +93,13 @@ public class TestConsoleAssignmentResource
     @Test
     public void testReplaceAssignment()
     {
-        appleSlot1.assign(createMockAssignment(banana.getBinary(), banana.getConfig()));
-        assertEquals(appleSlot1.status().getBinary(), banana.getBinary());
-        appleSlot2.assign(createMockAssignment(banana.getBinary(), banana.getConfig()));
-        assertEquals(appleSlot2.status().getBinary(), banana.getBinary());
+        appleSlot1.assign(BANANA_INSTALLATION);
+        assertEquals(appleSlot1.status().getAssignment(), BANANA_ASSIGNMENT);
+        appleSlot2.assign(BANANA_INSTALLATION);
+        assertEquals(appleSlot2.status().getAssignment(), BANANA_ASSIGNMENT);
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.assign(ConsoleAssignmentRepresentation.from(apple), uriInfo);
+        Response response = resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
 
         assertOkResponse(response, LifecycleState.STOPPED, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
@@ -123,12 +123,12 @@ public class TestConsoleAssignmentResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (RemoteSlot slot : slots) {
-            SlotStatus status = slot.status();
             if (state != UNASSIGNED) {
-                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), status.getName(), status.getSelf(), apple.getBinary(), apple.getConfig(), state)));
+                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
+                assertEquals(slot.status().getAssignment(), APPLE_ASSIGNMENT);
             }
             else {
-                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.getId(), status.getName(), status.getSelf(), state)));
+                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
             }
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
@@ -138,12 +138,12 @@ public class TestConsoleAssignmentResource
     @Test
     public void testClear()
     {
-        appleSlot1.assign(createMockAssignment(apple.getBinary(), apple.getConfig()));
-        assertEquals(appleSlot1.status().getBinary(), apple.getBinary());
-        appleSlot2.assign(createMockAssignment(apple.getBinary(), apple.getConfig()));
-        assertEquals(appleSlot2.status().getBinary(), apple.getBinary());
-        bananaSlot.assign(createMockAssignment(banana.getBinary(), banana.getConfig()));
-        assertEquals(bananaSlot.status().getBinary(), banana.getBinary());
+        appleSlot1.assign(APPLE_INSTALLATION);
+        assertEquals(appleSlot1.status().getAssignment(), APPLE_ASSIGNMENT);
+        appleSlot2.assign(APPLE_INSTALLATION);
+        assertEquals(appleSlot2.status().getAssignment(), APPLE_ASSIGNMENT);
+        bananaSlot.assign(BANANA_INSTALLATION);
+        assertEquals(bananaSlot.status().getAssignment(), BANANA_ASSIGNMENT);
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.clear(uriInfo);

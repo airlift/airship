@@ -270,7 +270,7 @@ public class SlotFilterBuilder
             if (slotStatus == null) {
                 return false;
             }
-            BinarySpec binary = slotStatus.getBinary();
+            BinarySpec binary = slotStatus.getAssignment().getBinary();
             return binary != null &&
                     groupIdGlob.apply(binary.getGroupId()) &&
                     artifactIdGlob.apply(binary.getArtifactId()) &&
@@ -310,7 +310,7 @@ public class SlotFilterBuilder
             if (slotStatus == null) {
                 return false;
             }
-            ConfigSpec config = slotStatus.getConfig();
+            ConfigSpec config = slotStatus.getAssignment().getConfig();
             return config != null &&
                     componentGlob.apply(config.getComponent()) &&
                     environmentGlob.apply(config.getEnvironment()) &&

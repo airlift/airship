@@ -26,7 +26,8 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import static com.proofpoint.galaxy.AssignmentHelper.MOCK_APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
@@ -46,7 +47,7 @@ public class TestLifecycleResource
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());
         slot = agent.addNewSlot();
-        slot.assign(MOCK_APPLE_ASSIGNMENT);
+        slot.assign(APPLE_INSTALLATION);
         resource = new LifecycleResource(agent);
     }
 
@@ -112,9 +113,8 @@ public class TestLifecycleResource
     private void assertOkResponse(Response response, LifecycleState state)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        Assert.assertEquals(response.getEntity(),
-                SlotStatusRepresentation.from(new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), MOCK_APPLE_ASSIGNMENT.getBinary(), MOCK_APPLE_ASSIGNMENT.getConfig(), state)
-                ));
+        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
+        Assert.assertEquals(slot.status().getAssignment(), APPLE_ASSIGNMENT);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 }

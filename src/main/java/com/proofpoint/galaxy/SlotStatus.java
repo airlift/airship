@@ -27,8 +27,7 @@ public class SlotStatus
     private final UUID id;
     private final String name;
     private final URI self;
-    private final BinarySpec binary;
-    private final ConfigSpec config;
+    private final Assignment assignment;
     private final LifecycleState state;
 
     public SlotStatus(UUID id, String name, URI self)
@@ -40,40 +39,52 @@ public class SlotStatus
         this.id = id;
         this.name = name;
         this.self = self;
-        this.binary = null;
-        this.config = null;
+        this.assignment = null;
         this.state = UNASSIGNED;
     }
 
-    public SlotStatus(UUID id, String name, URI self, LifecycleState state)
+    public SlotStatus(UUID id, String name, URI self, LifecycleState state, Assignment assignment)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(self, "self is null");
+        Preconditions.checkNotNull(assignment, "assignment is null");
         Preconditions.checkNotNull(state, "state is null");
 
         this.id = id;
         this.name = name;
         this.self = self;
-        this.binary = null;
-        this.config = null;
+        this.assignment = assignment;
         this.state = state;
     }
 
-    public SlotStatus(UUID id, String name, URI self, BinarySpec binary, ConfigSpec config, LifecycleState state)
+    public SlotStatus(SlotStatus status, LifecycleState state)
     {
-        Preconditions.checkNotNull(id, "id is null");
-        Preconditions.checkNotNull(name, "name is null");
-        Preconditions.checkNotNull(self, "self is null");
-        Preconditions.checkNotNull(binary, "binary is null");
-        Preconditions.checkNotNull(config, "config is null");
+        Preconditions.checkNotNull(status, "status is null");
         Preconditions.checkNotNull(state, "state is null");
 
-        this.id = id;
-        this.name = name;
-        this.self = self;
-        this.binary = binary;
-        this.config = config;
+        this.id = status.id;
+        this.name = status.name;
+        this.self = status.self;
+        if (state != UNASSIGNED) {
+            this.assignment = status.assignment;
+        }
+        else {
+            this.assignment = null;
+        }
+        this.state = state;
+    }
+    
+    public SlotStatus(SlotStatus status, LifecycleState state, Assignment assignment)
+    {
+        Preconditions.checkNotNull(status, "status is null");
+        Preconditions.checkNotNull(state, "state is null");
+        Preconditions.checkNotNull(assignment, "assignment is null");
+
+        this.id = status.id;
+        this.name = status.name;
+        this.self = status.self;
+        this.assignment = assignment;
         this.state = state;
     }
 
@@ -92,14 +103,9 @@ public class SlotStatus
         return self;
     }
 
-    public BinarySpec getBinary()
+    public Assignment getAssignment()
     {
-        return binary;
-    }
-
-    public ConfigSpec getConfig()
-    {
-        return config;
+        return assignment;
     }
 
     public LifecycleState getState()
@@ -119,10 +125,7 @@ public class SlotStatus
 
         SlotStatus that = (SlotStatus) o;
 
-        if (binary != null ? !binary.equals(that.binary) : that.binary != null) {
-            return false;
-        }
-        if (config != null ? !config.equals(that.config) : that.config != null) {
+        if (assignment != null ? !assignment.equals(that.assignment) : that.assignment != null) {
             return false;
         }
         if (!id.equals(that.id)) {
@@ -147,8 +150,7 @@ public class SlotStatus
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + self.hashCode();
-        result = 31 * result + (binary != null ? binary.hashCode() : 0);
-        result = 31 * result + (config != null ? config.hashCode() : 0);
+        result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
         result = 31 * result + state.hashCode();
         return result;
     }
@@ -161,8 +163,7 @@ public class SlotStatus
         sb.append("{id=").append(id);
         sb.append(", name='").append(name).append('\'');
         sb.append(", self=").append(self);
-        sb.append(", binary=").append(binary);
-        sb.append(", config=").append(config);
+        sb.append(", assignment=").append(assignment);
         sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();

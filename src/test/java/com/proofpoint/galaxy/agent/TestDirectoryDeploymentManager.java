@@ -14,8 +14,8 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
-import com.proofpoint.galaxy.AssignmentHelper;
 import com.proofpoint.galaxy.DeploymentUtils;
+import com.proofpoint.galaxy.RepoHelper;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -32,22 +32,22 @@ import static org.testng.Assert.fail;
 public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTest
 {
     private File tempDir;
-    private AssignmentHelper assignmentHelper;
+    private RepoHelper repoHelper;
 
     @BeforeClass
     public void createRepository()
             throws Exception
     {
-        assignmentHelper = new AssignmentHelper();
-        apple = assignmentHelper.getAppleAssignment();
-        banana = assignmentHelper.getBananaAssignment();
+        repoHelper = new RepoHelper();
+        appleInstallation = repoHelper.getAppleInstallation();
+        bananaInstallation = repoHelper.getBananaInstallation();
     }
 
     @AfterClass
     public void removeRepository()
     {
-        if (assignmentHelper != null) {
-            assignmentHelper.destroy();
+        if (repoHelper != null) {
+            repoHelper.destroy();
         }
     }
 
@@ -71,8 +71,8 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     public void testPersistence()
     {
         // install apple and banana and activate apple
-        Deployment appleDeployment = manager.install(apple);
-        Deployment bananaDeployment = manager.install(banana);
+        Deployment appleDeployment = manager.install(appleInstallation);
+        Deployment bananaDeployment = manager.install(bananaInstallation);
         manager.activate(appleDeployment.getDeploymentId());
 
 

@@ -53,24 +53,24 @@ public class AssignmentResource
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response assign(@PathParam("slotName") String slotName, AssignmentRepresentation assignment, @Context UriInfo uriInfo)
+    public Response assign(@PathParam("slotName") String slotName, InstallationRepresentation installation, @Context UriInfo uriInfo)
     {
         Preconditions.checkNotNull(slotName, "slotName must not be null");
-        Preconditions.checkNotNull(assignment, "assignment must not be null");
+        Preconditions.checkNotNull(installation, "installation must not be null");
 
         Slot slot = agent.getSlot(slotName);
         if (slot == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }
 
-        Set<ConstraintViolation<AssignmentRepresentation>> violations = validate(assignment);
+        Set<ConstraintViolation<InstallationRepresentation>> violations = validate(installation);
         if (!violations.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(messagesFor(violations))
                     .build();
         }
 
-        SlotStatus status = slot.assign(assignment.toAssignment());
+        SlotStatus status = slot.assign(installation.toInstallation());
         return Response.ok(SlotStatusRepresentation.from(status)).build();
     }
 

@@ -16,8 +16,6 @@ package com.proofpoint.galaxy;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultiset;
 
-import java.util.Collection;
-
 import static org.testng.Assert.fail;
 
 public class ExtraAssertions

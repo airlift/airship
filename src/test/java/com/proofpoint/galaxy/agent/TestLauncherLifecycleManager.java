@@ -14,7 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
-import com.proofpoint.galaxy.AssignmentHelper;
+import com.proofpoint.galaxy.Assignment;
 import com.proofpoint.galaxy.DeploymentUtils;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
@@ -24,7 +24,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class TesLauncherLifecycleManager extends AbstractLifecycleManagerTest
+import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
+
+public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
 {
     private File tempDir;
 
@@ -40,13 +43,14 @@ public class TesLauncherLifecycleManager extends AbstractLifecycleManagerTest
         tempDir = Files.createTempDir().getCanonicalFile();
         manager = new LauncherLifecycleManager(new AgentConfig().setSlotsDir(tempDir.getAbsolutePath()).setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)));
 
-        apple = createDeploymentDir(goodLauncher, "apple");
-        banana = createDeploymentDir(goodLauncher, "banana");
+        appleDeployment = createDeploymentDir(goodLauncher, APPLE_ASSIGNMENT);
+        bananaDeployment = createDeploymentDir(goodLauncher, BANANA_ASSIGNMENT);
     }
 
-    private Deployment createDeploymentDir(File goodLauncher, String name)
+    private Deployment createDeploymentDir(File goodLauncher, Assignment assignment)
             throws IOException
     {
+        String name = assignment.getConfig().getComponent();
         File deploymentDir = new File(tempDir, name);
         File launcher = new File(deploymentDir, "bin/launcher");
 
@@ -55,7 +59,7 @@ public class TesLauncherLifecycleManager extends AbstractLifecycleManagerTest
         Files.copy(goodLauncher, launcher);
         launcher.setExecutable(true, true);
 
-        return new Deployment(name, deploymentDir, AssignmentHelper.createMockAssignment("food.fruit:" + name + ":1.0", "@prod:" + name + ":1.0"));
+        return new Deployment(name, deploymentDir, assignment);
     }
 
     @AfterMethod

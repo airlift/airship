@@ -6,6 +6,7 @@ import com.google.common.io.PatternFilenameFilter;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
+import com.proofpoint.galaxy.Assignment;
 import com.proofpoint.galaxy.DeploymentUtils;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
@@ -55,20 +56,20 @@ public class DirectoryDeploymentManager implements DeploymentManager
             Preconditions.checkArgument(activeDeploymentFile.canWrite(), "can not write " + activeDeploymentFile.getAbsolutePath());
         }
 
-        // load deployment assignments
-        for (File assignmentFile : listFiles(baseDir, new PatternFilenameFilter("galaxy-deployment\\d+-assignment.json"))) {
+        // load deployments
+        for (File deploymentFile : listFiles(baseDir, new PatternFilenameFilter("galaxy-deployment\\d+-deployment.json"))) {
             try {
-                Deployment deployment = load(assignmentFile);
+                Deployment deployment = load(deploymentFile);
                 if (deployment.getDeploymentDir().isDirectory()) {
                     deployments.put(deployment.getDeploymentId(), deployment);
                 }
                 else {
-                    log.warn(assignmentFile.getAbsolutePath() + " references a deployment that no longer exists: deleting");
-                    assignmentFile.delete();
+                    log.warn(deploymentFile.getAbsolutePath() + " references a deployment that no longer exists: deleting");
+                    deploymentFile.delete();
                 }
             }
             catch (IOException e) {
-                log.error(e, "Invalid assignment file: " + assignmentFile.getAbsolutePath());
+                log.error(e, "Invalid deployment file: " + deploymentFile.getAbsolutePath());
             }
         }
 
@@ -138,23 +139,24 @@ public class DirectoryDeploymentManager implements DeploymentManager
     }
 
     @Override
-    public Deployment install(Assignment assignment)
+    public Deployment install(Installation installation)
     {
-        Preconditions.checkNotNull(assignment, "assignment is null");
+        Preconditions.checkNotNull(installation, "installation is null");
 
         String deploymentId = getNextDeploymentId();
         File deploymentDir = new File(baseDir, deploymentId);
 
+        Assignment assignment = installation.getAssignment();
         Deployment deployment = new Deployment(deploymentId, deploymentDir, assignment);
         File tempDir = DeploymentUtils.createTempDir(baseDir, "tmp-install");
         try {
             // download the binary
             File binary = new File(tempDir, "galaxy-binary.tar.gz");
             try {
-                Files.copy(Resources.newInputStreamSupplier(DeploymentUtils.toURL(assignment.getBinaryFile())), binary);
+                Files.copy(Resources.newInputStreamSupplier(DeploymentUtils.toURL(installation.getBinaryFile())), binary);
             }
             catch (IOException e) {
-                throw new RuntimeException("Unable to download binary " + assignment.getBinary() + " from " + assignment.getBinaryFile());
+                throw new RuntimeException("Unable to download binary " + assignment.getBinary() + " from " + installation.getBinaryFile());
             }
 
             // unpack the binary into a temp unpack dir
@@ -175,7 +177,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
             File binaryRootDir = files.get(0);
 
             // copy config files from config repository
-            for (Entry<String, URI> entry : assignment.getConfigFiles().entrySet()) {
+            for (Entry<String, URI> entry : installation.getConfigFiles().entrySet()) {
                 String configFile = entry.getKey();
                 URI configUri = entry.getValue();
                 try {
@@ -194,7 +196,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
                 save(deployment);
             }
             catch (IOException e) {
-                throw new RuntimeException("Unable to save deployment assignment file", e);
+                throw new RuntimeException("Unable to save deployment file", e);
             }
 
             // move the binary root directory to the final target
@@ -260,7 +262,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
             Files.write(deploymentId, activeDeploymentFile, UTF_8);
         }
         catch (IOException e) {
-            throw new RuntimeException("Unable to save active assignment file: " + activeDeploymentFile, e);
+            throw new RuntimeException("Unable to save active deployment file: " + activeDeploymentFile, e);
         }
         activeDeployment = deployment;
         return deployment;
@@ -288,10 +290,10 @@ public class DirectoryDeploymentManager implements DeploymentManager
         Files.write(json, getDeploymentAssignmentFile(deployment), UTF_8);
     }
 
-    public Deployment load(File deploymentAssignmentFile)
+    public Deployment load(File deploymentFile)
             throws IOException
     {
-        String json = Files.toString(deploymentAssignmentFile, UTF_8);
+        String json = Files.toString(deploymentFile, UTF_8);
         DeploymentRepresentation data = jsonCodec.fromJson(json);
         Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()));
         return deployment;
@@ -299,6 +301,6 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
     private File getDeploymentAssignmentFile(Deployment deployment)
     {
-        return new File(baseDir, String.format("galaxy-%s-assignment.json", deployment.getDeploymentId()));
+        return new File(baseDir, String.format("galaxy-%s-deployment.json", deployment.getDeploymentId()));
     }
 }
