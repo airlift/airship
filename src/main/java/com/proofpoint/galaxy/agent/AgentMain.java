@@ -17,6 +17,7 @@ import com.proofpoint.bootstrap.Bootstrap;
 import com.proofpoint.http.server.HttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.jmx.JmxModule;
+import com.proofpoint.node.NodeModule;
 import org.weakref.jmx.guice.MBeanModule;
 
 public class AgentMain
@@ -25,6 +26,7 @@ public class AgentMain
             throws Exception
     {
         Bootstrap app = new Bootstrap(
+                new NodeModule(),
                 new HttpServerModule(),
                 new JaxrsModule(),
                 new MBeanModule(),
