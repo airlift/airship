@@ -14,6 +14,8 @@ import com.proofpoint.log.Logger;
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import java.net.ConnectException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -90,7 +92,7 @@ public class AnnouncementService
                     .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                     .execute()
                     .get();
-            if (response.getStatusCode() != 200) {
+            if (response.getStatusCode() / 100 != 2) {
                 log.warn("Announcement to " + announcementUrl + " failed: " + response.getStatusText());
             }
         }
@@ -98,7 +100,11 @@ public class AnnouncementService
             throw e;
         }
         catch (Exception e) {
-            log.warn(e, "Error announcing status to " + announcementUrl);
+            if (e.getCause() instanceof ConnectException) {
+                log.warn("Could not connect to console at " + announcementUrl);
+            } else {
+                log.warn(e, "Error announcing status to " + announcementUrl);
+            }
         }
     }
 }
