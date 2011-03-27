@@ -2,9 +2,11 @@ package com.proofpoint.galaxy;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.Immutable;
 import java.util.List;
 import java.util.UUID;
 
+@Immutable
 public class AgentStatus
 {
     private final UUID agentId;

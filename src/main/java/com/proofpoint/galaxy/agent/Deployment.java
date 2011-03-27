@@ -16,8 +16,10 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.base.Preconditions;
 import com.proofpoint.galaxy.Assignment;
 
+import javax.annotation.concurrent.Immutable;
 import java.io.File;
 
+@Immutable
 public class Deployment
 {
     private final String deploymentId;

@@ -15,9 +15,11 @@ package com.proofpoint.galaxy;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.Immutable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Immutable
 public class BinarySpec
 {
     public static final String BINARY_SPEC_REGEX = "^([^:]+):([^:]+)(?::([^:]+))?(?::([^:]+))?:([^:]+)$";
