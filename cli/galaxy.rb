@@ -248,7 +248,7 @@ option_parser = OptionParser.new do |opts|
   end
 
   notes = <<-NOTES
-    Notes:"
+    Notes:
         - Filters are evaluated as: set | host | ip | state | (binary & config)
         - The HOST, BINARY, and CONFIG arguments are globs
         - BINARY format is groupId:artifactId[:packaging[:classifier]]:version
