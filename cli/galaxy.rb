@@ -122,6 +122,7 @@ def ssh(filter, options, args)
   slot = slots.first
   command = ENV['GALAXY_SSH_COMMAND'] || "ssh"
   Kernel.system "#{command} #{slot.host}"
+  []
 end
 
 def console_request filter, options, method, sub_path = nil, value = nil, is_json = false
