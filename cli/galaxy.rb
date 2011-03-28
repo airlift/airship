@@ -145,11 +145,11 @@ def console_request filter, options, method, sub_path = nil, value = nil, is_jso
   # log request in as a valid curl command if in debug mode
   if options[:debug]
     if value then
-      puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}' -d '"
+      puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}?#{query}' -d '"
       puts body
       puts "'"
     else
-      puts "curl -X#{method.to_s.upcase} '#{uri}'"
+      puts "curl -X#{method.to_s.upcase} '#{uri}?#{query}'"
     end
   end
 
