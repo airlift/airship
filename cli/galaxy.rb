@@ -228,6 +228,10 @@ option_parser = OptionParser.new do |opts|
     filter[:ip] = arg
   end
 
+  opts.on("-n", "--name SLOT_NAME", "Select slots with given slot name") do |arg|
+    filter[:name] = arg
+  end
+
   opts.on("-s", "--set SET", "Select 'e{mpty}', 't{aken}' or 'a{ll}' hosts", [:empty, :all, :taken, :e, :a, :t]) do |arg|
     case arg
       when :all, :a then

@@ -40,6 +40,11 @@ public class SlotFilterBuilder
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
+            else if ("name" .equals(entry.getKey())) {
+                for (String slotGlob : entry.getValue()) {
+                    builder.addSlotNameGlobFilter(slotGlob);
+                }
+            }
             else if ("ip" .equals(entry.getKey())) {
                 for (String ipFilter : entry.getValue()) {
                     builder.addIpFilter(ipFilter);
@@ -61,6 +66,7 @@ public class SlotFilterBuilder
 
     private final List<StatePredicate> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<SetPredicate> setFilters = Lists.newArrayListWithCapacity(6);
+    private final List<SlotNamePredicate> slotNameFilters = Lists.newArrayListWithCapacity(6);
     private final List<HostPredicate> hostFilters = Lists.newArrayListWithCapacity(6);
     private final List<IpPredicate> ipFilters = Lists.newArrayListWithCapacity(6);
     private final List<BinarySpecPredicate> binarySpecPredicates = Lists.newArrayListWithCapacity(6);
@@ -80,6 +86,12 @@ public class SlotFilterBuilder
         SlotSet set = SlotSet.lookup(setFilter);
         Preconditions.checkArgument(set != null, "unknown set " + setFilter);
         setFilters.add(new SetPredicate(set));
+    }
+
+    public void addSlotNameGlobFilter(String slotNameGlob)
+    {
+        Preconditions.checkNotNull(slotNameGlob, "slotNameGlob is null");
+        slotNameFilters.add(new SlotNamePredicate(slotNameGlob));
     }
 
     public void addHostGlobFilter(String hostGlob)
@@ -130,6 +142,10 @@ public class SlotFilterBuilder
             Predicate<SlotStatus> predicate = Predicates.and(setFilters);
             orPredicates.add(predicate);
         }
+        if (!slotNameFilters.isEmpty()) {
+            Predicate<SlotStatus> predicate = Predicates.and(slotNameFilters);
+            orPredicates.add(predicate);
+        }
         if (!hostFilters.isEmpty()) {
             Predicate<SlotStatus> predicate = Predicates.and(hostFilters);
             orPredicates.add(predicate);
@@ -149,6 +165,24 @@ public class SlotFilterBuilder
         }
         else {
             return Predicates.alwaysTrue();
+        }
+    }
+
+    public static class SlotNamePredicate implements Predicate<SlotStatus>
+    {
+        private final Predicate<CharSequence> predicate;
+
+        public SlotNamePredicate(String slotNameGlobGlob)
+        {
+            predicate = new GlobPredicate(slotNameGlobGlob.toLowerCase());
+        }
+
+        @Override
+        public boolean apply(@Nullable SlotStatus slotStatus)
+        {
+            return slotStatus != null &&
+                    slotStatus.getName() != null &&
+                    predicate.apply(slotStatus.getName().toLowerCase());
         }
     }
 

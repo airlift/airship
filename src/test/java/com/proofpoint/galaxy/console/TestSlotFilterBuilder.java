@@ -11,6 +11,7 @@ import com.proofpoint.galaxy.console.SlotFilterBuilder.HostPredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.IpPredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.RegexPredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.SetPredicate;
+import com.proofpoint.galaxy.console.SlotFilterBuilder.SlotNamePredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.StatePredicate;
 import org.testng.annotations.Test;
 
@@ -27,7 +28,7 @@ import static org.testng.Assert.assertTrue;
 public class TestSlotFilterBuilder
 {
     private final SlotStatus status = new SlotStatus(UUID.randomUUID(),
-            "test",
+            "slotName",
             URI.create("fake://localhost"),
             UNKNOWN,
             APPLE_ASSIGNMENT);
@@ -75,6 +76,23 @@ public class TestSlotFilterBuilder
         assertFalse(buildFilter("set", "EmPty").apply(slot));
         assertFalse(buildFilter("set", "e").apply(slot));
         assertFalse(buildFilter("set", "E").apply(slot));
+    }
+
+    @Test
+    public void testSlotNamePredicate()
+    {
+        assertTrue(new SlotNamePredicate("slotName").apply(status));
+        assertTrue(buildFilter("name", "slotName").apply(slot));
+        assertTrue(new SlotNamePredicate("SLOTNAME").apply(status));
+        assertTrue(buildFilter("name", "SLOTNAME").apply(slot));
+        assertTrue(new SlotNamePredicate("SlotName").apply(status));
+        assertTrue(buildFilter("name", "SlotName").apply(slot));
+        assertTrue(new SlotNamePredicate("slot*").apply(status));
+        assertTrue(buildFilter("name", "slot*").apply(slot));
+        assertTrue(new SlotNamePredicate("SLOT*").apply(status));
+        assertTrue(buildFilter("name", "SLOT*").apply(slot));
+        assertFalse(new SlotNamePredicate("foo").apply(status));
+        assertFalse(buildFilter("name", "foo").apply(slot));
     }
 
     @Test
