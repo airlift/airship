@@ -30,11 +30,6 @@ public class SlotFilterBuilder
                     builder.addStateFilter(stateFilter);
                 }
             }
-            else if ("set" .equals(entry.getKey())) {
-                for (String setFilter : entry.getValue()) {
-                    builder.addSetFilter(setFilter);
-                }
-            }
             else if ("host" .equals(entry.getKey())) {
                 for (String hostGlob : entry.getValue()) {
                     builder.addHostGlobFilter(hostGlob);
@@ -65,7 +60,6 @@ public class SlotFilterBuilder
     }
 
     private final List<StatePredicate> stateFilters = Lists.newArrayListWithCapacity(6);
-    private final List<SetPredicate> setFilters = Lists.newArrayListWithCapacity(6);
     private final List<SlotNamePredicate> slotNameFilters = Lists.newArrayListWithCapacity(6);
     private final List<HostPredicate> hostFilters = Lists.newArrayListWithCapacity(6);
     private final List<IpPredicate> ipFilters = Lists.newArrayListWithCapacity(6);
@@ -78,14 +72,6 @@ public class SlotFilterBuilder
         LifecycleState state = LifecycleState.lookup(stateFilter);
         Preconditions.checkArgument(state != null, "unknown state " + stateFilter);
         stateFilters.add(new StatePredicate(state));
-    }
-
-    public void addSetFilter(String setFilter)
-    {
-        Preconditions.checkNotNull(setFilter, "setFilter is null");
-        SlotSet set = SlotSet.lookup(setFilter);
-        Preconditions.checkArgument(set != null, "unknown set " + setFilter);
-        setFilters.add(new SetPredicate(set));
     }
 
     public void addSlotNameGlobFilter(String slotNameGlob)
@@ -136,10 +122,6 @@ public class SlotFilterBuilder
         List<Predicate<SlotStatus>> orPredicates = Lists.newArrayListWithCapacity(6);
         if (!stateFilters.isEmpty()) {
             Predicate<SlotStatus> predicate = Predicates.and(stateFilters);
-            orPredicates.add(predicate);
-        }
-        if (!setFilters.isEmpty()) {
-            Predicate<SlotStatus> predicate = Predicates.and(setFilters);
             orPredicates.add(predicate);
         }
         if (!slotNameFilters.isEmpty()) {
@@ -242,34 +224,6 @@ public class SlotFilterBuilder
         public boolean apply(@Nullable SlotStatus slotStatus)
         {
             return slotStatus.getState() == state;
-        }
-    }
-
-    public static class SetPredicate implements Predicate<SlotStatus>
-    {
-        private final SlotSet state;
-
-        public SetPredicate(SlotSet slotStatus)
-        {
-            this.state = slotStatus;
-        }
-
-        @Override
-        public boolean apply(@Nullable SlotStatus slotStatus)
-        {
-            if (slotStatus == null) {
-                return false;
-            }
-            switch (state) {
-                case EMPTY:
-                    return slotStatus.getState() == LifecycleState.UNASSIGNED;
-                case TAKEN:
-                    return slotStatus.getState() != LifecycleState.UNASSIGNED;
-                case ALL:
-                    return true;
-            }
-            // this will never happen
-            throw new AssertionError();
         }
     }
 

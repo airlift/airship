@@ -10,7 +10,6 @@ import com.proofpoint.galaxy.console.SlotFilterBuilder.GlobPredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.HostPredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.IpPredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.RegexPredicate;
-import com.proofpoint.galaxy.console.SlotFilterBuilder.SetPredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.SlotNamePredicate;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.StatePredicate;
 import org.testng.annotations.Test;
@@ -56,26 +55,6 @@ public class TestSlotFilterBuilder
         assertFalse(new StatePredicate(RUNNING).apply(status));
         assertFalse(buildFilter("state", "running").apply(slot));
         assertFalse(buildFilter("state", "r").apply(slot));
-    }
-
-    @Test
-    public void testSetSpecPredicate()
-    {
-        assertTrue(new SetPredicate(SlotSet.ALL).apply(status));
-        assertTrue(buildFilter("set", "all").apply(slot));
-        assertTrue(buildFilter("set", "AlL").apply(slot));
-        assertTrue(buildFilter("set", "a").apply(slot));
-        assertTrue(buildFilter("set", "A").apply(slot));
-        assertTrue(new SetPredicate(SlotSet.TAKEN).apply(status));
-        assertTrue(buildFilter("set", "taken").apply(slot));
-        assertTrue(buildFilter("set", "TakeN").apply(slot));
-        assertTrue(buildFilter("set", "t").apply(slot));
-        assertTrue(buildFilter("set", "T").apply(slot));
-        assertFalse(new SetPredicate(SlotSet.EMPTY).apply(status));
-        assertFalse(buildFilter("set", "empty").apply(slot));
-        assertFalse(buildFilter("set", "EmPty").apply(slot));
-        assertFalse(buildFilter("set", "e").apply(slot));
-        assertFalse(buildFilter("set", "E").apply(slot));
     }
 
     @Test

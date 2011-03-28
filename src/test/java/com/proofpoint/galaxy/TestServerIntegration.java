@@ -215,7 +215,7 @@ public class TestServerIntegration
         announcementService.announce();
 
         String json = assignmentCodec.toJson(AssignmentRepresentation.from(APPLE_ASSIGNMENT));
-        Response response = client.preparePut(urlFor("/v1/slot/assignment?set=empty"))
+        Response response = client.preparePut(urlFor("/v1/slot/assignment?state=unassigned"))
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .execute()

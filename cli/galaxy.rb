@@ -232,23 +232,16 @@ option_parser = OptionParser.new do |opts|
     filter[:name] = arg
   end
 
-  opts.on("-s", "--set SET", "Select 'e{mpty}', 't{aken}' or 'a{ll}' hosts", [:empty, :all, :taken, :e, :a, :t]) do |arg|
-    case arg
-      when :all, :a then
-        filter[:set] = :all
-      when :empty, :e then
-        filter[:set] = :empty
-      when :taken, :t then
-        filter[:set] = :taken
-    end
-  end
-
-  opts.on("-S", "--state STATE", "Select 'r{unning}' or 's{topped}' hosts", [:running, :stopped, :r, :s]) do |arg|
+  opts.on("-s", "--state STATE", "Select 'r{unning}', 's{topped}', 'u{assigned}' or 'unknown' slots", [:running, :r, :stopped, :s, :unassigned, :u, :unknown]) do |arg|
     case arg
       when :running, :r then
         filter[:state] = 'running'
       when :stopped, :s then
         filter[:state] = 'stopped'
+      when :unassigned, :u then
+        filter[:state] = 'unassigned'
+      when :unknown then
+        filter[:state] = 'unknown'
     end
   end
 
