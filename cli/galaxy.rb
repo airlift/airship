@@ -19,7 +19,7 @@ exit_codes = {
 class Slot
   attr_reader :id, :name, :host, :ip, :url, :binary, :config, :status
 
-  def initialize id, name, url, binary, config, status
+  def initialize(id, name, url, binary, config, status)
     @id = id
     @name = name
     @url = url
@@ -125,7 +125,7 @@ def ssh(filter, options, args)
   []
 end
 
-def console_request filter, options, method, sub_path = nil, value = nil, is_json = false
+def console_request(filter, options, method, sub_path = nil, value = nil, is_json = false)
   # build the uri
   uri = options[:console_url]
   uri += '/' unless uri.end_with? '/'
