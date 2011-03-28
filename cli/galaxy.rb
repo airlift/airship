@@ -8,7 +8,7 @@ VERSION = "1.0-SNAPSHOT"
 
 exit_codes = {
     :success => 0,
-    :no_agents => 1,
+    :no_slots => 1,
     :unsupported => 3,
     :invalid_usage => 64
 }
@@ -171,7 +171,7 @@ def console_request filter, options, method, sub_path = nil, value = nil, is_jso
 
   # verify response
   if slots.empty? then
-    raise CommandError.new(:no_agents, "No agents match the provided filters.")
+    raise CommandError.new(:no_slots, "No slots match the provided filters.")
   end
 
   slots
@@ -213,18 +213,19 @@ option_parser = OptionParser.new do |opts|
   opts.separator ''
   opts.separator 'Filters:'
 
-  opts.on("-b", "--binary BINARY", "Select agents with a given binary") do |arg|
+  opts.on("-b", "--binary BINARY", "Select slots with a given binary") do |arg|
     filter[:binary] = arg
   end
-  opts.on("-c", "--config CONFIG", "Select agents with given configuration") do |arg|
+
+  opts.on("-c", "--config CONFIG", "Select slots with given configuration") do |arg|
     filter[:config] = arg
   end
 
-  opts.on("-i", "--host HOST", "Select a specific agent by hostname") do |arg|
+  opts.on("-i", "--host HOST", "Select slots on the given hostname") do |arg|
     filter[:host] = arg
   end
 
-  opts.on("-I", "--ip IP", "Select a specific agent by IP address") do |arg|
+  opts.on("-I", "--ip IP", "Select slots at the given IP address") do |arg|
     filter[:ip] = arg
   end
 
