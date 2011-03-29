@@ -141,7 +141,7 @@ public class BinarySpec
         final StringBuffer sb = new StringBuffer();
         sb.append(groupId).append(':');
         sb.append(artifactId).append(':');
-        if (!packaging.equals(DEFAULT_PACKAGING)) {
+        if (!packaging.equals(DEFAULT_PACKAGING) || classifier != null) {
             sb.append(packaging).append(':');
         }
         if (classifier != null) {

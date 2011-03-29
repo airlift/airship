@@ -33,6 +33,7 @@ public class TestBinarySpec
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
         Assert.assertEquals(spec, new BinarySpec("my.groupId", "artifactId", "version", "packaging", "classifier"));
+        Assert.assertEquals(spec.toString(), "my.groupId:artifactId:packaging:classifier:version");
     }
 
     @Test
@@ -46,6 +47,7 @@ public class TestBinarySpec
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
         Assert.assertEquals(spec, new BinarySpec("my.groupId", "artifactId", "version", "packaging", null));
+        Assert.assertEquals(spec.toString(), "my.groupId:artifactId:packaging:version");
     }
 
     @Test
@@ -59,6 +61,21 @@ public class TestBinarySpec
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
         Assert.assertEquals(spec, new BinarySpec("my.groupId", "artifactId", "version", "tar.gz", null));
+        Assert.assertEquals(spec.toString(), "my.groupId:artifactId:version");
+    }
+
+    @Test
+    public void fullBinarySpecWithDefaultPackage()
+    {
+        BinarySpec spec = BinarySpec.valueOf("my.groupId:artifactId:tar.gz:classifier:version");
+        Assert.assertEquals(spec.getGroupId(), "my.groupId");
+        Assert.assertEquals(spec.getArtifactId(), "artifactId");
+        Assert.assertEquals(spec.getPackaging(), "tar.gz");
+        Assert.assertEquals(spec.getClassifier(), "classifier");
+        Assert.assertEquals(spec.getVersion(), "version");
+        Assert.assertEquals(spec, spec);
+        Assert.assertEquals(spec, new BinarySpec("my.groupId", "artifactId", "version", "tar.gz", "classifier"));
+        Assert.assertEquals(spec.toString(), "my.groupId:artifactId:tar.gz:classifier:version");
     }
 
     @Test
