@@ -207,7 +207,9 @@ public class DeploymentSlot implements Slot
     private void lock()
     {
         try {
-            lock.tryLock((long) lockWait.toMillis(), TimeUnit.MILLISECONDS);
+            if (!lock.tryLock((long) lockWait.toMillis(), TimeUnit.MILLISECONDS)) {
+                throw new IllegalStateException("Could not obtain slot lock within " + lockWait);
+            }
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
