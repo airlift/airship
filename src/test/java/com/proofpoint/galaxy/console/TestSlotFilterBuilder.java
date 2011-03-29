@@ -2,6 +2,8 @@ package com.proofpoint.galaxy.console;
 
 import com.google.common.base.Predicate;
 import com.ning.http.client.AsyncHttpClient;
+import com.proofpoint.galaxy.Assignment;
+import com.proofpoint.galaxy.BinarySpec;
 import com.proofpoint.galaxy.MockUriInfo;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.console.SlotFilterBuilder.BinarySpecPredicate;
@@ -123,6 +125,43 @@ public class TestSlotFilterBuilder
         assertFalse(buildFilter("binary", "food.fruit:apple:zip:1.0").apply(slot));
         assertFalse(new BinarySpecPredicate("food.fruit:apple:tar.gz:x:1.0").apply(status));
         assertFalse(buildFilter("binary", "food.fruit:apple:tar.gz:x:1.0").apply(slot));
+    }
+
+    @Test
+    public void testFullBinarySpecPredicate()
+    {
+        SlotStatus status = new SlotStatus(UUID.randomUUID(),
+                "slotName",
+                URI.create("fake://localhost"),
+                UNKNOWN,
+                new Assignment(BinarySpec.valueOf("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT"), APPLE_ASSIGNMENT.getConfig()));
+        RemoteSlot slot = new HttpRemoteSlot(status, new AsyncHttpClient());
+
+        assertTrue(new BinarySpecPredicate("*:*:*:*:*").apply(status));
+        assertTrue(buildFilter("binary", "*:*:*:*:*").apply(slot));
+
+        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(slot));
+
+        assertTrue(new BinarySpecPredicate("*:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "*:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(slot));
+
+        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:*:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:*:tar.gz:distribution:0.35-SNAPSHOT").apply(slot));
+
+        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:*:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:*:distribution:0.35-SNAPSHOT").apply(slot));
+        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(slot));
+        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:distribution:*").apply(status));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:distribution:*").apply(slot));
+
+
+        assertTrue(new BinarySpecPredicate("c*:s*:t*:d*:0*").apply(status));
+        assertTrue(buildFilter("binary", "c*:s*:t*:d*:0*").apply(slot));
+
+        assertFalse(new BinarySpecPredicate("com.proofpoint.platform:sample-server:distribution:0.35-SNAPSHOT").apply(status));
+        assertFalse(buildFilter("binary", "com.proofpoint.platform:sample-server:distribution:0.35-SNAPSHOT").apply(slot));
     }
 
     @Test

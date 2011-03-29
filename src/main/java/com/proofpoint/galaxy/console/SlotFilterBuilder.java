@@ -310,9 +310,18 @@ public class SlotFilterBuilder
 
     public static class GlobPredicate extends RegexPredicate
     {
+        private final String glob;
+
         public GlobPredicate(String glob)
         {
             super(globToPattern(glob));
+            this.glob = glob;
+        }
+
+        @Override
+        public String toString()
+        {
+            return glob;
         }
     }
 
@@ -328,6 +337,12 @@ public class SlotFilterBuilder
         public boolean apply(@Nullable CharSequence input)
         {
             return input != null && pattern.matcher(input).matches();
+        }
+
+        @Override
+        public String toString()
+        {
+            return pattern.pattern();
         }
     }
 
