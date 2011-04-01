@@ -15,7 +15,7 @@ package com.proofpoint.galaxy.console;
 
 import com.proofpoint.bootstrap.Bootstrap;
 import com.proofpoint.http.server.HttpServerModule;
-import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.experimental.jaxrs.JaxrsModule;
 import com.proofpoint.jmx.JmxModule;
 import com.proofpoint.node.NodeModule;
 import org.weakref.jmx.guice.MBeanModule;

@@ -37,7 +37,7 @@ import com.proofpoint.galaxy.console.TestingBinaryRepository;
 import com.proofpoint.galaxy.console.TestingConfigRepository;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.experimental.jaxrs.JaxrsModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;

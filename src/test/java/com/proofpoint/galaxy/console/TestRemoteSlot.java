@@ -34,7 +34,7 @@ import com.proofpoint.galaxy.agent.MockDeploymentManagerFactory;
 import com.proofpoint.galaxy.agent.MockLifecycleManager;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.experimental.jaxrs.JaxrsModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;

@@ -30,7 +30,7 @@ import com.proofpoint.galaxy.RepoHelper;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.experimental.jaxrs.JaxrsModule;
 import com.proofpoint.node.NodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;

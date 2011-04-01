@@ -34,7 +34,7 @@ import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.experimental.jaxrs.JaxrsModule;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
