@@ -64,13 +64,6 @@ public class ConsoleAssignmentResource
     {
         Preconditions.checkNotNull(assignmentRepresentation, "assignment must not be null");
 
-        Set<ConstraintViolation<AssignmentRepresentation>> violations = validate(assignmentRepresentation);
-        if (!violations.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(messagesFor(violations))
-                    .build();
-        }
-
         Installation installation = new Installation(assignmentRepresentation.toAssignment(), binaryRepository, configRepository);
 
         Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
@@ -100,21 +93,4 @@ public class ConsoleAssignmentResource
         }
         return Response.ok(representations).build();
     }
-
-    private static <T> Set<ConstraintViolation<T>> validate(T object)
-    {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        return validator.validate(object);
-    }
-
-    private static List<String> messagesFor(Collection<? extends ConstraintViolation<?>> violations)
-    {
-        ImmutableList.Builder<String> messages = new ImmutableList.Builder<String>();
-        for (ConstraintViolation<?> violation : violations) {
-            messages.add(violation.getPropertyPath().toString() + " " + violation.getMessage());
-        }
-
-        return messages.build();
-    }
-
 }

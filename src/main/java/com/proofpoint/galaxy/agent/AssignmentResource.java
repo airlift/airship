@@ -14,15 +14,11 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PUT;
@@ -33,9 +29,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 @Path("/v1/slot/{slotName: [a-z0-9]+}/assignment")
 public class AssignmentResource
@@ -63,13 +56,6 @@ public class AssignmentResource
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }
 
-        Set<ConstraintViolation<InstallationRepresentation>> violations = validate(installation);
-        if (!violations.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(messagesFor(violations))
-                    .build();
-        }
-
         SlotStatus status = slot.assign(installation.toInstallation());
         return Response.ok(SlotStatusRepresentation.from(status)).build();
     }
@@ -89,21 +75,4 @@ public class AssignmentResource
         SlotStatus status = slot.clear();
         return Response.ok(SlotStatusRepresentation.from(status)).build();
     }
-
-    private static <T> Set<ConstraintViolation<T>> validate(T object)
-    {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        return validator.validate(object);
-    }
-
-    private static List<String> messagesFor(Collection<? extends ConstraintViolation<?>> violations)
-    {
-        ImmutableList.Builder<String> messages = new ImmutableList.Builder<String>();
-        for (ConstraintViolation<?> violation : violations) {
-            messages.add(violation.getPropertyPath().toString() + " " + violation.getMessage());
-        }
-
-        return messages.build();
-    }
-
 }
