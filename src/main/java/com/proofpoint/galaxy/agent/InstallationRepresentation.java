@@ -16,7 +16,7 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.proofpoint.galaxy.Assignment;
-import com.proofpoint.galaxy.console.AssignmentRepresentation;
+import com.proofpoint.galaxy.coordinator.AssignmentRepresentation;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;

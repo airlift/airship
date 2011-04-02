@@ -23,22 +23,22 @@ import java.util.concurrent.TimeUnit;
 
 public class AgentConfig
 {
-    private URI consoleBaseURI;
+    private URI coordinatorBaseURI;
     private String slotsDir;
     private Duration launcherTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);
 
     @NotNull
-    public URI getConsoleBaseURI()
+    public URI getCoordinatorBaseURI()
     {
-        return consoleBaseURI;
+        return coordinatorBaseURI;
     }
 
-    @Config("agent.console-uri")
-    public AgentConfig setConsoleBaseURI(URI consoleBaseURI)
+    @Config("agent.coordinator-uri")
+    public AgentConfig setCoordinatorBaseURI(URI coordinatorBaseURI)
     {
-        this.consoleBaseURI = consoleBaseURI;
+        this.coordinatorBaseURI = coordinatorBaseURI;
         return this;
     }
 

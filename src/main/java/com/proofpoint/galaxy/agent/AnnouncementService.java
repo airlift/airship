@@ -38,7 +38,7 @@ public class AnnouncementService
     {
         this.agent = agent;
         this.httpServerInfo = httpServerInfo;
-        this.announcementUrl = agentConfig.getConsoleBaseURI().resolve("/v1/announce/" + agent.getAgentId()).toString();
+        this.announcementUrl = agentConfig.getCoordinatorBaseURI().resolve("/v1/announce/" + agent.getAgentId()).toString();
         this.client = new AsyncHttpClient();
         this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("announce-%s").build());
     }
@@ -101,7 +101,7 @@ public class AnnouncementService
         }
         catch (Exception e) {
             if (e.getCause() instanceof ConnectException) {
-                log.warn("Could not connect to console at " + announcementUrl);
+                log.warn("Could not connect to coordinator at " + announcementUrl);
             } else {
                 log.warn(e, "Error announcing status to " + announcementUrl);
             }

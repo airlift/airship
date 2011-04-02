@@ -16,8 +16,8 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.Assignment;
-import com.proofpoint.galaxy.console.BinaryRepository;
-import com.proofpoint.galaxy.console.ConfigRepository;
+import com.proofpoint.galaxy.coordinator.BinaryRepository;
+import com.proofpoint.galaxy.coordinator.ConfigRepository;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;

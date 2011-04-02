@@ -2,10 +2,10 @@ package com.proofpoint.galaxy;
 
 import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.agent.Installation;
-import com.proofpoint.galaxy.console.BinaryRepository;
-import com.proofpoint.galaxy.console.ConfigRepository;
-import com.proofpoint.galaxy.console.TestingBinaryRepository;
-import com.proofpoint.galaxy.console.TestingConfigRepository;
+import com.proofpoint.galaxy.coordinator.BinaryRepository;
+import com.proofpoint.galaxy.coordinator.ConfigRepository;
+import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
+import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
 
 import java.net.URI;
 import java.util.Map;

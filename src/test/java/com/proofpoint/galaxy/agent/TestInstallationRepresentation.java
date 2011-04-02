@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
-import com.proofpoint.galaxy.console.AssignmentRepresentation;
+import com.proofpoint.galaxy.coordinator.AssignmentRepresentation;
 import org.testng.annotations.Test;
 
 import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;

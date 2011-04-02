@@ -28,13 +28,13 @@ import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.AnnouncementService;
 import com.proofpoint.galaxy.agent.Installation;
-import com.proofpoint.galaxy.console.AssignmentRepresentation;
-import com.proofpoint.galaxy.console.BinaryRepository;
-import com.proofpoint.galaxy.console.ConfigRepository;
-import com.proofpoint.galaxy.console.Console;
-import com.proofpoint.galaxy.console.ConsoleMainModule;
-import com.proofpoint.galaxy.console.TestingBinaryRepository;
-import com.proofpoint.galaxy.console.TestingConfigRepository;
+import com.proofpoint.galaxy.coordinator.AssignmentRepresentation;
+import com.proofpoint.galaxy.coordinator.BinaryRepository;
+import com.proofpoint.galaxy.coordinator.ConfigRepository;
+import com.proofpoint.galaxy.coordinator.Coordinator;
+import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
+import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
+import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.experimental.jaxrs.JaxrsModule;
@@ -63,11 +63,11 @@ public class TestServerIntegration
 {
     private AsyncHttpClient client;
     private TestingHttpServer agentServer;
-    private TestingHttpServer consoleServer;
+    private TestingHttpServer coordinatorServer;
 
     private Agent agent;
     private AnnouncementService announcementService;
-    private Console console;
+    private Coordinator coordinator;
 
     private Slot appleSlot1;
     private Slot appleSlot2;
@@ -89,28 +89,28 @@ public class TestServerIntegration
         binaryRepoDir = TestingBinaryRepository.createBinaryRepoDir();
         configRepoDir = TestingConfigRepository.createConfigRepoDir();
 
-        Map<String, String> consoleProperties = ImmutableMap.<String, String>builder()
-                .put("console.binary-repo", binaryRepoDir.toURI().toString())
-                .put("console.config-repo", configRepoDir.toURI().toString())
-                .put("console.status.expiration", "100d")
+        Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
+                .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
+                .put("coordinator.config-repo", configRepoDir.toURI().toString())
+                .put("coordinator.status.expiration", "100d")
                 .build();
 
-        Injector consoleInjector = Guice.createInjector(new TestingHttpServerModule(),
+        Injector coordinatorInjector = Guice.createInjector(new TestingHttpServerModule(),
                 new JaxrsModule(),
-                new ConsoleMainModule(),
-                new ConfigurationModule(new ConfigurationFactory(consoleProperties)));
+                new CoordinatorMainModule(),
+                new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
 
-        consoleServer = consoleInjector.getInstance(TestingHttpServer.class);
-        console = consoleInjector.getInstance(Console.class);
-        binaryRepository = consoleInjector.getInstance(BinaryRepository.class);
-        configRepository = consoleInjector.getInstance(ConfigRepository.class);
+        coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
+        coordinator = coordinatorInjector.getInstance(Coordinator.class);
+        binaryRepository = coordinatorInjector.getInstance(BinaryRepository.class);
+        configRepository = coordinatorInjector.getInstance(ConfigRepository.class);
 
-        consoleServer.start();
+        coordinatorServer.start();
         client = new AsyncHttpClient();
 
         tempDir = DeploymentUtils.createTempDir("agent");
         Map<String, String> agentProperties = ImmutableMap.<String, String>builder()
-                .put("agent.console-uri", consoleServer.getBaseUrl().toString())
+                .put("agent.coordinator-uri", coordinatorServer.getBaseUrl().toString())
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
                 .build();
 
@@ -134,11 +134,11 @@ public class TestServerIntegration
         for (Slot slot : agent.getAllSlots()) {
             agent.deleteSlot(slot.getName());
         }
-        for (AgentStatus agentStatus : console.getAllAgentStatus()) {
-            console.removeAgentStatus(agentStatus.getAgentId());
+        for (AgentStatus agentStatus : coordinator.getAllAgentStatus()) {
+            coordinator.removeAgentStatus(agentStatus.getAgentId());
         }
         assertTrue(agent.getAllSlots().isEmpty());
-        assertTrue(console.getAllAgentStatus().isEmpty());
+        assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
 
         appleSlot1 = agent.addNewSlot();
@@ -158,8 +158,8 @@ public class TestServerIntegration
             agentServer.stop();
         }
 
-        if (consoleServer != null) {
-            consoleServer.stop();
+        if (coordinatorServer != null) {
+            coordinatorServer.stop();
         }
 
         if (client != null) {
@@ -180,7 +180,7 @@ public class TestServerIntegration
     public void testAnnounce()
             throws Exception
     {
-        AgentStatus agentStatus = console.getAgentStatus(agent.getAgentId());
+        AgentStatus agentStatus = coordinator.getAgentStatus(agent.getAgentId());
         assertEquals(agentStatus, agent.getAgentStatus());
     }
 
@@ -309,6 +309,6 @@ public class TestServerIntegration
 
     private String urlFor(String path)
     {
-        return consoleServer.getBaseUrl().resolve(path).toString();
+        return coordinatorServer.getBaseUrl().resolve(path).toString();
     }
 }

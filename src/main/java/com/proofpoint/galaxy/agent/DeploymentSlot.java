@@ -13,6 +13,7 @@
  */
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.proofpoint.galaxy.LifecycleState;
 import com.proofpoint.galaxy.Slot;
@@ -106,7 +107,7 @@ public class DeploymentSlot implements Slot
             return new SlotStatus(id, name, self, STOPPED, installation.getAssignment());
         }
         finally {
-            lock.unlock();
+            unlock();
         }
     }
 
@@ -131,7 +132,7 @@ public class DeploymentSlot implements Slot
             return new SlotStatus(id, name, self);
         }
         finally {
-            lock.unlock();
+            unlock();
         }
     }
 
@@ -149,7 +150,7 @@ public class DeploymentSlot implements Slot
             return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
-            lock.unlock();
+            unlock();
         }
     }
 
@@ -166,7 +167,7 @@ public class DeploymentSlot implements Slot
             return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
-            lock.unlock();
+            unlock();
         }
     }
 
@@ -183,7 +184,7 @@ public class DeploymentSlot implements Slot
             return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
-            lock.unlock();
+            unlock();
         }
     }
 
@@ -200,21 +201,35 @@ public class DeploymentSlot implements Slot
             return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
-            lock.unlock();
+            unlock();
         }
     }
 
+    private volatile Thread owner;
+    private volatile Exception exception;
+
     private void lock()
     {
+        Thread thread = Thread.currentThread();
+        Exception exception = new Exception("lock acquired HERE");
+        exception.fillInStackTrace();
         try {
             if (!lock.tryLock((long) lockWait.toMillis(), TimeUnit.MILLISECONDS)) {
-                throw new IllegalStateException("Could not obtain slot lock within " + lockWait);
+                throw new IllegalStateException("Could not obtain slot lock within " + lockWait + " held by " + owner + " thread is at \n" + Joiner.on("\n  at ").join(owner.getStackTrace()) + "\n", this.exception);
             }
+            owner = thread;
+            this.exception = exception;
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
+    }
+    private void unlock()
+    {
+        owner = null;
+        exception = null;
+        lock.unlock();
     }
 
     @Override

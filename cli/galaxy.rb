@@ -60,7 +60,7 @@ def show(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to show.")
   end
-  console_request(filter, options, :get)
+  coordinator_request(filter, options, :get)
 end
 
 def assign(filter, options, args)
@@ -79,35 +79,35 @@ def assign(filter, options, args)
       :binary => binary,
       :config => config
   }
-  console_request(filter, options, :put, 'assignment', assignment, true)
+  coordinator_request(filter, options, :put, 'assignment', assignment, true)
 end
 
 def clear(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to clear.")
   end
-  console_request(filter, options, :delete, 'assignment')
+  coordinator_request(filter, options, :delete, 'assignment')
 end
 
 def start(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to start.")
   end
-  console_request(filter, options, :put, 'lifecycle', 'start')
+  coordinator_request(filter, options, :put, 'lifecycle', 'start')
 end
 
 def stop(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to stop.")
   end
-  console_request(filter, options, :put, 'lifecycle', 'stop')
+  coordinator_request(filter, options, :put, 'lifecycle', 'stop')
 end
 
 def restart(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to restart.")
   end
-  console_request(filter, options, :put, 'lifecycle', 'restart')
+  coordinator_request(filter, options, :put, 'lifecycle', 'restart')
 end
 
 def ssh(filter, options, args)
@@ -125,9 +125,9 @@ def ssh(filter, options, args)
   []
 end
 
-def console_request(filter, options, method, sub_path = nil, value = nil, is_json = false)
+def coordinator_request(filter, options, method, sub_path = nil, value = nil, is_json = false)
   # build the uri
-  uri = options[:console_url]
+  uri = options[:coordinator_url]
   uri += '/' unless uri.end_with? '/'
   uri += 'v1/slot/'
   uri += sub_path unless sub_path.nil?
@@ -183,7 +183,7 @@ end
 #
 commands = [:show, :assign, :clear, :start, :stop, :restart, :ssh]
 options = {
-    :console_url => ENV['GALAXY_CONSOLE']
+    :coordinator_url => ENV['GALAXY_COORDINATOR']
 }
 filter = {}
 
@@ -203,8 +203,8 @@ option_parser = OptionParser.new do |opts|
     exit exit_codes[:success]
   end
 
-  opts.on("--console CONSOLE", "Galaxy console host (overrides GALAXY_CONSOLE)") do |v|
-    options[:console_url] = v
+  opts.on("--coordinator COORDINATOR", "Galaxy coordinator host (overrides GALAXY_COORDINATOR)") do |v|
+    options[:coordinator_url] = v
   end
 
   opts.on('--debug', 'Enable debug messages') do
@@ -282,8 +282,8 @@ begin
     raise CommandError.new(:invalid_usage, "Unsupported command: #{command}")
   end
 
-  if options[:console_url].nil? || options[:console_url].empty?
-    raise CommandError.new(:invalid_usage, "You must set Galaxy console host by passing --console CONSOLE or by setting the GALAXY_CONSOLE environment variable.")
+  if options[:coordinator_url].nil? || options[:coordinator_url].empty?
+    raise CommandError.new(:invalid_usage, "You must set Galaxy coordinator host by passing --coordinator COORDINATOR or by setting the GALAXY_COORDINATOR environment variable.")
   end
 
   slots = send(command, filter, options, ARGV.drop(1))

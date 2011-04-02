@@ -29,7 +29,7 @@ public class TestAgentConfig
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(AgentConfig.class)
                 .setSlotsDir(null)
-                .setConsoleBaseURI(null)
+                .setCoordinatorBaseURI(null)
                 .setLauncherTimeout(new Duration(1, TimeUnit.MINUTES))
                 .setTarTimeout(new Duration(1, TimeUnit.MINUTES))
                 .setMaxLockWait(new Duration(1, TimeUnit.SECONDS)));
@@ -39,7 +39,7 @@ public class TestAgentConfig
     public void testExplicitPropertyMappings()
     {
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
-                .put("agent.console-uri", "http://localhost:8888")
+                .put("agent.coordinator-uri", "http://localhost:8888")
                 .put("agent.slots-dir", "slots-dir")
                 .put("agent.launcher-timeout", "5m")
                 .put("agent.tar-timeout", "10m")
@@ -48,7 +48,7 @@ public class TestAgentConfig
 
         AgentConfig expected = new AgentConfig()
                 .setSlotsDir("slots-dir")
-                .setConsoleBaseURI(URI.create("http://localhost:8888"))
+                .setCoordinatorBaseURI(URI.create("http://localhost:8888"))
                 .setLauncherTimeout(new Duration(5, TimeUnit.MINUTES))
                 .setTarTimeout(new Duration(10, TimeUnit.MINUTES))
                 .setMaxLockWait(new Duration(1, TimeUnit.MINUTES));

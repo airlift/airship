@@ -18,7 +18,7 @@ import com.proofpoint.galaxy.MockUriInfo;
 import com.proofpoint.galaxy.Slot;
 import com.proofpoint.galaxy.SlotStatus;
 import com.proofpoint.galaxy.SlotStatusRepresentation;
-import com.proofpoint.galaxy.console.AssignmentRepresentation;
+import com.proofpoint.galaxy.coordinator.AssignmentRepresentation;
 import com.proofpoint.http.server.HttpServerInfo;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
