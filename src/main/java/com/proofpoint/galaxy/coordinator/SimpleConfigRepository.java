@@ -8,13 +8,11 @@ import com.google.inject.Inject;
 import com.google.inject.TypeLiteral;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
-import com.proofpoint.galaxy.ConfigSpec;
+import com.proofpoint.galaxy.shared.ConfigSpec;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import static com.proofpoint.galaxy.DeploymentUtils.toURL;
 
 public class SimpleConfigRepository implements ConfigRepository
 {
@@ -47,7 +45,7 @@ public class SimpleConfigRepository implements ConfigRepository
         URI uri = configRepositoryBase.resolve(configBaseUri.resolve("config-map.json"));
         Map<String, String> configMap;
         try {
-            configMap = configCodec.fromJson(Resources.toString(toURL(uri), Charsets.UTF_8));
+            configMap = configCodec.fromJson(Resources.toString(uri.toURL(), Charsets.UTF_8));
         }
         catch (Exception ignored) {
             throw new RuntimeException("Unable to load configuration " + configSpec + " from " + uri);

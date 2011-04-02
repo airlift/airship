@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.shared;
 
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
@@ -19,10 +19,10 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static java.util.Arrays.asList;
 
 public class TestSlotStatus

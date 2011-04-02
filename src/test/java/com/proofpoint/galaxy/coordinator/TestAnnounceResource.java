@@ -14,9 +14,9 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.galaxy.AgentStatus;
-import com.proofpoint.galaxy.AgentStatusRepresentation;
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

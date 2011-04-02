@@ -1,6 +1,7 @@
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.agent;
 
-import com.proofpoint.galaxy.agent.Installation;
+import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.Installation;
 
 import java.net.URI;
 import java.util.UUID;

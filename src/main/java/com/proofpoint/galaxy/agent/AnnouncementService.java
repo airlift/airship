@@ -6,8 +6,8 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
-import com.proofpoint.galaxy.AgentStatus;
-import com.proofpoint.galaxy.AgentStatusRepresentation;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 
@@ -15,7 +15,6 @@ import javax.annotation.PostConstruct;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.net.ConnectException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;

@@ -1,37 +1,22 @@
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.proofpoint.galaxy.agent.Command;
-import com.proofpoint.galaxy.agent.CommandFailedException;
 import com.proofpoint.units.Duration;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class DeploymentUtils
+public class FileUtils
 {
     private static final int TEMP_DIR_ATTEMPTS = 10000;
     private static final Executor executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("tar-command-%s").build());
-
-    public static URL toURL(URI uri)
-    {
-        try {
-            return uri.toURL();
-        }
-        catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static void createTar(File sourceDirectory, File tarFile)
             throws CommandFailedException

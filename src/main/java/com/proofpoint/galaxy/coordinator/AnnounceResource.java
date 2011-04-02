@@ -2,8 +2,8 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.AgentStatus;
-import com.proofpoint.galaxy.AgentStatusRepresentation;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;

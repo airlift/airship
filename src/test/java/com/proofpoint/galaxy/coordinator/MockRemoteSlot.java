@@ -1,14 +1,14 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.SlotStatus;
-import com.proofpoint.galaxy.agent.Installation;
+import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.Installation;
 
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
 
 public class MockRemoteSlot implements RemoteSlot
 {

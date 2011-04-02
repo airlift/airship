@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.agent;
 
+import com.proofpoint.galaxy.shared.Installation;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;

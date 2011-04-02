@@ -17,7 +17,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

@@ -11,12 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
-import com.proofpoint.galaxy.Assignment;
-import com.proofpoint.galaxy.coordinator.AssignmentRepresentation;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;

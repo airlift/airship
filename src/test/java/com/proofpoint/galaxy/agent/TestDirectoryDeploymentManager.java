@@ -14,8 +14,6 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
-import com.proofpoint.galaxy.DeploymentUtils;
-import com.proofpoint.galaxy.RepoHelper;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -25,6 +23,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
@@ -32,22 +31,22 @@ import static org.testng.Assert.fail;
 public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTest
 {
     private File tempDir;
-    private RepoHelper repoHelper;
+    private InstallationHelper installationHelper;
 
     @BeforeClass
     public void createRepository()
             throws Exception
     {
-        repoHelper = new RepoHelper();
-        appleInstallation = repoHelper.getAppleInstallation();
-        bananaInstallation = repoHelper.getBananaInstallation();
+        installationHelper = new InstallationHelper();
+        appleInstallation = installationHelper.getAppleInstallation();
+        bananaInstallation = installationHelper.getBananaInstallation();
     }
 
     @AfterClass
     public void removeRepository()
     {
-        if (repoHelper != null) {
-            repoHelper.destroy();
+        if (installationHelper != null) {
+            installationHelper.destroy();
         }
     }
 
@@ -63,7 +62,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     public void tearDown()
     {
         if (tempDir != null) {
-            DeploymentUtils.deleteRecursively(tempDir);
+            deleteRecursively(tempDir);
         }
     }
 

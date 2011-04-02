@@ -2,8 +2,8 @@ package com.proofpoint.galaxy.agent;
 
 import org.testng.annotations.Test;
 
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
 public abstract class AbstractLifecycleManagerTest

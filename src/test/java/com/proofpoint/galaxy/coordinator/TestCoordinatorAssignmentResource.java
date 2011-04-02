@@ -15,11 +15,15 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
-import com.proofpoint.galaxy.AgentStatus;
-import com.proofpoint.galaxy.LifecycleState;
-import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.SlotStatus;
-import com.proofpoint.galaxy.SlotStatusRepresentation;
+import com.google.common.collect.ImmutableMap;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.MockUriInfo;
+import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -31,15 +35,13 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.InstallationHelper.BANANA_INSTALLATION;
-import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
-import static com.proofpoint.galaxy.RepoHelper.MOCK_BINARY_REPO;
-import static com.proofpoint.galaxy.RepoHelper.MOCK_CONFIG_REPO;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -93,9 +95,9 @@ public class TestCoordinatorAssignmentResource
     @Test
     public void testReplaceAssignment()
     {
-        appleSlot1.assign(BANANA_INSTALLATION);
+        appleSlot1.assign(makeAssignment(BANANA_ASSIGNMENT));
         assertEquals(appleSlot1.status().getAssignment(), BANANA_ASSIGNMENT);
-        appleSlot2.assign(BANANA_INSTALLATION);
+        appleSlot2.assign(makeAssignment(BANANA_ASSIGNMENT));
         assertEquals(appleSlot2.status().getAssignment(), BANANA_ASSIGNMENT);
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
@@ -138,11 +140,12 @@ public class TestCoordinatorAssignmentResource
     @Test
     public void testClear()
     {
-        appleSlot1.assign(APPLE_INSTALLATION);
+
+        appleSlot1.assign(makeAssignment(APPLE_ASSIGNMENT));
         assertEquals(appleSlot1.status().getAssignment(), APPLE_ASSIGNMENT);
-        appleSlot2.assign(APPLE_INSTALLATION);
+        appleSlot2.assign(makeAssignment(APPLE_ASSIGNMENT));
         assertEquals(appleSlot2.status().getAssignment(), APPLE_ASSIGNMENT);
-        bananaSlot.assign(BANANA_INSTALLATION);
+        bananaSlot.assign(makeAssignment(BANANA_ASSIGNMENT));
         assertEquals(bananaSlot.status().getAssignment(), BANANA_ASSIGNMENT);
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
@@ -154,5 +157,12 @@ public class TestCoordinatorAssignmentResource
         assertEquals(appleSlot1.status().getState(), UNASSIGNED);
         assertEquals(appleSlot2.status().getState(), UNASSIGNED);
         assertEquals(bananaSlot.status().getState(), STOPPED);
+    }
+
+    private static Installation makeAssignment(Assignment appleAssignment)
+    {
+        return new Installation(appleAssignment,
+                    URI.create("fake://localhost/binaryFile"),
+                    ImmutableMap.of("config", URI.create("fake://localhost/configFile")));
     }
 }

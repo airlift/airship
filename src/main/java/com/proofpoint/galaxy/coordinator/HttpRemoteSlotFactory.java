@@ -2,7 +2,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.inject.Inject;
 import com.ning.http.client.AsyncHttpClient;
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatus;
 
 public class HttpRemoteSlotFactory implements RemoteSlotFactory
 {

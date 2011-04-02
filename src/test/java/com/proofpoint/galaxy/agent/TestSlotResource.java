@@ -14,10 +14,9 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.collect.ImmutableMultiset;
-import com.proofpoint.galaxy.ExtraAssertions;
-import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.Slot;
-import com.proofpoint.galaxy.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.ExtraAssertions;
+import com.proofpoint.galaxy.shared.MockUriInfo;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.HttpServerInfo;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;

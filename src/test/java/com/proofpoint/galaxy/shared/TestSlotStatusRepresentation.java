@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
 public class TestSlotStatusRepresentation

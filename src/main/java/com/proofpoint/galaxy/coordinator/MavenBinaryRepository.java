@@ -3,11 +3,9 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.BinarySpec;
+import com.proofpoint.galaxy.shared.BinarySpec;
 
 import java.net.URI;
-
-import static com.proofpoint.galaxy.DeploymentUtils.toURL;
 
 public class MavenBinaryRepository implements BinaryRepository
 {
@@ -37,7 +35,7 @@ public class MavenBinaryRepository implements BinaryRepository
 
             URI uri = binaryRepositoryBase.resolve(builder.toString());
             try {
-                MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(toURL(uri), Charsets.UTF_8));
+                MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
                 fileVersion = String.format("%s-%s-%s",
                         binarySpec.getVersion().replaceAll("-SNAPSHOT", ""),
                         metadata.versioning.snapshot.timestamp,

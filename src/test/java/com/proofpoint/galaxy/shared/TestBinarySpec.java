@@ -11,14 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.shared;
 
+import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static java.util.Arrays.asList;
-import static com.proofpoint.galaxy.BinarySpec.DEFAULT_PACKAGING;
+import static com.proofpoint.galaxy.shared.BinarySpec.DEFAULT_PACKAGING;
 
 public class TestBinarySpec
 {

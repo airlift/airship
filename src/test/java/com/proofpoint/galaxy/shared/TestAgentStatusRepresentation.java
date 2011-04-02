@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -23,9 +23,9 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
 public class TestAgentStatusRepresentation

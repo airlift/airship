@@ -6,8 +6,9 @@ import com.google.common.io.PatternFilenameFilter;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
-import com.proofpoint.galaxy.Assignment;
-import com.proofpoint.galaxy.DeploymentUtils;
+import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.CommandFailedException;
+import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 
@@ -23,8 +24,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.galaxy.DeploymentUtils.deleteRecursively;
-import static com.proofpoint.galaxy.DeploymentUtils.listFiles;
+import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.FileUtils.extractTar;
+import static com.proofpoint.galaxy.shared.FileUtils.listFiles;
 import static java.lang.Math.max;
 
 public class DirectoryDeploymentManager implements DeploymentManager
@@ -148,12 +151,12 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
         Assignment assignment = installation.getAssignment();
         Deployment deployment = new Deployment(deploymentId, deploymentDir, assignment);
-        File tempDir = DeploymentUtils.createTempDir(baseDir, "tmp-install");
+        File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary
             File binary = new File(tempDir, "galaxy-binary.tar.gz");
             try {
-                Files.copy(Resources.newInputStreamSupplier(DeploymentUtils.toURL(installation.getBinaryFile())), binary);
+                Files.copy(Resources.newInputStreamSupplier(installation.getBinaryFile().toURL()), binary);
             }
             catch (IOException e) {
                 throw new RuntimeException("Unable to download binary " + assignment.getBinary() + " from " + installation.getBinaryFile());
@@ -163,7 +166,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
             File unpackDir = new File(tempDir, "unpack");
             unpackDir.mkdirs();
             try {
-                DeploymentUtils.extractTar(binary, unpackDir, tarTimeout);
+                extractTar(binary, unpackDir, tarTimeout);
             }
             catch (CommandFailedException e) {
                 throw new RuntimeException("Unable to extract tar file " + assignment.getBinary() + ": " + e.getMessage());
@@ -183,7 +186,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
                 try {
                     File targetFile = new File(binaryRootDir, configFile);
                     targetFile.getParentFile().mkdirs();
-                    Files.copy(Resources.newInputStreamSupplier(DeploymentUtils.toURL(configUri)), targetFile);
+                    Files.copy(Resources.newInputStreamSupplier(configUri.toURL()), targetFile);
                 }
                 catch (IOException e) {
                     throw new RuntimeException(String.format("Unable to download config file %s from %s for config %s",
@@ -208,7 +211,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
             }
         }
         finally {
-            if (!DeploymentUtils.deleteRecursively(tempDir)) {
+            if (!deleteRecursively(tempDir)) {
                 log.warn("Unable to delete temp directory: %s", tempDir.getAbsolutePath());
             }
         }

@@ -11,13 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.Assignment;
-import com.proofpoint.galaxy.coordinator.BinaryRepository;
-import com.proofpoint.galaxy.coordinator.ConfigRepository;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
@@ -39,17 +36,6 @@ public class Installation
         this.assignment = assignment;
         this.binaryFile = binaryFile;
         this.configFiles = ImmutableMap.copyOf(configFiles);
-    }
-
-    public Installation(Assignment assignment, BinaryRepository binaryRepository, ConfigRepository configRepository)
-    {
-        Preconditions.checkNotNull(assignment, "assignment is null");
-        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
-        Preconditions.checkNotNull(configRepository, "configRepository is null");
-
-        this.assignment = assignment;
-        this.binaryFile = binaryRepository.getBinaryUri(assignment.getBinary());
-        this.configFiles = configRepository.getConfigMap(assignment.getConfig());
     }
 
     public Assignment getAssignment()

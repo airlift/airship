@@ -1,4 +1,6 @@
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.shared;
+
+import com.proofpoint.galaxy.shared.Assignment;
 
 public class AssignmentHelper
 {

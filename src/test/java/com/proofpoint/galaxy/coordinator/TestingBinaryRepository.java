@@ -1,12 +1,11 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.proofpoint.galaxy.DeploymentUtils;
-
 import java.io.File;
 
-import static com.proofpoint.galaxy.DeploymentUtils.createTar;
-import static com.proofpoint.galaxy.DeploymentUtils.createTempDir;
-import static com.proofpoint.galaxy.DeploymentUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.FileUtils.copyRecursively;
+import static com.proofpoint.galaxy.shared.FileUtils.createTar;
+import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 
 public class TestingBinaryRepository extends MavenBinaryRepository
 {
@@ -41,7 +40,7 @@ public class TestingBinaryRepository extends MavenBinaryRepository
             targetRepo = createTempDir("repo");
 
             // copy the source repository
-            DeploymentUtils.copyRecursively(sourceRepo, targetRepo);
+            copyRecursively(sourceRepo, targetRepo);
 
             // tar up the archive and add them to the repository
             createTar(new File("src/test/archives/good"), new File(targetRepo, "food/fruit/apple/1.0/apple-1.0.tar.gz"));

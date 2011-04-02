@@ -1,10 +1,10 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.galaxy.AgentStatus;
-import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.SlotStatus;
-import com.proofpoint.galaxy.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.MockUriInfo;
+import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -14,7 +14,7 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
+import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 

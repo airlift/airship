@@ -5,8 +5,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MapEvictionListener;
 import com.google.common.collect.MapMaker;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.AgentStatus;
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.SlotStatus;
 
 import java.util.List;
 import java.util.Map;

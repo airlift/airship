@@ -11,11 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.shared;
 
-import com.proofpoint.galaxy.Assignment;
-import com.proofpoint.galaxy.BinarySpec;
-import com.proofpoint.galaxy.ConfigSpec;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;

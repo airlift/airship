@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.shared;
 
 public class CommandTimeoutException extends CommandFailedException
 {

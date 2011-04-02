@@ -15,11 +15,11 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
-import com.proofpoint.galaxy.AgentStatus;
-import com.proofpoint.galaxy.LifecycleState;
-import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.SlotStatus;
-import com.proofpoint.galaxy.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.MockUriInfo;
+import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -31,11 +31,11 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 

@@ -14,7 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.Assignment;
+import com.proofpoint.galaxy.shared.Assignment;
 
 import javax.annotation.concurrent.Immutable;
 import java.io.File;

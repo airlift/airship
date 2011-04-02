@@ -13,7 +13,7 @@
  */
 package com.proofpoint.galaxy.agent;
 
-import com.proofpoint.galaxy.LifecycleState;
+import com.proofpoint.galaxy.shared.LifecycleState;
 
 public interface LifecycleManager
 {

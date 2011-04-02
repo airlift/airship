@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;

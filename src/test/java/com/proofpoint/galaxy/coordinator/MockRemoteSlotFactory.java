@@ -1,6 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatus;
 
 public class MockRemoteSlotFactory implements RemoteSlotFactory
 {

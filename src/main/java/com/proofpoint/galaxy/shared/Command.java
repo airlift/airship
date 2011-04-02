@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;

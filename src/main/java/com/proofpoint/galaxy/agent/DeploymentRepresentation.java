@@ -14,7 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.coordinator.AssignmentRepresentation;
+import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 

@@ -18,8 +18,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;

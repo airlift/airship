@@ -1,11 +1,10 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.proofpoint.galaxy.DeploymentUtils;
-
 import java.io.File;
 
-import static com.proofpoint.galaxy.DeploymentUtils.createTempDir;
-import static com.proofpoint.galaxy.DeploymentUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.FileUtils.copyRecursively;
+import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 
 public class TestingConfigRepository extends SimpleConfigRepository
 {
@@ -40,7 +39,7 @@ public class TestingConfigRepository extends SimpleConfigRepository
             targetRepo = createTempDir("config");
 
             // copy the source repository
-            DeploymentUtils.copyRecursively(sourceRepo, targetRepo);
+            copyRecursively(sourceRepo, targetRepo);
 
             return targetRepo;
         }

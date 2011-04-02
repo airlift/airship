@@ -17,9 +17,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.SlotStatus;
-import com.proofpoint.galaxy.SlotStatusRepresentation;
-import com.proofpoint.galaxy.agent.Installation;
+import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -56,9 +58,10 @@ public class CoordinatorAssignmentResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response assign(AssignmentRepresentation assignmentRepresentation, @Context UriInfo uriInfo)
     {
-        Preconditions.checkNotNull(assignmentRepresentation, "assignment must not be null");
+        Preconditions.checkNotNull(assignmentRepresentation, "assignmentRepresentation must not be null");
 
-        Installation installation = new Installation(assignmentRepresentation.toAssignment(), binaryRepository, configRepository);
+        Assignment assignment = assignmentRepresentation.toAssignment();
+        Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configRepository.getConfigMap(assignment.getConfig()));
 
         Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();

@@ -6,10 +6,10 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
-import com.proofpoint.galaxy.BinarySpec;
-import com.proofpoint.galaxy.ConfigSpec;
-import com.proofpoint.galaxy.LifecycleState;
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.shared.BinarySpec;
+import com.proofpoint.galaxy.shared.ConfigSpec;
+import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;

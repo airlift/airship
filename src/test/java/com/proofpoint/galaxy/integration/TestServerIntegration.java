@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.integration;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -27,14 +27,17 @@ import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.AnnouncementService;
-import com.proofpoint.galaxy.agent.Installation;
-import com.proofpoint.galaxy.coordinator.AssignmentRepresentation;
+import com.proofpoint.galaxy.agent.Slot;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
 import com.proofpoint.galaxy.coordinator.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
 import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.experimental.jaxrs.JaxrsModule;
@@ -50,12 +53,14 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -108,7 +113,7 @@ public class TestServerIntegration
         coordinatorServer.start();
         client = new AsyncHttpClient();
 
-        tempDir = DeploymentUtils.createTempDir("agent");
+        tempDir = createTempDir("agent");
         Map<String, String> agentProperties = ImmutableMap.<String, String>builder()
                 .put("agent.coordinator-uri", coordinatorServer.getBaseUrl().toString())
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
@@ -142,11 +147,11 @@ public class TestServerIntegration
 
 
         appleSlot1 = agent.addNewSlot();
-        appleSlot1.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository, configRepository));
+        appleSlot1.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()), configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig())));
         appleSlot2 = agent.addNewSlot();
-        appleSlot2.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository, configRepository));
+        appleSlot2.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()), configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig())));
         bananaSlot = agent.addNewSlot();
-        bananaSlot.assign(new Installation(BANANA_ASSIGNMENT, binaryRepository, configRepository));
+        bananaSlot.assign(new Installation(BANANA_ASSIGNMENT, binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()), configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig())));
         announcementService.announce();
     }
 
@@ -166,13 +171,13 @@ public class TestServerIntegration
             client.close();
         }
         if (tempDir != null) {
-            DeploymentUtils.deleteRecursively(tempDir);
+            deleteRecursively(tempDir);
         }
         if (binaryRepoDir != null) {
-            DeploymentUtils.deleteRecursively(binaryRepoDir);
+            deleteRecursively(binaryRepoDir);
         }
         if (configRepoDir != null) {
-            DeploymentUtils.deleteRecursively(configRepoDir);
+            deleteRecursively(configRepoDir);
         }
     }
 

@@ -14,11 +14,11 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.Slot;
-import com.proofpoint.galaxy.SlotStatus;
-import com.proofpoint.galaxy.SlotStatusRepresentation;
-import com.proofpoint.galaxy.coordinator.AssignmentRepresentation;
+import com.proofpoint.galaxy.shared.MockUriInfo;
+import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.AssignmentRepresentation;
+import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.http.server.HttpServerInfo;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -27,11 +27,11 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.InstallationHelper.BANANA_INSTALLATION;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.agent.InstallationHelper.BANANA_INSTALLATION;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 

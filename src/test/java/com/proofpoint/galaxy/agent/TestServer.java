@@ -25,9 +25,8 @@ import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
-import com.proofpoint.galaxy.DeploymentUtils;
-import com.proofpoint.galaxy.RepoHelper;
-import com.proofpoint.galaxy.Slot;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.experimental.jaxrs.JaxrsModule;
@@ -44,10 +43,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.proofpoint.galaxy.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
 import static javax.ws.rs.core.Response.Status;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -66,7 +67,7 @@ public class TestServer
     private final JsonCodec<Map<String, Object>> mapCodec = new JsonCodecBuilder().build(new TypeLiteral<Map<String, Object>>() { });
     private final JsonCodec<List<Map<String, Object>>> listCodec = new JsonCodecBuilder().build(new TypeLiteral<List<Map<String, Object>>>() { });
 
-    private RepoHelper repoHelper;
+    private InstallationHelper installationHelper;
     private Installation appleInstallation;
     private Installation bananaInstallation;
     private File tempDir;
@@ -76,7 +77,7 @@ public class TestServer
     public void startServer()
             throws Exception
     {
-        tempDir = DeploymentUtils.createTempDir("agent");
+        tempDir = createTempDir("agent");
         Map<String, String> properties = ImmutableMap.<String, String>builder()
                 .put("agent.coordinator-uri", "http://localhost:9999/")
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
@@ -95,9 +96,9 @@ public class TestServer
         server.start();
         client = new AsyncHttpClient();
 
-        repoHelper = new RepoHelper();
-        appleInstallation = repoHelper.getAppleInstallation();
-        bananaInstallation = repoHelper.getBananaInstallation();
+        installationHelper = new InstallationHelper();
+        appleInstallation = installationHelper.getAppleInstallation();
+        bananaInstallation = installationHelper.getBananaInstallation();
     }
 
     @BeforeMethod
@@ -121,10 +122,10 @@ public class TestServer
             client.close();
         }
         if (tempDir != null) {
-            DeploymentUtils.deleteRecursively(tempDir);
+            deleteRecursively(tempDir);
         }
-        if (repoHelper != null) {
-            repoHelper.destroy();
+        if (installationHelper != null) {
+            installationHelper.destroy();
         }
     }
 

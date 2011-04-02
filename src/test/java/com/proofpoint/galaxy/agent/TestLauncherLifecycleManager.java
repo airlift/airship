@@ -14,8 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
-import com.proofpoint.galaxy.Assignment;
-import com.proofpoint.galaxy.DeploymentUtils;
+import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -24,8 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 
 public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
 {
@@ -66,7 +66,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
     public void tearDown()
     {
         if (tempDir != null) {
-            DeploymentUtils.deleteRecursively(tempDir);
+            deleteRecursively(tempDir);
         }
     }
 }

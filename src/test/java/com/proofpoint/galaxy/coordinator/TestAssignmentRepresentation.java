@@ -17,9 +17,10 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonCodecBuilder;
+import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import org.testng.annotations.Test;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
 
 public class TestAssignmentRepresentation

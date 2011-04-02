@@ -3,15 +3,17 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.LifecycleState;
+import com.proofpoint.galaxy.shared.Command;
+import com.proofpoint.galaxy.shared.CommandFailedException;
+import com.proofpoint.galaxy.shared.LifecycleState;
 
 import java.io.File;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.LifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.UNKNOWN;
 
 public class LauncherLifecycleManager implements LifecycleManager
 {

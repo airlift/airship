@@ -14,45 +14,30 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.collect.ImmutableMap;
+import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.RepoHelper.MOCK_BINARY_REPO;
-import static com.proofpoint.galaxy.RepoHelper.MOCK_CONFIG_REPO;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 
 public class TestInstallation
 {
     @Test
-    public void testRepositoryConstructor()
+    public void testConstructor()
     {
-        Installation installation = new Installation(
-                APPLE_ASSIGNMENT,
-                MOCK_BINARY_REPO,
-                MOCK_CONFIG_REPO);
+        URI binaryFiles = URI.create("fake://localhost/binaryFile");
+        ImmutableMap<String, URI> configFiles = ImmutableMap.of("config", URI.create("fake://localhost/configFile"));
+
+        Installation installation = new Installation(APPLE_ASSIGNMENT, binaryFiles, configFiles);
 
         assertEquals(installation.getAssignment(), APPLE_ASSIGNMENT);
-        assertEquals(installation.getBinaryFile(), APPLE_INSTALLATION.getBinaryFile());
-        assertEquals(installation.getConfigFiles(), APPLE_INSTALLATION.getConfigFiles());
-    }
-
-    @Test
-    public void testExplicitConstructor()
-    {
-        Installation installation = new Installation(
-                APPLE_ASSIGNMENT,
-                APPLE_INSTALLATION.getBinaryFile(),
-                APPLE_INSTALLATION.getConfigFiles());
-
-        assertEquals(installation.getAssignment(), APPLE_ASSIGNMENT);
-        assertEquals(installation.getBinaryFile(), APPLE_INSTALLATION.getBinaryFile());
-        assertEquals(installation.getConfigFiles(), APPLE_INSTALLATION.getConfigFiles());
+        assertEquals(installation.getBinaryFile(), binaryFiles);
+        assertEquals(installation.getConfigFiles(), configFiles);
     }
 
     @Test
@@ -61,14 +46,12 @@ public class TestInstallation
         EquivalenceTester.check(
                 asList(
                         new Installation(APPLE_ASSIGNMENT, URI.create("fetch://binary.tar.gz"), ImmutableMap.of("config", URI.create("fetch://config.txt"))),
-                        new Installation(APPLE_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), ImmutableMap.of("config", URI.create("fetch://anything.txt"))),
-                        new Installation(APPLE_ASSIGNMENT, MOCK_BINARY_REPO, MOCK_CONFIG_REPO)
+                        new Installation(APPLE_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), ImmutableMap.of("config", URI.create("fetch://anything.txt")))
 
                 ),
                 asList(
                         new Installation(BANANA_ASSIGNMENT, URI.create("fetch://binary.tar.gz"), ImmutableMap.of("config", URI.create("fetch://config.txt"))),
-                        new Installation(BANANA_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), ImmutableMap.of("config", URI.create("fetch://anything.txt"))),
-                        new Installation(BANANA_ASSIGNMENT, MOCK_BINARY_REPO, MOCK_CONFIG_REPO)
+                        new Installation(BANANA_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), ImmutableMap.of("config", URI.create("fetch://anything.txt")))
 
                 )
         );

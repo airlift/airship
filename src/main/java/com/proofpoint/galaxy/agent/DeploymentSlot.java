@@ -15,9 +15,9 @@ package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.LifecycleState;
-import com.proofpoint.galaxy.Slot;
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 
@@ -26,7 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 
 public class DeploymentSlot implements Slot
 {

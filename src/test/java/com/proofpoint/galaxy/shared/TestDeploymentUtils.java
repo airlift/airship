@@ -1,12 +1,12 @@
-package com.proofpoint.galaxy;
+package com.proofpoint.galaxy.shared;
 
 import org.testng.annotations.Test;
 
 import java.io.File;
 
-import static com.proofpoint.galaxy.DeploymentUtils.createSymbolicLink;
-import static com.proofpoint.galaxy.DeploymentUtils.createTempDir;
-import static com.proofpoint.galaxy.DeploymentUtils.isSymbolicLink;
+import static com.proofpoint.galaxy.shared.FileUtils.createSymbolicLink;
+import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static com.proofpoint.galaxy.shared.FileUtils.isSymbolicLink;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 

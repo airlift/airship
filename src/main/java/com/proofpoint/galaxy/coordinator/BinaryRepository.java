@@ -1,6 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.proofpoint.galaxy.BinarySpec;
+import com.proofpoint.galaxy.shared.BinarySpec;
 
 import java.net.URI;
 

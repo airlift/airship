@@ -17,8 +17,8 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 
 public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
 {

@@ -13,6 +13,8 @@
  */
 package com.proofpoint.galaxy.agent;
 
+import com.proofpoint.galaxy.shared.Installation;
+
 import java.util.UUID;
 
 public interface DeploymentManager

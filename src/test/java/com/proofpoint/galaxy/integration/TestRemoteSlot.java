@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.integration;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
@@ -23,9 +23,12 @@ import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.galaxy.DeploymentUtils;
-import com.proofpoint.galaxy.Slot;
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.agent.Slot;
+import com.proofpoint.galaxy.coordinator.HttpRemoteSlot;
+import com.proofpoint.galaxy.coordinator.RemoteSlot;
+import com.proofpoint.galaxy.shared.AssignmentHelper;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.DeploymentManagerFactory;
@@ -41,18 +44,24 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Map;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class TestRemoteSlot
 {
+    private static final Installation APPLE_INSTALLATION = new Installation(AssignmentHelper.APPLE_ASSIGNMENT,
+            URI.create("fake://localhost/apple.tar.gz"),
+            ImmutableMap.of("config", URI.create("fake://localhost/apple.config")));
+
     private AsyncHttpClient client;
     private TestingHttpServer server;
 
@@ -66,7 +75,7 @@ public class TestRemoteSlot
     public void startServer()
             throws Exception
     {
-        tempDir = DeploymentUtils.createTempDir("agent");
+        tempDir = createTempDir("agent");
         Map<String, String> properties = ImmutableMap.<String, String>builder()
                 .put("agent.coordinator-uri", "http://localhost:9999/")
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
@@ -116,7 +125,7 @@ public class TestRemoteSlot
             client.close();
         }
         if (tempDir != null) {
-            DeploymentUtils.deleteRecursively(tempDir);
+            deleteRecursively(tempDir);
         }
         remoteSlot = null;
     }

@@ -2,10 +2,10 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Predicate;
 import com.ning.http.client.AsyncHttpClient;
-import com.proofpoint.galaxy.Assignment;
-import com.proofpoint.galaxy.BinarySpec;
-import com.proofpoint.galaxy.MockUriInfo;
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.BinarySpec;
+import com.proofpoint.galaxy.shared.MockUriInfo;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.BinarySpecPredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.ConfigSpecPredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.GlobPredicate;
@@ -20,9 +20,9 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.UNKNOWN;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 

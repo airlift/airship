@@ -13,19 +13,18 @@
  */
 package com.proofpoint.galaxy.agent;
 
-import com.proofpoint.galaxy.Slot;
-import com.proofpoint.galaxy.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 
-import static com.proofpoint.galaxy.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.InstallationHelper.APPLE_INSTALLATION;
-import static com.proofpoint.galaxy.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.InstallationHelper.BANANA_INSTALLATION;
-import static com.proofpoint.galaxy.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.agent.InstallationHelper.BANANA_INSTALLATION;
+import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
