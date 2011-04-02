@@ -1,1 +1,0 @@
-Example bad archive

@@ -1,5 +1,0 @@
-{
-    "etc/banana" : "banana.txt",
-    "etc/jvm.config" : "jvm.config",
-    "etc/config.properties" : "config.properties"
-}
