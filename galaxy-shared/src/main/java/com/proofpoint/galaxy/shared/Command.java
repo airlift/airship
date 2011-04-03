@@ -6,6 +6,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
+import com.google.common.io.Closeables;
 import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
@@ -14,6 +15,7 @@ import com.proofpoint.units.Duration;
 import javax.annotation.concurrent.Immutable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Set;
@@ -215,6 +217,7 @@ public class Command
             processBuilder.directory(command.getDirectory());
             processBuilder.redirectErrorStream(true);
 
+            // start the process
             final Process process;
             try {
                 process = processBuilder.start();
@@ -223,49 +226,79 @@ public class Command
                 throw new CommandFailedException(command, "failed to start", e);
             }
 
-            Future<String> outputFuture = submit(executor, new Callable<String>()
+            OutputProcessor outputProcessor = null;
+            try {
+                // start the output processor
+                outputProcessor = new OutputProcessor(process, executor);
+                outputProcessor.start();
+
+                // wait for command to exit
+                int exitCode = process.waitFor();
+
+                // validate exit code
+                if (!command.getSuccessfulExitCodes().contains(exitCode)) {
+                    String out = outputProcessor.getOutput();
+                    throw new CommandFailedException(command, exitCode, out);
+                }
+                return exitCode;
+            }
+            finally {
+                try {
+                    process.destroy();
+                }
+                finally {
+                    if (outputProcessor != null) {
+                        outputProcessor.destroy();
+                    }
+                }
+            }
+        }
+    }
+
+    private static class OutputProcessor
+    {
+        private final InputStream inputStream;
+        private final Executor executor;
+        private Future<String> outputFuture;
+
+        private OutputProcessor(Process process, Executor executor)
+        {
+            this.inputStream = process.getInputStream();
+            this.executor = executor;
+        }
+
+        public void start()
+        {
+            outputFuture = submit(executor, new Callable<String>()
             {
                 @Override
                 public String call()
                         throws IOException
                 {
-                    String out = CharStreams.toString(new InputStreamReader(process.getInputStream(), Charsets.UTF_8));
+                    String out = CharStreams.toString(new InputStreamReader(inputStream, Charsets.UTF_8));
                     return out;
                 }
             });
-
-            try {
-                int exitCode = process.waitFor();
-                if (!command.getSuccessfulExitCodes().contains(exitCode)) {
-                    String out = getOutput(outputFuture);
-                    throw new CommandFailedException(command, exitCode, out);
-                }
-                return exitCode;
-            }
-            catch (InterruptedException e) {
-                outputFuture.cancel(true);
-                process.destroy();
-                throw e;
-            }
-            finally {
-                getOutput(outputFuture);
-            }
         }
 
-        private String getOutput(Future<String> outputFuture)
+        private String getOutput()
         {
-            if (outputFuture.isCancelled()) {
-                return null;
+            if (outputFuture != null && !outputFuture.isCancelled()) {
+                try {
+                    return outputFuture.get();
+                }
+                catch (Exception ignored) {
+                }
             }
+            return null;
+        }
 
-            try {
-                String output = outputFuture.get();
-                return output;
-            }
-            catch (Exception ignored) {
-                return null;
-            }
-            finally {
+        private void destroy()
+        {
+            // close input stream which will normally interrupt the reader
+            Closeables.closeQuietly(inputStream);
+
+            if (outputFuture != null) {
                 outputFuture.cancel(true);
             }
         }
