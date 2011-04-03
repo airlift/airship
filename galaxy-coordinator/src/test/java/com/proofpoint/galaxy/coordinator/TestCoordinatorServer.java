@@ -223,7 +223,7 @@ public class TestCoordinatorServer
             throws Exception
     {
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("start")
+                .setBody("running")
                 .execute()
                 .get();
 
@@ -245,7 +245,7 @@ public class TestCoordinatorServer
             throws Exception
     {
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("restart")
+                .setBody("restarting")
                 .execute()
                 .get();
 
@@ -271,7 +271,7 @@ public class TestCoordinatorServer
         bananaSlot.start();
 
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("stop")
+                .setBody("stopped")
                 .execute()
                 .get();
 

@@ -300,7 +300,7 @@ public class TestServer
         slot.assign(appleInstallation);
 
         Response response = client.preparePut(urlFor(slot) + "/lifecycle")
-                .setBody("start")
+                .setBody("running")
                 .execute()
                 .get();
 
@@ -329,7 +329,7 @@ public class TestServer
         slot.start();
 
         Response response = client.preparePut(urlFor(slot) + "/lifecycle")
-                .setBody("stop")
+                .setBody("stopped")
                 .execute()
                 .get();
 
@@ -357,7 +357,7 @@ public class TestServer
         slot.assign(appleInstallation);
 
         Response response = client.preparePut(urlFor(slot) + "/lifecycle")
-                .setBody("restart")
+                .setBody("restarting")
                 .execute()
                 .get();
 

@@ -93,21 +93,21 @@ def start(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to start.")
   end
-  coordinator_request(filter, options, :put, 'lifecycle', 'start')
+  coordinator_request(filter, options, :put, 'lifecycle', 'running')
 end
 
 def stop(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to stop.")
   end
-  coordinator_request(filter, options, :put, 'lifecycle', 'stop')
+  coordinator_request(filter, options, :put, 'lifecycle', 'stopped')
 end
 
 def restart(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to restart.")
   end
-  coordinator_request(filter, options, :put, 'lifecycle', 'restart')
+  coordinator_request(filter, options, :put, 'lifecycle', 'restarting')
 end
 
 def ssh(filter, options, args)

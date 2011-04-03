@@ -53,13 +53,13 @@ public class LifecycleResource
         }
 
         SlotStatus status;
-        if ("start".equals(newState)) {
+        if ("running".equals(newState)) {
             status = slot.start();
         }
-        else if ("restart".equals(newState)) {
+        else if ("restarting".equals(newState)) {
             status = slot.restart();
         }
-        else if ("stop".equals(newState)) {
+        else if ("stopped".equals(newState)) {
             status = slot.stop();
         }
         else {

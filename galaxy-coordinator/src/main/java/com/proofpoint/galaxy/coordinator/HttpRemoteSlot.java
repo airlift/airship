@@ -110,7 +110,7 @@ public class HttpRemoteSlot implements RemoteSlot
     {
         try {
             Response response = httpClient.preparePut(slotStatus.getSelf() + "/lifecycle")
-                    .setBody("start")
+                    .setBody("running")
                     .execute()
                     .get();
 
@@ -133,7 +133,7 @@ public class HttpRemoteSlot implements RemoteSlot
     {
         try {
             Response response = httpClient.preparePut(slotStatus.getSelf() + "/lifecycle")
-                    .setBody("restart")
+                    .setBody("restarting")
                     .execute()
                     .get();
 
@@ -156,7 +156,7 @@ public class HttpRemoteSlot implements RemoteSlot
     {
         try {
             Response response = httpClient.preparePut(slotStatus.getSelf() + "/lifecycle")
-                    .setBody("stop")
+                    .setBody("stopped")
                     .execute()
                     .get();
 

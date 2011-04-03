@@ -200,7 +200,7 @@ public class TestServerIntegration
             throws Exception
     {
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("start")
+                .setBody("running")
                 .execute()
                 .get();
 
@@ -275,7 +275,7 @@ public class TestServerIntegration
             throws Exception
     {
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("restart")
+                .setBody("restarting")
                 .execute()
                 .get();
 
@@ -301,7 +301,7 @@ public class TestServerIntegration
         bananaSlot.start();
 
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("stop")
+                .setBody("stopped")
                 .execute()
                 .get();
 

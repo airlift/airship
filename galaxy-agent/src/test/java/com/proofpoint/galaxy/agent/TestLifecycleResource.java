@@ -58,27 +58,27 @@ public class TestLifecycleResource
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.start => running
-        assertOkResponse(resource.setState(slot.getName(), "start", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(slot.getName(), "running", uriInfo), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.start => running
-        assertOkResponse(resource.setState(slot.getName(), "start", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(slot.getName(), "running", uriInfo), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.stop => stopped
-        assertOkResponse(resource.setState(slot.getName(), "stop", uriInfo), STOPPED);
+        assertOkResponse(resource.setState(slot.getName(), "stopped", uriInfo), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.stop => stopped
-        assertOkResponse(resource.setState(slot.getName(), "stop", uriInfo), STOPPED);
+        assertOkResponse(resource.setState(slot.getName(), "stopped", uriInfo), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.restart => running
-        assertOkResponse(resource.setState(slot.getName(), "restart", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(slot.getName(), "restarting", uriInfo), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.restart => running
-        assertOkResponse(resource.setState(slot.getName(), "restart", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(slot.getName(), "restarting", uriInfo), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
     }
 

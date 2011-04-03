@@ -50,13 +50,13 @@ public class CoordinatorLifecycleResource
         Preconditions.checkNotNull(newState, "newState must not be null");
 
         LifecycleState state;
-        if ("start" .equals(newState)) {
+        if ("running" .equals(newState)) {
             state = LifecycleState.RUNNING;
         }
-        else if ("restart" .equals(newState)) {
+        else if ("restarting" .equals(newState)) {
             state = LifecycleState.RUNNING;
         }
-        else if ("stop" .equals(newState)) {
+        else if ("stopped" .equals(newState)) {
             state = LifecycleState.STOPPED;
         }
         else {

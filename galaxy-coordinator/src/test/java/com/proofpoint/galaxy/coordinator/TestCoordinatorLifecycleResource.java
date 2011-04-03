@@ -91,37 +91,37 @@ public class TestCoordinatorLifecycleResource
         assertEquals(bananaSlot.status().getState(), STOPPED);
 
         // stopped.start => running
-        assertOkResponse(resource.setState("start", uriInfo), RUNNING, appleSlot1, appleSlot2);
+        assertOkResponse(resource.setState("running", uriInfo), RUNNING, appleSlot1, appleSlot2);
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
         assertEquals(bananaSlot.status().getState(), STOPPED);
 
         // running.start => running
-        assertOkResponse(resource.setState("start", uriInfo), RUNNING, appleSlot1, appleSlot2);
+        assertOkResponse(resource.setState("running", uriInfo), RUNNING, appleSlot1, appleSlot2);
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
         assertEquals(bananaSlot.status().getState(), STOPPED);
 
         // running.stop => stopped
-        assertOkResponse(resource.setState("stop", uriInfo), STOPPED, appleSlot1, appleSlot2);
+        assertOkResponse(resource.setState("stopped", uriInfo), STOPPED, appleSlot1, appleSlot2);
         assertEquals(appleSlot1.status().getState(), STOPPED);
         assertEquals(appleSlot2.status().getState(), STOPPED);
         assertEquals(bananaSlot.status().getState(), STOPPED);
 
         // stopped.stop => stopped
-        assertOkResponse(resource.setState("stop", uriInfo), STOPPED, appleSlot1, appleSlot2);
+        assertOkResponse(resource.setState("stopped", uriInfo), STOPPED, appleSlot1, appleSlot2);
         assertEquals(appleSlot1.status().getState(), STOPPED);
         assertEquals(appleSlot2.status().getState(), STOPPED);
         assertEquals(bananaSlot.status().getState(), STOPPED);
 
         // stopped.restart => running
-        assertOkResponse(resource.setState("restart", uriInfo), RUNNING, appleSlot1, appleSlot2);
+        assertOkResponse(resource.setState("restarting", uriInfo), RUNNING, appleSlot1, appleSlot2);
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
         assertEquals(bananaSlot.status().getState(), STOPPED);
 
         // running.restart => running
-        assertOkResponse(resource.setState("restart", uriInfo), RUNNING, appleSlot1, appleSlot2);
+        assertOkResponse(resource.setState("restarting", uriInfo), RUNNING, appleSlot1, appleSlot2);
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
         assertEquals(bananaSlot.status().getState(), STOPPED);
