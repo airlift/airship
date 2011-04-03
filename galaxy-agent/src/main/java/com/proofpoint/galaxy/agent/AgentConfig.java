@@ -25,7 +25,7 @@ public class AgentConfig
 {
     private URI coordinatorBaseURI;
     private String slotsDir;
-    private Duration launcherTimeout = new Duration(1, TimeUnit.MINUTES);
+    private Duration launcherTimeout = new Duration(1, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);
 

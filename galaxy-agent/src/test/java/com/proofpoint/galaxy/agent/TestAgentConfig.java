@@ -30,7 +30,7 @@ public class TestAgentConfig
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(AgentConfig.class)
                 .setSlotsDir(null)
                 .setCoordinatorBaseURI(null)
-                .setLauncherTimeout(new Duration(1, TimeUnit.MINUTES))
+                .setLauncherTimeout(new Duration(1, TimeUnit.SECONDS))
                 .setTarTimeout(new Duration(1, TimeUnit.MINUTES))
                 .setMaxLockWait(new Duration(1, TimeUnit.SECONDS)));
     }
