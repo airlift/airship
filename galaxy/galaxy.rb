@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
 require 'optparse'
 require 'httpclient'
 require 'json'
 
-VERSION = "1.0-SNAPSHOT"
+GALAXY_VERSION = "1.0-SNAPSHOT"
 
 exit_codes = {
     :success => 0,
@@ -199,7 +200,7 @@ option_parser = OptionParser.new do |opts|
   end
 
   opts.on("-v", "--version", "Display the Galaxy version number and exit") do
-    puts "Galaxy version #{VERSION}"
+    puts "Galaxy version #{GALAXY_VERSION}"
     exit exit_codes[:success]
   end
 
@@ -287,7 +288,7 @@ begin
   end
 
   slots = send(command, filter, options, ARGV.drop(1))
-  slots.sort_by! { |slot| slot.name + slot.id }
+  slots = slots.sort_by { |slot| slot.name + slot.id }
   puts '' if options[:debug]
   slots.each { |slot| slot.print_col } unless slots.nil?
   exit exit_codes[:success]
