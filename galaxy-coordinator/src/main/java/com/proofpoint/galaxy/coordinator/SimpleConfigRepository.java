@@ -27,7 +27,11 @@ public class SimpleConfigRepository implements ConfigRepository
     @Inject
     public SimpleConfigRepository(CoordinatorConfig config)
     {
-        configRepositoryBase = URI.create(config.getConfigRepoBase());
+        String configRepoBase = config.getConfigRepoBase();
+        if (!configRepoBase.endsWith("/")) {
+            configRepoBase = configRepoBase + "/";
+        }
+        configRepositoryBase = URI.create(configRepoBase);
     }
 
     @Override

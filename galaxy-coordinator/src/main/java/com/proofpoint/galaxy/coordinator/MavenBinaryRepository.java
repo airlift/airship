@@ -19,7 +19,11 @@ public class MavenBinaryRepository implements BinaryRepository
     @Inject
     public MavenBinaryRepository(CoordinatorConfig config)
     {
-        binaryRepositoryBase = URI.create(config.getBinaryRepoBase());
+        String binaryRepoBase = config.getBinaryRepoBase();
+        if (!binaryRepoBase.endsWith("/")) {
+            binaryRepoBase = binaryRepoBase + "/";
+        }
+        binaryRepositoryBase = URI.create(binaryRepoBase);
     }
 
     @Override
