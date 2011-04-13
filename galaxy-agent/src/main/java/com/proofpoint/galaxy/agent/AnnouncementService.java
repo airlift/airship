@@ -5,7 +5,6 @@ import com.google.inject.Inject;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.experimental.json.JsonCodec;
-import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.http.server.HttpServerInfo;
@@ -20,10 +19,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+
 public class AnnouncementService
 {
     private static final Logger log = Logger.get(AnnouncementService.class);
-    private static final JsonCodec<AgentStatusRepresentation> codec = new JsonCodecBuilder().build(AgentStatusRepresentation.class);
+    private static final JsonCodec<AgentStatusRepresentation> codec = jsonCodec(AgentStatusRepresentation.class);
 
     private final Agent agent;
     private final HttpServerInfo httpServerInfo;

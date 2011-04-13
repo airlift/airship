@@ -20,15 +20,14 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
-import com.google.inject.TypeLiteral;
 import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.experimental.jaxrs.JaxrsModule;
+import com.proofpoint.experimental.json.JsonModule;
+import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.experimental.json.JsonCodec;
-import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
@@ -36,6 +35,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
+import com.proofpoint.node.testing.TestingNodeModule;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+import static com.proofpoint.experimental.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
@@ -68,9 +70,9 @@ public class TestCoordinatorServer
 
     private Coordinator coordinator;
 
-    private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
-    private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = new JsonCodecBuilder().build(AgentStatusRepresentation.class);
-    private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>() { });
+    private final JsonCodec<AssignmentRepresentation> assignmentCodec = jsonCodec(AssignmentRepresentation.class);
+    private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = jsonCodec(AgentStatusRepresentation.class);
+    private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
 
     private AgentStatus agentStatus;
     private RemoteSlot appleSlot1;
@@ -87,6 +89,8 @@ public class TestCoordinatorServer
                 .build();
 
         Injector injector = Guice.createInjector(new TestingHttpServerModule(),
+                new TestingNodeModule(),
+                new JsonModule(),
                 new JaxrsModule(),
                 Modules.override(new CoordinatorMainModule()).with(new Module() {
                     public void configure(Binder binder)

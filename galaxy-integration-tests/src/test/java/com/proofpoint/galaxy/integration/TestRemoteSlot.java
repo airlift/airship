@@ -23,21 +23,23 @@ import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.coordinator.HttpRemoteSlot;
-import com.proofpoint.galaxy.coordinator.RemoteSlot;
-import com.proofpoint.galaxy.shared.AssignmentHelper;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.experimental.json.JsonModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.DeploymentManagerFactory;
 import com.proofpoint.galaxy.agent.LifecycleManager;
 import com.proofpoint.galaxy.agent.MockDeploymentManagerFactory;
 import com.proofpoint.galaxy.agent.MockLifecycleManager;
+import com.proofpoint.galaxy.agent.Slot;
+import com.proofpoint.galaxy.coordinator.HttpRemoteSlot;
+import com.proofpoint.galaxy.coordinator.RemoteSlot;
+import com.proofpoint.galaxy.shared.AssignmentHelper;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.experimental.jaxrs.JaxrsModule;
+import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -82,6 +84,8 @@ public class TestRemoteSlot
                 .build();
 
         Injector injector = Guice.createInjector(new TestingHttpServerModule(),
+                new TestingNodeModule(),
+                new JsonModule(),
                 new JaxrsModule(),
                 new ConfigurationModule(new ConfigurationFactory(properties)),
                 Modules.override(new AgentMainModule()).with(new Module()

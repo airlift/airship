@@ -17,12 +17,12 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
-import com.proofpoint.experimental.json.JsonCodecBuilder;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
@@ -30,7 +30,7 @@ import static org.testng.Assert.assertEquals;
 
 public class TestAgentStatusRepresentation
 {
-    private final JsonCodec<AgentStatusRepresentation> codec = new JsonCodecBuilder().build(AgentStatusRepresentation.class);
+    private final JsonCodec<AgentStatusRepresentation> codec = jsonCodec(AgentStatusRepresentation.class);
 
     private final AgentStatusRepresentation expected = new AgentStatusRepresentation(UUID.fromString("44444444-4444-4444-4444-444444444444"),
             ImmutableList.of(

@@ -47,28 +47,28 @@
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>units</artifactId>
-            <version>0.38-SNAPSHOT</version>
+            <version>0.39</version>
         </dependency>
 
         <!-- for testing -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>5.14.6</version>
+            <version>6.0.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>testing</artifactId>
-            <version>0.38-SNAPSHOT</version>
+            <version>0.39</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>experimental</artifactId>
-            <version>0.38-SNAPSHOT</version>
+            <version>0.39</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

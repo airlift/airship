@@ -17,7 +17,9 @@ import com.proofpoint.galaxy.shared.LifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
+import com.proofpoint.node.NodeInfo;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -42,7 +44,7 @@ public class TestLifecycleResource
     public void setup()
     {
         Agent agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
-                new HttpServerInfo(),
+                new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test")),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());
         slot = agent.addNewSlot();

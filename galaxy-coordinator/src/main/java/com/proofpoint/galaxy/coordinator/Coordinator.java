@@ -33,7 +33,7 @@ public class Coordinator
 
         this.remoteSlotFactory = remoteSlotFactory;
         agents = new MapMaker()
-                .expiration((long) config.getStatusExpiration().toMillis(), TimeUnit.MILLISECONDS)
+                .expireAfterWrite((long) config.getStatusExpiration().toMillis(), TimeUnit.MILLISECONDS)
                 .evictionListener(new MapEvictionListener<UUID, AgentStatus>()
                 {
                     @Override

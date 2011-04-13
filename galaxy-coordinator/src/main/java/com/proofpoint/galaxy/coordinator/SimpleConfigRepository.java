@@ -7,16 +7,19 @@ import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.google.inject.TypeLiteral;
 import com.proofpoint.experimental.json.JsonCodec;
-import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+
 public class SimpleConfigRepository implements ConfigRepository
 {
-    private static final JsonCodec<Map<String, String>> configCodec = new JsonCodecBuilder().build(new TypeLiteral<Map<String, String>>() {});
+    private static final JsonCodec<Map<String, String>> configCodec = jsonCodec(new TypeLiteral<Map<String, String>>()
+    {
+    });
     private final URI configRepositoryBase;
 
     public SimpleConfigRepository(URI configRepositoryBase)
@@ -52,7 +55,7 @@ public class SimpleConfigRepository implements ConfigRepository
             configMap = configCodec.fromJson(Resources.toString(uri.toURL(), Charsets.UTF_8));
         }
         catch (Exception ignored) {
-            throw new RuntimeException("Unable to load configuration " + configSpec + " from " + uri);
+            throw new RuntimeException("Unable to load configuration " + configSpec + " from " + uri, ignored);
         }
 
         Builder<String, URI> builder = ImmutableMap.builder();

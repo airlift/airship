@@ -18,19 +18,19 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.TypeLiteral;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.experimental.json.JsonCodec;
-import com.proofpoint.experimental.json.JsonCodecBuilder;
+import com.proofpoint.experimental.json.JsonModule;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.experimental.jaxrs.JaxrsModule;
+import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.node.NodeModule;
+import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -43,9 +43,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+import static com.proofpoint.experimental.json.JsonCodec.listJsonCodec;
+import static com.proofpoint.experimental.json.JsonCodec.mapJsonCodec;
+import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
-import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
@@ -63,9 +66,9 @@ public class TestServer
 
     private Agent agent;
 
-    private final JsonCodec<InstallationRepresentation> installationCodec = new JsonCodecBuilder().build(InstallationRepresentation.class);
-    private final JsonCodec<Map<String, Object>> mapCodec = new JsonCodecBuilder().build(new TypeLiteral<Map<String, Object>>() { });
-    private final JsonCodec<List<Map<String, Object>>> listCodec = new JsonCodecBuilder().build(new TypeLiteral<List<Map<String, Object>>>() { });
+    private final JsonCodec<InstallationRepresentation> installationCodec = jsonCodec(InstallationRepresentation.class);
+    private final JsonCodec<Map<String, Object>> mapCodec = mapJsonCodec(String.class, Object.class);
+    private final JsonCodec<List<Map<String, Object>>> listCodec = listJsonCodec(mapCodec);
 
     private InstallationHelper installationHelper;
     private Installation appleInstallation;
@@ -84,7 +87,8 @@ public class TestServer
                 .build();
 
         Injector injector = Guice.createInjector(
-                new NodeModule(),
+                new TestingNodeModule(),
+                new JsonModule(),
                 new TestingHttpServerModule(),
                 new JaxrsModule(),
                 new AgentMainModule(),

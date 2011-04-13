@@ -16,16 +16,16 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
-import com.proofpoint.experimental.json.JsonCodecBuilder;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import org.testng.annotations.Test;
 
+import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
 
 public class TestDeploymentRepresentation
 {
-    private final JsonCodec<DeploymentRepresentation> codec = new JsonCodecBuilder().build(DeploymentRepresentation.class);
+    private final JsonCodec<DeploymentRepresentation> codec = jsonCodec(DeploymentRepresentation.class);
 
     private final DeploymentRepresentation expected = new DeploymentRepresentation("deployment1", AssignmentRepresentation.from(APPLE_ASSIGNMENT));
 

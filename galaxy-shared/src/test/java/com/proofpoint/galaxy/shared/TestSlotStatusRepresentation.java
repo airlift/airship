@@ -3,18 +3,18 @@ package com.proofpoint.galaxy.shared;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.proofpoint.experimental.json.JsonCodec;
-import com.proofpoint.experimental.json.JsonCodecBuilder;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
 public class TestSlotStatusRepresentation
 {
-    private final JsonCodec<SlotStatusRepresentation> codec = new JsonCodecBuilder().build(SlotStatusRepresentation.class);
+    private final JsonCodec<SlotStatusRepresentation> codec = jsonCodec(SlotStatusRepresentation.class);
 
     private final SlotStatusRepresentation expected = new SlotStatusRepresentation(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
             "slot1",

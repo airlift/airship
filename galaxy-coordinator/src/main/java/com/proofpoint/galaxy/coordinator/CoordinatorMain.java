@@ -14,8 +14,9 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.proofpoint.bootstrap.Bootstrap;
+import com.proofpoint.experimental.json.JsonModule;
 import com.proofpoint.http.server.HttpServerModule;
-import com.proofpoint.experimental.jaxrs.JaxrsModule;
+import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.jmx.JmxModule;
 import com.proofpoint.node.NodeModule;
 import org.weakref.jmx.guice.MBeanModule;
@@ -28,6 +29,7 @@ public class CoordinatorMain
         Bootstrap app = new Bootstrap(
                 new NodeModule(),
                 new HttpServerModule(),
+                new JsonModule(),
                 new JaxrsModule(),
                 new MBeanModule(),
                 new JmxModule(),

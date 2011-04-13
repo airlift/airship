@@ -17,30 +17,30 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.TypeLiteral;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.experimental.json.JsonCodec;
-import com.proofpoint.experimental.json.JsonCodecBuilder;
+import com.proofpoint.experimental.json.JsonModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.AnnouncementService;
 import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
 import com.proofpoint.galaxy.coordinator.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
 import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
+import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.experimental.jaxrs.JaxrsModule;
+import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -53,11 +53,13 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+import static com.proofpoint.experimental.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
-import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
@@ -79,8 +81,8 @@ public class TestServerIntegration
     private Slot bananaSlot;
     private File tempDir;
 
-    private final JsonCodec<AssignmentRepresentation> assignmentCodec = new JsonCodecBuilder().build(AssignmentRepresentation.class);
-    private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = new JsonCodecBuilder().build(new TypeLiteral<List<SlotStatusRepresentation>>(){});
+    private final JsonCodec<AssignmentRepresentation> assignmentCodec = jsonCodec(AssignmentRepresentation.class);
+    private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
 
     private File binaryRepoDir;
     private File configRepoDir;
@@ -107,6 +109,8 @@ public class TestServerIntegration
                 .build();
 
         Injector coordinatorInjector = Guice.createInjector(new TestingHttpServerModule(),
+                new TestingNodeModule(),
+                new JsonModule(),
                 new JaxrsModule(),
                 new CoordinatorMainModule(),
                 new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
@@ -126,6 +130,8 @@ public class TestServerIntegration
                 .build();
 
         Injector agentInjector = Guice.createInjector(new TestingHttpServerModule(),
+                new TestingNodeModule(),
+                new JsonModule(),
                 new JaxrsModule(),
                 new AgentMainModule(),
                 new ConfigurationModule(new ConfigurationFactory(agentProperties)));
