@@ -9,6 +9,19 @@
     <packaging>pom</packaging>
     <name>galaxy</name>
 
+    <distributionManagement>
+        <repository>
+            <id>proofpoint</id>
+            <name>Proofpoint Releases</name>
+            <url>http://maven-tmphost.app.proofpoint.com:8082/nexus/content/repositories/proofpoint-eng</url>
+        </repository>
+        <snapshotRepository>
+            <id>proofpoint-snapshots</id>
+            <name>Proofpoint Snapshots</name>
+            <url>http://maven-tmphost.app.proofpoint.com:8082/nexus/content/repositories/proofpoint-eng-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <plugin>
