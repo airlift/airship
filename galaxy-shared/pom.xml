@@ -4,7 +4,7 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-shared</artifactId>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
     <name>galaxy-shared</name>
 
     <distributionManagement>
