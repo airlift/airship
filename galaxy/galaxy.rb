@@ -5,7 +5,7 @@ require 'optparse'
 require 'httpclient'
 require 'json'
 
-GALAXY_VERSION = "1.0-SNAPSHOT"
+GALAXY_VERSION = "0.1"
 
 exit_codes = {
     :success => 0,
