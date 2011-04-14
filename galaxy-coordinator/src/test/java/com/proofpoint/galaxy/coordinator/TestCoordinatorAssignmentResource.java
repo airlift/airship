@@ -92,6 +92,13 @@ public class TestCoordinatorAssignmentResource
         assertEquals(bananaSlot.status().getState(), UNASSIGNED);
     }
 
+    @Test(expectedExceptions = InvalidSlotFilterException.class)
+    public void testAssignNoFilterException()
+    {
+        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
+        resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
+    }
+
     @Test
     public void testReplaceAssignment()
     {
@@ -157,6 +164,13 @@ public class TestCoordinatorAssignmentResource
         assertEquals(appleSlot1.status().getState(), UNASSIGNED);
         assertEquals(appleSlot2.status().getState(), UNASSIGNED);
         assertEquals(bananaSlot.status().getState(), STOPPED);
+    }
+
+    @Test(expectedExceptions = InvalidSlotFilterException.class)
+    public void testClearNoFilterException()
+    {
+        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
+        resource.clear(uriInfo);
     }
 
     private static Installation makeAssignment(Assignment appleAssignment)

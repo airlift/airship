@@ -160,7 +160,7 @@ public class TestCoordinatorServer
     public void testGetAllSlots()
             throws Exception
     {
-        Response response = client.prepareGet(urlFor("/v1/slot/"))
+        Response response = client.prepareGet(urlFor("/v1/slot/?name=*"))
                 .execute()
                 .get();
 

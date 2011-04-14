@@ -141,6 +141,12 @@ public class TestCoordinatorLifecycleResource
         resource.setState(null, uriInfo);
     }
 
+    @Test(expectedExceptions = InvalidSlotFilterException.class)
+    public void testSetStateNoFilter()
+    {
+        resource.setState("running", MockUriInfo.from("http://localhost/v1/slot/lifecycle"));
+    }
+
     private void assertOkResponse(Response response, LifecycleState state, RemoteSlot... slots)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());

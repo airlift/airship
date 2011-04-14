@@ -27,6 +27,7 @@ public class CoordinatorMainModule
         binder.bind(CoordinatorSlotResource.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorAssignmentResource.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorLifecycleResource.class).in(Scopes.SINGLETON);
+        binder.bind(InvalidSlotFilterExceptionMapper.class).in(Scopes.SINGLETON);
         binder.bind(AnnounceResource.class).in(Scopes.SINGLETON);
         binder.bind(RemoteSlotFactory.class).to(HttpRemoteSlotFactory.class).in(Scopes.SINGLETON);
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);

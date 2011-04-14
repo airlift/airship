@@ -45,7 +45,7 @@ public class CoordinatorSlotResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllSlots(@Context UriInfo uriInfo)
     {
-        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
+        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo, false);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();
         for (RemoteSlot remoteSlot : coordinator.getAllSlots()) {
             if (slotFilter.apply(remoteSlot)) {

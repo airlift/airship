@@ -40,10 +40,10 @@ public class TestSlotFilterBuilder
         return SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value));
     }
 
-    @Test
+    @Test(expectedExceptions = InvalidSlotFilterException.class)
     public void testEmptyFilter()
     {
-        assertTrue(SlotFilterBuilder.build(MockUriInfo.from("fake://localhost")).apply(slot));
+        SlotFilterBuilder.build(MockUriInfo.from("fake://localhost")).apply(slot);
     }
 
     @Test

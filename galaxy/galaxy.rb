@@ -33,7 +33,7 @@ class Slot
   end
 
   def print_col
-    puts "#{id}\t#{host}\t#{ip}\t#{name}\t#{status}\t#{binary}\t#{config}"
+    puts "#{id}\t#{host}\t#{name}\t#{status}\t#{binary}\t#{config}"
   end
 end
 
@@ -68,6 +68,9 @@ def assign(filter, options, args)
   if args.size != 2 then
     raise CommandError.new(:invalid_usage, "You must specify a binary and config to assign.")
   end
+  if filter.empty? then
+    raise CommandError.new(:invalid_usage, "You must specify a filter when for assign.")
+  end
   if args[0].start_with? '@'
     config = args[0]
     binary = args[1]
@@ -87,12 +90,18 @@ def clear(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to clear.")
   end
+  if filter.empty? then
+    raise CommandError.new(:invalid_usage, "You must specify a filter when for clear.")
+  end
   coordinator_request(filter, options, :delete, 'assignment')
 end
 
 def start(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to start.")
+  end
+  if filter.empty? then
+    raise CommandError.new(:invalid_usage, "You must specify a filter when for start.")
   end
   coordinator_request(filter, options, :put, 'lifecycle', 'running')
 end
@@ -101,6 +110,9 @@ def stop(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to stop.")
   end
+  if filter.empty? then
+    raise CommandError.new(:invalid_usage, "You must specify a filter when for stop.")
+  end
   coordinator_request(filter, options, :put, 'lifecycle', 'stopped')
 end
 
@@ -108,12 +120,18 @@ def restart(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to restart.")
   end
+  if filter.empty? then
+    raise CommandError.new(:invalid_usage, "You must specify a filter when for restart.")
+  end
   coordinator_request(filter, options, :put, 'lifecycle', 'restarting')
 end
 
 def ssh(filter, options, args)
   if !args.empty? then
     raise CommandError.new(:invalid_usage, "You can not pass arguments to ssh.")
+  end
+  if filter.empty? then
+    raise CommandError.new(:invalid_usage, "You must specify a filter when for ssh.")
   end
   slots = show(filter, options, args)
   if slots.empty?
@@ -250,6 +268,7 @@ option_parser = OptionParser.new do |opts|
 
   notes = <<-NOTES
     Notes:
+        - A filter is required for all commands except for show
         - Filters are evaluated as: set | host | ip | state | (binary & config)
         - The HOST, BINARY, and CONFIG arguments are globs
         - BINARY format is groupId:artifactId[:packaging[:classifier]]:version

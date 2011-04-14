@@ -23,7 +23,12 @@ public class SlotFilterBuilder
 {
     public static Predicate<RemoteSlot> build(UriInfo uriInfo)
     {
-        SlotFilterBuilder builder = new SlotFilterBuilder();
+        return build(uriInfo, true);
+    }
+
+    public static Predicate<RemoteSlot> build(UriInfo uriInfo, boolean filterRequired)
+    {
+        SlotFilterBuilder builder = new SlotFilterBuilder(filterRequired);
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
             if ("state" .equals(entry.getKey())) {
                 for (String stateFilter : entry.getValue()) {
@@ -59,12 +64,18 @@ public class SlotFilterBuilder
         return builder.build();
     }
 
+    private final boolean filterRequired;
     private final List<StatePredicate> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<SlotNamePredicate> slotNameFilters = Lists.newArrayListWithCapacity(6);
     private final List<HostPredicate> hostFilters = Lists.newArrayListWithCapacity(6);
     private final List<IpPredicate> ipFilters = Lists.newArrayListWithCapacity(6);
     private final List<BinarySpecPredicate> binarySpecPredicates = Lists.newArrayListWithCapacity(6);
     private final List<ConfigSpecPredicate> configSpecPredicates = Lists.newArrayListWithCapacity(6);
+
+    private SlotFilterBuilder(boolean filterRequired)
+    {
+        this.filterRequired = filterRequired;
+    }
 
     public void addStateFilter(String stateFilter)
     {
@@ -145,8 +156,11 @@ public class SlotFilterBuilder
         if (!orPredicates.isEmpty()) {
             return Predicates.or(orPredicates);
         }
-        else {
+        else if (!filterRequired) {
             return Predicates.alwaysTrue();
+        }
+        else {
+            throw new InvalidSlotFilterException();
         }
     }
 
