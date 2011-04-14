@@ -5,7 +5,7 @@
         <groupId>com.proofpoint.platform</groupId>
         <artifactId>rest-server-base</artifactId>
         <version>0.39</version>
-        <relativePath></relativePath>
+        <relativePath />
     </parent>
 
     <properties>
@@ -14,14 +14,14 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-coordinator</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <name>galaxy-coordinator</name>
 
     <dependencies>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
 
         <dependency>
@@ -115,7 +115,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
