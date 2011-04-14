@@ -174,7 +174,7 @@ def coordinator_request(filter, options, method, sub_path = nil, value = nil, is
   end
 
   # execute request
-  response = HTTPClient.new.request(method, uri, query, body, headers).body.content
+  response = HTTPClient.new.request(method, uri, query, body, headers).body
 
   # parse response as json
   slots_json = JSON.parse(response)
