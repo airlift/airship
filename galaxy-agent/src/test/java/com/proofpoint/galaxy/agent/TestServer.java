@@ -29,7 +29,6 @@ import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
-import com.proofpoint.node.NodeModule;
 import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;

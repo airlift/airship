@@ -136,6 +136,12 @@ public class DirectoryDeploymentManager implements DeploymentManager
     }
 
     @Override
+    public String getSlotName()
+    {
+        return baseDir.getName();
+    }
+
+    @Override
     public UUID getSlotId()
     {
         return slotId;

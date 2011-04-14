@@ -36,7 +36,7 @@ public class TestSlot
     public void testInitialState()
             throws Exception
     {
-        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager("slot"), new MockLifecycleManager());
         assertEquals(slot.getName(), "slot");
 
         // should start unassigned
@@ -71,7 +71,7 @@ public class TestSlot
             throws Exception
     {
 
-        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager("slot"), new MockLifecycleManager());
         assertEquals(slot.getName(), "slot");
 
         // assign apple and verify state
@@ -104,7 +104,7 @@ public class TestSlot
             throws Exception
     {
 
-        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager(), new MockLifecycleManager());
+        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager("slot"), new MockLifecycleManager());
         SlotStatus running = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
         SlotStatus stopped = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
         SlotStatus unassigned = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());

@@ -21,7 +21,7 @@ public class TestMockDeploymentManager extends AbstractDeploymentManagerTest
     protected void setUp()
             throws Exception
     {
-        manager = new MockDeploymentManager();
+        manager = new MockDeploymentManager("slot");
         appleInstallation = InstallationHelper.APPLE_INSTALLATION;
         bananaInstallation = InstallationHelper.BANANA_INSTALLATION;
     }

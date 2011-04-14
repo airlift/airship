@@ -19,6 +19,8 @@ import java.util.UUID;
 
 public interface DeploymentManager
 {
+    String getSlotName();
+
     UUID getSlotId();
 
     Deployment install(Installation installation);

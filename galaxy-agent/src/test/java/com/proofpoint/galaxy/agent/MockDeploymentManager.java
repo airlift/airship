@@ -24,10 +24,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MockDeploymentManager implements DeploymentManager
 {
+    private final String slotName;
     private final AtomicInteger nextId = new AtomicInteger(1);
     private final UUID slotId = UUID.randomUUID();
     private final Map<String, Deployment> deployments = new TreeMap<String, Deployment>();
     private Deployment activeDeployment;
+
+    public MockDeploymentManager(String slotName)
+    {
+        this.slotName = slotName;
+    }
+
+    @Override
+    public String getSlotName()
+    {
+        return slotName;
+    }
 
     @Override
     public Deployment install(Installation installation)

@@ -13,9 +13,11 @@
  */
 package com.proofpoint.galaxy.agent;
 
-import java.io.File;
+import java.util.List;
 
 public interface DeploymentManagerFactory
 {
-    DeploymentManager createDeploymentManager(File baseDir);
+    List<DeploymentManager> loadSlots();
+
+    DeploymentManager createDeploymentManager(String slotName);
 }

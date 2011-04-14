@@ -17,7 +17,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.io.Files;
-import com.google.common.io.PatternFilenameFilter;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -35,7 +34,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.galaxy.shared.FileUtils.listFiles;
 import static java.lang.Math.max;
 
 public class Agent
@@ -44,7 +42,6 @@ public class Agent
     private final UUID agentId;
     private final ConcurrentMap<String, Slot> slots;
     private final AgentConfig config;
-    private final File slotDir;
     private final DeploymentManagerFactory deploymentManager;
     private final LifecycleManager lifecycleManager;
     private final File slotsDir;
@@ -59,12 +56,6 @@ public class Agent
 
         this.config = config;
         this.httpServerInfo = httpServerInfo;
-        this.slotDir = new File(config.getSlotsDir());
-
-        slotDir.mkdirs();
-        if (!slotDir.isDirectory()) {
-            throw new IllegalArgumentException("slotDir is not a directory");
-        }
 
         this.deploymentManager = deploymentManagerFactory;
         this.lifecycleManager = lifecycleManager;
@@ -111,10 +102,11 @@ public class Agent
         //
         // Load existing slots
         //
-        for (File dir : listFiles(slotDir, new PatternFilenameFilter(SLOT_ID_PATTERN))) {
-            if (dir.isDirectory()) {
-                createSlot(dir.getName());
-            }
+        for (DeploymentManager manager : deploymentManager.loadSlots()) {
+            String slotName = manager.getSlotName();
+            URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/slot/").resolve(slotName);
+            Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(slotName), lifecycleManager);
+            slots.put(slotName, slot);
         }
     }
 
@@ -152,7 +144,7 @@ public class Agent
     private Slot createSlot(String slotName)
     {
         URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/slot/").resolve(slotName);
-        Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(new File(slotDir, slotName)), lifecycleManager);
+        Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(slotName), lifecycleManager);
         slots.put(slotName, slot);
         return slot;
     }

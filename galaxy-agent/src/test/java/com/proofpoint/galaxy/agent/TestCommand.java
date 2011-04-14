@@ -114,7 +114,7 @@ public class TestCommand
     public void execTimeout()
             throws Exception
     {
-        new Command("bash", "-c", "echo foo && sleep 6000000").setTimeLimit(1, TimeUnit.SECONDS).execute(executor);
+        new Command("bash", "-c", "echo foo && sleep 15").setTimeLimit(1, TimeUnit.SECONDS).execute(executor);
     }
 
     @Test(expectedExceptions = CommandFailedException.class)
