@@ -7,6 +7,12 @@
     <packaging>pom</packaging>
     <name>galaxy-root</name>
 
+    <scm>
+        <connection>scm:git:git://github.com/dain/galaxy-server.git</connection>
+        <developerConnection>scm:git:git@github.com:dain/galaxy-server.git</developerConnection>
+        <url>http://github.com/dain/galaxy-server/tree/master</url>
+    </scm>
+
     <distributionManagement>
         <repository>
             <id>proofpoint</id>
@@ -27,4 +33,15 @@
         <module>galaxy-integration-tests</module>
         <module>galaxy</module>
     </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.1</version>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
