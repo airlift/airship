@@ -1,6 +1,3 @@
-#!/usr/bin/env ruby
-
-require 'rubygems'
 require 'optparse'
 require 'httpclient'
 require 'json'

@@ -1,0 +1,6 @@
+source "http://rubygems.org"
+
+# Specify your gem's dependencies in galaxy.gemspec
+gemspec
+gem 'httpclient'
+gem 'json'
