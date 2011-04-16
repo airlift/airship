@@ -178,7 +178,7 @@ public class Agent
             if (matcher.matches()) {
                 try {
                     int id = Integer.parseInt(matcher.group(1));
-                    nextId = max(id, nextId + 1);
+                    nextId = max(nextId, id + 1);
                 }
                 catch (NumberFormatException ignored) {
                 }
@@ -186,7 +186,7 @@ public class Agent
         }
 
         for (int i = 0; i < 10000; i++) {
-            String deploymentId = "slot" + nextId++;
+            String deploymentId = "slot" + (nextId + i);
             if (!new File(slotsDir, deploymentId).exists()) {
                 return deploymentId;
             }
