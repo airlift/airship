@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.io.Files;
 import com.proofpoint.galaxy.shared.ArchiveHelper;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -39,7 +40,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
             throws Exception
     {
         tempDir = Files.createTempDir().getCanonicalFile();
-        manager = new LauncherLifecycleManager(new AgentConfig().setSlotsDir(tempDir.getAbsolutePath()).setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)));
+        manager = new LauncherLifecycleManager(new AgentConfig().setSlotsDir(tempDir.getAbsolutePath()).setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)), new NodeInfo("test"));
 
         appleDeployment = createDeploymentDir(APPLE_ASSIGNMENT);
         bananaDeployment = createDeploymentDir(BANANA_ASSIGNMENT);

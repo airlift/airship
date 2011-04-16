@@ -65,6 +65,19 @@ public class Command
         return command;
     }
 
+    public Command addArgs(String... args)
+    {
+        Preconditions.checkNotNull(args, "args is null");
+        return addArgs(ImmutableList.copyOf(args));
+    }
+
+    public Command addArgs(Iterable<String> args)
+    {
+        Preconditions.checkNotNull(args, "args is null");
+        ImmutableList.Builder<String> command = ImmutableList.<String>builder().addAll(this.command).addAll(args);
+        return new Command(command.build(), successfulExitCodes, directory, timeLimit);
+    }
+
     public Set<Integer> getSuccessfulExitCodes()
     {
         return successfulExitCodes;

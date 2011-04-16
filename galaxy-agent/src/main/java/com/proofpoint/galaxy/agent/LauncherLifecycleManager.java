@@ -1,11 +1,16 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.Command;
 import com.proofpoint.galaxy.shared.CommandFailedException;
 import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.node.NodeConfig;
+import com.proofpoint.node.NodeInfo;
 
 import java.io.File;
 import java.util.concurrent.Executor;
@@ -25,14 +30,24 @@ public class LauncherLifecycleManager implements LifecycleManager
     private final Executor executor;
 
     @Inject
-    public LauncherLifecycleManager(AgentConfig config)
+    public LauncherLifecycleManager(AgentConfig config, NodeInfo nodeInfo)
     {
         Preconditions.checkNotNull(config, "config is null");
 
+        ImmutableList.Builder<String> nodeArgsBuilder = ImmutableList.builder();
+        nodeArgsBuilder.add("--environment=" + nodeInfo.getEnvironment());
+        nodeArgsBuilder.add("--pool=" + nodeInfo.getPool());
+
+        // add ip only if explicitly set on the agent
+        if (InetAddresses.coerceToInteger(nodeInfo.getBindIp()) != 0) {
+            nodeArgsBuilder.add("--ip=" + nodeInfo.getBindIp());
+        }
+        ImmutableList<String> nodeArgs = nodeArgsBuilder.build();
+
         status = new Command("./launcher", "status").setTimeLimit(config.getLauncherTimeout()).setSuccessfulExitCodes(0, 1, 2, 3);
-        start = new Command("./launcher", "start").setTimeLimit(config.getLauncherTimeout());
+        start = new Command("./launcher", "start").addArgs(nodeArgs).setTimeLimit(config.getLauncherTimeout());
         stop = new Command("./launcher", "stop").setTimeLimit(config.getLauncherTimeout());
-        restart = new Command("./launcher", "restart").setTimeLimit(config.getLauncherTimeout());
+        restart = new Command("./launcher", "restart").addArgs(nodeArgs).setTimeLimit(config.getLauncherTimeout());
         executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("launcher-command-%s").build());
     }
 
@@ -57,7 +72,7 @@ public class LauncherLifecycleManager implements LifecycleManager
     public LifecycleState start(Deployment deployment)
     {
         try {
-            start.setDirectory(new File(deployment.getDeploymentDir(), "bin")).execute(executor);
+            start.addArgs("--id=" + deployment.getDeploymentId()).setDirectory(new File(deployment.getDeploymentDir(), "bin")).execute(executor);
             return RUNNING;
         }
         catch (CommandFailedException e) {
@@ -69,7 +84,7 @@ public class LauncherLifecycleManager implements LifecycleManager
     public LifecycleState restart(Deployment deployment)
     {
         try {
-            restart.setDirectory(new File(deployment.getDeploymentDir(), "bin")).execute(executor);
+            restart.addArgs("--id=" + deployment.getDeploymentId()).setDirectory(new File(deployment.getDeploymentDir(), "bin")).execute(executor);
             return RUNNING;
         }
         catch (CommandFailedException e) {

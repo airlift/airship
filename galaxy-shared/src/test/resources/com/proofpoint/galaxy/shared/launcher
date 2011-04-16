@@ -57,7 +57,12 @@ class Pid
 end
 
 def restart(options)
-  start(options)
+  code, message = stop(options)
+  if code != :success then
+    return code, message
+  else
+    start(options)
+  end
 end
 
 def start(options)
@@ -124,6 +129,22 @@ option_parser = OptionParser.new do |opts|
 
   opts.on("--pid-file FILE", "Defaults to INSTALL_PATH/var/run/launcher.pid") do |v|
     options[:pid_file] = Pathname.new(v).expand_path
+  end
+
+  opts.on("--environment ENVIRONMENT", "Environment in which this server is running") do |v|
+    options[:environment] = v
+  end
+
+  opts.on("--pool POOL", "Pool of which this server is a member") do |v|
+    options[:environment] = v
+  end
+
+  opts.on("--ip IP", "IP address for this server") do |v|
+    options[:ip] = v
+  end
+
+  opts.on("--id ID", "Unique id of this server") do |v|
+    options[:ip] = v
   end
 
   opts.on('-h', '--help', 'Display this screen') do
