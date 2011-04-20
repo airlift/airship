@@ -39,8 +39,8 @@ public class Coordinator
                     @Override
                     public void onEviction(UUID id, AgentStatus agentStatus)
                     {
+                        slotsLock.writeLock().lock();
                         try {
-                            slotsLock.writeLock().lock();
                             for (SlotStatus slotStatus : agentStatus.getSlots()) {
                                 slots.remove(slotStatus.getId());
                             }
