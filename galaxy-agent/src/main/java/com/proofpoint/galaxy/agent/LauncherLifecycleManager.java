@@ -2,7 +2,6 @@ package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -36,7 +35,6 @@ public class LauncherLifecycleManager implements LifecycleManager
 
         ImmutableList.Builder<String> nodeArgsBuilder = ImmutableList.builder();
         nodeArgsBuilder.add("--environment=" + nodeInfo.getEnvironment());
-        nodeArgsBuilder.add("--pool=" + nodeInfo.getPool());
 
         // add ip only if explicitly set on the agent
         if (InetAddresses.coerceToInteger(nodeInfo.getBindIp()) != 0) {
