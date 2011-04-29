@@ -4,7 +4,7 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
     <packaging>gem</packaging>
     <name>galaxy</name>
 
