@@ -3,13 +3,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>galaxy</artifactId>
+    <artifactId>cli</artifactId>
     <version>0.3-SNAPSHOT</version>
     <packaging>gem</packaging>
     <name>galaxy</name>
 
     <description>Galaxy command line interface</description>
     <url>https://github.com/dain/galaxy-server</url>
+
+    <developers>
+        <developer>
+            <id>dain</id>
+            <name>Dain Sundstrom</name>
+            <email>dain@iq80.com</email>
+        </developer>
+    </developers>
 
     <distributionManagement>
         <repository>
