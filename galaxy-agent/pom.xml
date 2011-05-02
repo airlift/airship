@@ -14,14 +14,14 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-agent</artifactId>
-    <version>0.3-SNAPSHOT</version>
+    <version>0.3</version>
     <name>galaxy-agent</name>
 
     <dependencies>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.3-SNAPSHOT</version>
+            <version>0.3</version>
         </dependency>
 
         <dependency>
@@ -115,7 +115,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.3-SNAPSHOT</version>
+            <version>0.3</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
