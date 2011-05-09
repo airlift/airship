@@ -69,7 +69,7 @@ public class TestCoordinatorAssignmentResource
                 "banana",
                 URI.create("fake://bananaServer/v1/slot/banana"));
 
-        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+        AgentStatus agentStatus = new AgentStatus(URI.create("fake://appleServer1/"), UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
 

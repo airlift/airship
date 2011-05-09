@@ -36,19 +36,27 @@ import java.util.List;
 public class SlotResource
 {
     private final Agent agent;
+    private final AnnouncementService announcementService;
 
     @Inject
-    public SlotResource(Agent agent)
+    public SlotResource(Agent agent, AnnouncementService announcementService)
     {
-        Preconditions.checkNotNull(agent, "slotsManager must not be null");
+        Preconditions.checkNotNull(agent, "agent is null");
+        Preconditions.checkNotNull(announcementService, "announcementService is null");
 
         this.agent = agent;
+        this.announcementService = announcementService;
     }
 
     @POST
     public Response addSlot(@Context UriInfo uriInfo)
     {
         Slot slot = agent.addNewSlot();
+        try {
+            announcementService.announce();
+        }
+        catch (Exception ignored) {
+        }
         return Response.created(getSelfUri(slot.getName(), uriInfo.getBaseUri())).build();
     }
 

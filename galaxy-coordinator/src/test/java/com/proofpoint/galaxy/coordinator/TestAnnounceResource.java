@@ -40,14 +40,14 @@ public class TestAnnounceResource
     {
         coordinator = new Coordinator(new MockRemoteSlotFactory(), new CoordinatorConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
         resource = new AnnounceResource(coordinator);
-        agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
+        agentStatus = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
     }
 
     @Test
     public void testUpdateAgentStatus()
     {
         coordinator.updateAgentStatus(agentStatus);
-        AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo")), new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"))));
+        AgentStatus newFooAgent = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo")), new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"))));
 
         Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, URI.create("http://localhost/v1/agent")));
 

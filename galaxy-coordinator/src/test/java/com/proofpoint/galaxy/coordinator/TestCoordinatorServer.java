@@ -134,7 +134,7 @@ public class TestCoordinatorServer
                 STOPPED,
                 BANANA_ASSIGNMENT);
 
-        agentStatus = new AgentStatus(UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+        agentStatus = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
 
@@ -327,7 +327,7 @@ public class TestCoordinatorServer
     public void testUpdateAgentStatus()
             throws Exception
     {
-        AgentStatus newAgentStatus = new AgentStatus(agentStatus.getAgentId(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
+        AgentStatus newAgentStatus = new AgentStatus(URI.create("fake://foo/"), agentStatus.getAgentId(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
 
         String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(newAgentStatus, server.getBaseUrl()));
         Response response = client.preparePut(urlFor("/v1/announce/" + agentStatus.getAgentId()))

@@ -24,7 +24,7 @@ public class AgentStatusRepresentation
         for (SlotStatus slot : status.getSlots()) {
             builder.add(SlotStatusRepresentation.from(slot));
         }
-        return new AgentStatusRepresentation(status.getAgentId(), builder.build(), getSelfUri(status, baseUri));
+        return new AgentStatusRepresentation(status.getAgentId(), builder.build(), status.getUri());
     }
 
     public static URI getSelfUri(AgentStatus status, URI baseUri)
@@ -68,7 +68,7 @@ public class AgentStatusRepresentation
         for (SlotStatusRepresentation slot : slots) {
             builder.add(slot.toSlotStatus());
         }
-        return new AgentStatus(agentId, builder.build());
+        return new AgentStatus(self, agentId, builder.build());
     }
 
     @Override

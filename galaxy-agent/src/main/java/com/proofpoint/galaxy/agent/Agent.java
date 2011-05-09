@@ -122,7 +122,7 @@ public class Agent
             SlotStatus slotStatus = slot.status();
             builder.add(slotStatus);
         }
-        AgentStatus agentStatus = new AgentStatus(agentId, builder.build());
+        AgentStatus agentStatus = new AgentStatus(httpServerInfo.getHttpUri(), agentId, builder.build());
         return agentStatus;
     }
 

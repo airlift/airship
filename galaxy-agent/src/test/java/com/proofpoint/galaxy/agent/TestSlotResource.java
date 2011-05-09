@@ -45,11 +45,14 @@ public class TestSlotResource
     public void setup()
     {
 
-        agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
-                new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test")),
+        AgentConfig agentConfig = new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir"));
+        HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test"));
+        agent = new Agent(agentConfig,
+                httpServerInfo,
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());
-        resource = new SlotResource(agent);
+        AnnouncementService announcementService = new AnnouncementService(agentConfig, agent, httpServerInfo);
+        resource = new SlotResource(agent, announcementService);
     }
 
     @Test
