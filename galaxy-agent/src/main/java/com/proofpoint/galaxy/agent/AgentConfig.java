@@ -24,8 +24,10 @@ import java.util.concurrent.TimeUnit;
 public class AgentConfig
 {
     private URI coordinatorBaseURI;
-    private String slotsDir;
+    private String slotsDir = "slots";
+    private String dataDir = "data";
     private Duration launcherTimeout = new Duration(1, TimeUnit.SECONDS);
+    private Duration launcherStopTimeout = new Duration(10, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);
 
@@ -56,6 +58,19 @@ public class AgentConfig
     }
 
     @NotNull
+    public String getDataDir()
+    {
+        return dataDir;
+    }
+
+    @Config("agent.data-dir")
+    public AgentConfig setDataDir(String dataDir)
+    {
+        this.dataDir = dataDir;
+        return this;
+    }
+
+    @NotNull
     public Duration getLauncherTimeout()
     {
         return launcherTimeout;
@@ -65,6 +80,19 @@ public class AgentConfig
     public AgentConfig setLauncherTimeout(Duration launcherTimeout)
     {
         this.launcherTimeout = launcherTimeout;
+        return this;
+    }
+
+    @NotNull
+    public Duration getLauncherStopTimeout()
+    {
+        return launcherStopTimeout;
+    }
+
+    @Config("agent.launcher-stop-timeout")
+    public AgentConfig setLauncherStopTimeout(Duration launcherStopTimeout)
+    {
+        this.launcherStopTimeout = launcherStopTimeout;
         return this;
     }
 

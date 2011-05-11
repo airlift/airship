@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.proofpoint.bootstrap.Bootstrap;
+import com.proofpoint.experimental.discovery.client.DiscoveryModule;
 import com.proofpoint.experimental.json.JsonModule;
 import com.proofpoint.http.server.HttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -27,6 +28,7 @@ public class AgentMain
             throws Exception
     {
         Bootstrap app = new Bootstrap(
+                new DiscoveryModule(),
                 new NodeModule(),
                 new HttpServerModule(),
                 new JsonModule(),

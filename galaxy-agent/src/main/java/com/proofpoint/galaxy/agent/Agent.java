@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static java.lang.Math.max;
+import static java.lang.String.format;
 
 public class Agent
 {
@@ -61,7 +62,19 @@ public class Agent
         this.lifecycleManager = lifecycleManager;
 
         slots = new ConcurrentHashMap<String, Slot>();
+        
         slotsDir = new File(this.config.getSlotsDir());
+        if (!slotsDir.isDirectory()) {
+            slotsDir.mkdirs();
+            Preconditions.checkArgument(slotsDir.isDirectory(), format("Slots directory %s is not a directory", slotsDir));
+        }
+
+        // Assure data dir exists or can be created
+        File dataDir = new File(this.config.getSlotsDir());
+        if (!dataDir.isDirectory()) {
+            dataDir.mkdirs();
+            Preconditions.checkArgument(dataDir.isDirectory(), format("Data directory %s is not a directory", dataDir));
+        }
 
         //
         // Load agent id or create a new one (and save it)

@@ -19,31 +19,50 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.io.File;
+import java.util.UUID;
 
 public class DeploymentRepresentation
 {
+    private final String slotName;
     private final String deploymentId;
+    private final UUID nodeId;
     private final AssignmentRepresentation assignment;
 
     public static DeploymentRepresentation from(Deployment deployment)
     {
-        return new DeploymentRepresentation(deployment.getDeploymentId(), AssignmentRepresentation.from(deployment.getAssignment()));
+        return new DeploymentRepresentation(deployment.getDeploymentId(), deployment.getSlotName(), deployment.getNodeId(), AssignmentRepresentation.from(deployment.getAssignment()));
     }
 
     @JsonCreator
-    public DeploymentRepresentation(@JsonProperty("deploymentId") String deploymentId, @JsonProperty("assignment") AssignmentRepresentation assignment)
+    public DeploymentRepresentation(@JsonProperty("deploymentId") String deploymentId, @JsonProperty("slotName") String slotName, @JsonProperty("nodeId") UUID nodeId, @JsonProperty("assignment") AssignmentRepresentation assignment)
     {
         Preconditions.checkNotNull(deploymentId, "deploymentId is null");
+        Preconditions.checkNotNull(slotName, "slotName is null");
+        Preconditions.checkNotNull(nodeId, "nodeId is null");
         Preconditions.checkNotNull(assignment, "assignment is null");
 
         this.deploymentId = deploymentId;
+        this.slotName = slotName;
+        this.nodeId = nodeId;
         this.assignment = assignment;
+    }
+
+    @JsonProperty
+    public String getSlotName()
+    {
+        return slotName;
     }
 
     @JsonProperty
     public String getDeploymentId()
     {
         return deploymentId;
+    }
+
+    @JsonProperty
+    public UUID getNodeId()
+    {
+        return nodeId;
     }
 
     @JsonProperty
@@ -54,7 +73,7 @@ public class DeploymentRepresentation
 
     public Deployment toDeployment(File deploymentDir)
     {
-        return new Deployment(deploymentId, deploymentDir, assignment.toAssignment());
+        return new Deployment(deploymentId, slotName, nodeId, deploymentDir, assignment.toAssignment());
     }
 
     @Override
@@ -87,7 +106,9 @@ public class DeploymentRepresentation
     {
         final StringBuffer sb = new StringBuffer();
         sb.append("Deployment");
-        sb.append("{deploymentId='").append(deploymentId).append('\'');
+        sb.append("{slotName='").append(slotName).append('\'');
+        sb.append(", deploymentId='").append(deploymentId).append('\'');
+        sb.append(", nodeId=").append(nodeId);
         sb.append(", assignment=").append(assignment);
         sb.append('}');
         return sb.toString();

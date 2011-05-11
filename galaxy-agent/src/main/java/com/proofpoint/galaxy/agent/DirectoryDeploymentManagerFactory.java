@@ -41,6 +41,6 @@ public class DirectoryDeploymentManagerFactory implements DeploymentManagerFacto
     @Override
     public DirectoryDeploymentManager createDeploymentManager(String slotName)
     {
-        return new DirectoryDeploymentManager(config, new File(slotDir, slotName));
+        return new DirectoryDeploymentManager(config, slotName, new File(slotDir, slotName));
     }
 }

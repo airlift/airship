@@ -1,5 +1,7 @@
 {
+    "slotName":"slot",
     "deploymentId":"deployment1",
+    "nodeId" : "12345678-1234-1234-1234-123456789012",
     "assignment": {
         "binary": "food.fruit:apple:1.0",
         "config": "@prod:apple:1.0"

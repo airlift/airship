@@ -47,7 +47,7 @@ public class MockDeploymentManager implements DeploymentManager
         Preconditions.checkNotNull(installation, "installation is null");
 
         String deploymentId = "Deployment-" + nextId.getAndIncrement();
-        Deployment deployment = new Deployment(deploymentId, new File(deploymentId), installation.getAssignment());
+        Deployment deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), new File(deploymentId), installation.getAssignment());
         deployments.put(deploymentId, deployment);
         return deployment;
     }

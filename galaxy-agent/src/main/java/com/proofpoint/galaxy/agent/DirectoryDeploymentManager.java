@@ -36,6 +36,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
     private final JsonCodec<DeploymentRepresentation> jsonCodec = jsonCodec(DeploymentRepresentation.class);
 
     private final UUID slotId;
+    private final String slotName;
     private final Duration tarTimeout;
     private final File baseDir;
 
@@ -43,9 +44,11 @@ public class DirectoryDeploymentManager implements DeploymentManager
     private Deployment activeDeployment;
     private File activeDeploymentFile;
 
-    public DirectoryDeploymentManager(AgentConfig config, File baseDir)
+    public DirectoryDeploymentManager(AgentConfig config, String slotName, File baseDir)
     {
         Preconditions.checkNotNull(config, "config is null");
+        Preconditions.checkNotNull(slotName, "slotName is null");
+        this.slotName = slotName;
         this.tarTimeout = config.getTarTimeout();
 
         Preconditions.checkNotNull(baseDir, "baseDir is null");
@@ -138,7 +141,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
     @Override
     public String getSlotName()
     {
-        return baseDir.getName();
+        return slotName;
     }
 
     @Override
@@ -156,7 +159,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
         File deploymentDir = new File(baseDir, deploymentId);
 
         Assignment assignment = installation.getAssignment();
-        Deployment deployment = new Deployment(deploymentId, deploymentDir, assignment);
+        Deployment deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), deploymentDir, assignment);
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary

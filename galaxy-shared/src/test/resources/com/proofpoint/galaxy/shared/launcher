@@ -112,6 +112,7 @@ options = {
         :install_path => install_path
         }
 
+system_properties = []
 option_parser = OptionParser.new do |opts|
   banner = <<-BANNER
     Usage: #{File.basename($0)} [options] <command>
@@ -131,20 +132,15 @@ option_parser = OptionParser.new do |opts|
     options[:pid_file] = Pathname.new(v).expand_path
   end
 
-  opts.on("--environment ENVIRONMENT", "Environment in which this server is running") do |v|
-    options[:environment] = v
+  opts.on("--data DIR", "The data directory for this server") do |v|
+    options[:data] = Pathname.new(v).expand_path
   end
 
-  opts.on("--pool POOL", "Pool of which this server is a member") do |v|
-    options[:environment] = v
-  end
-
-  opts.on("--ip IP", "IP address for this server") do |v|
-    options[:ip] = v
-  end
-
-  opts.on("--id ID", "Unique id of this server") do |v|
-    options[:ip] = v
+  opts.on("-D<name>=<value>", "Sets a Java System property") do |v|
+    if v.start_with?("config=") then
+      raise("Config can not be passed in a -D argument.  Use --config instead")
+    end
+    system_properties << "-D#{v}"
   end
 
   opts.on('-h', '--help', 'Display this screen') do

@@ -13,6 +13,7 @@
  */
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.io.Files;
 import com.proofpoint.galaxy.shared.LifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -26,6 +27,8 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
+import java.io.File;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
@@ -43,7 +46,12 @@ public class TestLifecycleResource
     @BeforeMethod
     public void setup()
     {
-        Agent agent = new Agent(new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir")),
+        File tempDir = new File(System.getProperty("java.io.tmpdir"));
+
+        Agent agent = new Agent(
+                new AgentConfig()
+                        .setSlotsDir(new File(tempDir, "slots").getAbsolutePath())
+                        .setDataDir(new File(tempDir, "data").getAbsolutePath()),
                 new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test")),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());

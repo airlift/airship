@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.File;
 import java.net.URI;
 import java.util.Collection;
 
@@ -44,8 +45,12 @@ public class TestSlotResource
     @BeforeMethod
     public void setup()
     {
+        File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
-        AgentConfig agentConfig = new AgentConfig().setSlotsDir(System.getProperty("java.io.tmpdir"));
+        AgentConfig agentConfig = new AgentConfig()
+                .setCoordinatorBaseURI(URI.create("fake://server"))
+                .setSlotsDir(new File(tempDir, "slots").getAbsolutePath())
+                .setDataDir(new File(tempDir, "data").getAbsolutePath());
         HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test"));
         agent = new Agent(agentConfig,
                 httpServerInfo,

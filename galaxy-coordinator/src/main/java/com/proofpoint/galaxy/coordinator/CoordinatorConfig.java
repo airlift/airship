@@ -13,41 +13,44 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.proofpoint.configuration.Config;
 import com.proofpoint.units.Duration;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class CoordinatorConfig
 {
-    private String binaryRepoBase;
-    private String configRepoBase;
+    private List<String> binaryRepoBases = ImmutableList.of();
+    private List<String> configRepoBases = ImmutableList.of();
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
     @NotNull
-    public String getBinaryRepoBase()
+    public List<String> getBinaryRepoBases()
     {
-        return binaryRepoBase;
+        return binaryRepoBases;
     }
 
     @Config("coordinator.binary-repo")
-    public CoordinatorConfig setBinaryRepoBase(String binaryRepoBase)
+    public CoordinatorConfig setBinaryRepoBases(String binaryRepoBases)
     {
-        this.binaryRepoBase = binaryRepoBase;
+        this.binaryRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(binaryRepoBases));
         return this;
     }
 
     @NotNull
-    public String getConfigRepoBase()
+    public List<String> getConfigRepoBases()
     {
-        return configRepoBase;
+        return configRepoBases;
     }
 
     @Config("coordinator.config-repo")
-    public CoordinatorConfig setConfigRepoBase(String configRepoBase)
+    public CoordinatorConfig setConfigRepoBases(String configRepoBases)
     {
-        this.configRepoBase = configRepoBase;
+        this.configRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(configRepoBases));
         return this;
     }
 

@@ -18,21 +18,28 @@ import com.proofpoint.galaxy.shared.Assignment;
 
 import javax.annotation.concurrent.Immutable;
 import java.io.File;
+import java.util.UUID;
 
 @Immutable
 public class Deployment
 {
+    private final String slotName;
     private final String deploymentId;
+    private final UUID nodeId;
     private final File deploymentDir;
     private final Assignment assignment;
 
-    public Deployment(String deploymentId, File deploymentDir, Assignment assignment)
+    public Deployment(String deploymentId, String slotName, UUID nodeId, File deploymentDir, Assignment assignment)
     {
         Preconditions.checkNotNull(deploymentId, "deploymentId is null");
+        Preconditions.checkNotNull(slotName, "slotName is null");
+        Preconditions.checkNotNull(nodeId, "nodeId is null");
         Preconditions.checkNotNull(deploymentDir, "deploymentDir is null");
         Preconditions.checkNotNull(assignment, "assignment is null");
 
+        this.slotName = slotName;
         this.deploymentId = deploymentId;
+        this.nodeId = nodeId;
         this.deploymentDir = deploymentDir;
         this.assignment = assignment;
     }
@@ -40,6 +47,16 @@ public class Deployment
     public String getDeploymentId()
     {
         return deploymentId;
+    }
+
+    public String getSlotName()
+    {
+        return slotName;
+    }
+
+    public UUID getNodeId()
+    {
+        return nodeId;
     }
 
     public File getDeploymentDir()
@@ -83,6 +100,8 @@ public class Deployment
         final StringBuffer sb = new StringBuffer();
         sb.append("Deployment");
         sb.append("{deploymentId='").append(deploymentId).append('\'');
+        sb.append(", slotName='").append(slotName).append('\'');
+        sb.append(", nodeId=").append(nodeId);
         sb.append(", deploymentDir=").append(deploymentDir);
         sb.append(", assignment=").append(assignment);
         sb.append('}');

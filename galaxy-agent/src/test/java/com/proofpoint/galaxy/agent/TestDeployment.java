@@ -17,6 +17,7 @@ import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
@@ -29,7 +30,7 @@ public class TestDeployment
     @Test
     public void testConstructor()
     {
-        Deployment deployment = new Deployment("one", new File("one"), APPLE_ASSIGNMENT);
+        Deployment deployment = new Deployment("one", "slot", UUID.randomUUID(), new File("one"), APPLE_ASSIGNMENT);
 
         assertEquals(deployment.getDeploymentId(), "one");
         assertEquals(deployment.getAssignment(), APPLE_ASSIGNMENT);
@@ -40,19 +41,25 @@ public class TestDeployment
     public void testNullConstructorArgs()
     {
         try {
-            new Deployment(null, new File("one"), APPLE_ASSIGNMENT);
+            new Deployment("one", null, UUID.randomUUID(), new File("one"), APPLE_ASSIGNMENT);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("one", null, APPLE_ASSIGNMENT);
+            new Deployment(null, "slot", UUID.randomUUID(), new File("one"), APPLE_ASSIGNMENT);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("one", new File("one"), null);
+            new Deployment("one", "slot", UUID.randomUUID(), null, APPLE_ASSIGNMENT);
+            fail("expected NullPointerException");
+        }
+        catch (NullPointerException expected) {
+        }
+        try {
+            new Deployment("one", "slot", UUID.randomUUID(), new File("one"), null);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
@@ -65,14 +72,14 @@ public class TestDeployment
         // identity is only based on deploymentId
         EquivalenceTester.check(
                 asList(
-                        new Deployment("one", new File("one"), APPLE_ASSIGNMENT),
-                        new Deployment("one", new File("other"), APPLE_ASSIGNMENT),
-                        new Deployment("one", new File("one"), BANANA_ASSIGNMENT)
+                        new Deployment("one", "slot", UUID.randomUUID(), new File("one"), APPLE_ASSIGNMENT),
+                        new Deployment("one", "slot", UUID.randomUUID(), new File("other"), APPLE_ASSIGNMENT),
+                        new Deployment("one", "slot", UUID.randomUUID(), new File("one"), BANANA_ASSIGNMENT)
                 ),
                 asList(
-                        new Deployment("two", new File("one"), APPLE_ASSIGNMENT),
-                        new Deployment("two", new File("other"), APPLE_ASSIGNMENT),
-                        new Deployment("two", new File("one"), BANANA_ASSIGNMENT)
+                        new Deployment("two", "slot", UUID.randomUUID(), new File("one"), APPLE_ASSIGNMENT),
+                        new Deployment("two", "slot", UUID.randomUUID(), new File("other"), APPLE_ASSIGNMENT),
+                        new Deployment("two", "slot", UUID.randomUUID(), new File("one"), BANANA_ASSIGNMENT)
                 )
         );
     }

@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>testing</artifactId>
-            <version>0.39</version>
+            <version>0.41-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

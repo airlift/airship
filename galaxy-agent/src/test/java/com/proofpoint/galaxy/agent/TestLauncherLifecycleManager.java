@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
+import com.proofpoint.experimental.discovery.client.DiscoveryClientConfig;
 import com.proofpoint.galaxy.shared.ArchiveHelper;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.node.NodeInfo;
@@ -23,6 +24,7 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.io.Resources.getResource;
@@ -34,13 +36,21 @@ import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
 {
     private File tempDir;
+    private File slotDir;
 
     @BeforeMethod
     protected void setUp()
             throws Exception
     {
         tempDir = Files.createTempDir().getCanonicalFile();
-        manager = new LauncherLifecycleManager(new AgentConfig().setSlotsDir(tempDir.getAbsolutePath()).setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)), new NodeInfo("test"));
+        slotDir = new File(tempDir, "slots");
+        manager = new LauncherLifecycleManager(
+                new AgentConfig()
+                        .setSlotsDir(slotDir.getAbsolutePath())
+                        .setDataDir(new File(tempDir, "data").getAbsolutePath())
+                        .setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)),
+                new NodeInfo("test"),
+                new DiscoveryClientConfig());
 
         appleDeployment = createDeploymentDir(APPLE_ASSIGNMENT);
         bananaDeployment = createDeploymentDir(BANANA_ASSIGNMENT);
@@ -50,7 +60,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
             throws IOException
     {
         String name = assignment.getConfig().getComponent();
-        File deploymentDir = new File(tempDir, name);
+        File deploymentDir = new File(slotDir, name);
         File launcher = new File(deploymentDir, "bin/launcher");
 
         // copy launcher script
@@ -58,7 +68,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         Files.copy(newInputStreamSupplier(getResource(ArchiveHelper.class, "launcher")), launcher);
         launcher.setExecutable(true, true);
 
-        return new Deployment(name, deploymentDir, assignment);
+        return new Deployment(name, "slot", UUID.randomUUID(), deploymentDir, assignment);
     }
 
     @AfterMethod

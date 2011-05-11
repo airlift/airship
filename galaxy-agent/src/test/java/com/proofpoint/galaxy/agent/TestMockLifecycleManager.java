@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.agent;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
+import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
@@ -27,7 +28,7 @@ public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
             throws Exception
     {
         manager = new MockLifecycleManager();
-        appleDeployment = new Deployment("apple", new File("apple"), APPLE_ASSIGNMENT);
-        bananaDeployment = new Deployment("banana", new File("banana"), BANANA_ASSIGNMENT);
+        appleDeployment = new Deployment("apple", "slot", UUID.randomUUID(), new File("apple"), APPLE_ASSIGNMENT);
+        bananaDeployment = new Deployment("banana", "slot", UUID.randomUUID(), new File("banana"), BANANA_ASSIGNMENT);
     }
 }

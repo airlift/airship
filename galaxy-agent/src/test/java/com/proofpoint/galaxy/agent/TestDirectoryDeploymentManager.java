@@ -55,7 +55,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
             throws IOException
     {
         tempDir = Files.createTempDir().getCanonicalFile();
-        manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
+        manager = new DirectoryDeploymentManager(new AgentConfig(), "slot", tempDir);
     }
 
     @AfterMethod
@@ -76,7 +76,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
 
 
         // replace the deployment manager with a new one, which will cause the persistent data to reload
-        manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
+        manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir.getName(), tempDir);
 
 
         // active deployment should still be apple
@@ -92,7 +92,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
 
 
         // replace the deployment manager again: this time no deployments are active
-        manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
+        manager = new DirectoryDeploymentManager(new AgentConfig(), "slot", tempDir);
 
 
         // no deployment should be active
@@ -115,7 +115,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
 
 
         // replace the deployment manager one last time: this time there are no deployments
-        manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir);
+        manager = new DirectoryDeploymentManager(new AgentConfig(), "slot", tempDir);
 
 
         // activate apple and banana: throws exception: no active deployment

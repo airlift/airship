@@ -21,6 +21,7 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.experimental.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonModule;
 import com.proofpoint.galaxy.agent.Agent;
@@ -127,10 +128,12 @@ public class TestServerIntegration
         Map<String, String> agentProperties = ImmutableMap.<String, String>builder()
                 .put("agent.coordinator-uri", coordinatorServer.getBaseUrl().toString())
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
+                .put("discovery.uri", "fake://server")
                 .build();
 
         Injector agentInjector = Guice.createInjector(new TestingHttpServerModule(),
                 new TestingNodeModule(),
+                new TestingDiscoveryModule(),
                 new JsonModule(),
                 new JaxrsModule(),
                 new AgentMainModule(),

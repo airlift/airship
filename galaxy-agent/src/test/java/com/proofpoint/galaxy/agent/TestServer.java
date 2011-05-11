@@ -22,6 +22,7 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.experimental.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.experimental.json.JsonModule;
 import com.proofpoint.galaxy.shared.Installation;
@@ -83,9 +84,11 @@ public class TestServer
         Map<String, String> properties = ImmutableMap.<String, String>builder()
                 .put("agent.coordinator-uri", "http://localhost:9999/")
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
+                .put("discovery.uri", "fake://server")
                 .build();
 
         Injector injector = Guice.createInjector(
+                new TestingDiscoveryModule(),
                 new TestingNodeModule(),
                 new JsonModule(),
                 new TestingHttpServerModule(),

@@ -19,6 +19,8 @@ import com.proofpoint.experimental.json.JsonCodec;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import org.testng.annotations.Test;
 
+import java.util.UUID;
+
 import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
@@ -27,12 +29,13 @@ public class TestDeploymentRepresentation
 {
     private final JsonCodec<DeploymentRepresentation> codec = jsonCodec(DeploymentRepresentation.class);
 
-    private final DeploymentRepresentation expected = new DeploymentRepresentation("deployment1", AssignmentRepresentation.from(APPLE_ASSIGNMENT));
+    private final DeploymentRepresentation expected = new DeploymentRepresentation("deployment1", "slot", UUID.fromString("12345678-1234-1234-1234-123456789012"), AssignmentRepresentation.from(APPLE_ASSIGNMENT));
 
     @Test
     public void testJsonRoundTrip()
     {
         String json = codec.toJson(expected);
+        System.out.println(json);
         DeploymentRepresentation actual = codec.fromJson(json);
         assertEquals(actual, expected);
     }
