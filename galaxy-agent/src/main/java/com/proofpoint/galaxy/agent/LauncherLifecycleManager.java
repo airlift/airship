@@ -126,19 +126,12 @@ public class LauncherLifecycleManager implements LifecycleManager
 
     private Command createCommand(String commandName, Deployment deployment, Duration timeLimit)
     {
-        ConfigSpec config = deployment.getAssignment().getConfig();
-        File dataDir = new File(new File(baseDataDir, config.getComponent()), getPool(config));
-        if (!dataDir.isDirectory()) {
-            dataDir.mkdirs();
-            Preconditions.checkArgument(dataDir.isDirectory(), format("Data directory %s is not a directory", dataDir));
-        }
 
         File launcherScript = new File(new File(deployment.getDeploymentDir(), "bin"), "launcher");
 
         Command command = new Command(launcherScript.getAbsolutePath(), commandName)
-                .setDirectory(dataDir)
-                .setTimeLimit(timeLimit)
-                .addArgs("--data").addArgs(dataDir.getAbsolutePath());
+                .setDirectory(getDataDir(deployment))
+                .setTimeLimit(timeLimit);
 
         return command;
     }
@@ -146,6 +139,7 @@ public class LauncherLifecycleManager implements LifecycleManager
     private Command addEnvironmentData(Command command, Deployment deployment)
     {
         return command.addArgs(generalNodeArgs)
+                .addArgs("--data").addArgs(getDataDir(deployment).getAbsolutePath())
                 .addArgs("-Dnode.pool=" + getPool(deployment.getAssignment().getConfig()))
                 .addArgs("-Dnode.id=" + deployment.getNodeId())
                 .addArgs("-Dnode.location=" + nodeInfo.getLocation() + "/" + deployment.getSlotName())
@@ -161,5 +155,16 @@ public class LauncherLifecycleManager implements LifecycleManager
         } else {
             return ServiceSelectorConfig.DEFAULT_POOL;
         }
+    }
+
+    private File getDataDir(Deployment deployment)
+    {
+        ConfigSpec config = deployment.getAssignment().getConfig();
+        File dataDir = new File(new File(baseDataDir, config.getComponent()), getPool(config));
+        if (!dataDir.isDirectory()) {
+            dataDir.mkdirs();
+            Preconditions.checkArgument(dataDir.isDirectory(), format("Data directory %s is not a directory", dataDir));
+        }
+        return dataDir;
     }
 }
