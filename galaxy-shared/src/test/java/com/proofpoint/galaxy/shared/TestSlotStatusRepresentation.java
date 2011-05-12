@@ -2,13 +2,13 @@ package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import com.proofpoint.experimental.json.JsonCodec;
+import com.proofpoint.json.JsonCodec;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.util.UUID;
 
-import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 

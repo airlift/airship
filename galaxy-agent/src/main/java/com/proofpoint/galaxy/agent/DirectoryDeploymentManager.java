@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.common.io.PatternFilenameFilter;
 import com.google.common.io.Resources;
-import com.proofpoint.experimental.json.JsonCodec;
+import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.CommandFailedException;
 import com.proofpoint.galaxy.shared.Installation;
@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.FileUtils.extractTar;

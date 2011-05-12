@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
-import com.proofpoint.experimental.json.JsonCodec;
+import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 
 import java.net.URI;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static com.proofpoint.experimental.json.JsonCodec.mapJsonCodec;
+import static com.proofpoint.json.JsonCodec.mapJsonCodec;
 
 public class SimpleConfigRepository implements ConfigRepository
 {

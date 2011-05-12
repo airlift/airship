@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import com.proofpoint.experimental.json.JsonCodec;
+import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.LifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -16,7 +16,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.util.UUID;
 
-import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+import static com.proofpoint.json.JsonCodec.jsonCodec;
 
 public class HttpRemoteSlot implements RemoteSlot
 {

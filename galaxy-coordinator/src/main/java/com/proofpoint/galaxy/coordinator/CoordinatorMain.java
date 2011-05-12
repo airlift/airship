@@ -14,7 +14,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.proofpoint.bootstrap.Bootstrap;
-import com.proofpoint.experimental.json.JsonModule;
+import com.proofpoint.json.JsonModule;
 import com.proofpoint.http.server.HttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.jmx.JmxModule;

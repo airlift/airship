@@ -16,12 +16,12 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
-import com.proofpoint.experimental.json.JsonCodec;
+import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import org.testng.annotations.Test;
 
-import static com.proofpoint.experimental.json.JsonCodec.jsonCodec;
+import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
 

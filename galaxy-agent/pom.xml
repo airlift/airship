@@ -51,6 +51,16 @@
 
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
+            <artifactId>discovery-experimental</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.proofpoint.platform</groupId>
+            <artifactId>event-experimental</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.proofpoint.platform</groupId>
             <artifactId>http-server</artifactId>
         </dependency>
 

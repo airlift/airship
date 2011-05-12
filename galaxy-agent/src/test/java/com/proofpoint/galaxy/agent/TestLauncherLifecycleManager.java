@@ -14,7 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
-import com.proofpoint.experimental.discovery.client.DiscoveryClientConfig;
+import com.proofpoint.discovery.client.DiscoveryClientConfig;
 import com.proofpoint.galaxy.shared.ArchiveHelper;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.node.NodeInfo;
