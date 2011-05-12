@@ -199,7 +199,7 @@ end
 #
 commands = [:show, :assign, :clear, :start, :stop, :restart, :ssh]
 options = {
-    :coordinator_url => ENV['GALAXY_COORDINATOR']
+    :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000'
 }
 filter = {}
 
