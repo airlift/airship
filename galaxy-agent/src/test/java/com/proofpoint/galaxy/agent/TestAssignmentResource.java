@@ -55,9 +55,7 @@ public class TestAssignmentResource
         File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
         agent = new Agent(
-                new AgentConfig()
-                        .setSlotsDir(new File(tempDir, "slots").getAbsolutePath())
-                        .setDataDir(new File(tempDir, "data").getAbsolutePath()),
+                new AgentConfig().setSlotsDir(new File(tempDir, "slots").getAbsolutePath()),
                 new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test")),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());

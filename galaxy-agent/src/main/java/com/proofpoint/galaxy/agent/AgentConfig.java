@@ -25,7 +25,6 @@ public class AgentConfig
 {
     private URI coordinatorBaseURI;
     private String slotsDir = "slots";
-    private String dataDir = "data";
     private Duration launcherTimeout = new Duration(1, TimeUnit.SECONDS);
     private Duration launcherStopTimeout = new Duration(10, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
@@ -54,19 +53,6 @@ public class AgentConfig
     public AgentConfig setSlotsDir(String slotsDir)
     {
         this.slotsDir = slotsDir;
-        return this;
-    }
-
-    @NotNull
-    public String getDataDir()
-    {
-        return dataDir;
-    }
-
-    @Config("agent.data-dir")
-    public AgentConfig setDataDir(String dataDir)
-    {
-        this.dataDir = dataDir;
         return this;
     }
 

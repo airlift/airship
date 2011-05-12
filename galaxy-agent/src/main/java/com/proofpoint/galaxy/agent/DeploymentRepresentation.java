@@ -71,9 +71,9 @@ public class DeploymentRepresentation
         return assignment;
     }
 
-    public Deployment toDeployment(File deploymentDir)
+    public Deployment toDeployment(File deploymentDir, File dataDir)
     {
-        return new Deployment(deploymentId, slotName, nodeId, deploymentDir, assignment.toAssignment());
+        return new Deployment(deploymentId, slotName, nodeId, deploymentDir, dataDir, assignment.toAssignment());
     }
 
     @Override

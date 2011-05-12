@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
+import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.Installation;
 
 import java.io.File;
@@ -47,7 +48,12 @@ public class MockDeploymentManager implements DeploymentManager
         Preconditions.checkNotNull(installation, "installation is null");
 
         String deploymentId = "Deployment-" + nextId.getAndIncrement();
-        Deployment deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), new File(deploymentId), installation.getAssignment());
+        ConfigSpec config = installation.getAssignment().getConfig();
+        String pool = config.getPool();
+        if (pool == null) {
+            pool = "general";
+        }
+        Deployment deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), new File(deploymentId), new File(new File("data", config.getComponent()), pool), installation.getAssignment());
         deployments.put(deploymentId, deployment);
         return deployment;
     }

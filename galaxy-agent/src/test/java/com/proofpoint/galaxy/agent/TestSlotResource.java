@@ -49,8 +49,7 @@ public class TestSlotResource
 
         AgentConfig agentConfig = new AgentConfig()
                 .setCoordinatorBaseURI(URI.create("fake://server"))
-                .setSlotsDir(new File(tempDir, "slots").getAbsolutePath())
-                .setDataDir(new File(tempDir, "data").getAbsolutePath());
+                .setSlotsDir(new File(tempDir, "slots").getAbsolutePath());
         HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test"));
         agent = new Agent(agentConfig,
                 httpServerInfo,

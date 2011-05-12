@@ -47,7 +47,6 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         manager = new LauncherLifecycleManager(
                 new AgentConfig()
                         .setSlotsDir(slotDir.getAbsolutePath())
-                        .setDataDir(new File(tempDir, "data").getAbsolutePath())
                         .setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)),
                 new NodeInfo("test"),
                 new DiscoveryClientConfig());
@@ -61,6 +60,8 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
     {
         String name = assignment.getConfig().getComponent();
         File deploymentDir = new File(slotDir, name);
+        File dataDir = new File(slotDir, "data");
+        dataDir.mkdirs();
         File launcher = new File(deploymentDir, "bin/launcher");
 
         // copy launcher script
@@ -68,7 +69,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         Files.copy(newInputStreamSupplier(getResource(ArchiveHelper.class, "launcher")), launcher);
         launcher.setExecutable(true, true);
 
-        return new Deployment(name, "slot", UUID.randomUUID(), deploymentDir, assignment);
+        return new Deployment(name, "slot", UUID.randomUUID(), deploymentDir, dataDir, assignment);
     }
 
     @AfterMethod

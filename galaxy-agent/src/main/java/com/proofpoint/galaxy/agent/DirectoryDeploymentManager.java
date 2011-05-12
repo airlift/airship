@@ -159,7 +159,10 @@ public class DirectoryDeploymentManager implements DeploymentManager
         File deploymentDir = new File(baseDir, deploymentId);
 
         Assignment assignment = installation.getAssignment();
-        Deployment deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), deploymentDir, assignment);
+
+        File dataDir = getDataDir(assignment);
+
+        Deployment deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), deploymentDir, dataDir, assignment);
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary
@@ -307,12 +310,26 @@ public class DirectoryDeploymentManager implements DeploymentManager
     {
         String json = Files.toString(deploymentFile, UTF_8);
         DeploymentRepresentation data = jsonCodec.fromJson(json);
-        Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()));
+        Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()), getDataDir(data.getAssignment().toAssignment()));
         return deployment;
     }
 
     private File getDeploymentAssignmentFile(Deployment deployment)
     {
         return new File(baseDir, String.format("galaxy-%s-deployment.json", deployment.getDeploymentId()));
+    }
+
+    private File getDataDir(Assignment assignment)
+    {
+        String pool = assignment.getConfig().getPool();
+        if (pool == null) {
+            pool = "general";
+        }
+        File dataDir = new File(new File(new File(baseDir, "data"), assignment.getConfig().getComponent()), pool);
+        dataDir.mkdirs();
+        if (!dataDir.isDirectory()) {
+            throw new RuntimeException(String.format("Unable to create data dir %s", dataDir.getAbsolutePath()));
+        }
+        return dataDir;
     }
 }
