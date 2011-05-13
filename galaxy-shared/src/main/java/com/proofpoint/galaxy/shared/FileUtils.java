@@ -9,6 +9,7 @@ import com.proofpoint.units.Duration;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -177,5 +178,25 @@ public class FileUtils
                 return false;
             }
         }
+    }
+
+    public static File newFile(File parent, String... paths)
+    {
+        Preconditions.checkNotNull(parent, "parent is null");
+        Preconditions.checkNotNull(paths, "paths is null");
+
+        return newFile(parent, ImmutableList.copyOf(paths));
+    }
+
+    public static File newFile(File parent, Iterable<String> paths)
+    {
+        Preconditions.checkNotNull(parent, "parent is null");
+        Preconditions.checkNotNull(paths, "paths is null");
+
+        File result = parent;
+        for (String path : paths) {
+            result = new File(result, path);
+        }
+        return result;
     }
 }

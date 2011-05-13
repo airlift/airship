@@ -26,6 +26,7 @@ public class CoordinatorConfig
 {
     private List<String> binaryRepoBases = ImmutableList.of();
     private List<String> configRepoBases = ImmutableList.of();
+    private String localConfigRepo;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
     @NotNull
@@ -52,6 +53,17 @@ public class CoordinatorConfig
     {
         this.configRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(configRepoBases));
         return this;
+    }
+
+    public String getLocalConfigRepo()
+    {
+        return localConfigRepo;
+    }
+
+    @Config("coordinator.config-repo.local")
+    public void setLocalConfigRepo(String localConfigRepo)
+    {
+        this.localConfigRepo = localConfigRepo;
     }
 
     @NotNull

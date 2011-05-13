@@ -32,7 +32,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 @Path("/v1/slot/assignment")
 public class CoordinatorAssignmentResource
@@ -40,17 +42,20 @@ public class CoordinatorAssignmentResource
     private final Coordinator coordinator;
     private final BinaryRepository binaryRepository;
     private final ConfigRepository configRepository;
+    private final LocalConfigRepository localConfigRepository;
 
     @Inject
-    public CoordinatorAssignmentResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository)
+    public CoordinatorAssignmentResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository)
     {
         Preconditions.checkNotNull(coordinator, "coordinator must not be null");
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
+        Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
 
         this.coordinator = coordinator;
         this.binaryRepository = binaryRepository;
         this.configRepository = configRepository;
+        this.localConfigRepository = localConfigRepository;
     }
 
     @PUT
@@ -61,7 +66,11 @@ public class CoordinatorAssignmentResource
         Preconditions.checkNotNull(assignmentRepresentation, "assignmentRepresentation must not be null");
 
         Assignment assignment = assignmentRepresentation.toAssignment();
-        Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configRepository.getConfigMap(assignment.getConfig()));
+        Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
+        if (configMap == null) {
+            configMap = configRepository.getConfigMap(assignment.getConfig());
+        }
+        Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configMap);
 
         Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
         List<SlotStatusRepresentation> representations = Lists.newArrayList();

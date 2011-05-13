@@ -24,6 +24,7 @@ import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -57,7 +58,7 @@ public class TestCoordinatorAssignmentResource
     public void setup()
     {
         Coordinator coordinator = new Coordinator(new MockRemoteSlotFactory(), new CoordinatorConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
-        resource = new CoordinatorAssignmentResource(coordinator, MOCK_BINARY_REPO, MOCK_CONFIG_REPO);
+        resource = new CoordinatorAssignmentResource(coordinator, MOCK_BINARY_REPO, MOCK_CONFIG_REPO, new LocalConfigRepository(new CoordinatorConfig(), null));
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",

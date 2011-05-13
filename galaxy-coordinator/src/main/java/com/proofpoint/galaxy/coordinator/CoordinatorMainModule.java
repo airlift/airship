@@ -33,6 +33,10 @@ public class CoordinatorMainModule
         binder.bind(RemoteSlotFactory.class).to(HttpRemoteSlotFactory.class).in(Scopes.SINGLETON);
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
         binder.bind(ConfigRepository.class).to(SimpleConfigRepository.class).in(Scopes.SINGLETON);
+
+        binder.bind(ConfigResource.class).in(Scopes.SINGLETON);
+        binder.bind(LocalConfigRepository.class).in(Scopes.SINGLETON);
+
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);
     }
 }
