@@ -61,6 +61,7 @@
             <includes>
                 <include>com.proofpoint.galaxy:cli:gem</include>
             </includes>
+            <outputFileNameMapping>com.proofpoint.galaxy.cli.gem</outputFileNameMapping>
         </dependencySet>
     </dependencySets>
 </assembly>
