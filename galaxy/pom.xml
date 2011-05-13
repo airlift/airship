@@ -91,6 +91,15 @@
                     <files>bin,lib,pom.xml</files>
                     <rubyforgeProject>galaxy</rubyforgeProject>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>default-push</id>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
