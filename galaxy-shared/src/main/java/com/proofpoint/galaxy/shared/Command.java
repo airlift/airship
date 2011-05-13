@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -36,14 +38,15 @@ public class Command
     private final List<String> command;
     private final Set<Integer> successfulExitCodes;
     private final File directory;
+    private final Map<String, String> environment;
     private final Duration timeLimit;
 
     public Command(String... command)
     {
-        this(ImmutableList.copyOf(command), DEFAULT_SUCCESSFUL_EXIT_CODES, DEFAULT_DIRECTORY, DEFAULT_TIME_LIMIT);
+        this(ImmutableList.copyOf(command), DEFAULT_SUCCESSFUL_EXIT_CODES, DEFAULT_DIRECTORY, ImmutableMap.<String, String>of(), DEFAULT_TIME_LIMIT);
     }
 
-    public Command(List<String> command, Set<Integer> successfulExitCodes, File directory, Duration timeLimit)
+    public Command(List<String> command, Set<Integer> successfulExitCodes, File directory, Map<String, String> environment, Duration timeLimit)
     {
         Preconditions.checkNotNull(command, "command is null");
         Preconditions.checkArgument(!command.isEmpty(), "command is empty");
@@ -57,6 +60,7 @@ public class Command
         // these have default so are required
         this.successfulExitCodes = ImmutableSet.copyOf(successfulExitCodes);
         this.directory = directory;
+        this.environment = environment;
         this.timeLimit = timeLimit;
     }
 
@@ -75,7 +79,27 @@ public class Command
     {
         Preconditions.checkNotNull(args, "args is null");
         ImmutableList.Builder<String> command = ImmutableList.<String>builder().addAll(this.command).addAll(args);
-        return new Command(command.build(), successfulExitCodes, directory, timeLimit);
+        return new Command(command.build(), successfulExitCodes, directory, environment, timeLimit);
+    }
+
+    public Map<String, String> getEnvironment()
+    {
+        return environment;
+    }
+
+    public Command addEnvironment(String name, String value)
+    {
+        Preconditions.checkNotNull(name, "name is null");
+        Preconditions.checkNotNull(value, "value is null");
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder().putAll(this.environment).put(name, value);
+        return new Command(command, successfulExitCodes, directory, builder.build(), timeLimit);
+    }
+
+    public Command addEnvironment(Map<String, String> environment)
+    {
+        Preconditions.checkNotNull(environment, "environment is null");
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder().putAll(this.environment).putAll(environment);
+        return new Command(command, successfulExitCodes, directory, builder.build(), timeLimit);
     }
 
     public Set<Integer> getSuccessfulExitCodes()
@@ -93,7 +117,7 @@ public class Command
     {
         Preconditions.checkNotNull(successfulExitCodes, "successfulExitCodes is null");
         Preconditions.checkArgument(!successfulExitCodes.isEmpty(), "successfulExitCodes is empty");
-        return new Command(command, successfulExitCodes, directory, timeLimit);
+        return new Command(command, successfulExitCodes, directory, environment, timeLimit);
     }
 
     public File getDirectory()
@@ -110,7 +134,7 @@ public class Command
     public Command setDirectory(File directory)
     {
         Preconditions.checkNotNull(directory, "directory is null");
-        return new Command(command, successfulExitCodes, directory, timeLimit);
+        return new Command(command, successfulExitCodes, directory, environment, timeLimit);
     }
 
     public Duration getTimeLimit()
@@ -126,7 +150,7 @@ public class Command
     public Command setTimeLimit(Duration timeLimit)
     {
         Preconditions.checkNotNull(timeLimit, "timeLimit is null");
-        return new Command(command, successfulExitCodes, directory, timeLimit);
+        return new Command(command, successfulExitCodes, directory, environment, timeLimit);
     }
 
     public int execute(Executor executor)
@@ -229,6 +253,7 @@ public class Command
             ProcessBuilder processBuilder = new ProcessBuilder(command.getCommand());
             processBuilder.directory(command.getDirectory());
             processBuilder.redirectErrorStream(true);
+            processBuilder.environment().putAll(command.getEnvironment());
 
             // start the process
             final Process process;

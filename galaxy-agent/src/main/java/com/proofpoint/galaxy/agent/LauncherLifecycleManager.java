@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
@@ -11,6 +12,7 @@ import com.proofpoint.galaxy.shared.Command;
 import com.proofpoint.galaxy.shared.CommandFailedException;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 
@@ -77,16 +79,18 @@ public class LauncherLifecycleManager implements LifecycleManager
         }
     }
 
+    private static final Logger log = Logger.get(LauncherLifecycleManager.class);
     @Override
     public LifecycleState start(Deployment deployment)
     {
+        Command command = createCommand("start", deployment, launcherTimeout);
         try {
-            Command command = createCommand("start", deployment, launcherTimeout);
             command = addEnvironmentData(command, deployment);
             command.execute(executor);
             return RUNNING;
         }
         catch (CommandFailedException e) {
+            log.error("ENVIRONMENT:\n    %s", Joiner.on("\n    ").withKeyValueSeparator("=").join(command.getEnvironment()));
             throw new RuntimeException("start failed: " + e.getMessage());
         }
     }
@@ -125,6 +129,7 @@ public class LauncherLifecycleManager implements LifecycleManager
         Command command = new Command(launcherScript.getAbsolutePath(), commandName)
                 .setDirectory(deployment.getDataDir())
                 .setTimeLimit(timeLimit)
+                .addEnvironment("HOME", deployment.getDataDir().getAbsolutePath())
                 .addArgs("--data").addArgs(deployment.getDataDir().getAbsolutePath());
 
         return command;
