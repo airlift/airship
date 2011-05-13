@@ -43,7 +43,7 @@
                 <enabled>true</enabled>
             </releases>
             <snapshots>
-                <enabled>fale</enabled>
+                <enabled>false</enabled>
                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
