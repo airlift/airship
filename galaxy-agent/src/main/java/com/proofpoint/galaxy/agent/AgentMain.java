@@ -37,6 +37,6 @@ public class AgentMain
                 new JmxModule(),
                 new AgentMainModule());
 
-        app.initialize();
+        app.strictConfig().initialize();
     }
 }

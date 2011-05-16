@@ -35,6 +35,6 @@ public class CoordinatorMain
                 new JmxModule(),
                 new CoordinatorMainModule());
 
-        app.initialize();
+        app.strictConfig().initialize();
     }
 }
