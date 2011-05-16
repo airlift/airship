@@ -122,9 +122,19 @@ public class DeploymentSlot implements Slot
             }
 
             // Stop server
-            LifecycleState state = lifecycleManager.stop(activeDeployment);
-            if (state != STOPPED) {
-                // todo error
+            try {
+                LifecycleState state = lifecycleManager.stop(activeDeployment);
+                if (state != STOPPED) {
+                    // todo error
+                }
+            }
+            catch (RuntimeException e) {
+                if (e.getMessage().contains("invalid option: --data")) {
+                    // so we added a new option and old binaries won't clear, which is super annoying
+                    // skip these binaries
+                } else {
+                    throw e;
+                }
             }
 
             // remove deployment
