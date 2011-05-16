@@ -5,7 +5,7 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-dev</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>galaxy-dev</name>
 
@@ -26,19 +26,19 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>cli</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.5-SNAPSHOT</version>
             <type>gem</type>
         </dependency>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-coordinator</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.5-SNAPSHOT</version>
             <type>tar.gz</type>
         </dependency>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-agent</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.5-SNAPSHOT</version>
             <type>tar.gz</type>
         </dependency>
     </dependencies>

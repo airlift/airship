@@ -15,7 +15,7 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-coordinator</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.5-SNAPSHOT</version>
     <name>galaxy-coordinator</name>
 
     <repositories>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -145,7 +145,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.5-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
