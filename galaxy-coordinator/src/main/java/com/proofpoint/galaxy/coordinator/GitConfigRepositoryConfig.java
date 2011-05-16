@@ -14,13 +14,16 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.proofpoint.configuration.Config;
+import com.proofpoint.units.Duration;
 
 import javax.validation.constraints.NotNull;
+import java.util.concurrent.TimeUnit;
 
 public class GitConfigRepositoryConfig
 {
     private String remoteUri;
     private String localConfigRepo = "git-config-repo";
+    private Duration refreshInterval = new Duration(10, TimeUnit.SECONDS);
 
     public String getRemoteUri()
     {
@@ -45,4 +48,15 @@ public class GitConfigRepositoryConfig
         this.localConfigRepo = localConfigRepo;
     }
 
+    public Duration getRefreshInterval()
+    {
+        return refreshInterval;
+    }
+
+    @Config("coordinator.git-config-repo.refresh-interval")
+    public GitConfigRepositoryConfig setRefreshInterval(Duration refreshInterval)
+    {
+        this.refreshInterval = refreshInterval;
+        return this;
+    }
 }

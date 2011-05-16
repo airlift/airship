@@ -3,10 +3,13 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.InputSupplier;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
+import com.proofpoint.units.Duration;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -19,18 +22,26 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class GitConfigRepository implements ConfigRepository
 {
     private static final Logger log = Logger.get(GitConfigRepository.class);
     private final Repository repository;
     private final URI blobUri;
+    private final ScheduledExecutorService executorService;
+    private final File localRepository;
+    private final Duration refreshInterval;
 
     @Inject
     public GitConfigRepository(GitConfigRepositoryConfig config, HttpServerInfo httpServerInfo)
@@ -41,9 +52,12 @@ public class GitConfigRepository implements ConfigRepository
         if (config.getRemoteUri() == null) {
             repository = null;
             blobUri = null;
+            localRepository = null;
+            refreshInterval = null;
+            executorService = null;
         } else {
 
-            File localRepository = new File(config.getLocalConfigRepo());
+            localRepository = new File(config.getLocalConfigRepo());
             log.info("Local repository  is %s", localRepository.getAbsolutePath());
 
             Git git;
@@ -57,9 +71,8 @@ public class GitConfigRepository implements ConfigRepository
                         .call();
             }
             else {
-                // pull updates
+                // open
                 git = Git.open(localRepository);
-                git.fetch().call();
             }
 
             repository = git.getRepository();
@@ -70,6 +83,25 @@ public class GitConfigRepository implements ConfigRepository
             else {
                 blobUri = httpServerInfo.getHttpUri().resolve("/v1/git/blob/");
             }
+
+            refreshInterval = config.getRefreshInterval();
+            executorService = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("GitConfigRepository-%s").setDaemon(true).build());
+        }
+    }
+
+    @PostConstruct
+    public void start()
+    {
+        if (executorService != null) {
+            executorService.scheduleWithFixedDelay(new FetchGitConfigRepository(localRepository), 0, (long) refreshInterval.toMillis(), TimeUnit.MILLISECONDS);
+        }
+    }
+
+    @PreDestroy
+    public void stop()
+    {
+        if (executorService != null) {
+            executorService.shutdownNow();
         }
     }
 
@@ -157,5 +189,27 @@ public class GitConfigRepository implements ConfigRepository
                 return objectLoader.openStream();
             }
         };
+    }
+
+    private static class FetchGitConfigRepository implements Runnable
+    {
+        private final File localRepository;
+
+        public FetchGitConfigRepository(File localRepository)
+        {
+            this.localRepository = localRepository;
+        }
+
+        @Override
+        public void run()
+        {
+            try {
+                // timeout is in seconds
+                Git.open(localRepository).fetch().setTimeout(60).call();
+            }
+            catch (Exception e) {
+                log.error("Unable to fetch git config repository", e);
+            }
+        }
     }
 }
