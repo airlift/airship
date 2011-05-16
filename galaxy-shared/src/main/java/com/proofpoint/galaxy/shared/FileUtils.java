@@ -180,6 +180,14 @@ public class FileUtils
         }
     }
 
+    public static File newFile(String parent, String... paths)
+    {
+        Preconditions.checkNotNull(parent, "parent is null");
+        Preconditions.checkNotNull(paths, "paths is null");
+
+        return newFile(new File(parent), ImmutableList.copyOf(paths));
+    }
+
     public static File newFile(File parent, String... paths)
     {
         Preconditions.checkNotNull(parent, "parent is null");
