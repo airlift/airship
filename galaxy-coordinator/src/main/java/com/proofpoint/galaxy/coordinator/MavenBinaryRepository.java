@@ -10,6 +10,7 @@ import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.BinarySpec;
+import com.proofpoint.http.server.HttpServerInfo;
 import org.apache.maven.settings.Profile;
 import org.apache.maven.settings.Repository;
 import org.apache.maven.settings.Settings;
@@ -28,19 +29,25 @@ import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 public class MavenBinaryRepository implements BinaryRepository
 {
     private final List<URI> binaryRepositoryBases;
+    private final URI localMavenRepo;
+    private final URI localBinaryUri;
 
     public MavenBinaryRepository(URI binaryRepositoryBase, URI... binaryRepositoryBases)
     {
         this.binaryRepositoryBases = ImmutableList.<URI>builder().add(binaryRepositoryBase).add(binaryRepositoryBases).build();
+        localMavenRepo = null;
+        localBinaryUri = null;
     }
 
     public MavenBinaryRepository(Iterable<URI> binaryRepositoryBases)
     {
         this.binaryRepositoryBases = ImmutableList.copyOf(binaryRepositoryBases);
+        localMavenRepo = null;
+        localBinaryUri = null;
     }
 
     @Inject
-    public MavenBinaryRepository(CoordinatorConfig config)
+    public MavenBinaryRepository(CoordinatorConfig config, HttpServerInfo httpServerInfo)
             throws Exception
     {
         Builder<URI> builder = ImmutableList.builder();
@@ -48,8 +55,11 @@ public class MavenBinaryRepository implements BinaryRepository
             // add the local maven repository first
             File localMavenRepo = newFile(System.getProperty("user.home"), ".m2", "repository");
             if (localMavenRepo.isDirectory()) {
-                builder.add(localMavenRepo.toURI());
+                this.localMavenRepo = localMavenRepo.toURI();
+            } else {
+                this.localMavenRepo = null;
             }
+
 
             // add all automatically activated repositories in the settings.xml file
             File settingsFile = newFile(System.getProperty("user.home"), ".m2", "settings.xml");
@@ -71,6 +81,16 @@ public class MavenBinaryRepository implements BinaryRepository
                     }
                 }
             }
+
+        } else {
+            localMavenRepo = null;
+        }
+
+        if (httpServerInfo.getHttpsUri() != null) {
+            localBinaryUri = httpServerInfo.getHttpsUri().resolve("/v1/binary/");
+        }
+        else {
+            localBinaryUri = httpServerInfo.getHttpUri().resolve("/v1/binary/");
         }
 
         for (String binaryRepoBase : config.getBinaryRepoBases()) {
@@ -86,46 +106,67 @@ public class MavenBinaryRepository implements BinaryRepository
     public URI getBinaryUri(BinarySpec binarySpec)
     {
         List<URI> checkedUris = Lists.newArrayList();
+        if (localMavenRepo != null) {
+            URI uri = getBinaryUri(binarySpec, localMavenRepo);
+            checkedUris.add(uri);
+            if (isValidBinary(uri)) {
+                String binaryPath;
+                if (binarySpec.getClassifier() != null) {
+                    binaryPath = String.format("%s/%s/%s/%s/%s", binarySpec.getGroupId(), binarySpec.getArtifactId(), binarySpec.getVersion(), binarySpec.getPackaging(), binarySpec.getClassifier());
+                }
+                else {
+                    binaryPath = String.format("%s/%s/%s/%s", binarySpec.getGroupId(), binarySpec.getArtifactId(), binarySpec.getVersion(), binarySpec.getPackaging());
+                }
+                return localBinaryUri.resolve(binaryPath);
+            }
+        }
+
         for (URI binaryRepositoryBase : binaryRepositoryBases) {
-            String fileVersion = binarySpec.getVersion();
-            if (binarySpec.getVersion().contains("SNAPSHOT")) {
-                StringBuilder builder = new StringBuilder();
-                builder.append(binarySpec.getGroupId().replace('.', '/')).append('/');
-                builder.append(binarySpec.getArtifactId()).append('/');
-                builder.append(binarySpec.getVersion()).append('/');
-                builder.append("maven-metadata.xml");
-
-                URI uri = binaryRepositoryBase.resolve(builder.toString());
-                try {
-                    MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
-                    fileVersion = String.format("%s-%s-%s",
-                            binarySpec.getVersion().replaceAll("-SNAPSHOT", ""),
-                            metadata.versioning.snapshot.timestamp,
-                            metadata.versioning.snapshot.buildNumber);
-                }
-                catch (Exception ignored) {
-                    // no maven-metadata.xml file... hope this is laid out normally
-                }
-
-            }
-
-            StringBuilder builder = new StringBuilder();
-            builder.append(binarySpec.getGroupId().replace('.', '/')).append('/');
-            builder.append(binarySpec.getArtifactId()).append('/');
-            builder.append(binarySpec.getVersion()).append('/');
-            builder.append(binarySpec.getArtifactId()).append('-').append(fileVersion);
-            if (binarySpec.getClassifier() != null) {
-                builder.append('-').append(binarySpec.getClassifier());
-            }
-            builder.append('.').append(binarySpec.getPackaging());
-
-            URI uri = binaryRepositoryBase.resolve(builder.toString());
+            URI uri = getBinaryUri(binarySpec, binaryRepositoryBase);
             checkedUris.add(uri);
             if (isValidBinary(uri)) {
                 return uri;
             }
         }
         throw new RuntimeException("Unable to find binary " + binarySpec + " at " + checkedUris);
+    }
+
+    public static URI getBinaryUri(BinarySpec binarySpec, URI binaryRepositoryBase)
+    {
+        String fileVersion = binarySpec.getVersion();
+        if (binarySpec.getVersion().contains("SNAPSHOT")) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(binarySpec.getGroupId().replace('.', '/')).append('/');
+            builder.append(binarySpec.getArtifactId()).append('/');
+            builder.append(binarySpec.getVersion()).append('/');
+            builder.append("maven-metadata.xml");
+
+            URI uri = binaryRepositoryBase.resolve(builder.toString());
+            try {
+                MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
+                fileVersion = String.format("%s-%s-%s",
+                        binarySpec.getVersion().replaceAll("-SNAPSHOT", ""),
+                        metadata.versioning.snapshot.timestamp,
+                        metadata.versioning.snapshot.buildNumber);
+            }
+            catch (Exception ignored) {
+                // no maven-metadata.xml file... hope this is laid out normally
+            }
+
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(binarySpec.getGroupId().replace('.', '/')).append('/');
+        builder.append(binarySpec.getArtifactId()).append('/');
+        builder.append(binarySpec.getVersion()).append('/');
+        builder.append(binarySpec.getArtifactId()).append('-').append(fileVersion);
+        if (binarySpec.getClassifier() != null) {
+            builder.append('-').append(binarySpec.getClassifier());
+        }
+        builder.append('.').append(binarySpec.getPackaging());
+
+        URI uri = binaryRepositoryBase.resolve(builder.toString());
+        return uri;
     }
 
     private boolean isValidBinary(URI uri)

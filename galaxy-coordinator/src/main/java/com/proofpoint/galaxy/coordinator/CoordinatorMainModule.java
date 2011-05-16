@@ -41,6 +41,8 @@ public class CoordinatorMainModule
         binder.bind(GitConfigRepository.class).in(Scopes.SINGLETON);
         binder.bind(GitConfigResource.class).in(Scopes.SINGLETON);
 
+        binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
+
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);
     }
 }

@@ -17,6 +17,7 @@ import com.proofpoint.galaxy.agent.SlotResource;
 import com.proofpoint.galaxy.coordinator.AdminResource;
 import com.proofpoint.galaxy.coordinator.AnnounceResource;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
+import com.proofpoint.galaxy.coordinator.BinaryResource;
 import com.proofpoint.galaxy.coordinator.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.ConfigResource;
 import com.proofpoint.galaxy.coordinator.Coordinator;
@@ -57,6 +58,8 @@ public class MainModule implements Module
         ConfigurationModule.bindConfig(binder).to(GitConfigRepositoryConfig.class);
         binder.bind(GitConfigRepository.class).in(Scopes.SINGLETON);
         binder.bind(GitConfigResource.class).in(Scopes.SINGLETON);
+
+        binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);
 
