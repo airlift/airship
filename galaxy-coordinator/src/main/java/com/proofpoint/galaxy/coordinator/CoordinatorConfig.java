@@ -61,9 +61,10 @@ public class CoordinatorConfig
     }
 
     @Config("coordinator.config-repo.local")
-    public void setLocalConfigRepo(String localConfigRepo)
+    public CoordinatorConfig setLocalConfigRepo(String localConfigRepo)
     {
         this.localConfigRepo = localConfigRepo;
+        return this;
     }
 
     @NotNull
