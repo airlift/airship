@@ -22,9 +22,12 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.shared.FileUtils.newFile;
+
 public class CoordinatorConfig
 {
     private List<String> binaryRepoBases = ImmutableList.of();
+    private boolean localMavenRepositoryEnabled;
     private List<String> configRepoBases = ImmutableList.of();
     private String localConfigRepo;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
@@ -39,6 +42,18 @@ public class CoordinatorConfig
     public CoordinatorConfig setBinaryRepoBases(String binaryRepoBases)
     {
         this.binaryRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(binaryRepoBases));
+        return this;
+    }
+
+    public boolean isLocalMavenRepositoryEnabled()
+    {
+        return localMavenRepositoryEnabled;
+    }
+
+    @Config("coordinator.local-maven-repo.enabled")
+    public CoordinatorConfig setLocalMavenRepositoryEnabled(boolean localMavenRepositoryEnabled)
+    {
+        this.localMavenRepositoryEnabled = localMavenRepositoryEnabled;
         return this;
     }
 

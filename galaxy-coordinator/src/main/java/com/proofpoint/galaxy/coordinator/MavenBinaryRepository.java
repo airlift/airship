@@ -10,10 +10,20 @@ import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.BinarySpec;
+import org.apache.maven.settings.Profile;
+import org.apache.maven.settings.Repository;
+import org.apache.maven.settings.Settings;
+import org.apache.maven.settings.building.DefaultSettingsBuilder;
+import org.apache.maven.settings.building.DefaultSettingsBuilderFactory;
+import org.apache.maven.settings.building.DefaultSettingsBuildingRequest;
+import org.apache.maven.settings.building.SettingsBuildingResult;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+
+import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 
 public class MavenBinaryRepository implements BinaryRepository
 {
@@ -31,8 +41,38 @@ public class MavenBinaryRepository implements BinaryRepository
 
     @Inject
     public MavenBinaryRepository(CoordinatorConfig config)
+            throws Exception
     {
         Builder<URI> builder = ImmutableList.builder();
+        if (config.isLocalMavenRepositoryEnabled()) {
+            // add the local maven repository first
+            File localMavenRepo = newFile(System.getProperty("user.home"), ".m2", "repository");
+            if (localMavenRepo.isDirectory()) {
+                builder.add(localMavenRepo.toURI());
+            }
+
+            // add all automatically activated repositories in the settings.xml file
+            File settingsFile = newFile(System.getProperty("user.home"), ".m2", "settings.xml");
+            if (settingsFile.canRead()) {
+                DefaultSettingsBuilder settingsBuilder = new DefaultSettingsBuilderFactory().newInstance();
+                SettingsBuildingResult settingsBuildingResult = settingsBuilder.build(new DefaultSettingsBuildingRequest()
+                        .setUserSettingsFile(settingsFile)
+                );
+                Settings settings = settingsBuildingResult.getEffectiveSettings();
+                for (Profile profile : settings.getProfiles()) {
+                    if (profile.getActivation() != null && profile.getActivation().isActiveByDefault()) {
+                        for (Repository repository : profile.getRepositories()) {
+                            String url = repository.getUrl();
+                            if (!url.endsWith("/")) {
+                                url = url + "/";
+                            }
+                            builder.add(URI.create(url));
+                        }
+                    }
+                }
+            }
+        }
+
         for (String binaryRepoBase : config.getBinaryRepoBases()) {
             if (!binaryRepoBase.endsWith("/")) {
                 binaryRepoBase = binaryRepoBase + "/";
