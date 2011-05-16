@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.proofpoint.platform</groupId>
         <artifactId>rest-server-base</artifactId>
-        <version>0.41-SNAPSHOT</version>
+        <version>0.41</version>
         <relativePath/>
     </parent>
 
@@ -117,7 +117,7 @@
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>experimental</artifactId>
-            <version>0.41-SNAPSHOT</version>
+            <version>0.41</version>
         </dependency>
 
         <!-- for packaging -->
