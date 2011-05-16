@@ -43,19 +43,22 @@ public class CoordinatorAssignmentResource
     private final BinaryRepository binaryRepository;
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
+    private final GitConfigRepository gitConfigRepository;
 
     @Inject
-    public CoordinatorAssignmentResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository)
+    public CoordinatorAssignmentResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository, GitConfigRepository gitConfigRepository)
     {
         Preconditions.checkNotNull(coordinator, "coordinator must not be null");
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
         Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
+        Preconditions.checkNotNull(gitConfigRepository, "gitConfigRepository is null");
 
         this.coordinator = coordinator;
         this.binaryRepository = binaryRepository;
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
+        this.gitConfigRepository = gitConfigRepository;
     }
 
     @PUT
@@ -68,8 +71,12 @@ public class CoordinatorAssignmentResource
         Assignment assignment = assignmentRepresentation.toAssignment();
         Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
         if (configMap == null) {
+            configMap = gitConfigRepository.getConfigMap(assignment.getConfig());
+        }
+        if (configMap == null) {
             configMap = configRepository.getConfigMap(assignment.getConfig());
         }
+
         Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configMap);
 
         Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);

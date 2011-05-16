@@ -56,9 +56,14 @@ public class TestCoordinatorAssignmentResource
 
     @BeforeMethod
     public void setup()
+            throws Exception
     {
         Coordinator coordinator = new Coordinator(new MockRemoteSlotFactory(), new CoordinatorConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
-        resource = new CoordinatorAssignmentResource(coordinator, MOCK_BINARY_REPO, MOCK_CONFIG_REPO, new LocalConfigRepository(new CoordinatorConfig(), null));
+        resource = new CoordinatorAssignmentResource(coordinator,
+                MOCK_BINARY_REPO,
+                MOCK_CONFIG_REPO,
+                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new GitConfigRepository(new GitConfigRepositoryConfig(), null));
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
