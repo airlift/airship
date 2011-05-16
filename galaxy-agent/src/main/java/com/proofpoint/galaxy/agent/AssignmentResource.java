@@ -30,7 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-@Path("/v1/slot/{slotName: [a-z0-9]+}/assignment")
+@Path("/v1/agent/slot/{slotName: [a-z0-9]+}/assignment")
 public class AssignmentResource
 {
     private final Agent agent;

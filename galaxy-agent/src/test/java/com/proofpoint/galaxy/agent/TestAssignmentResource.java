@@ -43,7 +43,7 @@ public class TestAssignmentResource
 {
     private AssignmentResource resource;
     private Agent agent;
-    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
+    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/agent/slot/assignment");
     private InstallationRepresentation installation = new InstallationRepresentation(AssignmentRepresentation.from(APPLE_ASSIGNMENT),
             "fetch://binary.tar.gz",
             ImmutableMap.of("readme.txt", "fetch://readme.txt")

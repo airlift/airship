@@ -142,7 +142,7 @@ public class TestServer
         Slot slot = agent.addNewSlot();
         slot.assign(appleInstallation);
 
-        Response response = client.prepareGet(urlFor("/v1/slot/" + slot.getName())).execute().get();
+        Response response = client.prepareGet(urlFor("/v1/agent/slot/" + slot.getName())).execute().get();
 
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
@@ -160,7 +160,7 @@ public class TestServer
     public void testGetAllSlotStatusEmpty()
             throws Exception
     {
-        Response response = client.prepareGet(urlFor("/v1/slot")).execute().get();
+        Response response = client.prepareGet(urlFor("/v1/agent/slot")).execute().get();
 
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
@@ -176,7 +176,7 @@ public class TestServer
         Slot slot1 = agent.addNewSlot();
         slot1.assign(bananaInstallation);
 
-        Response response = client.prepareGet(urlFor("/v1/slot")).execute().get();
+        Response response = client.prepareGet(urlFor("/v1/agent/slot")).execute().get();
 
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
@@ -197,13 +197,13 @@ public class TestServer
     public void testAddSlot()
             throws Exception
     {
-        Response response = client.preparePost(urlFor("/v1/slot")).execute().get();
+        Response response = client.preparePost(urlFor("/v1/agent/slot")).execute().get();
         assertEquals(response.getStatusCode(), Status.CREATED.getStatusCode());
 
         // find the new slot
         Slot slot = agent.getAllSlots().iterator().next();
 
-        assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/slot/").resolve(slot.getName()).toString());
+        assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/agent/slot/").resolve(slot.getName()).toString());
     }
 
 
@@ -214,7 +214,7 @@ public class TestServer
         Slot slot = agent.addNewSlot();
         slot.assign(appleInstallation);
 
-        Response response = client.prepareDelete(urlFor("/v1/slot/" + slot.getName())).execute().get();
+        Response response = client.prepareDelete(urlFor("/v1/agent/slot/" + slot.getName())).execute().get();
 
         assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
 
@@ -225,7 +225,7 @@ public class TestServer
     public void testRemoveSlotUnknown()
             throws Exception
     {
-        Response response = client.prepareDelete(urlFor("/v1/slot/unknown"))
+        Response response = client.prepareDelete(urlFor("/v1/agent/slot/unknown"))
                 .execute()
                 .get();
 
@@ -237,7 +237,7 @@ public class TestServer
             throws Exception
     {
         String json = Resources.toString(Resources.getResource("slot-status.json"), Charsets.UTF_8);
-        Response response = client.preparePut(urlFor("/v1/slot"))
+        Response response = client.preparePut(urlFor("/v1/agent/slot"))
                 .setBody(json)
                 .execute()
                 .get();
@@ -405,6 +405,6 @@ public class TestServer
 
     private String urlFor(Slot slot)
     {
-        return server.getBaseUrl().resolve("/v1/slot/").resolve(slot.getName()).toString();
+        return server.getBaseUrl().resolve("/v1/agent/slot/").resolve(slot.getName()).toString();
     }
 }

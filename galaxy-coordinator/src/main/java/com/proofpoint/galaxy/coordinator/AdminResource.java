@@ -38,7 +38,7 @@ public class AdminResource
     private void createSlot(AgentStatus agentStatus)
     {
         try {
-            com.ning.http.client.Response response = httpClient.preparePost(agentStatus.getUri() + "/v1/slot")
+            com.ning.http.client.Response response = httpClient.preparePost(agentStatus.getUri() + "/v1/agent/slot")
                     .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                     .execute()
                     .get();

@@ -117,7 +117,7 @@ public class Agent
         //
         for (DeploymentManager manager : deploymentManager.loadSlots()) {
             String slotName = manager.getSlotName();
-            URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/slot/").resolve(slotName);
+            URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
             Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(slotName), lifecycleManager);
             slots.put(slotName, slot);
         }
@@ -156,7 +156,7 @@ public class Agent
 
     private Slot createSlot(String slotName)
     {
-        URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/slot/").resolve(slotName);
+        URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
         Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(slotName), lifecycleManager);
         slots.put(slotName, slot);
         return slot;

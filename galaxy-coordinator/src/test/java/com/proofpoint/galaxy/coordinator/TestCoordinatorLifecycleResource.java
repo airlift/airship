@@ -56,17 +56,17 @@ public class TestCoordinatorLifecycleResource
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
-                URI.create("fake://foo/v1/slot/apple1"),
+                URI.create("fake://foo/v1/agent/slot/apple1"),
                 STOPPED,
                 APPLE_ASSIGNMENT);
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
-                URI.create("fake://foo/v1/slot/apple1"),
+                URI.create("fake://foo/v1/agent/slot/apple1"),
                 STOPPED,
                 APPLE_ASSIGNMENT);
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
-                URI.create("fake://foo/v1/slot/banana"),
+                URI.create("fake://foo/v1/agent/slot/banana"),
                 STOPPED,
                 BANANA_ASSIGNMENT);
 

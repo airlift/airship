@@ -40,7 +40,7 @@ public class TestSlotResource
 {
     private SlotResource resource;
     private Agent agent;
-    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot");
+    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/agent/slot");
 
     @BeforeMethod
     public void setup()
@@ -64,7 +64,7 @@ public class TestSlotResource
     {
         Slot slot = agent.addNewSlot();
 
-        URI requestUri = URI.create("http://localhost/v1/slot/" + slot.getName());
+        URI requestUri = URI.create("http://localhost/v1/agent/slot/" + slot.getName());
         Response response = resource.getSlotStatus(slot.getName(), MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(slot.status()));
@@ -74,14 +74,14 @@ public class TestSlotResource
     @Test
     public void testGetSlotStatusUnknown()
     {
-        Response response = resource.getSlotStatus("unknown", MockUriInfo.from("http://localhost/v1/slot/unknown"));
+        Response response = resource.getSlotStatus("unknown", MockUriInfo.from("http://localhost/v1/agent/slot/unknown"));
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void testGetSlotStatusNull()
     {
-        resource.getSlotStatus(null, MockUriInfo.from(URI.create("http://localhost/v1/slot/null")));
+        resource.getSlotStatus(null, MockUriInfo.from(URI.create("http://localhost/v1/agent/slot/null")));
     }
 
     @Test
@@ -117,7 +117,7 @@ public class TestSlotResource
         Slot slot = agent.getAllSlots().iterator().next();
 
         assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
-        assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/slot/" + slot.getName()));
+        assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/agent/slot/" + slot.getName()));
 
         assertNull(response.getEntity());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

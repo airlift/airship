@@ -37,7 +37,7 @@ import static org.testng.Assert.assertNull;
 
 public class TestLifecycleResource
 {
-    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/lifecycle");
+    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/agent/slot/lifecycle");
     private LifecycleResource resource;
     private Slot slot;
 

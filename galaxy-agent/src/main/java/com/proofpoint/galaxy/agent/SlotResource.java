@@ -32,7 +32,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
 
-@Path("/v1/slot")
+@Path("/v1/agent/slot")
 public class SlotResource
 {
     private final Agent agent;
@@ -104,6 +104,6 @@ public class SlotResource
 
     private static URI getSelfUri(String slotName, URI baseUri)
     {
-        return baseUri.resolve("/v1/slot/" + slotName);
+        return baseUri.resolve("/v1/agent/slot/" + slotName);
     }
 }

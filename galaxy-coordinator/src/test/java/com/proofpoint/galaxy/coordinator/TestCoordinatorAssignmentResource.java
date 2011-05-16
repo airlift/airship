@@ -67,13 +67,13 @@ public class TestCoordinatorAssignmentResource
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
                 "apple1",
-                URI.create("fake://appleServer1/v1/slot/apple1"));
+                URI.create("fake://appleServer1/v1/agent/slot/apple1"));
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
-                URI.create("fake://appleServer2/v1/slot/apple1"));
+                URI.create("fake://appleServer2/v1/agent/slot/apple1"));
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
-                URI.create("fake://bananaServer/v1/slot/banana"));
+                URI.create("fake://bananaServer/v1/agent/slot/banana"));
 
         AgentStatus agentStatus = new AgentStatus(URI.create("fake://appleServer1/"), UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
