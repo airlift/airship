@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.proofpoint.platform</groupId>
+        <artifactId>rest-server-base</artifactId>
+        <version>0.41-SNAPSHOT</version>
+        <relativePath />
+    </parent>
+
+    <properties>
+        <main-class>com.proofpoint.galaxy.standalone.Main</main-class>
+    </properties>
+
+    <groupId>com.proofpoint.galaxy</groupId>
+    <artifactId>galaxy-standalone</artifactId>
+    <version>0.4-SNAPSHOT</version>
+    <name>galaxy-standalone</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.proofpoint.galaxy</groupId>
+            <artifactId>galaxy-coordinator</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.proofpoint.galaxy</groupId>
+            <artifactId>galaxy-agent</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2</version>
+
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/dev.xml</descriptor>
+                    </descriptors>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>package</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
