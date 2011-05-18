@@ -33,7 +33,6 @@
         <module>galaxy-integration-tests</module>
         <module>galaxy-standalone</module>
         <module>galaxy</module>
-        <module>galaxy-dev</module>
     </modules>
 
     <build>
