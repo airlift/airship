@@ -4,21 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>cli</artifactId>
-    <version>0.5-SNAPSHOT</version>
-    <packaging>gem</packaging>
+    <artifactId>galaxy</artifactId>
+    <packaging>pom</packaging>
     <name>galaxy</name>
-
     <description>Galaxy command line interface</description>
-    <url>https://github.com/dain/galaxy-server</url>
 
-    <developers>
-        <developer>
-            <id>dain</id>
-            <name>Dain Sundstrom</name>
-            <email>dain@iq80.com</email>
-        </developer>
-    </developers>
+    <version>0.5-SNAPSHOT</version>
 
     <distributionManagement>
         <repository>
@@ -33,72 +24,120 @@
         </snapshotRepository>
     </distributionManagement>
 
-
-    <repositories>
-        <repository>
-            <id>rubygems-proxy</id>
-            <name>Rubygems Proxy</name>
-            <url>http://rubygems-proxy.torquebox.org/releases</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
-
-    <dependencies>
-        <dependency>
-            <groupId>rubygems</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>[2.2.0,)</version>
-            <type>gem</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>rubygems</groupId>
-            <artifactId>json_pure</artifactId>
-            <version>[1.5.1,)</version>
-            <type>gem</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jruby</groupId>
-            <artifactId>jruby-complete</artifactId>
-            <version>1.5.6</version>
-            <type>jar</type>
-        </dependency>
-    </dependencies>
-
-    <properties>
-        <gem.home>${project.build.directory}/rubygems</gem.home>
-        <gem.path>${project.build.directory}/rubygems</gem.path>
-        <jruby.plugins.version>0.26.0</jruby.plugins.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <build>
         <plugins>
             <plugin>
-                <groupId>de.saumya.mojo</groupId>
-                <artifactId>gem-maven-plugin</artifactId>
-                <version>${jruby.plugins.version}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <defaultExecutable>galaxy</defaultExecutable>
-                    <files>bin,lib,pom.xml</files>
-                    <rubyforgeProject>galaxy</rubyforgeProject>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>default-push</id>
+                        <id>gem-build</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
+                                <!-- Replace the invalid characters in the version number with dot -->
+                                <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="maven.plugin.classpath"/>
+                                <propertyregex property="gem.version"
+                                               input="${project.version}"
+                                               regexp="[-]"
+                                               replace="."
+                                               global="true"
+                                               casesensitive="false"/>
+
+                                <!-- copy the sources into the target directory for packaging -->
+                                <property name="gem.build.directory" value="${project.build.directory}/gem-build"/>
+                                <mkdir dir="${gem.build.directory}" />
+                                <copy todir="${gem.build.directory}/bin">
+                                    <fileset dir="${project.basedir}/bin"/>
+                                </copy>
+                                <copy todir="${gem.build.directory}/lib">
+                                    <fileset dir="${project.basedir}/lib"/>
+                                </copy>
+
+                                <!-- copy the gemspec into the target directory and set the gem version number -->
+                                <copy file="com.proofpoint.galaxy.cli.gemspec" tofile="${gem.build.directory}/com.proofpoint.galaxy.cli.gemspec">
+                                    <filterset>
+                                        <filter token="GALAXY_GEM_VERSION" value="${gem.version}"/>
+                                    </filterset>
+                                </copy>
+
+                                <!-- build the gem -->
+                                <exec dir="${gem.build.directory}" executable="gem">
+                                    <arg value="build"/>
+                                    <arg value="com.proofpoint.galaxy.cli.gemspec"/>
+                                </exec>
+
+                                <!-- move the gem to the final location -->
+                                <move todir="${project.build.directory}">
+                                    <fileset dir="${gem.build.directory}">
+                                        <include name="com.proofpoint.galaxy.cli-${gem.version}.gem"/>
+                                    </fileset>
+                                </move>
+
+                                <!-- make a copy of the gem with the name maven expects so the attach plugin can find it -->
+                                <copy file="${project.build.directory}/com.proofpoint.galaxy.cli-${gem.version}.gem"
+                                      tofile="${project.build.directory}/com.proofpoint.galaxy.cli-${project.version}.gem"/>
+                            </tasks>
+                        </configuration>
                         <goals>
-                            <goal>push</goal>
+                            <goal>run</goal>
                         </goals>
-                        <phase>none</phase>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>ant-contrib</groupId>
+                        <artifactId>ant-contrib</artifactId>
+                        <version>1.0b3</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>ant</groupId>
+                                <artifactId>ant</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>ant</groupId>
+                        <artifactId>ant-nodeps</artifactId>
+                        <version>1.6.5</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>attach-gem</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>${project.build.directory}/com.proofpoint.galaxy.cli-${project.version}.gem</file>
+                                    <type>gem</type>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>attach-readme</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>README.txt</file>
+                                    <type>txt</type>
+                                    <classifier>readme</classifier>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
