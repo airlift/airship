@@ -31,7 +31,7 @@
         </dependency>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>cli</artifactId>
+            <artifactId>galaxy</artifactId>
             <version>0.5-SNAPSHOT</version>
             <type>gem</type>
         </dependency>
