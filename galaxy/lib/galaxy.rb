@@ -1,6 +1,8 @@
+#!/usr/bin/env ruby
 require 'optparse'
 require 'httpclient'
 require 'json'
+require 'galaxy/version'
 
 GALAXY_VERSION = "0.1"
 
@@ -15,11 +17,10 @@ exit_codes = {
 # Slot Information
 #
 class Slot
-  attr_reader :id, :name, :host, :ip, :url, :binary, :config, :status
+  attr_reader :uuid, :host, :ip, :url, :binary, :config, :status
 
-  def initialize(id, name, url, binary, config, status)
-    @id = id
-    @name = name
+  def initialize(uuid, url, binary, config, status)
+    @uuid = uuid
     @url = url
     @binary = binary
     @config = config
@@ -30,7 +31,7 @@ class Slot
   end
 
   def print_col
-    puts "#{id}\t#{host}\t#{name}\t#{status}\t#{binary}\t#{config}"
+    puts "#{uuid}\t#{host}\t#{status}\t#{binary}\t#{config}"
   end
 end
 
@@ -183,7 +184,7 @@ def coordinator_request(filter, options, method, sub_path = nil, value = nil, is
 
   # convert parsed json into slot objects
   slots = slots_json.map do |slot_json|
-    Slot.new(slot_json['id'], slot_json['name'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'])
+    Slot.new(slot_json['id'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'])
   end
 
   # verify response
@@ -246,8 +247,8 @@ option_parser = OptionParser.new do |opts|
     filter[:ip] = arg
   end
 
-  opts.on("-n", "--name SLOT_NAME", "Select slots with given slot name") do |arg|
-    filter[:name] = arg
+  opts.on("-u", "--uuid SLOT_UUID", "Select slots with given slot uuid") do |arg|
+    filter[:uuid] = arg
   end
 
   opts.on("-s", "--state STATE", "Select 'r{unning}', 's{topped}', 'u{assigned}' or 'unknown' slots", [:running, :r, :stopped, :s, :unassigned, :u, :unknown]) do |arg|
@@ -304,8 +305,9 @@ begin
   end
 
   slots = send(command, filter, options, ARGV.drop(1))
-  slots = slots.sort_by { |slot| slot.name + slot.id }
+  slots = slots.sort_by { |slot| "#{slot.ip}|#{slot.binary}|#{slot.config}|#{slot.uuid}" }
   puts '' if options[:debug]
+  puts "uuid\tip\tstatus\tbinary\tconfig"
   slots.each { |slot| slot.print_col } unless slots.nil?
   exit exit_codes[:success]
 rescue CommandError => e

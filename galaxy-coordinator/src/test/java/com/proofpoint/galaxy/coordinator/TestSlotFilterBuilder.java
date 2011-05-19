@@ -2,6 +2,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Predicate;
 import com.ning.http.client.AsyncHttpClient;
+import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.SlotUuidPredicate;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.galaxy.shared.MockUriInfo;
@@ -12,7 +13,6 @@ import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.GlobPredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.HostPredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.IpPredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.RegexPredicate;
-import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.SlotNamePredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.StatePredicate;
 import org.testng.annotations.Test;
 
@@ -28,7 +28,7 @@ import static org.testng.Assert.assertTrue;
 
 public class TestSlotFilterBuilder
 {
-    private final SlotStatus status = new SlotStatus(UUID.randomUUID(),
+    private final SlotStatus status = new SlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
             "slotName",
             URI.create("fake://localhost"),
             UNKNOWN,
@@ -60,20 +60,20 @@ public class TestSlotFilterBuilder
     }
 
     @Test
-    public void testSlotNamePredicate()
+    public void testSlotUuidPredicate()
     {
-        assertTrue(new SlotNamePredicate("slotName").apply(status));
-        assertTrue(buildFilter("name", "slotName").apply(slot));
-        assertTrue(new SlotNamePredicate("SLOTNAME").apply(status));
-        assertTrue(buildFilter("name", "SLOTNAME").apply(slot));
-        assertTrue(new SlotNamePredicate("SlotName").apply(status));
-        assertTrue(buildFilter("name", "SlotName").apply(slot));
-        assertTrue(new SlotNamePredicate("slot*").apply(status));
-        assertTrue(buildFilter("name", "slot*").apply(slot));
-        assertTrue(new SlotNamePredicate("SLOT*").apply(status));
-        assertTrue(buildFilter("name", "SLOT*").apply(slot));
-        assertFalse(new SlotNamePredicate("foo").apply(status));
-        assertFalse(buildFilter("name", "foo").apply(slot));
+        assertTrue(new SlotUuidPredicate("12345678-1234-1234-1234-123456789012").apply(status));
+        assertTrue(buildFilter("uuid", "12345678-1234-1234-1234-123456789012").apply(slot));
+        assertTrue(new SlotUuidPredicate("12345*").apply(status));
+        assertTrue(buildFilter("uuid", "12345*").apply(slot));
+        assertTrue(new SlotUuidPredicate("12345*").apply(status));
+        assertTrue(buildFilter("uuid", "12345*").apply(slot));
+        assertTrue(new SlotUuidPredicate("12345*").apply(status));
+        assertTrue(buildFilter("uuid", "12345*").apply(slot));
+        assertTrue(new SlotUuidPredicate("12345*").apply(status));
+        assertTrue(buildFilter("uuid", "12345*").apply(slot));
+        assertFalse(new SlotUuidPredicate("foo").apply(status));
+        assertFalse(buildFilter("uuid", "foo").apply(slot));
     }
 
     @Test

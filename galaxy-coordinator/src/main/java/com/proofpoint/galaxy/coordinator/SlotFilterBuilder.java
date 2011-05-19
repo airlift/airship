@@ -40,9 +40,9 @@ public class SlotFilterBuilder
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
-            else if ("name" .equals(entry.getKey())) {
-                for (String slotGlob : entry.getValue()) {
-                    builder.addSlotNameGlobFilter(slotGlob);
+            else if ("uuid" .equals(entry.getKey())) {
+                for (String uuidGlob : entry.getValue()) {
+                    builder.addSlotUuidGlobFilter(uuidGlob);
                 }
             }
             else if ("ip" .equals(entry.getKey())) {
@@ -66,7 +66,7 @@ public class SlotFilterBuilder
 
     private final boolean filterRequired;
     private final List<StatePredicate> stateFilters = Lists.newArrayListWithCapacity(6);
-    private final List<SlotNamePredicate> slotNameFilters = Lists.newArrayListWithCapacity(6);
+    private final List<SlotUuidPredicate> slotUuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<HostPredicate> hostFilters = Lists.newArrayListWithCapacity(6);
     private final List<IpPredicate> ipFilters = Lists.newArrayListWithCapacity(6);
     private final List<BinarySpecPredicate> binarySpecPredicates = Lists.newArrayListWithCapacity(6);
@@ -85,10 +85,10 @@ public class SlotFilterBuilder
         stateFilters.add(new StatePredicate(state));
     }
 
-    public void addSlotNameGlobFilter(String slotNameGlob)
+    public void addSlotUuidGlobFilter(String slotUuidGlob)
     {
-        Preconditions.checkNotNull(slotNameGlob, "slotNameGlob is null");
-        slotNameFilters.add(new SlotNamePredicate(slotNameGlob));
+        Preconditions.checkNotNull(slotUuidGlob, "slotUuidGlob is null");
+        slotUuidFilters.add(new SlotUuidPredicate(slotUuidGlob));
     }
 
     public void addHostGlobFilter(String hostGlob)
@@ -130,31 +130,33 @@ public class SlotFilterBuilder
     public Predicate<SlotStatus> buildStatusFilter()
     {
         // Filters are evaluated as: set | host | (env & version & type)
-        List<Predicate<SlotStatus>> orPredicates = Lists.newArrayListWithCapacity(6);
+        List<Predicate<SlotStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
         if (!stateFilters.isEmpty()) {
-            Predicate<SlotStatus> predicate = Predicates.and(stateFilters);
-            orPredicates.add(predicate);
+            Predicate<SlotStatus> predicate = Predicates.or(stateFilters);
+            andPredicates.add(predicate);
         }
-        if (!slotNameFilters.isEmpty()) {
-            Predicate<SlotStatus> predicate = Predicates.and(slotNameFilters);
-            orPredicates.add(predicate);
+        if (!slotUuidFilters.isEmpty()) {
+            Predicate<SlotStatus> predicate = Predicates.or(slotUuidFilters);
+            andPredicates.add(predicate);
         }
         if (!hostFilters.isEmpty()) {
-            Predicate<SlotStatus> predicate = Predicates.and(hostFilters);
-            orPredicates.add(predicate);
+            Predicate<SlotStatus> predicate = Predicates.or(hostFilters);
+            andPredicates.add(predicate);
         }
         if (!ipFilters.isEmpty()) {
-            Predicate<SlotStatus> predicate = Predicates.and(ipFilters);
-            orPredicates.add(predicate);
+            Predicate<SlotStatus> predicate = Predicates.or(ipFilters);
+            andPredicates.add(predicate);
         }
-        if (!binarySpecPredicates.isEmpty() || !configSpecPredicates.isEmpty()) {
-            Predicate<SlotStatus> predicate = Predicates.and(
-                    Predicates.and(binarySpecPredicates),
-                    Predicates.and(configSpecPredicates));
-            orPredicates.add(predicate);
+        if (!binarySpecPredicates.isEmpty()) {
+            Predicate<SlotStatus> predicate = Predicates.or(binarySpecPredicates);
+            andPredicates.add(predicate);
         }
-        if (!orPredicates.isEmpty()) {
-            return Predicates.or(orPredicates);
+        if (!configSpecPredicates.isEmpty()) {
+            Predicate<SlotStatus> predicate = Predicates.or(configSpecPredicates);
+            andPredicates.add(predicate);
+        }
+        if (!andPredicates.isEmpty()) {
+            return Predicates.and(andPredicates);
         }
         else if (!filterRequired) {
             return Predicates.alwaysTrue();
@@ -164,21 +166,21 @@ public class SlotFilterBuilder
         }
     }
 
-    public static class SlotNamePredicate implements Predicate<SlotStatus>
+    public static class SlotUuidPredicate implements Predicate<SlotStatus>
     {
         private final Predicate<CharSequence> predicate;
 
-        public SlotNamePredicate(String slotNameGlobGlob)
+        public SlotUuidPredicate(String slotUuidGlobGlob)
         {
-            predicate = new GlobPredicate(slotNameGlobGlob.toLowerCase());
+            predicate = new GlobPredicate(slotUuidGlobGlob.toLowerCase());
         }
 
         @Override
         public boolean apply(@Nullable SlotStatus slotStatus)
         {
             return slotStatus != null &&
-                    slotStatus.getName() != null &&
-                    predicate.apply(slotStatus.getName().toLowerCase());
+                    slotStatus.getId() != null &&
+                    predicate.apply(slotStatus.getId().toString().toLowerCase());
         }
     }
 
