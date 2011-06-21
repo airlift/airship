@@ -311,7 +311,7 @@ NOTES
         slots.each { |slot| slot.print_col } unless slots.nil?
         exit EXIT_CODES[:success]
       rescue CommandError => e
-        pugets e.message
+        puts e.message
         if e.code == :invalid_usage
           puts ''
           parse_command_line([])
