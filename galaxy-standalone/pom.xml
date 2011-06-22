@@ -14,24 +14,24 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-standalone</artifactId>
-    <version>0.6</version>
+    <version>0.7-SNAPSHOT</version>
     <name>galaxy-standalone</name>
 
     <dependencies>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-coordinator</artifactId>
-            <version>0.6</version>
+            <version>0.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-agent</artifactId>
-            <version>0.6</version>
+            <version>0.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy</artifactId>
-            <version>0.6</version>
+            <version>0.7-SNAPSHOT</version>
             <type>gem</type>
         </dependency>
     </dependencies>

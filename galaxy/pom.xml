@@ -8,7 +8,7 @@
     <name>galaxy</name>
     <description>Galaxy command line interface</description>
 
-    <version>0.6</version>
+    <version>0.7-SNAPSHOT</version>
 
     <distributionManagement>
         <repository>
