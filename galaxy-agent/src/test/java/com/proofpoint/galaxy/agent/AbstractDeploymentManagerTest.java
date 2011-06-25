@@ -16,66 +16,59 @@ public abstract class AbstractDeploymentManagerTest
     protected Installation bananaInstallation;
 
     @Test
-    public void testStateMachine()
+    public void testInstall()
     {
-        // no active deployment by default
-        assertNull(manager.getActiveDeployment());
+        // no deployment by default
+        assertNull(manager.getDeployment());
 
-        // install apple: no active deployment
+        // install apple deployment
         Deployment appleDeployment = manager.install(appleInstallation);
         assertNotNull(appleDeployment);
-        assertNull(manager.getActiveDeployment());
+        assertEquals(manager.getDeployment(), appleDeployment);
         assertEquals(appleDeployment.getAssignment(), appleInstallation.getAssignment());
-
-        // install banana: no active deployment
-        Deployment bananaDeployment = manager.install(bananaInstallation);
-        assertNotNull(bananaDeployment);
-        assertNull(manager.getActiveDeployment());
-        assertEquals(bananaDeployment.getAssignment(), bananaInstallation.getAssignment());
-
-        // apple and banana should be in different deployments
-        assertFalse(appleDeployment.equals(bananaDeployment));
-        assertFalse(appleDeployment.getDeploymentId().equals(bananaDeployment.getDeploymentId()));
-        assertFalse(appleDeployment.getDeploymentDir().equals(bananaDeployment.getDeploymentDir()));
-
-        // activate apple
-        manager.activate(appleDeployment.getDeploymentId());
-        assertEquals(manager.getActiveDeployment(), appleDeployment);
-
-        // activate banana
-        manager.activate(bananaDeployment.getDeploymentId());
-        assertEquals(manager.getActiveDeployment(), bananaDeployment);
-
-        // remove banana while active: no active deployment
-        manager.remove(bananaDeployment.getDeploymentId());
-        assertNull(manager.getActiveDeployment());
-
-        // activate banana: throws exception: no active deployment
-        try {
-            manager.activate(bananaDeployment.getDeploymentId());
-            fail("expected IllegalArgumentException");
-        }
-        catch (IllegalArgumentException expected) {
-        }
-        assertNull(manager.getActiveDeployment());
 
         // remove apple: no active deployment
         manager.remove(appleDeployment.getDeploymentId());
-        assertNull(manager.getActiveDeployment());
-
-        // activate apple: throws exception: no active deployment
-        try {
-            manager.activate(appleDeployment.getDeploymentId());
-            fail("expected IllegalArgumentException");
-        }
-        catch (IllegalArgumentException expected) {
-        }
-        assertNull(manager.getActiveDeployment());
-
+        assertNull(manager.getDeployment());
 
         // remove apple again: no active deployment
         manager.remove(appleDeployment.getDeploymentId());
-        assertNull(manager.getActiveDeployment());
+        assertNull(manager.getDeployment());
+
+        // install banana
+        Deployment bananaDeployment = manager.install(bananaInstallation);
+        assertNotNull(bananaDeployment);
+        assertEquals(manager.getDeployment(), bananaDeployment);
+        assertEquals(bananaDeployment.getAssignment(), bananaInstallation.getAssignment());
+
+        // remove banana
+        manager.remove(bananaDeployment.getDeploymentId());
+        assertNull(manager.getDeployment());
+    }
+
+    @Test
+    public void testInstallOverExisting()
+    {
+        // no deployment by default
+        assertNull(manager.getDeployment());
+
+        // install apple deployment
+        Deployment appleDeployment = manager.install(appleInstallation);
+        assertNotNull(appleDeployment);
+        assertEquals(manager.getDeployment(), appleDeployment);
+        assertEquals(appleDeployment.getAssignment(), appleInstallation.getAssignment());
+
+        // install banana over apple deployment
+        try {
+            manager.install(bananaInstallation);
+            fail("Expected IllegalStateException");
+        }
+        catch (IllegalStateException expected) {
+        }
+
+        // remove banana again: no active deployment
+        manager.remove(appleDeployment.getDeploymentId());
+        assertNull(manager.getDeployment());
 
     }
 }

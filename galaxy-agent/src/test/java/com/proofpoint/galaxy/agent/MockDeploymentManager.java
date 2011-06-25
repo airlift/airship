@@ -18,18 +18,13 @@ import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.Installation;
 
 import java.io.File;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MockDeploymentManager implements DeploymentManager
 {
     private final String slotName;
-    private final AtomicInteger nextId = new AtomicInteger(1);
     private final UUID slotId = UUID.randomUUID();
-    private final Map<String, Deployment> deployments = new TreeMap<String, Deployment>();
-    private Deployment activeDeployment;
+    private Deployment deployment;
 
     public MockDeploymentManager(String slotName)
     {
@@ -46,15 +41,15 @@ public class MockDeploymentManager implements DeploymentManager
     public Deployment install(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
+        Preconditions.checkState(deployment == null, "slot has an active deployment");
 
-        String deploymentId = "Deployment-" + nextId.getAndIncrement();
+        String deploymentId = "deployment";
         ConfigSpec config = installation.getAssignment().getConfig();
         String pool = config.getPool();
         if (pool == null) {
             pool = "general";
         }
-        Deployment deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), new File(deploymentId), new File(new File("data", config.getComponent()), pool), installation.getAssignment());
-        deployments.put(deploymentId, deployment);
+        deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), new File(deploymentId), new File(new File("data", config.getComponent()), pool), installation.getAssignment());
         return deployment;
     }
 
@@ -64,21 +59,8 @@ public class MockDeploymentManager implements DeploymentManager
     }
 
     @Override
-    public Deployment getActiveDeployment()
+    public Deployment getDeployment()
     {
-        return activeDeployment;
-    }
-
-    @Override
-    public Deployment activate(String deploymentId)
-    {
-        Preconditions.checkNotNull(deploymentId, "deploymentId is null");
-        Deployment deployment = deployments.get(deploymentId);
-        if (deployment == null) {
-            throw new IllegalArgumentException("Unknown deployment id");
-        }
-
-        activeDeployment = deployment;
         return deployment;
     }
 
@@ -86,9 +68,8 @@ public class MockDeploymentManager implements DeploymentManager
     public void remove(String deploymentId)
     {
         Preconditions.checkNotNull(deploymentId, "deploymentId is null");
-        if (activeDeployment != null && deploymentId.equals(activeDeployment.getDeploymentId())) {
-            activeDeployment = null;
+        if (deployment != null && deploymentId.equals(deployment.getDeploymentId())) {
+            deployment = null;
         }
-        deployments.remove(deploymentId);
     }
 }

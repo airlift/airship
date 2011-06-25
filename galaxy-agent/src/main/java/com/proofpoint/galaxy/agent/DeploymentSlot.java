@@ -85,20 +85,21 @@ public class DeploymentSlot implements Slot
         try {
             log.info("Becoming %s with %s", installation.getAssignment().getBinary(), installation.getAssignment().getConfig());
 
-            // deploy new server
-            Deployment deployment = deploymentManager.install(installation);
-
             // stop current server
-            Deployment activeDeployment = deploymentManager.getActiveDeployment();
-            if (activeDeployment != null) {
-                LifecycleState state = lifecycleManager.stop(activeDeployment);
+            Deployment oldDeployment = deploymentManager.getDeployment();
+            if (oldDeployment != null) {
+                LifecycleState state = lifecycleManager.stop(oldDeployment);
                 if (state != STOPPED) {
                     // todo error
                 }
+
+                // remove the deployment
+                deploymentManager.remove(oldDeployment.getDeploymentId());
             }
 
-            // make new server active
-            deploymentManager.activate(deployment.getDeploymentId());
+
+            // deploy new server
+            deploymentManager.install(installation);
 
             // inform everyone else of the change
             // todo should this be done after the lock is released
@@ -116,7 +117,7 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
-            Deployment activeDeployment = deploymentManager.getActiveDeployment();
+            Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 return new SlotStatus(id, name, self);
             }
@@ -151,7 +152,7 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
-            Deployment activeDeployment = deploymentManager.getActiveDeployment();
+            Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 return new SlotStatus(id, name, self);
             }
@@ -169,7 +170,7 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
-            Deployment activeDeployment = deploymentManager.getActiveDeployment();
+            Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be started because the slot is not assigned");
             }
@@ -186,7 +187,7 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
-            Deployment activeDeployment = deploymentManager.getActiveDeployment();
+            Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
             }
@@ -203,7 +204,7 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
-            Deployment activeDeployment = deploymentManager.getActiveDeployment();
+            Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
             }

@@ -2,7 +2,6 @@ package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
-import com.google.common.io.PatternFilenameFilter;
 import com.google.common.io.Resources;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.Assignment;
@@ -15,12 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
@@ -28,7 +23,6 @@ import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.FileUtils.extractTar;
 import static com.proofpoint.galaxy.shared.FileUtils.listFiles;
-import static java.lang.Math.max;
 
 public class DirectoryDeploymentManager implements DeploymentManager
 {
@@ -40,9 +34,8 @@ public class DirectoryDeploymentManager implements DeploymentManager
     private final Duration tarTimeout;
     private final File baseDir;
 
-    private final Map<String, Deployment> deployments = new TreeMap<String, Deployment>();
-    private Deployment activeDeployment;
-    private File activeDeploymentFile;
+    private final File deploymentFile;
+    private Deployment deployment;
 
     public DirectoryDeploymentManager(AgentConfig config, String slotName, File baseDir)
     {
@@ -56,51 +49,28 @@ public class DirectoryDeploymentManager implements DeploymentManager
         Preconditions.checkArgument(baseDir.isDirectory(), "baseDir is not a directory: " + baseDir.getAbsolutePath());
         this.baseDir = baseDir;
 
-        activeDeploymentFile = new File(baseDir, "galaxy-active-deployment.txt");
-        if (activeDeploymentFile.exists()) {
-            Preconditions.checkArgument(activeDeploymentFile.canRead(), "can not read " + activeDeploymentFile.getAbsolutePath());
-            Preconditions.checkArgument(activeDeploymentFile.canWrite(), "can not write " + activeDeploymentFile.getAbsolutePath());
+        // verify deployment file is readable and writable
+        deploymentFile = new File(baseDir, "galaxy-deployment.json");
+        if (deploymentFile.exists()) {
+            Preconditions.checkArgument(deploymentFile.canRead(), "can not read " + deploymentFile.getAbsolutePath());
+            Preconditions.checkArgument(deploymentFile.canWrite(), "can not write " + deploymentFile.getAbsolutePath());
         }
 
         // load deployments
-        for (File deploymentFile : listFiles(baseDir, new PatternFilenameFilter("galaxy-deployment\\d+-deployment.json"))) {
+        if (deploymentFile.exists()) {
             try {
                 Deployment deployment = load(deploymentFile);
                 if (deployment.getDeploymentDir().isDirectory()) {
-                    deployments.put(deployment.getDeploymentId(), deployment);
+                    this.deployment = deployment;
                 }
                 else {
+                    // todo this is totally borked
                     log.warn(deploymentFile.getAbsolutePath() + " references a deployment that no longer exists: deleting");
                     deploymentFile.delete();
                 }
             }
             catch (IOException e) {
                 log.error(e, "Invalid deployment file: " + deploymentFile.getAbsolutePath());
-            }
-        }
-
-        // warn about unknown directories
-        for (File file : listFiles(baseDir)) {
-            if (file.isDirectory() && !deployments.containsKey(file.getName())) {
-                log.warn("Unknown directory in slot: " + file.getAbsolutePath());
-            }
-        }
-
-        // load active deployment
-        if (activeDeploymentFile.exists()) {
-            try {
-                String activeDeploymentId = Files.toString(activeDeploymentFile, UTF_8).trim();
-                Deployment deployment = deployments.get(activeDeploymentId);
-                if (deployment != null) {
-                    activeDeployment = deployment;
-                }
-                else {
-                    log.warn("The active deployment [" + activeDeploymentId + "] missing");
-                    activeDeploymentFile.delete();
-                }
-            }
-            catch (IOException e) {
-                Preconditions.checkArgument(activeDeploymentFile.canRead(), "can not read " + activeDeploymentFile.getAbsolutePath());
             }
         }
 
@@ -154,15 +124,15 @@ public class DirectoryDeploymentManager implements DeploymentManager
     public Deployment install(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
+        Preconditions.checkState(deployment == null, "slot has an active deployment");
 
-        String deploymentId = getNextDeploymentId();
-        File deploymentDir = new File(baseDir, deploymentId);
+        File deploymentDir = new File(baseDir, "deployment");
 
         Assignment assignment = installation.getAssignment();
 
         File dataDir = getDataDir(assignment);
 
-        Deployment deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), deploymentDir, dataDir, assignment);
+        Deployment deployment = new Deployment("deployment", slotName, UUID.randomUUID(), deploymentDir, dataDir, assignment);
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary
@@ -228,58 +198,13 @@ public class DirectoryDeploymentManager implements DeploymentManager
             }
         }
 
-        deployments.put(deploymentId, deployment);
+        this.deployment = deployment;
         return deployment;
     }
 
-    private static final Pattern DEPLOYMENT_ID_PATTERN = Pattern.compile("deployment(\\d+)");
-
-    private String getNextDeploymentId()
-    {
-        int nextId = 1;
-        for (String deploymentId : deployments.keySet()) {
-            Matcher matcher = DEPLOYMENT_ID_PATTERN.matcher(deploymentId);
-            if (matcher.matches()) {
-                try {
-                    int id = Integer.parseInt(matcher.group(1));
-                    nextId = max(id, nextId + 1);
-                }
-                catch (NumberFormatException ignored) {
-                }
-            }
-        }
-
-        for (int i = 0; i < 10000; i++) {
-            String deploymentId = "deployment" + nextId++;
-            if (!new File(baseDir, deploymentId).exists()) {
-                return deploymentId;
-            }
-        }
-        throw new IllegalStateException("Could not find an valid deployment directory");
-    }
-
     @Override
-    public Deployment getActiveDeployment()
+    public Deployment getDeployment()
     {
-        return activeDeployment;
-    }
-
-    @Override
-    public Deployment activate(String deploymentId)
-    {
-        Preconditions.checkNotNull(deploymentId, "deploymentId is null");
-        Deployment deployment = deployments.get(deploymentId);
-        if (deployment == null) {
-            throw new IllegalArgumentException("Unknown deployment id");
-        }
-
-        try {
-            Files.write(deploymentId, activeDeploymentFile, UTF_8);
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Unable to save active deployment file: " + activeDeploymentFile, e);
-        }
-        activeDeployment = deployment;
         return deployment;
     }
 
@@ -287,22 +212,19 @@ public class DirectoryDeploymentManager implements DeploymentManager
     public void remove(String deploymentId)
     {
         Preconditions.checkNotNull(deploymentId, "deploymentId is null");
-        if (activeDeployment != null && deploymentId.equals(activeDeployment.getDeploymentId())) {
-            activeDeployment = null;
-            activeDeploymentFile.delete();
+        if (deployment == null) {
+            return;
         }
-        Deployment deployment = deployments.remove(deploymentId);
-        if (deployment != null) {
-            getDeploymentAssignmentFile(deployment).delete();
-            deleteRecursively(deployment.getDeploymentDir());
-        }
+        deploymentFile.delete();
+        deleteRecursively(deployment.getDeploymentDir());
+        deployment = null;
     }
 
     public void save(Deployment deployment)
             throws IOException
     {
         String json = jsonCodec.toJson(DeploymentRepresentation.from(deployment));
-        Files.write(json, getDeploymentAssignmentFile(deployment), UTF_8);
+        Files.write(json, deploymentFile, UTF_8);
     }
 
     public Deployment load(File deploymentFile)
@@ -312,11 +234,6 @@ public class DirectoryDeploymentManager implements DeploymentManager
         DeploymentRepresentation data = jsonCodec.fromJson(json);
         Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()), getDataDir(data.getAssignment().toAssignment()));
         return deployment;
-    }
-
-    private File getDeploymentAssignmentFile(Deployment deployment)
-    {
-        return new File(baseDir, String.format("galaxy-%s-deployment.json", deployment.getDeploymentId()));
     }
 
     private File getDataDir(Assignment assignment)

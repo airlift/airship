@@ -71,66 +71,21 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     {
         // install apple and banana and activate apple
         Deployment appleDeployment = manager.install(appleInstallation);
-        Deployment bananaDeployment = manager.install(bananaInstallation);
-        manager.activate(appleDeployment.getDeploymentId());
-
 
         // replace the deployment manager with a new one, which will cause the persistent data to reload
         manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir.getName(), tempDir);
 
-
         // active deployment should still be apple
-        assertEquals(manager.getActiveDeployment(), appleDeployment);
+        assertEquals(manager.getDeployment(), appleDeployment);
 
-        // activate banana which should still be installed
-        manager.activate(bananaDeployment.getDeploymentId());
-        assertEquals(manager.getActiveDeployment(), bananaDeployment);
-
-        // remove banana while active: no active deployment
-        manager.remove(bananaDeployment.getDeploymentId());
-        assertNull(manager.getActiveDeployment());
-
+        // remove apple while active: no active deployment
+        manager.remove(appleDeployment.getDeploymentId());
+        assertNull(manager.getDeployment());
 
         // replace the deployment manager again: this time no deployments are active
         manager = new DirectoryDeploymentManager(new AgentConfig(), "slot", tempDir);
 
-
         // no deployment should be active
-        assertNull(manager.getActiveDeployment());
-
-
-        // try to activate banana, which was removed in last manager
-        // throws exception: no active deployment
-        try {
-            manager.activate(bananaDeployment.getDeploymentId());
-            fail("expected IllegalArgumentException");
-        }
-        catch (IllegalArgumentException expected) {
-        }
-        assertNull(manager.getActiveDeployment());
-
-        // remove apple: no active deployment
-        manager.remove(appleDeployment.getDeploymentId());
-        assertNull(manager.getActiveDeployment());
-
-
-        // replace the deployment manager one last time: this time there are no deployments
-        manager = new DirectoryDeploymentManager(new AgentConfig(), "slot", tempDir);
-
-
-        // activate apple and banana: throws exception: no active deployment
-        try {
-            manager.activate(appleDeployment.getDeploymentId());
-            fail("expected IllegalArgumentException");
-        }
-        catch (IllegalArgumentException expected) {
-        }
-        try {
-            manager.activate(bananaDeployment.getDeploymentId());
-            fail("expected IllegalArgumentException");
-        }
-        catch (IllegalArgumentException expected) {
-        }
-        assertNull(manager.getActiveDeployment());
+        assertNull(manager.getDeployment());
     }
 }

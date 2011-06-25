@@ -25,9 +25,7 @@ public interface DeploymentManager
 
     Deployment install(Installation installation);
 
-    Deployment getActiveDeployment();
-
-    Deployment activate(String deploymentId);
+    Deployment getDeployment();
 
     void remove(String deploymentId);
 }
