@@ -5,9 +5,9 @@ require 'json'
 require 'galaxy/version'
 require 'galaxy/colorize'
 
-include Colorize
-
 module Galaxy
+  include Colorize
+
   GALAXY_VERSION = "0.1"
 
   EXIT_CODES = {
