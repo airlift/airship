@@ -27,5 +27,5 @@ public interface DeploymentManager
 
     Deployment getDeployment();
 
-    void remove(String deploymentId);
+    void clear();
 }

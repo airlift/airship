@@ -209,9 +209,8 @@ public class DirectoryDeploymentManager implements DeploymentManager
     }
 
     @Override
-    public void remove(String deploymentId)
+    public void clear()
     {
-        Preconditions.checkNotNull(deploymentId, "deploymentId is null");
         if (deployment == null) {
             return;
         }

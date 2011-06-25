@@ -94,7 +94,7 @@ public class DeploymentSlot implements Slot
                 }
 
                 // remove the deployment
-                deploymentManager.remove(oldDeployment.getDeploymentId());
+                deploymentManager.clear();
             }
 
 
@@ -139,7 +139,7 @@ public class DeploymentSlot implements Slot
             }
 
             // remove deployment
-            deploymentManager.remove(activeDeployment.getDeploymentId());
+            deploymentManager.clear();
             return new SlotStatus(id, name, self);
         }
         finally {

@@ -28,11 +28,11 @@ public abstract class AbstractDeploymentManagerTest
         assertEquals(appleDeployment.getAssignment(), appleInstallation.getAssignment());
 
         // remove apple: no active deployment
-        manager.remove(appleDeployment.getDeploymentId());
+        manager.clear();
         assertNull(manager.getDeployment());
 
         // remove apple again: no active deployment
-        manager.remove(appleDeployment.getDeploymentId());
+        manager.clear();
         assertNull(manager.getDeployment());
 
         // install banana
@@ -42,7 +42,7 @@ public abstract class AbstractDeploymentManagerTest
         assertEquals(bananaDeployment.getAssignment(), bananaInstallation.getAssignment());
 
         // remove banana
-        manager.remove(bananaDeployment.getDeploymentId());
+        manager.clear();
         assertNull(manager.getDeployment());
     }
 
@@ -67,7 +67,7 @@ public abstract class AbstractDeploymentManagerTest
         }
 
         // remove banana again: no active deployment
-        manager.remove(appleDeployment.getDeploymentId());
+        manager.clear();
         assertNull(manager.getDeployment());
 
     }

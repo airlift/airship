@@ -79,7 +79,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         assertEquals(manager.getDeployment(), appleDeployment);
 
         // remove apple while active: no active deployment
-        manager.remove(appleDeployment.getDeploymentId());
+        manager.clear();
         assertNull(manager.getDeployment());
 
         // replace the deployment manager again: this time no deployments are active
