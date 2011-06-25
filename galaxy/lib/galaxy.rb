@@ -3,8 +3,11 @@ require 'optparse'
 require 'httpclient'
 require 'json'
 require 'galaxy/version'
+require 'galaxy/colorize'
 
 module Galaxy
+  include Colorize
+
   GALAXY_VERSION = "0.1"
 
   EXIT_CODES = {
@@ -32,6 +35,16 @@ module Galaxy
     end
 
     def print_col
+      status = @status
+
+      if STDOUT.tty?
+        status = case status
+          when "RUNNING" then colorize(status, :bright, :green)
+          when "STOPPED" then colorize(status, :bright, :green)
+          else status
+        end
+      end
+
       puts "#{uuid}\t#{host}\t#{status}\t#{binary}\t#{config}"
     end
   end
