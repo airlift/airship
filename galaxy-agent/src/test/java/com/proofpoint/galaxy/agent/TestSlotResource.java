@@ -15,7 +15,9 @@ package com.proofpoint.galaxy.agent;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.proofpoint.galaxy.shared.ExtraAssertions;
+import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.MockUriInfo;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
@@ -32,6 +34,9 @@ import java.net.URI;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
 import static com.proofpoint.testing.Assertions.assertInstanceOf;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -121,6 +126,28 @@ public class TestSlotResource
 
         assertNull(response.getEntity());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
+    }
+
+    @Test
+    public void testInstallSlot()
+    {
+        Response response = resource.installSlot(InstallationRepresentation.from(APPLE_INSTALLATION), uriInfo);
+
+        // find the new slot
+        Slot slot = agent.getAllSlots().iterator().next();
+
+        assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
+        assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/agent/slot/" + slot.getName()));
+
+        SlotStatus expectedStatus = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
+        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
+        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testInstallNullDeployment()
+    {
+        resource.installSlot(null, uriInfo);
     }
 
     @Test

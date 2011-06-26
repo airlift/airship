@@ -208,6 +208,36 @@ public class TestServer
 
 
     @Test
+    public void testInstallSlot()
+            throws Exception
+    {
+        String json = installationCodec.toJson(InstallationRepresentation.from(appleInstallation));
+        Response response = client.preparePost(urlFor("/v1/agent/slot"))
+                .setBody(json)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.CREATED.getStatusCode());
+        Slot slot = agent.getAllSlots().iterator().next();
+        assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/agent/slot/").resolve(slot.getName()).toString());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+        Map<String, String> expected = ImmutableMap.<String, String>builder()
+                .put("id", slot.getId().toString())
+                .put("name", slot.getName())
+                .put("binary", appleInstallation.getAssignment().getBinary().toString())
+                .put("config", appleInstallation.getAssignment().getConfig().toString())
+                .put("self", urlFor(slot))
+                .put("status", STOPPED.toString())
+                .build();
+
+        Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
+        assertEquals(actual, expected);
+    }
+
+
+    @Test
     public void testRemoveSlot()
             throws Exception
     {

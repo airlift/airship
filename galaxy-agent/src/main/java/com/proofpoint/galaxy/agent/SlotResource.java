@@ -14,11 +14,14 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -58,6 +61,30 @@ public class SlotResource
         catch (Exception ignored) {
         }
         return Response.created(getSelfUri(slot.getName(), uriInfo.getBaseUri())).build();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response installSlot(InstallationRepresentation installation, @Context UriInfo uriInfo)
+    {
+        Preconditions.checkNotNull(installation, "installation must not be null");
+
+        // create a new slot
+        Slot slot = agent.addNewSlot();
+
+        // install the software
+        try {
+            SlotStatus status = slot.assign(installation.toInstallation());
+            return Response
+                    .created(getSelfUri(slot.getName(), uriInfo.getBaseUri()))
+                    .entity(SlotStatusRepresentation.from(status))
+                    .build();
+        }
+        catch (Exception e) {
+            agent.deleteSlot(slot.getName());
+            throw Throwables.propagate(e);
+        }
     }
 
     @Path("{slotName: [a-z0-9]+}")
