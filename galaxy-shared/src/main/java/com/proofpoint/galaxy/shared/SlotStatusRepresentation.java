@@ -13,11 +13,13 @@
  */
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.base.Function;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.net.URI;
@@ -32,6 +34,17 @@ public class SlotStatusRepresentation
     private final String binary;
     private final String config;
     private final String status;
+
+    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus()
+    {
+        return new Function<SlotStatus, SlotStatusRepresentation>()
+        {
+            public SlotStatusRepresentation apply(SlotStatus status)
+            {
+                return from(status);
+            }
+        };
+    }
 
     public static SlotStatusRepresentation from(SlotStatus slotStatus)
     {
