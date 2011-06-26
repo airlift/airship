@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
+import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -22,14 +23,20 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.fail;
 
-public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTest
+public class TestDirectoryDeploymentManager
+        extends AbstractDeploymentManagerTest
 {
+    private static final String DEPLOY_SCRIPT_SUCCESS = "#!/bin/sh\nexit 0\n";
+    private static final String DEPLOY_SCRIPT_FAILURE = "#!/bin/sh\nexit 1\n";
+    private static final String DEPLOY_SCRIPT_TIMEOUT = "#!/bin/sh\nsleep 5\n";
+    private static final String DEPLOY_SCRIPT_INVALID = "\0invalid executable";
+
     private File tempDir;
     private InstallationHelper installationHelper;
 
@@ -54,8 +61,11 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     public void setUp()
             throws IOException
     {
+        AgentConfig config = new AgentConfig();
+        // set a timeout shorter than DEPLOY_SCRIPT_TIMEOUT
+        config.setDeployScriptTimeout(new Duration(1, TimeUnit.SECONDS));
         tempDir = Files.createTempDir().getCanonicalFile();
-        manager = new DirectoryDeploymentManager(new AgentConfig(), "slot", tempDir);
+        manager = new DirectoryDeploymentManager(config, "slot", tempDir);
     }
 
     @AfterMethod
@@ -87,5 +97,33 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
 
         // no deployment should be active
         assertNull(manager.getDeployment());
+    }
+
+    @Test()
+    public void testDeployScriptSuccess()
+            throws Exception
+    {
+        manager.install(installationHelper.createInstallation(DEPLOY_SCRIPT_SUCCESS));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class)
+    public void testDeployScriptFailure()
+            throws Exception
+    {
+        manager.install(installationHelper.createInstallation(DEPLOY_SCRIPT_FAILURE));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class)
+    public void testDeployScriptTimeout()
+            throws Exception
+    {
+        manager.install(installationHelper.createInstallation(DEPLOY_SCRIPT_TIMEOUT));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class)
+    public void testDeployScriptInvalid()
+            throws Exception
+    {
+        manager.install(installationHelper.createInstallation(DEPLOY_SCRIPT_INVALID));
     }
 }
