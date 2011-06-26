@@ -70,7 +70,7 @@ public class MavenBinaryRepository implements BinaryRepository
                 );
                 Settings settings = settingsBuildingResult.getEffectiveSettings();
                 for (Profile profile : settings.getProfiles()) {
-                    if (profile.getActivation() != null && profile.getActivation().isActiveByDefault()) {
+                    if (isProfileActive(settings, profile)) {
                         for (Repository repository : profile.getRepositories()) {
                             String url = repository.getUrl();
                             if (!url.endsWith("/")) {
@@ -192,6 +192,19 @@ public class MavenBinaryRepository implements BinaryRepository
             return true;
         }
         catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    private static boolean isProfileActive(Settings settings, Profile profile)
+    {
+        if ((profile.getActivation() != null) && profile.getActivation().isActiveByDefault()) {
+            return true;
+        }
+        for (String profileId : settings.getActiveProfiles()) {
+            if (profileId.equals(profile.getId())) {
+                return true;
+            }
         }
         return false;
     }
