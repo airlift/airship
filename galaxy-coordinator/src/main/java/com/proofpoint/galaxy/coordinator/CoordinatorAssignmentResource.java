@@ -15,11 +15,9 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 
@@ -35,6 +33,9 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.collect.Collections2.transform;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 
 @Path("/v1/slot/assignment")
 public class CoordinatorAssignmentResource
@@ -79,16 +80,10 @@ public class CoordinatorAssignmentResource
 
         Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configMap);
 
-        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
-        List<SlotStatusRepresentation> representations = Lists.newArrayList();
-        for (RemoteSlot remoteSlot : coordinator.getAllSlots()) {
-            if (slotFilter.apply(remoteSlot)) {
-                SlotStatus slotStatus = remoteSlot.assign(installation);
-                representations.add(SlotStatusRepresentation.from(slotStatus));
+        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo);
+        List<SlotStatus> results = coordinator.assign(slotFilter, installation);
 
-            }
-        }
-        return Response.ok(representations).build();
+        return Response.ok(transform(results, fromSlotStatus())).build();
     }
 
     @DELETE
@@ -96,14 +91,8 @@ public class CoordinatorAssignmentResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response clear(@Context UriInfo uriInfo)
     {
-        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
-        List<SlotStatusRepresentation> representations = Lists.newArrayList();
-        for (RemoteSlot remoteSlot : coordinator.getAllSlots()) {
-            if (slotFilter.apply(remoteSlot)) {
-                SlotStatus slotStatus = remoteSlot.clear();
-                representations.add(SlotStatusRepresentation.from(slotStatus));
-            }
-        }
-        return Response.ok(representations).build();
+        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo);
+        List<SlotStatus> results = coordinator.clear(slotFilter);
+        return Response.ok(transform(results, fromSlotStatus())).build();
     }
 }

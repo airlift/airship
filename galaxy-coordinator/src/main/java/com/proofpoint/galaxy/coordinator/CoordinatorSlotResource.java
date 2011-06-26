@@ -17,6 +17,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 
 import javax.ws.rs.GET;
@@ -27,6 +28,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+
+import static com.google.common.collect.Collections2.transform;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 
 @Path("/v1/slot")
 public class CoordinatorSlotResource
@@ -45,13 +49,9 @@ public class CoordinatorSlotResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllSlots(@Context UriInfo uriInfo)
     {
-        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo, false);
-        List<SlotStatusRepresentation> representations = Lists.newArrayList();
-        for (RemoteSlot remoteSlot : coordinator.getAllSlots()) {
-            if (slotFilter.apply(remoteSlot)) {
-                representations.add(SlotStatusRepresentation.from(remoteSlot.status()));
-            }
-        }
-        return Response.ok(representations).build();
+        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, false);
+        List<SlotStatus> result = coordinator.getAllSlotsStatus(slotFilter);
+
+        return Response.ok(transform(result, fromSlotStatus())).build();
     }
 }

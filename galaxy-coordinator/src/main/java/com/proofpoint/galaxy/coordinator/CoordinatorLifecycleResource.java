@@ -15,11 +15,9 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.LifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -29,6 +27,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+
+import static com.google.common.collect.Collections2.transform;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 
 @Path("/v1/slot/lifecycle")
 public class CoordinatorLifecycleResource
@@ -63,25 +64,8 @@ public class CoordinatorLifecycleResource
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        Predicate<RemoteSlot> slotFilter = SlotFilterBuilder.build(uriInfo);
-        List<SlotStatusRepresentation> representations = Lists.newArrayList();
-        for (RemoteSlot remoteSlot : coordinator.getAllSlots()) {
-            if (slotFilter.apply(remoteSlot)) {
-                SlotStatus slotStatus;
-                switch (state) {
-                    case RUNNING:
-                        slotStatus = remoteSlot.start();
-                        break;
-                    case STOPPED:
-                        slotStatus = remoteSlot.stop();
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
-
-                representations.add(SlotStatusRepresentation.from(slotStatus));
-            }
-        }
-        return Response.ok(representations).build();
+        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo);
+        List<SlotStatus> results = coordinator.setState(state, slotFilter);
+        return Response.ok(transform(results, fromSlotStatus())).build();
      }
 }

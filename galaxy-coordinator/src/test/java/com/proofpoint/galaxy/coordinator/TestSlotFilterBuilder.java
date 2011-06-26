@@ -33,9 +33,8 @@ public class TestSlotFilterBuilder
             URI.create("fake://localhost"),
             UNKNOWN,
             APPLE_ASSIGNMENT);
-    private final RemoteSlot slot = new HttpRemoteSlot(status, new AsyncHttpClient());
 
-    private Predicate<RemoteSlot> buildFilter(String key, String value)
+    private Predicate<SlotStatus> buildFilter(String key, String value)
     {
         return SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value));
     }
@@ -43,88 +42,88 @@ public class TestSlotFilterBuilder
     @Test(expectedExceptions = InvalidSlotFilterException.class)
     public void testEmptyFilter()
     {
-        SlotFilterBuilder.build(MockUriInfo.from("fake://localhost")).apply(slot);
+        SlotFilterBuilder.build(MockUriInfo.from("fake://localhost")).apply(status);
     }
 
     @Test
     public void testStateSpecPredicate()
     {
         assertTrue(new StatePredicate(UNKNOWN).apply(status));
-        assertTrue(buildFilter("state", "unknown").apply(slot));
-        assertTrue(buildFilter("state", "u").apply(slot));
-        assertTrue(buildFilter("state", "UnKnown").apply(slot));
-        assertTrue(buildFilter("state", "U").apply(slot));
+        assertTrue(buildFilter("state", "unknown").apply(status));
+        assertTrue(buildFilter("state", "u").apply(status));
+        assertTrue(buildFilter("state", "UnKnown").apply(status));
+        assertTrue(buildFilter("state", "U").apply(status));
         assertFalse(new StatePredicate(RUNNING).apply(status));
-        assertFalse(buildFilter("state", "running").apply(slot));
-        assertFalse(buildFilter("state", "r").apply(slot));
+        assertFalse(buildFilter("state", "running").apply(status));
+        assertFalse(buildFilter("state", "r").apply(status));
     }
 
     @Test
     public void testSlotUuidPredicate()
     {
         assertTrue(new SlotUuidPredicate("12345678-1234-1234-1234-123456789012").apply(status));
-        assertTrue(buildFilter("uuid", "12345678-1234-1234-1234-123456789012").apply(slot));
+        assertTrue(buildFilter("uuid", "12345678-1234-1234-1234-123456789012").apply(status));
         assertTrue(new SlotUuidPredicate("12345*").apply(status));
-        assertTrue(buildFilter("uuid", "12345*").apply(slot));
+        assertTrue(buildFilter("uuid", "12345*").apply(status));
         assertTrue(new SlotUuidPredicate("12345*").apply(status));
-        assertTrue(buildFilter("uuid", "12345*").apply(slot));
+        assertTrue(buildFilter("uuid", "12345*").apply(status));
         assertTrue(new SlotUuidPredicate("12345*").apply(status));
-        assertTrue(buildFilter("uuid", "12345*").apply(slot));
+        assertTrue(buildFilter("uuid", "12345*").apply(status));
         assertTrue(new SlotUuidPredicate("12345*").apply(status));
-        assertTrue(buildFilter("uuid", "12345*").apply(slot));
+        assertTrue(buildFilter("uuid", "12345*").apply(status));
         assertFalse(new SlotUuidPredicate("foo").apply(status));
-        assertFalse(buildFilter("uuid", "foo").apply(slot));
+        assertFalse(buildFilter("uuid", "foo").apply(status));
     }
 
     @Test
     public void testHostSpecPredicate()
     {
         assertTrue(new HostPredicate("localhost").apply(status));
-        assertTrue(buildFilter("host", "localhost").apply(slot));
+        assertTrue(buildFilter("host", "localhost").apply(status));
         assertTrue(new HostPredicate("LOCALHOST").apply(status));
-        assertTrue(buildFilter("host", "LOCALHOST").apply(slot));
+        assertTrue(buildFilter("host", "LOCALHOST").apply(status));
         assertTrue(new HostPredicate("LocalHost").apply(status));
-        assertTrue(buildFilter("host", "LocalHost").apply(slot));
+        assertTrue(buildFilter("host", "LocalHost").apply(status));
         assertTrue(new HostPredicate("local*").apply(status));
-        assertTrue(buildFilter("host", "local*").apply(slot));
+        assertTrue(buildFilter("host", "local*").apply(status));
         assertTrue(new HostPredicate("LocAL*").apply(status));
-        assertTrue(buildFilter("host", "LocAL*").apply(slot));
+        assertTrue(buildFilter("host", "LocAL*").apply(status));
         assertFalse(new HostPredicate("foo").apply(status));
-        assertFalse(buildFilter("host", "foo").apply(slot));
+        assertFalse(buildFilter("host", "foo").apply(status));
     }
 
     @Test
     public void testIpSpecPredicate()
     {
         assertTrue(new IpPredicate("127.0.0.1").apply(status));
-        assertTrue(buildFilter("ip", "127.0.0.1").apply(slot));
+        assertTrue(buildFilter("ip", "127.0.0.1").apply(status));
         assertFalse(new IpPredicate("10.1.2.3").apply(status));
-        assertFalse(buildFilter("ip", "10.1.2.3").apply(slot));
+        assertFalse(buildFilter("ip", "10.1.2.3").apply(status));
     }
 
     @Test
     public void testBinarySpecPredicate()
     {
         assertTrue(new BinarySpecPredicate("*:*:*").apply(status));
-        assertTrue(buildFilter("binary", "*:*:*").apply(slot));
+        assertTrue(buildFilter("binary", "*:*:*").apply(status));
         assertTrue(new BinarySpecPredicate("food.fruit:apple:1.0").apply(status));
-        assertTrue(buildFilter("binary", "food.fruit:apple:1.0").apply(slot));
+        assertTrue(buildFilter("binary", "food.fruit:apple:1.0").apply(status));
         assertTrue(new BinarySpecPredicate("food.fruit:apple:tar.gz:1.0").apply(status));
-        assertTrue(buildFilter("binary", "food.fruit:apple:tar.gz:1.0").apply(slot));
+        assertTrue(buildFilter("binary", "food.fruit:apple:tar.gz:1.0").apply(status));
         assertTrue(new BinarySpecPredicate("*:apple:1.0").apply(status));
-        assertTrue(buildFilter("binary", "*:apple:1.0").apply(slot));
+        assertTrue(buildFilter("binary", "*:apple:1.0").apply(status));
         assertTrue(new BinarySpecPredicate("food.fruit:*:1.0").apply(status));
-        assertTrue(buildFilter("binary", "food.fruit:*:1.0").apply(slot));
+        assertTrue(buildFilter("binary", "food.fruit:*:1.0").apply(status));
         assertTrue(new BinarySpecPredicate("food.fruit:apple:*").apply(status));
-        assertTrue(buildFilter("binary", "food.fruit:apple:*").apply(slot));
+        assertTrue(buildFilter("binary", "food.fruit:apple:*").apply(status));
         assertTrue(new BinarySpecPredicate("f*:a*:1.*").apply(status));
-        assertTrue(buildFilter("binary", "f*:a*:1.*").apply(slot));
+        assertTrue(buildFilter("binary", "f*:a*:1.*").apply(status));
         assertFalse(new BinarySpecPredicate("x:apple:1.0").apply(status));
-        assertFalse(buildFilter("binary", "x:apple:1.0").apply(slot));
+        assertFalse(buildFilter("binary", "x:apple:1.0").apply(status));
         assertFalse(new BinarySpecPredicate("food.fruit:apple:zip:1.0").apply(status));
-        assertFalse(buildFilter("binary", "food.fruit:apple:zip:1.0").apply(slot));
+        assertFalse(buildFilter("binary", "food.fruit:apple:zip:1.0").apply(status));
         assertFalse(new BinarySpecPredicate("food.fruit:apple:tar.gz:x:1.0").apply(status));
-        assertFalse(buildFilter("binary", "food.fruit:apple:tar.gz:x:1.0").apply(slot));
+        assertFalse(buildFilter("binary", "food.fruit:apple:tar.gz:x:1.0").apply(status));
     }
 
     @Test
@@ -138,51 +137,51 @@ public class TestSlotFilterBuilder
         RemoteSlot slot = new HttpRemoteSlot(status, new AsyncHttpClient());
 
         assertTrue(new BinarySpecPredicate("*:*:*:*:*").apply(status));
-        assertTrue(buildFilter("binary", "*:*:*:*:*").apply(slot));
+        assertTrue(buildFilter("binary", "*:*:*:*:*").apply(status));
 
         assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(slot));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
 
         assertTrue(new BinarySpecPredicate("*:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "*:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(slot));
+        assertTrue(buildFilter("binary", "*:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
 
         assertTrue(new BinarySpecPredicate("com.proofpoint.platform:*:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:*:tar.gz:distribution:0.35-SNAPSHOT").apply(slot));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:*:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
 
         assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:*:distribution:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:*:distribution:0.35-SNAPSHOT").apply(slot));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:*:distribution:0.35-SNAPSHOT").apply(status));
         assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(slot));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
         assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:distribution:*").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:distribution:*").apply(slot));
+        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:distribution:*").apply(status));
 
 
         assertTrue(new BinarySpecPredicate("c*:s*:t*:d*:0*").apply(status));
-        assertTrue(buildFilter("binary", "c*:s*:t*:d*:0*").apply(slot));
+        assertTrue(buildFilter("binary", "c*:s*:t*:d*:0*").apply(status));
 
         assertFalse(new BinarySpecPredicate("com.proofpoint.platform:sample-server:distribution:0.35-SNAPSHOT").apply(status));
-        assertFalse(buildFilter("binary", "com.proofpoint.platform:sample-server:distribution:0.35-SNAPSHOT").apply(slot));
+        assertFalse(buildFilter("binary", "com.proofpoint.platform:sample-server:distribution:0.35-SNAPSHOT").apply(status));
     }
 
     @Test
     public void testConfigSpecPredicate()
     {
         assertTrue(new ConfigSpecPredicate("@*:*:*").apply(status));
-        assertTrue(buildFilter("config", "@*:*:*").apply(slot));
+        assertTrue(buildFilter("config", "@*:*:*").apply(status));
         assertTrue(new ConfigSpecPredicate("@prod:apple:1.0").apply(status));
-        assertTrue(buildFilter("config", "@prod:apple:1.0").apply(slot));
+        assertTrue(buildFilter("config", "@prod:apple:1.0").apply(status));
         assertTrue(new ConfigSpecPredicate("@*:apple:1.0").apply(status));
-        assertTrue(buildFilter("config", "@*:apple:1.0").apply(slot));
+        assertTrue(buildFilter("config", "@*:apple:1.0").apply(status));
         assertTrue(new ConfigSpecPredicate("@prod:*:1.0").apply(status));
-        assertTrue(buildFilter("config", "@prod:*:1.0").apply(slot));
+        assertTrue(buildFilter("config", "@prod:*:1.0").apply(status));
         assertTrue(new ConfigSpecPredicate("@prod:apple:*").apply(status));
-        assertTrue(buildFilter("config", "@prod:apple:*").apply(slot));
+        assertTrue(buildFilter("config", "@prod:apple:*").apply(status));
         assertTrue(new ConfigSpecPredicate("@p*:a*:1.*").apply(status));
-        assertTrue(buildFilter("config", "@p*:a*:1.*").apply(slot));
+        assertTrue(buildFilter("config", "@p*:a*:1.*").apply(status));
         assertFalse(new ConfigSpecPredicate("@x:apple:1.0").apply(status));
-        assertFalse(buildFilter("config", "@x:apple:1.0").apply(slot));
+        assertFalse(buildFilter("config", "@x:apple:1.0").apply(status));
         assertFalse(new ConfigSpecPredicate("@prod:apple:x:1.0").apply(status));
-        assertFalse(buildFilter("config", "@prod:apple:x:1.0").apply(slot));
+        assertFalse(buildFilter("config", "@prod:apple:x:1.0").apply(status));
     }
 
     @Test

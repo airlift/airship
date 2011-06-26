@@ -21,12 +21,12 @@ import java.util.regex.Pattern;
 
 public class SlotFilterBuilder
 {
-    public static Predicate<RemoteSlot> build(UriInfo uriInfo)
+    public static Predicate<SlotStatus> build(UriInfo uriInfo)
     {
         return build(uriInfo, true);
     }
 
-    public static Predicate<RemoteSlot> build(UriInfo uriInfo, boolean filterRequired)
+    public static Predicate<SlotStatus> build(UriInfo uriInfo, boolean filterRequired)
     {
         SlotFilterBuilder builder = new SlotFilterBuilder(filterRequired);
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
@@ -115,19 +115,7 @@ public class SlotFilterBuilder
         configSpecPredicates.add(new ConfigSpecPredicate(configGlob));
     }
 
-    public Predicate<RemoteSlot> build()
-    {
-        return Predicates.compose(buildStatusFilter(), new Function<RemoteSlot, SlotStatus>()
-        {
-            @Override
-            public SlotStatus apply(RemoteSlot slot)
-            {
-                return slot.status();
-            }
-        });
-    }
-
-    public Predicate<SlotStatus> buildStatusFilter()
+    public Predicate<SlotStatus> build()
     {
         // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<SlotStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
