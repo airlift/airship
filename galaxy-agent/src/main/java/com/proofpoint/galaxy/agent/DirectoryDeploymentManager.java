@@ -1,12 +1,15 @@
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import com.proofpoint.json.JsonCodec;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.Command;
 import com.proofpoint.galaxy.shared.CommandFailedException;
 import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 
@@ -16,15 +19,19 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.FileUtils.extractTar;
 import static com.proofpoint.galaxy.shared.FileUtils.listFiles;
+import static com.proofpoint.galaxy.shared.FileUtils.newFile;
+import static com.proofpoint.json.JsonCodec.jsonCodec;
 
-public class DirectoryDeploymentManager implements DeploymentManager
+public class DirectoryDeploymentManager
+        implements DeploymentManager
 {
     private static final Logger log = Logger.get(DirectoryDeploymentManager.class);
     private final JsonCodec<DeploymentRepresentation> jsonCodec = jsonCodec(DeploymentRepresentation.class);
@@ -32,7 +39,9 @@ public class DirectoryDeploymentManager implements DeploymentManager
     private final UUID slotId;
     private final String slotName;
     private final Duration tarTimeout;
+    private final Duration deployScriptTimeout;
     private final File baseDir;
+    private final Executor executor;
 
     private final File deploymentFile;
     private Deployment deployment;
@@ -43,11 +52,14 @@ public class DirectoryDeploymentManager implements DeploymentManager
         Preconditions.checkNotNull(slotName, "slotName is null");
         this.slotName = slotName;
         this.tarTimeout = config.getTarTimeout();
+        this.deployScriptTimeout = config.getDeployScriptTimeout();
 
         Preconditions.checkNotNull(baseDir, "baseDir is null");
         baseDir.mkdirs();
         Preconditions.checkArgument(baseDir.isDirectory(), "baseDir is not a directory: " + baseDir.getAbsolutePath());
         this.baseDir = baseDir;
+
+        executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("deploy-command-%s").build());
 
         // verify deployment file is readable and writable
         deploymentFile = new File(baseDir, "galaxy-deployment.json");
@@ -190,6 +202,23 @@ public class DirectoryDeploymentManager implements DeploymentManager
             }
             catch (IOException e) {
                 throw new RuntimeException("Unable to deployment to final location", e);
+            }
+
+            // run the deploy script if it exists
+            File deployScript = newFile(deploymentDir, "bin", "deploy");
+            if (deployScript.exists()) {
+                Command command = new Command(deployScript.getAbsolutePath())
+                        .setDirectory(deployment.getDataDir())
+                        .setTimeLimit(deployScriptTimeout)
+                        .addEnvironment("HOME", deployment.getDataDir().getAbsolutePath())
+                        .addArgs("--data").addArgs(deployment.getDataDir().getAbsolutePath());
+                try {
+                    command.execute(executor);
+                }
+                catch (CommandFailedException e) {
+                    log.error("ENVIRONMENT:\n    %s", Joiner.on("\n    ").withKeyValueSeparator("=").join(command.getEnvironment()));
+                    throw new RuntimeException("deploy failed: " + e.getMessage());
+                }
             }
         }
         finally {

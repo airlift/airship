@@ -5,6 +5,8 @@ import com.proofpoint.galaxy.shared.Installation;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Collections;
+import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.ArchiveHelper.createArchive;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
@@ -28,20 +30,17 @@ public class InstallationHelper
     public InstallationHelper()
             throws Exception
     {
-        File targetRepo = null;
+        this.targetRepo = createTempDir("repo");
+
         File binaryFile;
         try {
-            targetRepo = createTempDir("repo");
             binaryFile = new File(targetRepo, "binary.tar.gz");
             createArchive(binaryFile);
         }
         catch (Exception e) {
-            if (targetRepo != null) {
-                deleteRecursively(targetRepo);
-            }
+            deleteRecursively(targetRepo);
             throw e;
         }
-        this.targetRepo = targetRepo;
 
         ImmutableMap<String, URI> configFiles = ImmutableMap.of("readme.txt", new File("README.txt").toURI());
 
@@ -62,5 +61,13 @@ public class InstallationHelper
     public Installation getBananaInstallation()
     {
         return bananaInstallation;
+    }
+
+    public Installation createInstallation(String deployScriptContents)
+            throws Exception
+    {
+        File binaryFile = new File(targetRepo, "binary-" + UUID.randomUUID() + ".tar.gz");
+        createArchive(binaryFile, deployScriptContents);
+        return new Installation(APPLE_ASSIGNMENT, binaryFile.toURI(), Collections.<String, URI>emptyMap());
     }
 }
