@@ -1,8 +1,10 @@
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -17,8 +19,8 @@ import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -29,11 +31,10 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 public class LauncherLifecycleManager implements LifecycleManager
 {
     private final Executor executor;
-    private final NodeInfo nodeInfo;
-    private final URI discoveryServiceURI;
     private final Duration launcherTimeout;
     private final Duration stopTimeout;
-    private final List<String> generalNodeArgs;
+    private final NodeInfo nodeInfo;
+    private final URI discoveryServiceURI;
 
     @Inject
     public LauncherLifecycleManager(AgentConfig config, NodeInfo nodeInfo, DiscoveryClientConfig discoveryClientConfig)
@@ -47,15 +48,6 @@ public class LauncherLifecycleManager implements LifecycleManager
 
         this.nodeInfo = nodeInfo;
         this.discoveryServiceURI = discoveryClientConfig.getDiscoveryServiceURI();
-
-        ImmutableList.Builder<String> nodeArgsBuilder = ImmutableList.builder();
-        nodeArgsBuilder.add("-Dnode.environment=" + nodeInfo.getEnvironment());
-
-        // add ip only if explicitly set on the agent
-        if (InetAddresses.coerceToInteger(nodeInfo.getBindIp()) != 0) {
-            nodeArgsBuilder.add("-Dnode.ip=" + nodeInfo.getBindIp());
-        }
-        generalNodeArgs = nodeArgsBuilder.build();
 
         executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("launcher-command-%s").build());
     }
@@ -83,9 +75,9 @@ public class LauncherLifecycleManager implements LifecycleManager
     @Override
     public SlotLifecycleState start(Deployment deployment)
     {
+        updateNodeConfig(deployment);
         Command command = createCommand("start", deployment, launcherTimeout);
         try {
-            command = addEnvironmentData(command, deployment);
             command.execute(executor);
             return RUNNING;
         }
@@ -98,9 +90,9 @@ public class LauncherLifecycleManager implements LifecycleManager
     @Override
     public SlotLifecycleState restart(Deployment deployment)
     {
+        updateNodeConfig(deployment);
         try {
             Command command = createCommand("restart", deployment, stopTimeout);
-            command = addEnvironmentData(command, deployment);
             command.execute(executor);
             return RUNNING;
         }
@@ -112,6 +104,7 @@ public class LauncherLifecycleManager implements LifecycleManager
     @Override
     public SlotLifecycleState stop(Deployment deployment)
     {
+        updateNodeConfig(deployment);
         try {
             createCommand("stop", deployment, stopTimeout).execute(executor);
             return STOPPED;
@@ -135,13 +128,33 @@ public class LauncherLifecycleManager implements LifecycleManager
         return command;
     }
 
-    private Command addEnvironmentData(Command command, Deployment deployment)
+    @Override
+    public void updateNodeConfig(Deployment deployment)
     {
-        return command.addArgs(generalNodeArgs)
-                .addArgs("-Dnode.pool=" + getPool(deployment.getAssignment().getConfig()))
-                .addArgs("-Dnode.id=" + deployment.getNodeId())
-                .addArgs("-Dnode.location=" + nodeInfo.getLocation() + "/" + deployment.getSlotName())
-                .addArgs("-Ddiscovery.uri=" + discoveryServiceURI);
+        ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
+
+        map.put("node.environment", nodeInfo.getEnvironment());
+        map.put("node.pool", getPool(deployment.getAssignment().getConfig()));
+        map.put("node.id", deployment.getNodeId().toString());
+        map.put("node.location", nodeInfo.getLocation() + "/" + deployment.getSlotName());
+        map.put("discovery.uri", discoveryServiceURI.toString());
+
+        // add ip only if explicitly set on the agent
+        if (InetAddresses.coerceToInteger(nodeInfo.getBindIp()) != 0) {
+            map.put("node.ip", nodeInfo.getBindIp().getHostAddress());
+        }
+
+        File nodeConfig = new File(deployment.getDeploymentDir(), "env/node.config");
+        nodeConfig.getParentFile().mkdir();
+
+        try {
+            String data = Joiner.on("\n").withKeyValueSeparator("=").join(map.build()) + "\n";
+            Files.write(data, nodeConfig, Charsets.UTF_8);
+        }
+        catch (IOException e) {
+            nodeConfig.delete();
+            throw new RuntimeException("create node config failed: " + e.getMessage());
+        }
     }
 
     private static String getPool(ConfigSpec config)

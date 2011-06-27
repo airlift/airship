@@ -101,6 +101,9 @@ public class DeploymentSlot implements Slot
             // deploy new server
             deploymentManager.install(installation);
 
+            // create node config file
+            lifecycleManager.updateNodeConfig(deploymentManager.getDeployment());
+
             // inform everyone else of the change
             // todo should this be done after the lock is released
             // @event_dispatcher.dispatch_become_success_event status

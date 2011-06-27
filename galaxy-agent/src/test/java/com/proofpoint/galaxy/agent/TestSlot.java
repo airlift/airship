@@ -27,6 +27,7 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 public class TestSlot
@@ -71,7 +72,9 @@ public class TestSlot
             throws Exception
     {
 
-        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager("slot"), new MockLifecycleManager());
+        MockLifecycleManager lifecycleManager = new MockLifecycleManager();
+        MockDeploymentManager deploymentManager = new MockDeploymentManager("slot");
+        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), deploymentManager, lifecycleManager);
         assertEquals(slot.getName(), "slot");
 
         // assign apple and verify state
@@ -81,6 +84,7 @@ public class TestSlot
         assertEquals(status.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
         assertEquals(slot.status(), status);
+        assertTrue(lifecycleManager.getNodeConfigUpdated().contains(deploymentManager.getDeployment().getDeploymentId()));
 
         // assign banana and verify state
         status = slot.assign(BANANA_INSTALLATION);
@@ -89,6 +93,7 @@ public class TestSlot
         assertEquals(status.getAssignment(), BANANA_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
         assertEquals(slot.status(), status);
+        assertTrue(lifecycleManager.getNodeConfigUpdated().contains(deploymentManager.getDeployment().getDeploymentId()));
 
         // clear and verify unassigned
         status = slot.clear();
