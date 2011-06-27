@@ -13,6 +13,7 @@
  */
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.proofpoint.discovery.client.DiscoveryClientConfig;
 import com.proofpoint.galaxy.shared.ArchiveHelper;
@@ -21,9 +22,11 @@ import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +35,10 @@ import static com.google.common.io.Resources.newInputStreamSupplier;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
 {
@@ -49,7 +56,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
                         .setSlotsDir(slotDir.getAbsolutePath())
                         .setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)),
                 new NodeInfo("test"),
-                new DiscoveryClientConfig());
+                new DiscoveryClientConfig().setDiscoveryServiceURI(URI.create("fake://discovery")));
 
         appleDeployment = createDeploymentDir(APPLE_ASSIGNMENT);
         bananaDeployment = createDeploymentDir(BANANA_ASSIGNMENT);
@@ -78,5 +85,47 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         if (tempDir != null) {
             deleteRecursively(tempDir);
         }
+    }
+
+    @Test
+    public void testUpdateNodeConfig()
+            throws IOException
+    {
+        manager.updateNodeConfig(appleDeployment);
+        verifyNodeConfig(appleDeployment);
+    }
+
+    @Test
+    public void testNodeConfigAfterStart()
+            throws IOException
+    {
+        assertEquals(manager.start(appleDeployment), RUNNING);
+        verifyNodeConfig(appleDeployment);
+    }
+
+    @Test
+    public void testNodeConfigAfterStop()
+            throws IOException
+    {
+        assertEquals(manager.stop(appleDeployment), STOPPED);
+        verifyNodeConfig(appleDeployment);
+    }
+
+    @Test
+    public void testNodeConfigAfterRestart()
+            throws IOException
+    {
+        assertEquals(manager.restart(appleDeployment), RUNNING);
+        verifyNodeConfig(appleDeployment);
+    }
+
+    private static void verifyNodeConfig(Deployment deployment)
+            throws IOException
+    {
+        File nodeConfig = new File(deployment.getDeploymentDir(), "env/node.config");
+        assertTrue(nodeConfig.exists());
+
+        String conf = Files.toString(nodeConfig, Charsets.UTF_8);
+        assertTrue(conf.contains("node.pool=general"));
     }
 }

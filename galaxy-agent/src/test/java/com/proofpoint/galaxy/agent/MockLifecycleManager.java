@@ -13,14 +13,17 @@
  */
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.collect.Sets;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class MockLifecycleManager implements LifecycleManager
 {
     private final Map<String, SlotLifecycleState> states = new TreeMap<String, SlotLifecycleState>();
+    private final Set<String> nodeConfigUpdated = Sets.newHashSet();
 
     @Override
     public SlotLifecycleState status(Deployment deployment)
@@ -51,5 +54,16 @@ public class MockLifecycleManager implements LifecycleManager
     {
         states.put(deployment.getDeploymentId(), SlotLifecycleState.STOPPED);
         return SlotLifecycleState.STOPPED;
+    }
+
+    @Override
+    public void updateNodeConfig(Deployment deployment)
+    {
+        nodeConfigUpdated.add(deployment.getDeploymentId());
+    }
+
+    public Set<String> getNodeConfigUpdated()
+    {
+        return nodeConfigUpdated;
     }
 }
