@@ -27,13 +27,6 @@ public class Main
                 new JmxModule(),
                 new MainModule());
 
-        Injector injector = app.strictConfig().initialize();
-        Agent agent = injector.getInstance(Agent.class);
-        if (agent.getAllSlots().isEmpty()) {
-            for (int i = 0; i < 9; i++) {
-                agent.addNewSlot();
-            }
-            injector.getInstance(AnnouncementService.class).announce();
-        }
+        app.strictConfig().initialize();
     }
 }

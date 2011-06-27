@@ -39,8 +39,8 @@ module Galaxy
 
       if STDOUT.tty?
         status = case status
-          when "RUNNING" then colorize(status, :bright, :green)
-          when "STOPPED" then colorize(status, :bright, :green)
+          when "RUNNING" then Colorize::colorize(status, :bright, :green)
+          when "STOPPED" then status
           else status
         end
       end
@@ -65,6 +65,25 @@ module Galaxy
         raise CommandError.new(:invalid_usage, "You can not pass arguments to show.")
       end
       coordinator_request(filter, options, :get)
+    end
+
+    def self.install(filter, options, args)
+      if args.size != 2 then
+        raise CommandError.new(:invalid_usage, "You must specify a binary and config to assign.")
+      end
+      if args[0].start_with? '@'
+        config = args[0]
+        binary = args[1]
+      else
+        binary = args[0]
+        config = args[1]
+
+      end
+      installation = {
+          :binary => binary,
+          :config => config
+      }
+      coordinator_request(filter, options, :post, 'assignment', installation, true)
     end
 
     def self.assign(filter, options, args)
@@ -206,7 +225,7 @@ module Galaxy
 
   class CLI
 
-    COMMANDS = [:show, :assign, :clear, :start, :stop, :restart, :ssh]
+    COMMANDS = [:show, :install, :assign, :clear, :start, :stop, :restart, :ssh]
     INITIAL_OPTIONS = {
         :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000'
     }

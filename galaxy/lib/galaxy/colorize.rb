@@ -9,7 +9,7 @@ module Colorize
     }
   end
 
-  def colorize(string, *colors)
+  def self.colorize(string, *colors)
     color_string = colors.map { |color| ANSIColors::COLORS[color] }.join
 
     return "#{color_string}#{string}#{ANSIColors::COLORS[:normal]}"
