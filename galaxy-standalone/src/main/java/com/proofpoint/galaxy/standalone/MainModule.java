@@ -34,7 +34,12 @@ import com.proofpoint.galaxy.coordinator.LocalConfigRepository;
 import com.proofpoint.galaxy.coordinator.MavenBinaryRepository;
 import com.proofpoint.galaxy.coordinator.RemoteAgentFactory;
 import com.proofpoint.galaxy.coordinator.SimpleConfigRepository;
+import com.proofpoint.galaxy.shared.InstallationRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.json.JsonCodecBinder;
 import org.weakref.jmx.guice.MBeanModule;
+
+import static com.proofpoint.json.JsonCodecBinder.jsonCodecBinder;
 
 public class MainModule implements Module
 {
@@ -75,6 +80,9 @@ public class MainModule implements Module
         binder.bind(LifecycleManager.class).to(LauncherLifecycleManager.class).in(Scopes.SINGLETON);
 
         binder.bind(AnnouncementService.class).in(Scopes.SINGLETON);
+
+        jsonCodecBinder(binder).bindJsonCodec(InstallationRepresentation.class);
+        jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);
 
         ConfigurationModule.bindConfig(binder).to(AgentConfig.class);
 
