@@ -19,13 +19,11 @@ import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
-import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -34,13 +32,13 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static org.testng.Assert.assertEquals;
@@ -58,7 +56,7 @@ public class TestCoordinatorAssignmentResource
     public void setup()
             throws Exception
     {
-        Coordinator coordinator = new Coordinator(new MockRemoteSlotFactory(), new CoordinatorConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
+        Coordinator coordinator = new Coordinator(new MockRemoteAgentFactory());
         resource = new CoordinatorAssignmentResource(coordinator,
                 MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,
@@ -75,7 +73,9 @@ public class TestCoordinatorAssignmentResource
                 "banana",
                 URI.create("fake://bananaServer/v1/agent/slot/banana"));
 
-        AgentStatus agentStatus = new AgentStatus(URI.create("fake://appleServer1/"), UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(),
+                ONLINE,
+                URI.create("fake://appleServer1/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
 
@@ -90,7 +90,7 @@ public class TestCoordinatorAssignmentResource
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
 
-        assertOkResponse(response, LifecycleState.STOPPED, appleSlot1, appleSlot2);
+        assertOkResponse(response, SlotLifecycleState.STOPPED, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(appleSlot1.status().getState(), STOPPED);
@@ -116,7 +116,7 @@ public class TestCoordinatorAssignmentResource
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
 
-        assertOkResponse(response, LifecycleState.STOPPED, appleSlot1, appleSlot2);
+        assertOkResponse(response, SlotLifecycleState.STOPPED, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(appleSlot1.status().getState(), STOPPED);
@@ -131,7 +131,7 @@ public class TestCoordinatorAssignmentResource
         resource.assign(null, uriInfo);
     }
 
-    private void assertOkResponse(Response response, LifecycleState state, RemoteSlot... slots)
+    private void assertOkResponse(Response response, SlotLifecycleState state, RemoteSlot... slots)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
@@ -164,7 +164,7 @@ public class TestCoordinatorAssignmentResource
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.clear(uriInfo);
 
-        assertOkResponse(response, LifecycleState.UNASSIGNED, appleSlot1, appleSlot2);
+        assertOkResponse(response, SlotLifecycleState.UNASSIGNED, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(appleSlot1.status().getState(), UNASSIGNED);

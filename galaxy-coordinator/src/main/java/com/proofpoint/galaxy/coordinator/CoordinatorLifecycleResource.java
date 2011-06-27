@@ -16,7 +16,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.ws.rs.PUT;
@@ -50,15 +50,15 @@ public class CoordinatorLifecycleResource
     {
         Preconditions.checkNotNull(newState, "newState must not be null");
 
-        LifecycleState state;
+        SlotLifecycleState state;
         if ("running" .equals(newState)) {
-            state = LifecycleState.RUNNING;
+            state = SlotLifecycleState.RUNNING;
         }
         else if ("restarting" .equals(newState)) {
-            state = LifecycleState.RUNNING;
+            state = SlotLifecycleState.RUNNING;
         }
         else if ("stopped" .equals(newState)) {
-            state = LifecycleState.STOPPED;
+            state = SlotLifecycleState.STOPPED;
         }
         else {
             return Response.status(Response.Status.BAD_REQUEST).build();

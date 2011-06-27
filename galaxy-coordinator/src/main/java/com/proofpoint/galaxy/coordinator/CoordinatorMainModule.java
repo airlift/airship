@@ -17,6 +17,9 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.galaxy.shared.InstallationRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.json.JsonCodecBinder;
 
 public class CoordinatorMainModule
         implements Module
@@ -30,7 +33,7 @@ public class CoordinatorMainModule
         binder.bind(InvalidSlotFilterExceptionMapper.class).in(Scopes.SINGLETON);
         binder.bind(AnnounceResource.class).in(Scopes.SINGLETON);
         binder.bind(AdminResource.class).in(Scopes.SINGLETON);
-        binder.bind(RemoteSlotFactory.class).to(HttpRemoteSlotFactory.class).in(Scopes.SINGLETON);
+        binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
         binder.bind(ConfigRepository.class).to(SimpleConfigRepository.class).in(Scopes.SINGLETON);
 
@@ -42,6 +45,9 @@ public class CoordinatorMainModule
         binder.bind(GitConfigResource.class).in(Scopes.SINGLETON);
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
+
+        JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(InstallationRepresentation.class);
+        JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);
 
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);
     }

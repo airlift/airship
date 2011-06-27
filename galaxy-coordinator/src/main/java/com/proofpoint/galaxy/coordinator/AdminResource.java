@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.galaxy.shared.AgentStatus;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
@@ -13,8 +14,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import java.util.UUID;
 
-@Path("/v1/admin/slot")
+@Path("/v1/admin/")
 public class AdminResource
 {
     private final Coordinator coordinator;
@@ -26,29 +28,13 @@ public class AdminResource
         this.coordinator = coordinator;
     }
 
-    @POST
-    public Response addSlot(@Context UriInfo uriInfo)
+    @DELETE
+    @Path("/agent/{agentId: [a-z0-9]+}")
+    public Response deleteAgent(UUID agentId, @Context UriInfo uriInfo)
     {
-        for (AgentStatus agentStatus : coordinator.getAllAgentStatus()) {
-            createSlot(agentStatus);
+        if (coordinator.removeAgent(agentId)) {
+            return Response.ok().build();
         }
-        return Response.noContent().build();
-    }
-
-    private void createSlot(AgentStatus agentStatus)
-    {
-        try {
-            com.ning.http.client.Response response = httpClient.preparePost(agentStatus.getUri() + "/v1/agent/slot")
-                    .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                    .execute()
-                    .get();
-
-            if (response.getStatusCode() != Status.CREATED.getStatusCode()) {
-                throw new RuntimeException("Assignment Failed with " + response.getStatusCode() + " " + response.getStatusText());
-            }
-        }
-        catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
+        return Response.status(Status.NOT_FOUND).build();
     }
 }

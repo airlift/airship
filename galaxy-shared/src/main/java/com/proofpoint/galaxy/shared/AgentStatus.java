@@ -10,28 +10,35 @@ import java.util.UUID;
 @Immutable
 public class AgentStatus
 {
-    private final URI uri;
     private final UUID agentId;
+    private final AgentLifecycleState state;
+    private final URI uri;
     private final List<SlotStatus> slots;
 
-    public AgentStatus(URI uri, UUID agentId, List<SlotStatus> slots)
+    public AgentStatus(UUID agentId, AgentLifecycleState state, URI uri, List<SlotStatus> slots)
     {
-        Preconditions.checkNotNull(uri, "uri is null");
         Preconditions.checkNotNull(agentId, "agentId is null");
         Preconditions.checkNotNull(slots, "slots is null");
+
         this.uri = uri;
+        this.state = state;
         this.agentId = agentId;
         this.slots = slots;
-    }
-
-    public URI getUri()
-    {
-        return uri;
     }
 
     public UUID getAgentId()
     {
         return agentId;
+    }
+
+    public AgentLifecycleState getState()
+    {
+        return state;
+    }
+
+    public URI getUri()
+    {
+        return uri;
     }
 
     public List<SlotStatus> getSlots()
@@ -69,8 +76,9 @@ public class AgentStatus
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("AgentStatus");
-        sb.append("{uri=").append(uri);
-        sb.append(", agentId=").append(agentId);
+        sb.append("{agentId=").append(agentId);
+        sb.append(", state=").append(state);
+        sb.append(", uri=").append(uri);
         sb.append(", slots=").append(slots);
         sb.append('}');
         return sb.toString();

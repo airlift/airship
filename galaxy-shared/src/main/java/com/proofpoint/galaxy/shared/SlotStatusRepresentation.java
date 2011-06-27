@@ -19,7 +19,6 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.net.URI;
@@ -129,7 +128,7 @@ public class SlotStatusRepresentation
     public SlotStatus toSlotStatus()
     {
         if (binary != null) {
-            return new SlotStatus(id, name, self, LifecycleState.valueOf(status), new Assignment(binary, config));
+            return new SlotStatus(id, name, self, SlotLifecycleState.valueOf(status), new Assignment(binary, config));
         }
         else {
             return new SlotStatus(id, name, self);

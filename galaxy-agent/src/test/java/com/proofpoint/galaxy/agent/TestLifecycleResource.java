@@ -13,7 +13,7 @@
  */
 package com.proofpoint.galaxy.agent;
 
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -30,8 +30,8 @@ import java.io.File;
 
 import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -115,7 +115,7 @@ public class TestLifecycleResource
         resource.setState(slot.getName(), null, uriInfo);
     }
 
-    private void assertOkResponse(Response response, LifecycleState state)
+    private void assertOkResponse(Response response, SlotLifecycleState state)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));

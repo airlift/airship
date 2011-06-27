@@ -14,18 +14,19 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -38,40 +39,47 @@ public class TestAnnounceResource
     @BeforeMethod
     public void setup()
     {
-        coordinator = new Coordinator(new MockRemoteSlotFactory(), new CoordinatorConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
+        coordinator = new Coordinator(new MockRemoteAgentFactory());
         resource = new AnnounceResource(coordinator);
-        agentStatus = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
+        agentStatus = new AgentStatus(UUID.randomUUID(),
+                ONLINE,
+                URI.create("fake://foo/"), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
     }
 
     @Test
     public void testUpdateAgentStatus()
     {
         coordinator.updateAgentStatus(agentStatus);
-        AgentStatus newFooAgent = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo")), new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"))));
+        AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(),
+                ONLINE,
+                URI.create("fake://foo/"), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo")), new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"))));
 
         Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, URI.create("http://localhost/v1/agent")));
 
         assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
         assertNull(response.getEntity());
-        assertEquals(coordinator.getAgentStatus(agentStatus.getAgentId()), agentStatus);
+        AgentStatus actualStatus = coordinator.getAgentStatus(agentStatus.getAgentId());
+        assertEquals(actualStatus, agentStatus);
+        assertEquals(actualStatus.getState(), ONLINE);
     }
 
     @Test
-    public void testRemoveAgentStatus()
+    public void testAgentOffline()
     {
         coordinator.updateAgentStatus(agentStatus);
 
-        Response response = resource.removeAgentStatus(agentStatus.getAgentId());
+        Response response = resource.agentOffline(agentStatus.getAgentId());
         assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
         assertNull(response.getEntity());
 
-        assertNull(coordinator.getAgentStatus(agentStatus.getAgentId()));
+        AgentStatus actualStatus = coordinator.getAgentStatus(agentStatus.getAgentId());
+        assertEquals(actualStatus.getState(), OFFLINE);
     }
 
     @Test
     public void testRemoveAgentStatusMissing()
     {
-        Response response = resource.removeAgentStatus(UUID.randomUUID());
+        Response response = resource.agentOffline(UUID.randomUUID());
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
         assertNull(response.getEntity());
     }
@@ -79,6 +87,6 @@ public class TestAnnounceResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testRemoveAgentStatusNullId()
     {
-        resource.removeAgentStatus(null);
+        resource.agentOffline(null);
     }
 }

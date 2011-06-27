@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
@@ -56,9 +58,9 @@ import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -95,7 +97,7 @@ public class TestCoordinatorServer
                 Modules.override(new CoordinatorMainModule()).with(new Module() {
                     public void configure(Binder binder)
                     {
-                        binder.bind(RemoteSlotFactory.class).to(MockRemoteSlotFactory.class).in(Scopes.SINGLETON);
+                        binder.bind(RemoteAgentFactory.class).to(MockRemoteAgentFactory.class).in(Scopes.SINGLETON);
                         binder.bind(BinaryRepository.class).toInstance(MOCK_BINARY_REPO);
                         binder.bind(ConfigRepository.class).toInstance(MOCK_CONFIG_REPO);
                     }
@@ -113,7 +115,7 @@ public class TestCoordinatorServer
     public void resetState()
     {
         for (AgentStatus agentStatus : coordinator.getAllAgentStatus()) {
-            coordinator.removeAgentStatus(agentStatus.getAgentId());
+            coordinator.removeAgent(agentStatus.getAgentId());
         }
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
@@ -134,7 +136,9 @@ public class TestCoordinatorServer
                 STOPPED,
                 BANANA_ASSIGNMENT);
 
-        agentStatus = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+        agentStatus = new AgentStatus(UUID.randomUUID(),
+                ONLINE,
+                URI.create("fake://foo/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
 
@@ -327,7 +331,9 @@ public class TestCoordinatorServer
     public void testUpdateAgentStatus()
             throws Exception
     {
-        AgentStatus newAgentStatus = new AgentStatus(URI.create("fake://foo/"), agentStatus.getAgentId(), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
+        AgentStatus newAgentStatus = new AgentStatus(agentStatus.getAgentId(),
+                ONLINE,
+                URI.create("fake://foo/"), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
 
         String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(newAgentStatus, server.getBaseUrl()));
         Response response = client.preparePut(urlFor("/v1/announce/" + agentStatus.getAgentId()))
@@ -348,7 +354,8 @@ public class TestCoordinatorServer
         Response response = client.prepareDelete(urlFor("/v1/announce/" + agentStatus.getAgentId())).execute().get();
         assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
 
-        assertNull(coordinator.getAgentStatus(agentStatus.getAgentId()));
+        AgentStatus actualStatus = coordinator.getAgentStatus(agentStatus.getAgentId());
+        assertEquals(actualStatus.getState(), OFFLINE);
     }
 
     @Test

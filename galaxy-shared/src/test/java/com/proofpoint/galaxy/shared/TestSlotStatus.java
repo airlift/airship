@@ -21,8 +21,8 @@ import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static java.util.Arrays.asList;
 
 public class TestSlotStatus

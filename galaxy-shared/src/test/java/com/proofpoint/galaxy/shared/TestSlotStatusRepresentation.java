@@ -9,7 +9,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
 public class TestSlotStatusRepresentation

@@ -28,11 +28,11 @@ import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
 import com.proofpoint.galaxy.coordinator.GitConfigRepository;
 import com.proofpoint.galaxy.coordinator.GitConfigRepositoryConfig;
 import com.proofpoint.galaxy.coordinator.GitConfigResource;
-import com.proofpoint.galaxy.coordinator.HttpRemoteSlotFactory;
+import com.proofpoint.galaxy.coordinator.HttpRemoteAgentFactory;
 import com.proofpoint.galaxy.coordinator.InvalidSlotFilterExceptionMapper;
 import com.proofpoint.galaxy.coordinator.LocalConfigRepository;
 import com.proofpoint.galaxy.coordinator.MavenBinaryRepository;
-import com.proofpoint.galaxy.coordinator.RemoteSlotFactory;
+import com.proofpoint.galaxy.coordinator.RemoteAgentFactory;
 import com.proofpoint.galaxy.coordinator.SimpleConfigRepository;
 import org.weakref.jmx.guice.MBeanModule;
 
@@ -48,7 +48,7 @@ public class MainModule implements Module
         binder.bind(InvalidSlotFilterExceptionMapper.class).in(Scopes.SINGLETON);
         binder.bind(AnnounceResource.class).in(Scopes.SINGLETON);
         binder.bind(AdminResource.class).in(Scopes.SINGLETON);
-        binder.bind(RemoteSlotFactory.class).to(HttpRemoteSlotFactory.class).in(Scopes.SINGLETON);
+        binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
         binder.bind(ConfigRepository.class).to(SimpleConfigRepository.class).in(Scopes.SINGLETON);
 

@@ -5,15 +5,14 @@ import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -27,7 +26,7 @@ public class TestCoordinatorSlotResource
     public void setUp()
             throws Exception
     {
-        coordinator = new Coordinator(new MockRemoteSlotFactory(), new CoordinatorConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
+        coordinator = new Coordinator(new MockRemoteAgentFactory());
         resource = new CoordinatorSlotResource(coordinator);
     }
 
@@ -36,7 +35,7 @@ public class TestCoordinatorSlotResource
     {
         SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"));
         SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"));
-        AgentStatus agentStatus = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(slot1, slot2));
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), ImmutableList.of(slot1, slot2));
         coordinator.updateAgentStatus(agentStatus);
 
         URI requestUri = URI.create("http://localhost/v1/slot");
@@ -51,7 +50,7 @@ public class TestCoordinatorSlotResource
     {
         SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"));
         SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"));
-        AgentStatus agentStatus = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(slot1, slot2));
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), ImmutableList.of(slot1, slot2));
         coordinator.updateAgentStatus(agentStatus);
 
         URI requestUri = URI.create("http://localhost/v1/slot?host=foo");

@@ -11,7 +11,7 @@ import com.proofpoint.discovery.client.ServiceSelectorConfig;
 import com.proofpoint.galaxy.shared.Command;
 import com.proofpoint.galaxy.shared.CommandFailedException;
 import com.proofpoint.galaxy.shared.ConfigSpec;
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.LifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 public class LauncherLifecycleManager implements LifecycleManager
 {
@@ -61,7 +61,7 @@ public class LauncherLifecycleManager implements LifecycleManager
     }
 
     @Override
-    public LifecycleState status(Deployment deployment)
+    public SlotLifecycleState status(Deployment deployment)
     {
         try {
             int exitCode = createCommand("status", deployment, launcherTimeout)
@@ -81,7 +81,7 @@ public class LauncherLifecycleManager implements LifecycleManager
 
     private static final Logger log = Logger.get(LauncherLifecycleManager.class);
     @Override
-    public LifecycleState start(Deployment deployment)
+    public SlotLifecycleState start(Deployment deployment)
     {
         Command command = createCommand("start", deployment, launcherTimeout);
         try {
@@ -96,7 +96,7 @@ public class LauncherLifecycleManager implements LifecycleManager
     }
 
     @Override
-    public LifecycleState restart(Deployment deployment)
+    public SlotLifecycleState restart(Deployment deployment)
     {
         try {
             Command command = createCommand("restart", deployment, stopTimeout);
@@ -110,7 +110,7 @@ public class LauncherLifecycleManager implements LifecycleManager
     }
 
     @Override
-    public LifecycleState stop(Deployment deployment)
+    public SlotLifecycleState stop(Deployment deployment)
     {
         try {
             createCommand("stop", deployment, stopTimeout).execute(executor);

@@ -4,137 +4,128 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.MapEvictionListener;
 import com.google.common.collect.MapMaker;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 
-import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
-import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 
 public class Coordinator
 {
-    private final RemoteSlotFactory remoteSlotFactory;
-    private final ConcurrentMap<UUID, AgentStatus> agents;
-
-    // write access to agents and slots must be protected by a
-    // lock since they are two independent view of the same data
-    private final ReadWriteLock slotsLock = new ReentrantReadWriteLock();
-    private final Map<UUID, RemoteSlot> slots;
+    private final ConcurrentMap<UUID, RemoteAgent> agents;
 
     @Inject
-    public Coordinator(RemoteSlotFactory remoteSlotFactory, CoordinatorConfig config)
+    public Coordinator(final RemoteAgentFactory remoteAgentFactory)
     {
-        Preconditions.checkNotNull(remoteSlotFactory, "remoteSlotFactory is null");
+        Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
 
-        this.remoteSlotFactory = remoteSlotFactory;
-        agents = new MapMaker()
-                .expireAfterWrite((long) config.getStatusExpiration().toMillis(), TimeUnit.MILLISECONDS)
-                .evictionListener(new MapEvictionListener<UUID, AgentStatus>()
-                {
-                    @Override
-                    public void onEviction(UUID id, AgentStatus agentStatus)
-                    {
-                        slotsLock.writeLock().lock();
-                        try {
-                            for (SlotStatus slotStatus : agentStatus.getSlots()) {
-                                slots.remove(slotStatus.getId());
-                            }
-                        }
-                        finally {
-                            slotsLock.writeLock().unlock();
-                        }
-
-                    }
-                })
-                .makeMap();
-
-        slots = new MapMaker().makeMap();
+        agents = new MapMaker().makeComputingMap(new Function<UUID, RemoteAgent>()
+        {
+            public RemoteAgent apply(UUID agentId)
+            {
+                return remoteAgentFactory.createRemoteAgent(agentId);
+            }
+        });
     }
 
     public List<AgentStatus> getAllAgentStatus()
     {
-        return ImmutableList.copyOf(agents.values());
+        return ImmutableList.copyOf(Iterables.transform(agents.values(), new Function<RemoteAgent, AgentStatus>()
+        {
+            public AgentStatus apply(RemoteAgent agent)
+            {
+                return agent.status();
+            }
+        }));
     }
 
     public AgentStatus getAgentStatus(UUID agentId)
     {
-        return agents.get(agentId);
+        RemoteAgent agent = agents.get(agentId);
+        if (agent == null) {
+            return null;
+        }
+        return agent.status();
     }
 
     public void updateAgentStatus(AgentStatus status)
     {
-        slotsLock.writeLock().lock();
-        try {
-            agents.put(status.getAgentId(), status);
-            for (SlotStatus slotStatus : status.getSlots()) {
-                RemoteSlot remoteSlot = slots.get(slotStatus.getId());
-                if (remoteSlot != null) {
-                    remoteSlot.updateStatus(slotStatus);
-                }
-                else {
-                    slots.put(slotStatus.getId(), remoteSlotFactory.createRemoteSlot(slotStatus));
-                }
-            }
-        }
-        finally {
-            slotsLock.writeLock().unlock();
-        }
-
+        agents.get(status.getAgentId()).updateStatus(status);
     }
 
-    public boolean removeAgentStatus(UUID agentId)
+    public boolean agentOffline(UUID agentId)
     {
-        slotsLock.writeLock().lock();
-        try {
-            AgentStatus removedAgent = agents.remove(agentId);
-            if (removedAgent == null) {
-                return false;
-            }
-
-            for (SlotStatus slotStatus : removedAgent.getSlots()) {
-                slots.remove(slotStatus.getId());
-            }
-            return true;
+        if (!agents.containsKey(agentId)) {
+            return false;
         }
-        finally {
-            slotsLock.writeLock().unlock();
-        }
-
+        agents.get(agentId).agentOffline();
+        return true;
     }
 
+    public boolean removeAgent(UUID agentId)
+    {
+        return agents.remove(agentId) != null;
+    }
+
+    // todo this is only used for testing
     public RemoteSlot getSlot(UUID slotId)
     {
-        return slots.get(slotId);
+        Preconditions.checkNotNull(slotId, "slotId is null");
+        for (RemoteAgent remoteAgent : agents.values()) {
+            for (RemoteSlot slot : remoteAgent.getSlots()) {
+                if (slotId.equals(slot.getId()))  {
+                    return slot;
+                }
+            }
+        }
+        return null;
     }
 
-    public List<RemoteSlot> getAllSlots()
+    public List<? extends RemoteSlot> getAllSlots()
     {
-        return ImmutableList.copyOf(slots.values());
+        return ImmutableList.copyOf(concat(Iterables.transform(agents.values(), new Function<RemoteAgent, List<? extends RemoteSlot>>()
+        {
+            public List<? extends RemoteSlot> apply(RemoteAgent agent)
+            {
+                return agent.getSlots();
+            }
+        })));
+    }
+
+    public List<RemoteAgent> getAgents()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+
+    public List<SlotStatus> install(final Installation installation, Predicate<RemoteAgent> filter)
+    {
+        return ImmutableList.copyOf(transform(filter(getAgents(), filter), new Function<RemoteAgent, SlotStatus>()
+        {
+            public SlotStatus apply(RemoteAgent agent)
+            {
+                return agent.install(installation);
+            }
+        }));
     }
 
     public List<SlotStatus> assign(Predicate<SlotStatus> filter, final Installation installation)
     {
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterBy(filter)), new Function<RemoteSlot, SlotStatus>() {
+        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterBy(filter)), new Function<RemoteSlot, SlotStatus>()
+        {
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
@@ -145,7 +136,8 @@ public class Coordinator
 
     public List<SlotStatus> clear(Predicate<SlotStatus> filter)
     {
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterBy(filter)), new Function<RemoteSlot, SlotStatus>() {
+        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterBy(filter)), new Function<RemoteSlot, SlotStatus>()
+        {
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
@@ -154,7 +146,7 @@ public class Coordinator
         }));
     }
 
-    public List<SlotStatus> setState(final LifecycleState state, Predicate<SlotStatus> filter)
+    public List<SlotStatus> setState(final SlotLifecycleState state, Predicate<SlotStatus> filter)
     {
         Preconditions.checkArgument(EnumSet.of(RUNNING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);
 

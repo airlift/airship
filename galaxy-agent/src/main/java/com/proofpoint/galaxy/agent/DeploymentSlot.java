@@ -15,7 +15,7 @@ package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.log.Logger;
@@ -26,7 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 
 public class DeploymentSlot implements Slot
 {
@@ -88,7 +88,7 @@ public class DeploymentSlot implements Slot
             // stop current server
             Deployment oldDeployment = deploymentManager.getDeployment();
             if (oldDeployment != null) {
-                LifecycleState state = lifecycleManager.stop(oldDeployment);
+                SlotLifecycleState state = lifecycleManager.stop(oldDeployment);
                 if (state != STOPPED) {
                     // todo error
                 }
@@ -124,7 +124,7 @@ public class DeploymentSlot implements Slot
 
             // Stop server
             try {
-                LifecycleState state = lifecycleManager.stop(activeDeployment);
+                SlotLifecycleState state = lifecycleManager.stop(activeDeployment);
                 if (state != STOPPED) {
                     // todo error
                 }
@@ -157,7 +157,7 @@ public class DeploymentSlot implements Slot
                 return new SlotStatus(id, name, self);
             }
 
-            LifecycleState state = lifecycleManager.status(activeDeployment);
+            SlotLifecycleState state = lifecycleManager.status(activeDeployment);
             return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
@@ -174,7 +174,7 @@ public class DeploymentSlot implements Slot
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be started because the slot is not assigned");
             }
-            LifecycleState state = lifecycleManager.start(activeDeployment);
+            SlotLifecycleState state = lifecycleManager.start(activeDeployment);
             return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
@@ -191,7 +191,7 @@ public class DeploymentSlot implements Slot
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
             }
-            LifecycleState state = lifecycleManager.restart(activeDeployment);
+            SlotLifecycleState state = lifecycleManager.restart(activeDeployment);
             return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {
@@ -208,7 +208,7 @@ public class DeploymentSlot implements Slot
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
             }
-            LifecycleState state = lifecycleManager.stop(activeDeployment);
+            SlotLifecycleState state = lifecycleManager.stop(activeDeployment);
             return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
         }
         finally {

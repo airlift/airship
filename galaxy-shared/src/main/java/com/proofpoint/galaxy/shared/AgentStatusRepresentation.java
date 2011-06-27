@@ -68,7 +68,7 @@ public class AgentStatusRepresentation
         for (SlotStatusRepresentation slot : slots) {
             builder.add(slot.toSlotStatus());
         }
-        return new AgentStatus(self, agentId, builder.build());
+        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, self, builder.build());
     }
 
     @Override

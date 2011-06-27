@@ -17,12 +17,12 @@ import java.util.UUID;
 @Path("/v1/announce/{agentId}")
 public class AnnounceResource
 {
-    private final Coordinator store;
+    private final Coordinator coordinator;
 
     @Inject
-    public AnnounceResource(Coordinator store)
+    public AnnounceResource(Coordinator coordinator)
     {
-        this.store = store;
+        this.coordinator = coordinator;
     }
 
     @PUT
@@ -37,16 +37,16 @@ public class AnnounceResource
         }
 
         AgentStatus status = statusRepresentation.toAgentStatus();
-        store.updateAgentStatus(status);
+        coordinator.updateAgentStatus(status);
         return Response.noContent().build();
     }
 
     @DELETE
-    public Response removeAgentStatus(@PathParam("agentId") UUID agentId)
+    public Response agentOffline(@PathParam("agentId") UUID agentId)
     {
         Preconditions.checkNotNull(agentId, "agentId must not be null");
 
-        if (!store.removeAgentStatus(agentId)) {
+        if (!coordinator.agentOffline(agentId)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 

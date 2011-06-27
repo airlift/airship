@@ -6,9 +6,9 @@ import com.proofpoint.galaxy.shared.Installation;
 
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 
 public class MockRemoteSlot implements RemoteSlot
 {

@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static java.lang.Math.max;
 import static java.lang.String.format;
 
@@ -135,7 +136,7 @@ public class Agent
             SlotStatus slotStatus = slot.status();
             builder.add(slotStatus);
         }
-        AgentStatus agentStatus = new AgentStatus(httpServerInfo.getHttpUri(), agentId, builder.build());
+        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, httpServerInfo.getHttpUri(), builder.build());
         return agentStatus;
     }
 

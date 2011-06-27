@@ -16,11 +16,10 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -29,13 +28,13 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -51,7 +50,7 @@ public class TestCoordinatorLifecycleResource
     @BeforeMethod
     public void setup()
     {
-        Coordinator coordinator = new Coordinator(new MockRemoteSlotFactory(), new CoordinatorConfig().setStatusExpiration(new Duration(100, TimeUnit.DAYS)));
+        Coordinator coordinator = new Coordinator(new MockRemoteAgentFactory());
         resource = new CoordinatorLifecycleResource(coordinator);
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
@@ -70,7 +69,9 @@ public class TestCoordinatorLifecycleResource
                 STOPPED,
                 BANANA_ASSIGNMENT);
 
-        AgentStatus agentStatus = new AgentStatus(URI.create("fake://foo/"), UUID.randomUUID(), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(),
+                ONLINE,
+                URI.create("fake://foo/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
 
@@ -147,7 +148,7 @@ public class TestCoordinatorLifecycleResource
         resource.setState("running", MockUriInfo.from("http://localhost/v1/slot/lifecycle"));
     }
 
-    private void assertOkResponse(Response response, LifecycleState state, RemoteSlot... slots)
+    private void assertOkResponse(Response response, SlotLifecycleState state, RemoteSlot... slots)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 

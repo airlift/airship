@@ -1,6 +1,5 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -8,7 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
 import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.galaxy.shared.ConfigSpec;
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.annotation.Nullable;
@@ -80,7 +79,7 @@ public class SlotFilterBuilder
     public void addStateFilter(String stateFilter)
     {
         Preconditions.checkNotNull(stateFilter, "stateFilter is null");
-        LifecycleState state = LifecycleState.lookup(stateFilter);
+        SlotLifecycleState state = SlotLifecycleState.lookup(stateFilter);
         Preconditions.checkArgument(state != null, "unknown state " + stateFilter);
         stateFilters.add(new StatePredicate(state));
     }
@@ -217,9 +216,9 @@ public class SlotFilterBuilder
 
     public static class StatePredicate implements Predicate<SlotStatus>
     {
-        private final LifecycleState state;
+        private final SlotLifecycleState state;
 
-        public StatePredicate(LifecycleState state)
+        public StatePredicate(SlotLifecycleState state)
         {
             this.state = state;
         }

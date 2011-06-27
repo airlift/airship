@@ -36,7 +36,7 @@ import java.util.Collection;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.LifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.testing.Assertions.assertInstanceOf;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -60,7 +60,11 @@ public class TestSlotResource
                 httpServerInfo,
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager());
-        AnnouncementService announcementService = new AnnouncementService(agentConfig, agent, httpServerInfo);
+        AnnouncementService announcementService = new AnnouncementService(agentConfig, agent, httpServerInfo) {
+            public void announce()
+            {
+            }
+        };
         resource = new SlotResource(agent, announcementService);
     }
 

@@ -21,8 +21,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.LifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.LifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 

@@ -13,43 +13,43 @@
  */
 package com.proofpoint.galaxy.agent;
 
-import com.proofpoint.galaxy.shared.LifecycleState;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 
 import java.util.Map;
 import java.util.TreeMap;
 
 public class MockLifecycleManager implements LifecycleManager
 {
-    private final Map<String, LifecycleState> states = new TreeMap<String, LifecycleState>();
+    private final Map<String, SlotLifecycleState> states = new TreeMap<String, SlotLifecycleState>();
 
     @Override
-    public LifecycleState status(Deployment deployment)
+    public SlotLifecycleState status(Deployment deployment)
     {
-        LifecycleState state = states.get(deployment.getDeploymentId());
+        SlotLifecycleState state = states.get(deployment.getDeploymentId());
         if (state == null) {
-            return LifecycleState.STOPPED;
+            return SlotLifecycleState.STOPPED;
         }
         return state;
     }
 
     @Override
-    public LifecycleState start(Deployment deployment)
+    public SlotLifecycleState start(Deployment deployment)
     {
-        states.put(deployment.getDeploymentId(), LifecycleState.RUNNING);
-        return LifecycleState.RUNNING;
+        states.put(deployment.getDeploymentId(), SlotLifecycleState.RUNNING);
+        return SlotLifecycleState.RUNNING;
     }
 
     @Override
-    public LifecycleState restart(Deployment deployment)
+    public SlotLifecycleState restart(Deployment deployment)
     {
-        states.put(deployment.getDeploymentId(), LifecycleState.RUNNING);
-        return LifecycleState.RUNNING;
+        states.put(deployment.getDeploymentId(), SlotLifecycleState.RUNNING);
+        return SlotLifecycleState.RUNNING;
     }
 
     @Override
-    public LifecycleState stop(Deployment deployment)
+    public SlotLifecycleState stop(Deployment deployment)
     {
-        states.put(deployment.getDeploymentId(), LifecycleState.STOPPED);
-        return LifecycleState.STOPPED;
+        states.put(deployment.getDeploymentId(), SlotLifecycleState.STOPPED);
+        return SlotLifecycleState.STOPPED;
     }
 }

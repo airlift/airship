@@ -11,17 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.shared;
 
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
-public interface LifecycleManager
+import java.util.Map;
+
+public enum AgentLifecycleState
 {
-    SlotLifecycleState status(Deployment deployment);
-
-    SlotLifecycleState start(Deployment deployment);
-
-    SlotLifecycleState restart(Deployment deployment);
-
-    SlotLifecycleState stop(Deployment deployment);
+    ONLINE, OFFLINE
 }

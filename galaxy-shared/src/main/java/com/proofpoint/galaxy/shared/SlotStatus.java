@@ -19,7 +19,7 @@ import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.LifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 
 @Immutable
 public class SlotStatus
@@ -28,7 +28,7 @@ public class SlotStatus
     private final String name;
     private final URI self;
     private final Assignment assignment;
-    private final LifecycleState state;
+    private final SlotLifecycleState state;
 
     public SlotStatus(UUID id, String name, URI self)
     {
@@ -43,7 +43,7 @@ public class SlotStatus
         this.state = UNASSIGNED;
     }
 
-    public SlotStatus(UUID id, String name, URI self, LifecycleState state, Assignment assignment)
+    public SlotStatus(UUID id, String name, URI self, SlotLifecycleState state, Assignment assignment)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
@@ -58,7 +58,7 @@ public class SlotStatus
         this.state = state;
     }
 
-    public SlotStatus(SlotStatus status, LifecycleState state)
+    public SlotStatus(SlotStatus status, SlotLifecycleState state)
     {
         Preconditions.checkNotNull(status, "status is null");
         Preconditions.checkNotNull(state, "state is null");
@@ -75,7 +75,7 @@ public class SlotStatus
         this.state = state;
     }
     
-    public SlotStatus(SlotStatus status, LifecycleState state, Assignment assignment)
+    public SlotStatus(SlotStatus status, SlotLifecycleState state, Assignment assignment)
     {
         Preconditions.checkNotNull(status, "status is null");
         Preconditions.checkNotNull(state, "state is null");
@@ -108,7 +108,7 @@ public class SlotStatus
         return assignment;
     }
 
-    public LifecycleState getState()
+    public SlotLifecycleState getState()
     {
         return state;
     }
