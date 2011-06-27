@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentMap;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 
@@ -107,24 +109,29 @@ public class Coordinator
 
     public List<RemoteAgent> getAgents()
     {
-        throw new UnsupportedOperationException();
+        return ImmutableList.copyOf(agents.values());
     }
 
 
-    public List<SlotStatus> install(final Installation installation, Predicate<RemoteAgent> filter)
+    public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, final Installation installation)
     {
-        return ImmutableList.copyOf(transform(filter(getAgents(), filter), new Function<RemoteAgent, SlotStatus>()
-        {
-            public SlotStatus apply(RemoteAgent agent)
-            {
-                return agent.install(installation);
+
+        List<SlotStatus> slots = newArrayList();
+        Iterable<RemoteAgent> agents = filter(getAgents(), filterAgentsBy(filter));
+        for (RemoteAgent agent : agents) {
+            if (slots.size() >= limit) {
+                break;
             }
-        }));
+            if (agent.status().getState() == ONLINE) {
+                slots.add(agent.install(installation));
+            }
+        }
+        return ImmutableList.copyOf(slots);
     }
 
     public List<SlotStatus> assign(Predicate<SlotStatus> filter, final Installation installation)
     {
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterBy(filter)), new Function<RemoteSlot, SlotStatus>()
+        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>()
         {
             @Override
             public SlotStatus apply(RemoteSlot slot)
@@ -136,7 +143,7 @@ public class Coordinator
 
     public List<SlotStatus> clear(Predicate<SlotStatus> filter)
     {
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterBy(filter)), new Function<RemoteSlot, SlotStatus>()
+        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>()
         {
             @Override
             public SlotStatus apply(RemoteSlot slot)
@@ -150,7 +157,7 @@ public class Coordinator
     {
         Preconditions.checkArgument(EnumSet.of(RUNNING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);
 
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterBy(filter)), new Function<RemoteSlot, SlotStatus>() {
+        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>() {
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
@@ -173,12 +180,24 @@ public class Coordinator
         return ImmutableList.copyOf(filter(transform(getAllSlots(), getSlotStatus()), slotFilter));
     }
 
-    private Predicate<RemoteSlot> filterBy(final Predicate<SlotStatus> filter)
+    private Predicate<RemoteSlot> filterSlotsBy(final Predicate<SlotStatus> filter)
     {
         return new Predicate<RemoteSlot>()
         {
             @Override
             public boolean apply(RemoteSlot input)
+            {
+                return filter.apply(input.status());
+            }
+        };
+    }
+
+    private Predicate<RemoteAgent> filterAgentsBy(final Predicate<AgentStatus> filter)
+    {
+        return new Predicate<RemoteAgent>()
+        {
+            @Override
+            public boolean apply(RemoteAgent input)
             {
                 return filter.apply(input.status());
             }

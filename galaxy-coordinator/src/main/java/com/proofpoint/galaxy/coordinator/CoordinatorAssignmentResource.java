@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
@@ -23,9 +24,12 @@ import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -60,6 +64,34 @@ public class CoordinatorAssignmentResource
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
         this.gitConfigRepository = gitConfigRepository;
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response install(
+            AssignmentRepresentation assignmentRepresentation,
+            @DefaultValue("1") @QueryParam("limit") int limit,
+            @Context UriInfo uriInfo)
+    {
+        Preconditions.checkNotNull(assignmentRepresentation, "assignmentRepresentation must not be null");
+        Preconditions.checkArgument(limit > 0, "limit must be at least 1");
+
+        Assignment assignment = assignmentRepresentation.toAssignment();
+        Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
+        if (configMap == null) {
+            configMap = gitConfigRepository.getConfigMap(assignment.getConfig());
+        }
+        if (configMap == null) {
+            configMap = configRepository.getConfigMap(assignment.getConfig());
+        }
+
+        Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configMap);
+
+        Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo);
+        List<SlotStatus> results = coordinator.install(agentFilter, limit, installation);
+
+        return Response.ok(transform(results, fromSlotStatus())).build();
     }
 
     @PUT
