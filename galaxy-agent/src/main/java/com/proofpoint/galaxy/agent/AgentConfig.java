@@ -25,7 +25,6 @@ public class AgentConfig
 {
     private URI coordinatorBaseURI;
     private String slotsDir = "slots";
-    private Duration deployScriptTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration launcherTimeout = new Duration(1, TimeUnit.SECONDS);
     private Duration launcherStopTimeout = new Duration(10, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
@@ -54,19 +53,6 @@ public class AgentConfig
     public AgentConfig setSlotsDir(String slotsDir)
     {
         this.slotsDir = slotsDir;
-        return this;
-    }
-
-    @NotNull
-    public Duration getDeployScriptTimeout()
-    {
-        return deployScriptTimeout;
-    }
-
-    @Config("agent.deploy-script-timeout")
-    public AgentConfig setDeployScriptTimeout(Duration deployScriptTimeout)
-    {
-        this.deployScriptTimeout = deployScriptTimeout;
         return this;
     }
 
