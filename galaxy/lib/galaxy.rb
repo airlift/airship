@@ -83,7 +83,7 @@ module Galaxy
           :binary => binary,
           :config => config
       }
-      coordinator_request(filter, options, :post, 'assignment', installation, true)
+      coordinator_request(filter, options, :post, nil, installation, true)
     end
 
     def self.assign(filter, options, args)

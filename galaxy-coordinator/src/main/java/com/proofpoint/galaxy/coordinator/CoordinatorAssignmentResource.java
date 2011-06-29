@@ -66,34 +66,6 @@ public class CoordinatorAssignmentResource
         this.gitConfigRepository = gitConfigRepository;
     }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response install(
-            AssignmentRepresentation assignmentRepresentation,
-            @DefaultValue("1") @QueryParam("limit") int limit,
-            @Context UriInfo uriInfo)
-    {
-        Preconditions.checkNotNull(assignmentRepresentation, "assignmentRepresentation must not be null");
-        Preconditions.checkArgument(limit > 0, "limit must be at least 1");
-
-        Assignment assignment = assignmentRepresentation.toAssignment();
-        Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
-        if (configMap == null) {
-            configMap = gitConfigRepository.getConfigMap(assignment.getConfig());
-        }
-        if (configMap == null) {
-            configMap = configRepository.getConfigMap(assignment.getConfig());
-        }
-
-        Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configMap);
-
-        Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo);
-        List<SlotStatus> results = coordinator.install(agentFilter, limit, installation);
-
-        return Response.ok(transform(results, fromSlotStatus())).build();
-    }
-
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

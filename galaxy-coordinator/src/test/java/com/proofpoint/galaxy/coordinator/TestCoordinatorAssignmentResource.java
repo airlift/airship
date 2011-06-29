@@ -100,55 +100,6 @@ public class TestCoordinatorAssignmentResource
         assertEquals(bananaSlot.status().getState(), UNASSIGNED);
     }
 
-    @Test
-    public void testInstallOne()
-    {
-        testInstall(1, 1, APPLE_ASSIGNMENT);
-    }
-
-    @Test
-    public void testInstallLimit()
-    {
-        testInstall(10, 3, APPLE_ASSIGNMENT);
-    }
-
-    @Test
-    public void testInstallNotEnoughAgents()
-    {
-        testInstall(3, 10, APPLE_ASSIGNMENT);
-    }
-
-    public void testInstall(int numberOfAgents, int limit, Assignment assignment)
-    {
-        // clear the agents since install creates slots on the fly
-        // todo remove then when we drop support for assign
-        for (RemoteAgent agent : coordinator.getAgents()) {
-            coordinator.removeAgent(agent.status().getAgentId());
-        }
-
-        for (int i = 0; i < numberOfAgents; i++) {
-            coordinator.updateAgentStatus(new AgentStatus(UUID.randomUUID(),
-                    ONLINE,
-                    URI.create("fake://appleServer1/"),
-                    ImmutableList.<SlotStatus>of()));
-        }
-
-        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.install(AssignmentRepresentation.from(assignment), limit, uriInfo);
-
-        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-
-        Collection<SlotStatusRepresentation> slots = (Collection<SlotStatusRepresentation>) response.getEntity();
-        assertEquals(slots.size(), min(numberOfAgents, limit));
-        for (SlotStatusRepresentation slotRepresentation : slots) {
-            SlotStatus slot = slotRepresentation.toSlotStatus();
-            assertEquals(slot.getAssignment(), assignment);
-            assertEquals(slot.getState(), SlotLifecycleState.STOPPED);
-        }
-
-        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-    }
-
     @Test(expectedExceptions = InvalidSlotFilterException.class)
     public void testAssignNoFilterException()
     {
