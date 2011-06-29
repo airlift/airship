@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 @Immutable
 public class SlotStatus
@@ -50,7 +51,7 @@ public class SlotStatus
         Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(self, "self is null");
         Preconditions.checkNotNull(state, "state is null");
-        if (state != UNASSIGNED && state != TERMINATED) {
+        if (state != UNASSIGNED && state != TERMINATED && state != UNKNOWN) {
             Preconditions.checkNotNull(assignment, "assignment is null");
         }
 

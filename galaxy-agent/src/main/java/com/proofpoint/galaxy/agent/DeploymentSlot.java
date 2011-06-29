@@ -13,8 +13,8 @@
  */
 package com.proofpoint.galaxy.agent;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
@@ -22,13 +22,16 @@ import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 public class DeploymentSlot implements Slot
 {
@@ -40,9 +43,12 @@ public class DeploymentSlot implements Slot
     private final Duration lockWait;
     private final DeploymentManager deploymentManager;
     private final LifecycleManager lifecycleManager;
+    private final AtomicReference<SlotStatus> lastSlotStatus = new AtomicReference<SlotStatus>();
     private boolean terminated;
 
     private final ReentrantLock lock = new ReentrantLock();
+    private volatile Thread lockOwner;
+    private volatile List<StackTraceElement> lockAcquisitionLocation;
 
     public DeploymentSlot(String name, AgentConfig config, URI self, DeploymentManager deploymentManager, LifecycleManager lifecycleManager)
     {
@@ -58,6 +64,8 @@ public class DeploymentSlot implements Slot
         lockWait = config.getMaxLockWait();
         id = deploymentManager.getSlotId();
         this.self = self;
+
+        lastSlotStatus.set(new SlotStatus(id, name, self, UNKNOWN, null));
     }
 
     @Override
@@ -112,7 +120,9 @@ public class DeploymentSlot implements Slot
             // todo should this be done after the lock is released
             // @event_dispatcher.dispatch_become_success_event status
             // announce
-            return new SlotStatus(id, name, self, STOPPED, installation.getAssignment());
+            SlotStatus slotStatus = new SlotStatus(id, name, self, STOPPED, installation.getAssignment());
+            lastSlotStatus.set(slotStatus);
+            return slotStatus;
         }
         finally {
             unlock();
@@ -127,29 +137,33 @@ public class DeploymentSlot implements Slot
             Preconditions.checkState(!terminated, "Slot has been terminated");
 
             Deployment activeDeployment = deploymentManager.getDeployment();
-            if (activeDeployment == null) {
-                return new SlotStatus(id, name, self);
+            if (activeDeployment != null) {
+
+                // Stop server
+                try {
+                    SlotLifecycleState state = lifecycleManager.stop(activeDeployment);
+                    if (state != STOPPED) {
+                        // todo error
+                    }
+                }
+                catch (RuntimeException e) {
+                    if (e.getMessage().contains("invalid option: --data")) {
+                        // so we added a new option and old binaries won't clear, which is super annoying
+                        // skip these binaries
+                    }
+                    else {
+                        throw e;
+                    }
+                }
+
+                // remove deployment
+                deploymentManager.clear();
             }
 
-            // Stop server
-            try {
-                SlotLifecycleState state = lifecycleManager.stop(activeDeployment);
-                if (state != STOPPED) {
-                    // todo error
-                }
-            }
-            catch (RuntimeException e) {
-                if (e.getMessage().contains("invalid option: --data")) {
-                    // so we added a new option and old binaries won't clear, which is super annoying
-                    // skip these binaries
-                } else {
-                    throw e;
-                }
-            }
+            SlotStatus slotStatus = new SlotStatus(id, name, self);
+            lastSlotStatus.set(slotStatus);
+            return slotStatus;
 
-            // remove deployment
-            deploymentManager.clear();
-            return new SlotStatus(id, name, self);
         }
         finally {
             unlock();
@@ -161,20 +175,20 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
-            if (terminated) {
-                return new SlotStatus(id, name, self, TERMINATED, null);
+            if (!terminated) {
+
+                SlotStatus status = status();
+                if (status.getState() != STOPPED && status.getState() != UNASSIGNED) {
+                    return status;
+                }
+
+                // terminate the slot
+                deploymentManager.terminate();
+                terminated = true;
             }
-
-            SlotStatus status = status();
-            if (status.getState() != STOPPED && status.getState() != UNASSIGNED) {
-                return status;
-            }
-
-            // terminate the slot
-            deploymentManager.terminate();
-            terminated = true;
-
-            return new SlotStatus(id, name, self, TERMINATED, null);
+            SlotStatus slotStatus = new SlotStatus(id, name, self, TERMINATED, null);
+            lastSlotStatus.set(slotStatus);
+            return slotStatus;
         }
         finally {
             unlock();
@@ -184,7 +198,15 @@ public class DeploymentSlot implements Slot
     @Override
     public SlotStatus status()
     {
-        lock();
+        try {
+            lock();
+        }
+        catch (LockTimeoutException e) {
+            // could not get the lock because there is an operation in progress
+            // just return the last state we saw
+            // todo consider adding "in-process" states like starting
+            return lastSlotStatus.get();
+        }
         try {
             if (terminated) {
                 return new SlotStatus(id, name, self, TERMINATED, null);
@@ -214,8 +236,13 @@ public class DeploymentSlot implements Slot
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be started because the slot is not assigned");
             }
+
             SlotLifecycleState state = lifecycleManager.start(activeDeployment);
-            return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
+
+            SlotStatus slotStatus = new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
+            lastSlotStatus.set(slotStatus);
+
+            return slotStatus;
         }
         finally {
             unlock();
@@ -233,8 +260,13 @@ public class DeploymentSlot implements Slot
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
             }
+
             SlotLifecycleState state = lifecycleManager.restart(activeDeployment);
-            return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
+
+            SlotStatus slotStatus = new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
+            lastSlotStatus.set(slotStatus);
+
+            return slotStatus;
         }
         finally {
             unlock();
@@ -252,38 +284,41 @@ public class DeploymentSlot implements Slot
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
             }
+
             SlotLifecycleState state = lifecycleManager.stop(activeDeployment);
-            return new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
+
+            SlotStatus slotStatus = new SlotStatus(id, name, self, state, activeDeployment.getAssignment());
+            lastSlotStatus.set(slotStatus);
+
+            return slotStatus;
         }
         finally {
             unlock();
         }
     }
 
-    private volatile Thread owner;
-    private volatile Exception exception;
 
     private void lock()
     {
-        Thread thread = Thread.currentThread();
-        Exception exception = new Exception("lock acquired HERE");
-        exception.fillInStackTrace();
         try {
             if (!lock.tryLock((long) lockWait.toMillis(), TimeUnit.MILLISECONDS)) {
-                throw new IllegalStateException("Could not obtain slot lock within " + lockWait + " held by " + owner + " thread is at \n" + Joiner.on("\n  at ").join(owner.getStackTrace()) + "\n", this.exception);
+                throw new LockTimeoutException(lockOwner, lockWait, lockAcquisitionLocation);
             }
-            owner = thread;
-            this.exception = exception;
+
+            // capture the location where the lock was acquired
+            lockAcquisitionLocation = ImmutableList.copyOf(new Exception("lock acquired HERE").fillInStackTrace().getStackTrace());
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
     }
+
+
     private void unlock()
     {
-        owner = null;
-        exception = null;
+        lockOwner = null;
+        lockAcquisitionLocation = null;
         lock.unlock();
     }
 
