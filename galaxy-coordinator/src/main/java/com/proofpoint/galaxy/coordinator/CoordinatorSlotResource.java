@@ -15,11 +15,10 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -51,6 +50,16 @@ public class CoordinatorSlotResource
     {
         Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, false);
         List<SlotStatus> result = coordinator.getAllSlotsStatus(slotFilter);
+
+        return Response.ok(transform(result, fromSlotStatus())).build();
+    }
+
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response terminateSlots(@Context UriInfo uriInfo)
+    {
+        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, true);
+        List<SlotStatus> result = coordinator.terminate(slotFilter);
 
         return Response.ok(transform(result, fromSlotStatus())).build();
     }

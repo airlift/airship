@@ -69,4 +69,10 @@ public class MockDeploymentManager implements DeploymentManager
     {
         deployment = null;
     }
+
+    @Override
+    public void terminate()
+    {
+        deployment = null;
+    }
 }

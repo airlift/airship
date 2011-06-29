@@ -153,6 +153,22 @@ public class Coordinator
         }));
     }
 
+    public List<SlotStatus> terminate(Predicate<SlotStatus> filter)
+    {
+        Preconditions.checkNotNull(filter, "filter is null");
+
+        ImmutableList.Builder<SlotStatus> builder = ImmutableList.builder();
+        for (RemoteAgent agent : agents.values()) {
+            for (RemoteSlot slot : agent.getSlots()) {
+                if (filter.apply(slot.status())) {
+                    SlotStatus slotStatus = agent.terminateSlot(slot.getId());
+                    builder.add(slotStatus);
+                }
+            }
+        }
+        return builder.build();
+    }
+
     public List<SlotStatus> setState(final SlotLifecycleState state, Predicate<SlotStatus> filter)
     {
         Preconditions.checkArgument(EnumSet.of(RUNNING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);

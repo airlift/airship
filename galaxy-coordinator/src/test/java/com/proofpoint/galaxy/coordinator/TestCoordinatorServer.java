@@ -51,6 +51,7 @@ import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
@@ -62,7 +63,6 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class TestCoordinatorServer
@@ -223,6 +223,26 @@ public class TestCoordinatorServer
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), UNASSIGNED);
         assertEquals(appleSlot2.status().getState(), UNASSIGNED);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
+    }
+
+    @Test
+    public void testTerminate()
+            throws Exception
+    {
+        Response response = client.prepareDelete(urlFor("/v1/slot?host=apple*"))
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(appleSlot1.status().getState(), TERMINATED);
+        assertEquals(appleSlot2.status().getState(), TERMINATED);
         assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 

@@ -80,6 +80,28 @@ public class HttpRemoteSlot implements RemoteSlot
     }
 
     @Override
+    public SlotStatus terminate()
+    {
+        try {
+            Response response = httpClient.prepareDelete(slotStatus.get().getSelf().toString())
+                    .execute()
+                    .get();
+
+            if (response.getStatusCode() != Status.OK.getStatusCode()) {
+                throw new RuntimeException("Terminate Failed with " + response.getStatusCode() + " " + response.getStatusText());
+            }
+            String responseJson = response.getResponseBody();
+            SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
+            updateStatus(slotStatusRepresentation.toSlotStatus());
+            return slotStatus.get();
+        }
+        catch (Exception e) {
+            slotStatus.set(new SlotStatus(slotStatus.get(), SlotLifecycleState.UNKNOWN));
+            throw Throwables.propagate(e);
+        }
+    }
+
+    @Override
     public SlotStatus clear()
     {
         try {

@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static java.lang.Math.max;
 import static java.lang.String.format;
 
@@ -163,17 +164,20 @@ public class Agent
         return slot;
     }
 
-    public boolean deleteSlot(String name)
+    public SlotStatus terminateSlot(String name)
     {
         Preconditions.checkNotNull(name, "name must not be null");
 
-        Slot slot = slots.remove(name);
+        Slot slot = slots.get(name);
         if (slot == null) {
-            return false;
+            return null;
         }
 
-        slot.clear();
-        return true;
+        SlotStatus status = slot.terminate();
+        if (status.getState() == TERMINATED) {
+            slots.remove(name);
+        }
+        return status;
     }
 
     public Collection<Slot> getAllSlots()

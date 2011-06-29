@@ -24,6 +24,7 @@ public enum SlotLifecycleState
     STOPPED("s"),
     RUNNING("r"),
     UNASSIGNED(null),
+    TERMINATED(null),
     UNKNOWN("u");
 
     private static Map<String, SlotLifecycleState> byName;

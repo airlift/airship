@@ -82,22 +82,23 @@ public class SlotResource
                     .build();
         }
         catch (Exception e) {
-            agent.deleteSlot(slot.getName());
+            agent.terminateSlot(slot.getName());
             throw Throwables.propagate(e);
         }
     }
 
     @Path("{slotName: [a-z0-9]+}")
     @DELETE
-    public Response removeSlot(@PathParam("slotName") String id)
+    public Response terminateSlot(@PathParam("slotName") String id)
     {
         Preconditions.checkNotNull(id, "id must not be null");
 
-        if (!agent.deleteSlot(id)) {
+        SlotStatus slotStatus = agent.terminateSlot(id);
+        if (slotStatus == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        return Response.noContent().build();
+        return Response.ok(SlotStatusRepresentation.from(slotStatus)).build();
     }
 
     @Path("{slotName: [a-z0-9]+}")

@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 
 public class MockRemoteAgent implements RemoteAgent
 {
@@ -96,5 +97,18 @@ public class MockRemoteAgent implements RemoteAgent
         slots.put(slotId, slot);
 
         return slotStatus;
+    }
+
+    @Override
+    public SlotStatus terminateSlot(UUID slotId)
+    {
+        Preconditions.checkNotNull(slotId, "slotId is null");
+
+        MockRemoteSlot slot = slots.get(slotId);
+        SlotStatus status = slot.terminate();
+        if (status.getState() == TERMINATED) {
+            slots.remove(slotId);
+        }
+        return status;
     }
 }

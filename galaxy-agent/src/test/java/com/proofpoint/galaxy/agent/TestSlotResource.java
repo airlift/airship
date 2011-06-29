@@ -37,6 +37,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.testing.Assertions.assertInstanceOf;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -155,21 +156,24 @@ public class TestSlotResource
     }
 
     @Test
-    public void testRemoveSlot()
+    public void testTerminateSlot()
     {
         Slot slot = agent.addNewSlot();
 
-        Response response = resource.removeSlot(slot.getName());
-        assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
-        assertNull(response.getEntity());
+        Response response = resource.terminateSlot(slot.getName());
+        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+
+        SlotStatus expectedStatus = new SlotStatus(slot.status(), TERMINATED);
+        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
+        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertNull(agent.getSlot(slot.getName()));
     }
 
     @Test
-    public void testRemoveSlotMissing()
+    public void testTerminateUnknownSlot()
     {
-        Response response = resource.removeSlot("unknown");
+        Response response = resource.terminateSlot("unknown");
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
         assertNull(response.getEntity());
     }
@@ -177,6 +181,6 @@ public class TestSlotResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testRemoveSlotNullId()
     {
-        resource.removeSlot(null);
+        resource.terminateSlot(null);
     }
 }

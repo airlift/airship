@@ -19,6 +19,7 @@ import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 
 @Immutable
@@ -48,8 +49,10 @@ public class SlotStatus
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(self, "self is null");
-        Preconditions.checkNotNull(assignment, "assignment is null");
         Preconditions.checkNotNull(state, "state is null");
+        if (state != UNASSIGNED && state != TERMINATED) {
+            Preconditions.checkNotNull(assignment, "assignment is null");
+        }
 
         this.id = id;
         this.name = name;
@@ -158,7 +161,7 @@ public class SlotStatus
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("SlotStatus");
         sb.append("{id=").append(id);
         sb.append(", name='").append(name).append('\'');

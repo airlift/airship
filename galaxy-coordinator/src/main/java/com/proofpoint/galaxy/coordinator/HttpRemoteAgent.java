@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 
 public class HttpRemoteAgent implements RemoteAgent
 {
@@ -128,6 +127,20 @@ public class HttpRemoteAgent implements RemoteAgent
         catch (Exception e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    @Override
+    public SlotStatus terminateSlot(UUID slotId)
+    {
+        Preconditions.checkNotNull(slotId, "slotId is null");
+
+        HttpRemoteSlot slot = slots.get(slotId);
+        SlotStatus status = slot.terminate();
+        if (status.getState() == SlotLifecycleState.TERMINATED) {
+            slots.remove(slotId);
+        }
+        return status;
+
     }
 }
 

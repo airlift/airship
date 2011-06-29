@@ -9,6 +9,8 @@ public interface RemoteSlot
 {
     UUID getId();
 
+    SlotStatus terminate();
+
     SlotStatus assign(Installation installation);
 
     SlotStatus clear();

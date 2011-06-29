@@ -54,6 +54,7 @@ import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -109,7 +110,8 @@ public class TestRemoteSlot
     public void resetState()
     {
         for (Slot slot : agent.getAllSlots()) {
-            agent.deleteSlot(slot.getName());
+            slot.clear();
+            agent.terminateSlot(slot.getName());
         }
         assertTrue(agent.getAllSlots().isEmpty());
 
@@ -168,6 +170,21 @@ public class TestRemoteSlot
 
         // verify
         SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
+        assertEquals(actual, expected);
+    }
+
+    @Test
+    public void testTerminate()
+            throws Exception
+    {
+        // setup
+        assertEquals(slot.assign(APPLE_INSTALLATION).getAssignment(), APPLE_ASSIGNMENT);
+
+        // test
+        SlotStatus actual = remoteSlot.terminate();
+
+        // verify
+        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), TERMINATED, null);
         assertEquals(actual, expected);
     }
 

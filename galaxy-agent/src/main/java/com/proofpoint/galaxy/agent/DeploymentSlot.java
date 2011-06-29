@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 
 public class DeploymentSlot implements Slot
 {
@@ -38,9 +40,9 @@ public class DeploymentSlot implements Slot
     private final Duration lockWait;
     private final DeploymentManager deploymentManager;
     private final LifecycleManager lifecycleManager;
+    private boolean terminated;
 
     private final ReentrantLock lock = new ReentrantLock();
-
 
     public DeploymentSlot(String name, AgentConfig config, URI self, DeploymentManager deploymentManager, LifecycleManager lifecycleManager)
     {
@@ -83,6 +85,8 @@ public class DeploymentSlot implements Slot
 
         lock();
         try {
+            Preconditions.checkState(!terminated, "Slot has been terminated");
+
             log.info("Becoming %s with %s", installation.getAssignment().getBinary(), installation.getAssignment().getConfig());
 
             // stop current server
@@ -120,6 +124,8 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
+            Preconditions.checkState(!terminated, "Slot has been terminated");
+
             Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 return new SlotStatus(id, name, self);
@@ -151,10 +157,39 @@ public class DeploymentSlot implements Slot
     }
 
     @Override
+    public SlotStatus terminate()
+    {
+        lock();
+        try {
+            if (terminated) {
+                return new SlotStatus(id, name, self, TERMINATED, null);
+            }
+
+            SlotStatus status = status();
+            if (status.getState() != STOPPED && status.getState() != UNASSIGNED) {
+                return status;
+            }
+
+            // terminate the slot
+            deploymentManager.terminate();
+            terminated = true;
+
+            return new SlotStatus(id, name, self, TERMINATED, null);
+        }
+        finally {
+            unlock();
+        }
+    }
+
+    @Override
     public SlotStatus status()
     {
         lock();
         try {
+            if (terminated) {
+                return new SlotStatus(id, name, self, TERMINATED, null);
+            }
+
             Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 return new SlotStatus(id, name, self);
@@ -173,6 +208,8 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
+            Preconditions.checkState(!terminated, "Slot has been terminated");
+
             Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be started because the slot is not assigned");
@@ -190,6 +227,8 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
+            Preconditions.checkState(!terminated, "Slot has been terminated");
+
             Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
@@ -207,6 +246,8 @@ public class DeploymentSlot implements Slot
     {
         lock();
         try {
+            Preconditions.checkState(!terminated, "Slot has been terminated");
+
             Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
                 throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
@@ -274,7 +315,7 @@ public class DeploymentSlot implements Slot
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("Slot");
         sb.append("{slotId=").append(id);
         sb.append(", name='").append(name).append('\'');

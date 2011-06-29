@@ -219,6 +219,13 @@ public class DirectoryDeploymentManager implements DeploymentManager
         deployment = null;
     }
 
+    @Override
+    public void terminate()
+    {
+        deleteRecursively(baseDir);
+        deployment = null;
+    }
+
     public void save(Deployment deployment)
             throws IOException
     {

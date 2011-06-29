@@ -54,6 +54,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
@@ -152,7 +153,8 @@ public class TestServerIntegration
             throws Exception
     {
         for (Slot slot : agent.getAllSlots()) {
-            agent.deleteSlot(slot.getName());
+            slot.clear();
+            agent.terminateSlot(slot.getName());
         }
         for (AgentStatus agentStatus : coordinator.getAllAgentStatus()) {
             coordinator.removeAgent(agentStatus.getAgentId());
@@ -164,9 +166,13 @@ public class TestServerIntegration
         appleSlot1 = agent.addNewSlot();
         appleSlot1.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()), configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig())));
         appleSlot2 = agent.addNewSlot();
-        appleSlot2.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()), configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig())));
+        appleSlot2.assign(new Installation(APPLE_ASSIGNMENT,
+                binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
+                configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig())));
         bananaSlot = agent.addNewSlot();
-        bananaSlot.assign(new Installation(BANANA_ASSIGNMENT, binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()), configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig())));
+        bananaSlot.assign(new Installation(BANANA_ASSIGNMENT,
+                binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
+                configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig())));
         announcementService.announce();
     }
 
@@ -257,7 +263,6 @@ public class TestServerIntegration
         assertEquals(bananaSlot.status().getAssignment(), BANANA_ASSIGNMENT);
     }
 
-
     @Test
     public void testClear()
             throws Exception
@@ -276,6 +281,27 @@ public class TestServerIntegration
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), UNASSIGNED);
         assertEquals(appleSlot2.status().getState(), UNASSIGNED);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
+    }
+
+    @Test
+    public void testTerminate()
+            throws Exception
+    {
+        Response response = client.prepareDelete(urlFor("/v1/slot?binary=*:apple:*"))
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(appleSlot1.status().getState(), TERMINATED);
+        assertEquals(appleSlot2.status().getState(), TERMINATED);
         assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 

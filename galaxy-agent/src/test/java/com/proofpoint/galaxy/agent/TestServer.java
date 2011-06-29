@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.json.JsonCodec.mapJsonCodec;
@@ -111,7 +112,8 @@ public class TestServer
     public void resetState()
     {
         for (Slot slot : agent.getAllSlots()) {
-            agent.deleteSlot(slot.getName());
+            slot.clear();
+            agent.terminateSlot(slot.getName());
         }
         assertTrue(agent.getAllSlots().isEmpty());
     }
@@ -238,7 +240,7 @@ public class TestServer
 
 
     @Test
-    public void testRemoveSlot()
+    public void testTerminateSlot()
             throws Exception
     {
         Slot slot = agent.addNewSlot();
@@ -246,13 +248,24 @@ public class TestServer
 
         Response response = client.prepareDelete(urlFor("/v1/agent/slot/" + slot.getName())).execute().get();
 
-        assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         assertNull(agent.getSlot(slot.getName()));
+
+        Map<String, String> expected = ImmutableMap.<String, String>builder()
+                .put("id", slot.getId().toString())
+                .put("name", slot.getName())
+                .put("self", urlFor(slot))
+                .put("status", TERMINATED.toString())
+                .build();
+
+        Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
+        assertEquals(actual, expected);
     }
 
     @Test
-    public void testRemoveSlotUnknown()
+    public void testTerminateUnknownSlot()
             throws Exception
     {
         Response response = client.prepareDelete(urlFor("/v1/agent/slot/unknown"))

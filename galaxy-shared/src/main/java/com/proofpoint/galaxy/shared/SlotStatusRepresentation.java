@@ -131,7 +131,7 @@ public class SlotStatusRepresentation
             return new SlotStatus(id, name, self, SlotLifecycleState.valueOf(status), new Assignment(binary, config));
         }
         else {
-            return new SlotStatus(id, name, self);
+            return new SlotStatus(id, name, self, SlotLifecycleState.valueOf(status), null);
         }
     }
 
@@ -184,7 +184,7 @@ public class SlotStatusRepresentation
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("SlotStatusRepresentation");
         sb.append("{id=").append(id);
         sb.append(", name='").append(name).append('\'');

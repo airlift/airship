@@ -69,7 +69,7 @@ module Galaxy
 
     def self.install(filter, options, args)
       if args.size != 2 then
-        raise CommandError.new(:invalid_usage, "You must specify a binary and config to assign.")
+        raise CommandError.new(:invalid_usage, "You must specify a binary and config to install.")
       end
       if args[0].start_with? '@'
         config = args[0]
@@ -117,6 +117,16 @@ module Galaxy
         raise CommandError.new(:invalid_usage, "You must specify a filter when for clear.")
       end
       coordinator_request(filter, options, :delete, 'assignment')
+    end
+
+    def self.terminate(filter, options, args)
+      if !args.empty? then
+        raise CommandError.new(:invalid_usage, "You can not pass arguments to terminate.")
+      end
+      if filter.empty? then
+        raise CommandError.new(:invalid_usage, "You must specify a filter when for terminate.")
+      end
+      coordinator_request(filter, options, :delete)
     end
 
     def self.start(filter, options, args)
@@ -225,7 +235,7 @@ module Galaxy
 
   class CLI
 
-    COMMANDS = [:show, :install, :assign, :clear, :start, :stop, :restart, :ssh]
+    COMMANDS = [:show, :install, :assign, :clear, :terminate, :start, :stop, :restart, :ssh]
     INITIAL_OPTIONS = {
         :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000'
     }
