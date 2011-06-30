@@ -35,7 +35,11 @@ public class TestCoordinatorSlotResource
     public void setUp()
             throws Exception
     {
-        coordinator = new Coordinator(new MockRemoteAgentFactory());
+        coordinator = new Coordinator(new MockRemoteAgentFactory(),
+                MOCK_BINARY_REPO,
+                MOCK_CONFIG_REPO,
+                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new GitConfigRepository(new GitConfigRepositoryConfig(), null));
         resource = new CoordinatorSlotResource(coordinator,
                 MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,

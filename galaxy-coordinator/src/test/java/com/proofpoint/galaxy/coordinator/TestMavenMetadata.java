@@ -45,8 +45,8 @@ public class TestMavenMetadata
         assertEquals(metadata.groupId, "food.fruit");
         assertEquals(metadata.artifactId, "apple");
 
-        assertEquals(metadata.versioning.latest, "1.0");
-        assertEquals(metadata.versioning.release, "1.0");
+        assertEquals(metadata.versioning.latest, "2.0");
+        assertEquals(metadata.versioning.release, "2.0");
 
         assertNotNull(metadata.versioning);
 

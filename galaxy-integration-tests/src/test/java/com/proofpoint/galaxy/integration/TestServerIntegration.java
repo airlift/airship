@@ -22,6 +22,7 @@ import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
+import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.galaxy.agent.Agent;
@@ -85,6 +86,7 @@ public class TestServerIntegration
 
     private final JsonCodec<AssignmentRepresentation> assignmentCodec = jsonCodec(AssignmentRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
+    private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
 
     private File binaryRepoDir;
     private File configRepoDir;
@@ -261,6 +263,34 @@ public class TestServerIntegration
         assertEquals(appleSlot2.status().getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(bananaSlot.status().getState(), STOPPED);
         assertEquals(bananaSlot.status().getAssignment(), BANANA_ASSIGNMENT);
+    }
+
+    @Test
+    public void testUpgrade()
+            throws Exception
+    {
+        UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2.0");
+        String json = upgradeVersionsCodec.toJson(upgradeVersions);
+        Response response = client.preparePost(urlFor("/v1/slot/assignment?binary=*:apple:*"))
+                .setBody(json)
+                .setHeader(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .execute()
+                .get();
+
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+
+        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        assertEqualsNoOrder(actual, expected);
+
+        assertEquals(appleSlot1.status().getState(), STOPPED);
+        assertEquals(appleSlot2.status().getState(), STOPPED);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
+
+        assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
     }
 
     @Test

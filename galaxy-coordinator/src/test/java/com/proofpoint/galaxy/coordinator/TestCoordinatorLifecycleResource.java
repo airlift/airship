@@ -29,6 +29,8 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
@@ -49,8 +51,13 @@ public class TestCoordinatorLifecycleResource
 
     @BeforeMethod
     public void setup()
+            throws Exception
     {
-        Coordinator coordinator = new Coordinator(new MockRemoteAgentFactory());
+        Coordinator coordinator = new Coordinator(new MockRemoteAgentFactory(),
+                MOCK_BINARY_REPO,
+                MOCK_CONFIG_REPO,
+                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new GitConfigRepository(new GitConfigRepositoryConfig(), null));
         resource = new CoordinatorLifecycleResource(coordinator);
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),

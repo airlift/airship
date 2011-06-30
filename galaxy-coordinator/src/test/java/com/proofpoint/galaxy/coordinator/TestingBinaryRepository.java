@@ -51,10 +51,14 @@ public class TestingBinaryRepository extends MavenBinaryRepository
             Files.copy(newInputStreamSupplier(getResource(TestingBinaryRepository.class, "banana-maven-metadata.xml")), bananaMavenMetadata);
 
             // tar up the archive and add them to the repository
-            File appleArchive = new File(targetRepo, "food/fruit/apple/1.0/apple-1.0.tar.gz");
+            File appleArchiveV1 = new File(targetRepo, "food/fruit/apple/1.0/apple-1.0.tar.gz");
+            File appleArchiveV2 = new File(targetRepo, "food/fruit/apple/2.0/apple-2.0.tar.gz");
             File bananaArchive = new File(targetRepo, "food/fruit/banana/2.0-SNAPSHOT/banana-2.0-20110311.201909-1.tar.gz");
-            createArchive(appleArchive);
-            Files.copy(appleArchive, bananaArchive);
+            createArchive(appleArchiveV1);
+            appleArchiveV2.getParentFile().mkdirs();
+            Files.copy(appleArchiveV1, appleArchiveV2);
+            bananaArchive.getParentFile().mkdirs();
+            Files.copy(appleArchiveV1, bananaArchive);
 
             return targetRepo;
         }

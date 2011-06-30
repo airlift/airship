@@ -24,6 +24,7 @@ import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
+import com.proofpoint.galaxy.shared.UpgradeVersions;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -41,9 +42,9 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
-import static java.lang.Math.min;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
 public class TestCoordinatorAssignmentResource
 {
@@ -58,7 +59,11 @@ public class TestCoordinatorAssignmentResource
     public void setup()
             throws Exception
     {
-        coordinator = new Coordinator(new MockRemoteAgentFactory());
+        coordinator = new Coordinator(new MockRemoteAgentFactory(),
+                MOCK_BINARY_REPO,
+                MOCK_CONFIG_REPO,
+                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new GitConfigRepository(new GitConfigRepositoryConfig(), null));
         resource = new CoordinatorAssignmentResource(coordinator,
                 MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,
@@ -92,12 +97,65 @@ public class TestCoordinatorAssignmentResource
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
 
-        assertOkResponse(response, SlotLifecycleState.STOPPED, appleSlot1, appleSlot2);
+        assertOkResponse(response, SlotLifecycleState.STOPPED, APPLE_ASSIGNMENT, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(appleSlot1.status().getState(), STOPPED);
         assertEquals(appleSlot2.status().getState(), STOPPED);
         assertEquals(bananaSlot.status().getState(), UNASSIGNED);
+    }
+
+    @Test
+    public void testUpgradeBoth()
+    {
+        testUpgrade(new UpgradeVersions("2.0", "2,0"));
+    }
+
+    @Test
+    public void testUpgradeBinary()
+    {
+        testUpgrade(new UpgradeVersions("2.0", null));
+    }
+
+    @Test
+    public void testUpgradeConfig()
+    {
+        testUpgrade(new UpgradeVersions(null, "2.0"));
+    }
+
+    private void testUpgrade(UpgradeVersions upgradeVersions)
+    {
+        appleSlot1.assign(makeAssignment(APPLE_ASSIGNMENT));
+        appleSlot2.assign(makeAssignment(APPLE_ASSIGNMENT));
+
+        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
+        Response response = resource.upgrade(upgradeVersions, uriInfo);
+
+        assertOkResponse(response, SlotLifecycleState.STOPPED, upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT), appleSlot1, appleSlot2);
+        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
+
+        assertEquals(appleSlot1.status().getState(), STOPPED);
+        assertEquals(appleSlot2.status().getState(), STOPPED);
+        assertEquals(bananaSlot.status().getState(), UNASSIGNED);
+
+        assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+    }
+
+    @Test
+    public void testUpgradeAmbiguous()
+    {
+        appleSlot1.assign(makeAssignment(APPLE_ASSIGNMENT));
+        appleSlot2.assign(makeAssignment(BANANA_ASSIGNMENT));
+
+        UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2,0");
+        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?state=stopped");
+        try {
+            resource.upgrade(upgradeVersions, uriInfo);
+            fail("Expected AmbiguousUpgradeException");
+        }
+        catch (AmbiguousUpgradeException expected) {
+        }
     }
 
     @Test(expectedExceptions = InvalidSlotFilterException.class)
@@ -118,7 +176,7 @@ public class TestCoordinatorAssignmentResource
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
 
-        assertOkResponse(response, SlotLifecycleState.STOPPED, appleSlot1, appleSlot2);
+        assertOkResponse(response, SlotLifecycleState.STOPPED, APPLE_ASSIGNMENT, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(appleSlot1.status().getState(), STOPPED);
@@ -133,7 +191,7 @@ public class TestCoordinatorAssignmentResource
         resource.assign(null, uriInfo);
     }
 
-    private void assertOkResponse(Response response, SlotLifecycleState state, RemoteSlot... slots)
+    private void assertOkResponse(Response response, SlotLifecycleState state, Assignment expectedAssignment, RemoteSlot... slots)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
@@ -142,7 +200,7 @@ public class TestCoordinatorAssignmentResource
         for (RemoteSlot slot : slots) {
             if (state != UNASSIGNED) {
                 builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
-                assertEquals(slot.status().getAssignment(), APPLE_ASSIGNMENT);
+                assertEquals(slot.status().getAssignment(), expectedAssignment);
             }
             else {
                 builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
@@ -166,7 +224,7 @@ public class TestCoordinatorAssignmentResource
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.clear(uriInfo);
 
-        assertOkResponse(response, SlotLifecycleState.UNASSIGNED, appleSlot1, appleSlot2);
+        assertOkResponse(response, SlotLifecycleState.UNASSIGNED, APPLE_ASSIGNMENT, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(appleSlot1.status().getState(), UNASSIGNED);

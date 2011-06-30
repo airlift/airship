@@ -42,6 +42,7 @@ public class TestingConfigRepository extends SimpleConfigRepository
             targetRepo = createTempDir("config");
 
             createConfig(new File(targetRepo, "prod/apple/1.0"), "apple");
+            createConfig(new File(targetRepo, "prod/apple/2.0"), "apple");
             createConfig(new File(targetRepo, "prod/banana/2.0-SNAPSHOT"), "banana");
 
             return targetRepo;

@@ -109,6 +109,29 @@ module Galaxy
       coordinator_request(filter, options, :put, 'assignment', assignment, true)
     end
 
+    def self.upgrade(filter, options, args)
+      if args.size <= 0 || args.size > 2 then
+        raise CommandError.new(:invalid_usage, "You must specify a binary version or a config version for upgrade.")
+      end
+      if filter.empty? then
+        raise CommandError.new(:invalid_usage, "You must specify a filter when for upgrade.")
+      end
+
+      if args[0].start_with? '@'
+        config_version = args[0][1..-1]
+        binary_version = args[1] if args.size > 1
+      else
+        binary_version = args[0]
+        config_version = args[1][1..-1] if args.size > 1
+
+      end
+      versions = {}
+      versions[:binaryVersion] = binary_version if binary_version
+      versions[:configVersion] = config_version if config_version
+
+      coordinator_request(filter, options, :post, 'assignment', versions, true)
+    end
+
     def self.clear(filter, options, args)
       if !args.empty? then
         raise CommandError.new(:invalid_usage, "You can not pass arguments to clear.")
@@ -235,7 +258,7 @@ module Galaxy
 
   class CLI
 
-    COMMANDS = [:show, :install, :assign, :clear, :terminate, :start, :stop, :restart, :ssh]
+    COMMANDS = [:show, :install, :assign, :upgrade, :clear, :terminate, :start, :stop, :restart, :ssh]
     INITIAL_OPTIONS = {
         :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000'
     }

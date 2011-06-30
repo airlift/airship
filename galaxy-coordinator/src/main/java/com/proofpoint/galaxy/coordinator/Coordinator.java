@@ -8,12 +8,18 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.MapMaker;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.UpgradeVersions;
 
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
@@ -24,15 +30,32 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 public class Coordinator
 {
     private final ConcurrentMap<UUID, RemoteAgent> agents;
 
+    private final BinaryRepository binaryRepository;
+    private final ConfigRepository configRepository;
+    private final LocalConfigRepository localConfigRepository;
+    private final GitConfigRepository gitConfigRepository;
+
     @Inject
-    public Coordinator(final RemoteAgentFactory remoteAgentFactory)
+    public Coordinator(final RemoteAgentFactory remoteAgentFactory, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository, GitConfigRepository gitConfigRepository)
     {
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
+        Preconditions.checkNotNull(configRepository, "repository is null");
+        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
+        Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
+        Preconditions.checkNotNull(gitConfigRepository, "gitConfigRepository is null");
+
+        this.binaryRepository = binaryRepository;
+        this.configRepository = configRepository;
+        this.localConfigRepository = localConfigRepository;
+        this.gitConfigRepository = gitConfigRepository;
 
         agents = new MapMaker().makeComputingMap(new Function<UUID, RemoteAgent>()
         {
@@ -132,6 +155,51 @@ public class Coordinator
     public List<SlotStatus> assign(Predicate<SlotStatus> filter, final Installation installation)
     {
         return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>()
+        {
+            @Override
+            public SlotStatus apply(RemoteSlot slot)
+            {
+                return slot.assign(installation);
+            }
+        }));
+    }
+
+    public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions)
+    {
+        HashSet<Assignment> newAssignments = new HashSet<Assignment>();
+        List<RemoteSlot> slotsToUpgrade = new ArrayList<RemoteSlot>();
+        for (RemoteSlot slot : ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)))) {
+            SlotStatus status = slot.status();
+            SlotLifecycleState state = status.getState();
+            if (state != UNASSIGNED && state != TERMINATED && state != UNKNOWN) {
+                Assignment assignment = upgradeVersions.upgradeAssignment(status.getAssignment());
+                newAssignments.add(assignment);
+                slotsToUpgrade.add(slot);
+            }
+        }
+
+        // no slots to upgrade
+        if (newAssignments.isEmpty()) {
+            return ImmutableList.of();
+        }
+
+        // must upgrade to a single new version
+        if (newAssignments.size() != 1) {
+            throw new AmbiguousUpgradeException(newAssignments);
+        }
+        Assignment assignment = newAssignments.iterator().next();
+
+        Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
+        if (configMap == null) {
+            configMap = gitConfigRepository.getConfigMap(assignment.getConfig());
+        }
+        if (configMap == null) {
+            configMap = configRepository.getConfigMap(assignment.getConfig());
+        }
+
+        final Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configMap);
+
+        return ImmutableList.copyOf(transform(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
         {
             @Override
             public SlotStatus apply(RemoteSlot slot)

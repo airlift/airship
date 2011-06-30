@@ -25,6 +25,8 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static org.testng.Assert.assertEquals;
@@ -38,8 +40,13 @@ public class TestAnnounceResource
 
     @BeforeMethod
     public void setup()
+            throws Exception
     {
-        coordinator = new Coordinator(new MockRemoteAgentFactory());
+        coordinator = new Coordinator(new MockRemoteAgentFactory(),
+                MOCK_BINARY_REPO,
+                MOCK_CONFIG_REPO,
+                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new GitConfigRepository(new GitConfigRepositoryConfig(), null));
         resource = new AnnounceResource(coordinator);
         agentStatus = new AgentStatus(UUID.randomUUID(),
                 ONLINE,
