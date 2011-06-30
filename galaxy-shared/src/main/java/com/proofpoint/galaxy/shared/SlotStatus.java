@@ -70,7 +70,7 @@ public class SlotStatus
         this.id = status.id;
         this.name = status.name;
         this.self = status.self;
-        if (state != UNASSIGNED) {
+        if (state != UNASSIGNED && state != TERMINATED) {
             this.assignment = status.assignment;
         }
         else {

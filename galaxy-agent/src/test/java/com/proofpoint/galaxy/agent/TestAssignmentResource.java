@@ -58,7 +58,8 @@ public class TestAssignmentResource
                 new AgentConfig().setSlotsDir(new File(tempDir, "slots").getAbsolutePath()),
                 new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test")),
                 new MockDeploymentManagerFactory(),
-                new MockLifecycleManager());
+                new MockLifecycleManager()
+        );
         resource = new AssignmentResource(agent);
     }
 
@@ -67,22 +68,6 @@ public class TestAssignmentResource
     {
         Response response = resource.assign("unknown", installation, uriInfo);
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
-    }
-
-    @Test
-    public void testAssign()
-    {
-        Slot slot = agent.addNewSlot();
-
-        SlotStatus expectedStatus = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
-
-        Response response = resource.assign(slot.getName(), InstallationRepresentation.from(APPLE_INSTALLATION), uriInfo);
-
-        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
-        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-
-        assertEquals(slot.status(), expectedStatus);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -94,53 +79,24 @@ public class TestAssignmentResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testAssignNullAssignment()
     {
-        Slot slot = agent.addNewSlot();
-        resource.assign(slot.getName(), null, uriInfo);
+        SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        resource.assign(slotStatus.getName(), null, uriInfo);
     }
 
     @Test
     public void testReplaceAssignment()
     {
-        Slot slot = agent.addNewSlot();
-        slot.assign(APPLE_INSTALLATION);
+        SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
 
-        SlotStatus expectedStatus = new SlotStatus(slot.status(), STOPPED, BANANA_ASSIGNMENT);
+        SlotStatus expectedStatus = new SlotStatus(slotStatus, STOPPED, BANANA_ASSIGNMENT);
 
-        Response response = resource.assign(slot.getName(), InstallationRepresentation.from(BANANA_INSTALLATION), uriInfo);
+        Response response = resource.assign(slotStatus.getName(), InstallationRepresentation.from(BANANA_INSTALLATION), uriInfo);
 
-        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
+        SlotStatusRepresentation actualEntity = (SlotStatusRepresentation) response.getEntity();
+        Assert.assertEquals(actualEntity, SlotStatusRepresentation.from(expectedStatus));
+
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
-        assertEquals(slot.status(), expectedStatus);
-    }
-
-    @Test
-    public void testClear()
-    {
-        Slot slot = agent.addNewSlot();
-        slot.assign(APPLE_INSTALLATION);
-        SlotStatus expectedStatus = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
-
-        Response response = resource.clear(slot.getName(), uriInfo);
-        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
-        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-
-        assertEquals(slot.status(), expectedStatus);
-    }
-
-    @Test
-    public void testClearMissing()
-    {
-        Response response = resource.clear("unknown", uriInfo);
-        assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
-        assertNull(response.getEntity());
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void testClearNullId()
-    {
-        resource.clear(null, uriInfo);
+        assertEquals(actualEntity.toSlotStatus(), expectedStatus);
     }
 }

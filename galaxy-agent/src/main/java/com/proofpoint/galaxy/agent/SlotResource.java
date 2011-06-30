@@ -14,7 +14,6 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
@@ -52,39 +51,25 @@ public class SlotResource
     }
 
     @POST
-    public Response addSlot(@Context UriInfo uriInfo)
-    {
-        Slot slot = agent.addNewSlot();
-        try {
-            announcementService.announce();
-        }
-        catch (Exception ignored) {
-        }
-        return Response.created(getSelfUri(slot.getName(), uriInfo.getBaseUri())).build();
-    }
-
-    @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response installSlot(InstallationRepresentation installation, @Context UriInfo uriInfo)
     {
         Preconditions.checkNotNull(installation, "installation must not be null");
 
-        // create a new slot
-        Slot slot = agent.addNewSlot();
+        SlotStatus slotStatus = agent.install(installation.toInstallation());
 
-        // install the software
+        // try to announce the new slot
         try {
-            SlotStatus status = slot.assign(installation.toInstallation());
-            return Response
-                    .created(getSelfUri(slot.getName(), uriInfo.getBaseUri()))
-                    .entity(SlotStatusRepresentation.from(status))
-                    .build();
+            announcementService.announce();
         }
-        catch (Exception e) {
-            agent.terminateSlot(slot.getName());
-            throw Throwables.propagate(e);
+        catch (Exception ignored) {
         }
+
+        return Response
+                .created(getSelfUri(slotStatus.getName(), uriInfo.getBaseUri()))
+                .entity(SlotStatusRepresentation.from(slotStatus))
+                .build();
     }
 
     @Path("{slotName: [a-z0-9]+}")

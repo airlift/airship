@@ -23,6 +23,7 @@ import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.galaxy.shared.Installation;
@@ -112,7 +113,9 @@ public class TestServer
     public void resetState()
     {
         for (Slot slot : agent.getAllSlots()) {
-            slot.clear();
+            if (slot.status().getAssignment() != null) {
+                slot.stop();
+            }
             agent.terminateSlot(slot.getName());
         }
         assertTrue(agent.getAllSlots().isEmpty());
@@ -141,18 +144,17 @@ public class TestServer
     public void testGetSlotStatus()
             throws Exception
     {
-        Slot slot = agent.addNewSlot();
-        slot.assign(appleInstallation);
+        SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Response response = client.prepareGet(urlFor("/v1/agent/slot/" + slot.getName())).execute().get();
+        Response response = client.prepareGet(urlFor("/v1/agent/slot/" + slotStatus.getName())).execute().get();
 
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, Object> expected = mapCodec.fromJson(Resources.toString(Resources.getResource("slot-status.json"), Charsets.UTF_8));
-        expected.put("id", slot.getId().toString());
-        expected.put("name", slot.getName());
-        expected.put("self", urlFor(slot));
+        expected.put("id", slotStatus.getId().toString());
+        expected.put("name", slotStatus.getName());
+        expected.put("self", urlFor(slotStatus));
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
         assertEquals(actual, expected);
@@ -173,10 +175,8 @@ public class TestServer
     public void testGetAllSlotStatus()
             throws Exception
     {
-        Slot slot0 = agent.addNewSlot();
-        slot0.assign(appleInstallation);
-        Slot slot1 = agent.addNewSlot();
-        slot1.assign(bananaInstallation);
+        SlotStatus appleSlotStatus = agent.install(appleInstallation);
+        SlotStatus bananaSlotStatus = agent.install(bananaInstallation);
 
         Response response = client.prepareGet(urlFor("/v1/agent/slot")).execute().get();
 
@@ -184,30 +184,16 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         List<Map<String, Object>> expected = listCodec.fromJson(Resources.toString(Resources.getResource("slot-status-list.json"), Charsets.UTF_8));
-        expected.get(0).put("id", slot0.getId().toString());
-        expected.get(0).put("name", slot0.getName());
-        expected.get(0).put("self", urlFor(slot0));
-        expected.get(1).put("id", slot1.getId().toString());
-        expected.get(1).put("name", slot1.getName());
-        expected.get(1).put("self", urlFor(slot1));
+        expected.get(0).put("id", appleSlotStatus.getId().toString());
+        expected.get(0).put("name", appleSlotStatus.getName());
+        expected.get(0).put("self", urlFor(appleSlotStatus));
+        expected.get(1).put("id", bananaSlotStatus.getId().toString());
+        expected.get(1).put("name", bananaSlotStatus.getName());
+        expected.get(1).put("self", urlFor(bananaSlotStatus));
 
         List<Map<String, Object>> actual = listCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
     }
-
-    @Test
-    public void testAddSlot()
-            throws Exception
-    {
-        Response response = client.preparePost(urlFor("/v1/agent/slot")).execute().get();
-        assertEquals(response.getStatusCode(), Status.CREATED.getStatusCode());
-
-        // find the new slot
-        Slot slot = agent.getAllSlots().iterator().next();
-
-        assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/agent/slot/").resolve(slot.getName()).toString());
-    }
-
 
     @Test
     public void testInstallSlot()
@@ -243,20 +229,19 @@ public class TestServer
     public void testTerminateSlot()
             throws Exception
     {
-        Slot slot = agent.addNewSlot();
-        slot.assign(appleInstallation);
+        SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Response response = client.prepareDelete(urlFor("/v1/agent/slot/" + slot.getName())).execute().get();
+        Response response = client.prepareDelete(urlFor("/v1/agent/slot/" + slotStatus.getName())).execute().get();
 
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        assertNull(agent.getSlot(slot.getName()));
+        assertNull(agent.getSlot(slotStatus.getName()));
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("id", slot.getId().toString())
-                .put("name", slot.getName())
-                .put("self", urlFor(slot))
+                .put("id", slotStatus.getId().toString())
+                .put("name", slotStatus.getName())
+                .put("self", urlFor(slotStatus))
                 .put("status", TERMINATED.toString())
                 .build();
 
@@ -294,10 +279,10 @@ public class TestServer
     public void testAssign()
             throws Exception
     {
-        Slot slot = agent.addNewSlot();
+        SlotStatus slotStatus = agent.install(appleInstallation);
 
         String json = installationCodec.toJson(InstallationRepresentation.from(appleInstallation));
-        Response response = client.preparePut(urlFor(slot) + "/assignment")
+        Response response = client.preparePut(urlFor(slotStatus) + "/assignment")
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .execute()
@@ -307,34 +292,12 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("id", slot.getId().toString())
-                .put("name", slot.getName())
+                .put("id", slotStatus.getId().toString())
+                .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
-                .put("self", urlFor(slot))
+                .put("self", urlFor(slotStatus))
                 .put("status", STOPPED.toString())
-                .build();
-
-        Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
-        assertEquals(actual, expected);
-    }
-
-    @Test
-    public void testClear()
-            throws Exception
-    {
-        Slot slot = agent.addNewSlot();
-
-        Response response = client.prepareDelete(urlFor(slot) + "/assignment").execute().get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
-
-        Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("id", slot.getId().toString())
-                .put("name", slot.getName())
-                .put("self", urlFor(slot))
-                .put("status", UNASSIGNED.toString())
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -345,10 +308,9 @@ public class TestServer
     public void testStart()
             throws Exception
     {
-        Slot slot = agent.addNewSlot();
-        slot.assign(appleInstallation);
+        SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Response response = client.preparePut(urlFor(slot) + "/lifecycle")
+        Response response = client.preparePut(urlFor(slotStatus) + "/lifecycle")
                 .setBody("running")
                 .execute()
                 .get();
@@ -357,11 +319,11 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("id", slot.getId().toString())
-                .put("name", slot.getName())
+                .put("id", slotStatus.getId().toString())
+                .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
-                .put("self", urlFor(slot))
+                .put("self", urlFor(slotStatus))
                 .put("status", RUNNING.toString())
                 .build();
 
@@ -373,11 +335,10 @@ public class TestServer
     public void testStop()
             throws Exception
     {
-        Slot slot = agent.addNewSlot();
-        slot.assign(appleInstallation);
-        slot.start();
+        SlotStatus slotStatus = agent.install(appleInstallation);
+        agent.getSlot(slotStatus.getName()).start();
 
-        Response response = client.preparePut(urlFor(slot) + "/lifecycle")
+        Response response = client.preparePut(urlFor(slotStatus) + "/lifecycle")
                 .setBody("stopped")
                 .execute()
                 .get();
@@ -386,11 +347,11 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("id", slot.getId().toString())
-                .put("name", slot.getName())
+                .put("id", slotStatus.getId().toString())
+                .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
-                .put("self", urlFor(slot))
+                .put("self", urlFor(slotStatus))
                 .put("status", STOPPED.toString())
                 .build();
 
@@ -402,10 +363,9 @@ public class TestServer
     public void testRestart()
             throws Exception
     {
-        Slot slot = agent.addNewSlot();
-        slot.assign(appleInstallation);
+        SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Response response = client.preparePut(urlFor(slot) + "/lifecycle")
+        Response response = client.preparePut(urlFor(slotStatus) + "/lifecycle")
                 .setBody("restarting")
                 .execute()
                 .get();
@@ -414,11 +374,11 @@ public class TestServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
-                .put("id", slot.getId().toString())
-                .put("name", slot.getName())
+                .put("id", slotStatus.getId().toString())
+                .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
-                .put("self", urlFor(slot))
+                .put("self", urlFor(slotStatus))
                 .put("status", RUNNING.toString())
                 .build();
 
@@ -430,10 +390,9 @@ public class TestServer
     public void testLifecycleUnknown()
             throws Exception
     {
-        Slot slot = agent.addNewSlot();
-        slot.assign(appleInstallation);
+        SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Response response = client.preparePut(urlFor(slot) + "/lifecycle")
+        Response response = client.preparePut(urlFor(slotStatus) + "/lifecycle")
                 .setBody("unknown")
                 .execute()
                 .get();
@@ -448,6 +407,11 @@ public class TestServer
 
     private String urlFor(Slot slot)
     {
-        return server.getBaseUrl().resolve("/v1/agent/slot/").resolve(slot.getName()).toString();
+        return urlFor(slot.status());
+    }
+
+    private String urlFor(SlotStatus slotStatus)
+    {
+        return server.getBaseUrl().resolve("/v1/agent/slot/").resolve(slotStatus.getName()).toString();
     }
 }

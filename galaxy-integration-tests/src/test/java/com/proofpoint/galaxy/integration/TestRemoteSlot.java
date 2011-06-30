@@ -33,7 +33,6 @@ import com.proofpoint.galaxy.agent.MockLifecycleManager;
 import com.proofpoint.galaxy.agent.Slot;
 import com.proofpoint.galaxy.coordinator.HttpRemoteSlot;
 import com.proofpoint.galaxy.coordinator.RemoteSlot;
-import com.proofpoint.galaxy.shared.AssignmentHelper;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.testing.TestingHttpServer;
@@ -50,20 +49,24 @@ import java.net.URI;
 import java.util.Map;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class TestRemoteSlot
 {
-    private static final Installation APPLE_INSTALLATION = new Installation(AssignmentHelper.APPLE_ASSIGNMENT,
+    private static final Installation APPLE_INSTALLATION = new Installation(APPLE_ASSIGNMENT,
             URI.create("fake://localhost/apple.tar.gz"),
             ImmutableMap.of("config", URI.create("fake://localhost/apple.config")));
+
+    private static final Installation BANANA_INSTALLATION = new Installation(BANANA_ASSIGNMENT,
+            URI.create("fake://localhost/banana.tar.gz"),
+            ImmutableMap.of("config", URI.create("fake://localhost/banana.config")));
 
     private AsyncHttpClient client;
     private TestingHttpServer server;
@@ -115,7 +118,7 @@ public class TestRemoteSlot
         }
         assertTrue(agent.getAllSlots().isEmpty());
 
-        slot = agent.addNewSlot();
+        slot = agent.getSlot(agent.install(APPLE_INSTALLATION).getName());
         remoteSlot = new HttpRemoteSlot(slot.status(), new AsyncHttpClient());
     }
 
@@ -148,13 +151,13 @@ public class TestRemoteSlot
             throws Exception
     {
         // setup
-        assertNull(slot.status().getAssignment());
+        assertEquals(slot.status(), new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT));
 
         // test
-        SlotStatus actual = remoteSlot.assign(APPLE_INSTALLATION);
+        SlotStatus actual = remoteSlot.assign(BANANA_INSTALLATION);
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
+        SlotStatus expected = new SlotStatus(slot.status(), STOPPED, BANANA_ASSIGNMENT);
         assertEquals(actual, expected);
     }
 

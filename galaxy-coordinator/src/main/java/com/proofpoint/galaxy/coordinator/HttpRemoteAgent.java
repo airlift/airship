@@ -140,7 +140,6 @@ public class HttpRemoteAgent implements RemoteAgent
             slots.remove(slotId);
         }
         return status;
-
     }
 }
 

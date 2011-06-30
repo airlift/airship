@@ -165,16 +165,15 @@ public class TestServerIntegration
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
 
-        appleSlot1 = agent.addNewSlot();
-        appleSlot1.assign(new Installation(APPLE_ASSIGNMENT, binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()), configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig())));
-        appleSlot2 = agent.addNewSlot();
-        appleSlot2.assign(new Installation(APPLE_ASSIGNMENT,
+        appleSlot1 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
                 binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig())));
-        bananaSlot = agent.addNewSlot();
-        bananaSlot.assign(new Installation(BANANA_ASSIGNMENT,
+                configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig()))).getName());
+        appleSlot2 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
+                binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
+                configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig()))).getName());
+        bananaSlot = agent.getSlot(agent.install(new Installation(BANANA_ASSIGNMENT,
                 binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig())));
+                configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig()))).getName());
         announcementService.announce();
     }
 

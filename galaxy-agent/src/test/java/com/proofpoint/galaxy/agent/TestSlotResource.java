@@ -60,24 +60,20 @@ public class TestSlotResource
         agent = new Agent(agentConfig,
                 httpServerInfo,
                 new MockDeploymentManagerFactory(),
-                new MockLifecycleManager());
-        AnnouncementService announcementService = new AnnouncementService(agentConfig, agent, httpServerInfo) {
-            public void announce()
-            {
-            }
-        };
-        resource = new SlotResource(agent, announcementService);
+                new MockLifecycleManager()
+        );
+        resource = new SlotResource(agent, new MockAnnouncementService());
     }
 
     @Test
     public void testGetSlotStatus()
     {
-        Slot slot = agent.addNewSlot();
+        SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
 
-        URI requestUri = URI.create("http://localhost/v1/agent/slot/" + slot.getName());
-        Response response = resource.getSlotStatus(slot.getName(), MockUriInfo.from(requestUri));
+        URI requestUri = URI.create("http://localhost/v1/agent/slot/" + slotStatus.getName());
+        Response response = resource.getSlotStatus(slotStatus.getName(), MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(slot.status()));
+        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(slotStatus));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -106,31 +102,16 @@ public class TestSlotResource
     @Test
     public void testGetAllSlotStatus()
     {
-        Slot slot1 = agent.addNewSlot();
-        Slot slot2 = agent.addNewSlot();
+        SlotStatus slotStatus1 = agent.install(APPLE_INSTALLATION);
+        SlotStatus slotStatus2 = agent.install(APPLE_INSTALLATION);
 
         Response response = resource.getAllSlotsStatus(uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertInstanceOf(response.getEntity(), Collection.class);
         ExtraAssertions.assertEqualsNoOrder((Collection<?>) response.getEntity(), ImmutableMultiset.of(
-                SlotStatusRepresentation.from(slot1.status()),
-                SlotStatusRepresentation.from(slot2.status())
+                SlotStatusRepresentation.from(slotStatus1),
+                SlotStatusRepresentation.from(slotStatus2)
         ));
-    }
-
-    @Test
-    public void testAddSlot()
-    {
-        Response response = resource.addSlot(uriInfo);
-
-        // find the new slot
-        Slot slot = agent.getAllSlots().iterator().next();
-
-        assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
-        assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/agent/slot/" + slot.getName()));
-
-        assertNull(response.getEntity());
-        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
     @Test
@@ -158,16 +139,16 @@ public class TestSlotResource
     @Test
     public void testTerminateSlot()
     {
-        Slot slot = agent.addNewSlot();
+        SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
 
-        Response response = resource.terminateSlot(slot.getName());
+        Response response = resource.terminateSlot(slotStatus.getName());
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
-        SlotStatus expectedStatus = new SlotStatus(slot.status(), TERMINATED);
+        SlotStatus expectedStatus = new SlotStatus(slotStatus, TERMINATED);
         Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
-        assertNull(agent.getSlot(slot.getName()));
+        assertNull(agent.getSlot(slotStatus.getName()));
     }
 
     @Test

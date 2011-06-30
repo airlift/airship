@@ -14,11 +14,13 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
@@ -51,7 +53,10 @@ public class Agent
     private final HttpServerInfo httpServerInfo;
 
     @Inject
-    public Agent(AgentConfig config, HttpServerInfo httpServerInfo, DeploymentManagerFactory deploymentManagerFactory, LifecycleManager lifecycleManager)
+    public Agent(AgentConfig config,
+            HttpServerInfo httpServerInfo,
+            DeploymentManagerFactory deploymentManagerFactory,
+            LifecycleManager lifecycleManager)
     {
         Preconditions.checkNotNull(config, "config is null");
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
@@ -149,19 +154,25 @@ public class Agent
         return slot;
     }
 
-    public Slot addNewSlot()
+    public SlotStatus install(Installation installation)
     {
+        // create slot
         String slotName = getNextSlotName();
-        Slot slot = createSlot(slotName);
-        return slot;
-    }
-
-    private Slot createSlot(String slotName)
-    {
         URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
         Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(slotName), lifecycleManager);
-        slots.put(slotName, slot);
-        return slot;
+
+        // install the software
+        SlotStatus status;
+        try {
+            status = slot.assign(installation);
+            slots.put(slotName, slot);
+        }
+        catch (Exception e) {
+            slot.terminate();
+            throw Throwables.propagate(e);
+        }
+
+        return status;
     }
 
     public SlotStatus terminateSlot(String name)
@@ -211,6 +222,5 @@ public class Agent
         }
         throw new IllegalStateException("Could not find an valid slot name");
     }
-
 }
 

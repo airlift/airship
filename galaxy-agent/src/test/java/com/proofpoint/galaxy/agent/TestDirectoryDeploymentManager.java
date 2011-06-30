@@ -77,15 +77,5 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
 
         // active deployment should still be apple
         assertEquals(manager.getDeployment(), appleDeployment);
-
-        // remove apple while active: no active deployment
-        manager.clear();
-        assertNull(manager.getDeployment());
-
-        // replace the deployment manager again: this time no deployments are active
-        manager = new DirectoryDeploymentManager(new AgentConfig(), "slot", tempDir);
-
-        // no deployment should be active
-        assertNull(manager.getDeployment());
     }
 }

@@ -50,9 +50,12 @@ public class TestLifecycleResource
                 new AgentConfig().setSlotsDir(new File(tempDir, "slots").getAbsolutePath()),
                 new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test")),
                 new MockDeploymentManagerFactory(),
-                new MockLifecycleManager());
-        slot = agent.addNewSlot();
-        slot.assign(APPLE_INSTALLATION);
+                new MockLifecycleManager()
+        );
+
+        SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        slot = agent.getSlot(slotStatus.getName());
+
         resource = new LifecycleResource(agent);
     }
 
