@@ -18,8 +18,6 @@ public interface Slot
 
     SlotStatus assign(Installation installation);
 
-    SlotStatus clear();
-
     SlotStatus status();
 
     SlotStatus start();

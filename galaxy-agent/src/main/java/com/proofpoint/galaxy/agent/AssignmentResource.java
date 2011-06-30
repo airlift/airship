@@ -59,20 +59,4 @@ public class AssignmentResource
         SlotStatus status = slot.assign(installation.toInstallation());
         return Response.ok(SlotStatusRepresentation.from(status)).build();
     }
-
-    @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response clear(@PathParam("slotName") String slotName, @Context UriInfo uriInfo)
-    {
-        Preconditions.checkNotNull(slotName, "slotName must not be null");
-
-        Slot slot = agent.getSlot(slotName);
-        if (slot == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        SlotStatus status = slot.clear();
-        return Response.ok(SlotStatusRepresentation.from(status)).build();
-    }
 }

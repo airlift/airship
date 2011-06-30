@@ -132,16 +132,6 @@ module Galaxy
       coordinator_request(filter, options, :post, 'assignment', versions, true)
     end
 
-    def self.clear(filter, options, args)
-      if !args.empty? then
-        raise CommandError.new(:invalid_usage, "You can not pass arguments to clear.")
-      end
-      if filter.empty? then
-        raise CommandError.new(:invalid_usage, "You must specify a filter when for clear.")
-      end
-      coordinator_request(filter, options, :delete, 'assignment')
-    end
-
     def self.terminate(filter, options, args)
       if !args.empty? then
         raise CommandError.new(:invalid_usage, "You can not pass arguments to terminate.")
@@ -258,7 +248,7 @@ module Galaxy
 
   class CLI
 
-    COMMANDS = [:show, :install, :assign, :upgrade, :clear, :terminate, :start, :stop, :restart, :ssh]
+    COMMANDS = [:show, :install, :assign, :upgrade, :terminate, :start, :stop, :restart, :ssh]
     INITIAL_OPTIONS = {
         :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000'
     }

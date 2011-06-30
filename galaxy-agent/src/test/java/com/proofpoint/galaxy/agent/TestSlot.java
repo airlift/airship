@@ -24,6 +24,7 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.agent.InstallationHelper.BANANA_INSTALLATION;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -95,12 +96,12 @@ public class TestSlot
         assertEquals(slot.status(), status);
         assertTrue(lifecycleManager.getNodeConfigUpdated().contains(deploymentManager.getDeployment().getDeploymentId()));
 
-        // clear and verify unassigned
-        status = slot.clear();
+        // terminate and verify terminated
+        status = slot.terminate();
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), null);
-        assertEquals(status.getState(), UNASSIGNED);
+        assertEquals(status.getState(), TERMINATED);
         assertEquals(slot.status(), status);
     }
 

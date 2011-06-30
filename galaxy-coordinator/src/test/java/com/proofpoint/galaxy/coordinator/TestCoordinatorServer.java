@@ -31,7 +31,6 @@ import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
@@ -73,7 +72,6 @@ public class TestCoordinatorServer
 
     private Coordinator coordinator;
 
-    private final JsonCodec<AssignmentRepresentation> assignmentCodec = jsonCodec(AssignmentRepresentation.class);
     private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = jsonCodec(AgentStatusRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
@@ -180,34 +178,6 @@ public class TestCoordinatorServer
                 SlotStatusRepresentation.from(bananaSlot.status())));
     }
 
-
-    @Test
-    public void testAssign()
-            throws Exception
-    {
-        appleSlot1.clear();
-        appleSlot2.clear();
-        bananaSlot.clear();
-
-        String json = assignmentCodec.toJson(AssignmentRepresentation.from(APPLE_ASSIGNMENT));
-        Response response = client.preparePut(urlFor("/v1/slot/assignment?host=apple*"))
-                .setBody(json)
-                .setHeader(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
-
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
-
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
-        assertEqualsNoOrder(actual, expected);
-        assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), UNASSIGNED);
-    }
-
     @Test
     public void testUpgrade()
             throws Exception
@@ -234,26 +204,6 @@ public class TestCoordinatorServer
 
         assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
         assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
-    }
-
-    @Test
-    public void testClear()
-            throws Exception
-    {
-        Response response = client.prepareDelete(urlFor("/v1/slot/assignment?host=apple*"))
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
-
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
-
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
-        assertEqualsNoOrder(actual, expected);
-        assertEquals(appleSlot1.status().getState(), UNASSIGNED);
-        assertEquals(appleSlot2.status().getState(), UNASSIGNED);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 
     @Test

@@ -13,8 +13,6 @@ public interface RemoteSlot
 
     SlotStatus assign(Installation installation);
 
-    SlotStatus clear();
-
     void updateStatus(SlotStatus slotStatus);
 
     SlotStatus status();

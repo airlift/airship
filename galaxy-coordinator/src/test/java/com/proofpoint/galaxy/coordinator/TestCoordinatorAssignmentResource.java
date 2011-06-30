@@ -53,13 +53,12 @@ public class TestCoordinatorAssignmentResource
     private RemoteSlot appleSlot1;
     private RemoteSlot appleSlot2;
     private RemoteSlot bananaSlot;
-    private Coordinator coordinator;
 
     @BeforeMethod
     public void setup()
             throws Exception
     {
-        coordinator = new Coordinator(new MockRemoteAgentFactory(),
+        Coordinator coordinator = new Coordinator(new MockRemoteAgentFactory(),
                 MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
@@ -208,35 +207,6 @@ public class TestCoordinatorAssignmentResource
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-    }
-
-    @Test
-    public void testClear()
-    {
-
-        appleSlot1.assign(makeAssignment(APPLE_ASSIGNMENT));
-        assertEquals(appleSlot1.status().getAssignment(), APPLE_ASSIGNMENT);
-        appleSlot2.assign(makeAssignment(APPLE_ASSIGNMENT));
-        assertEquals(appleSlot2.status().getAssignment(), APPLE_ASSIGNMENT);
-        bananaSlot.assign(makeAssignment(BANANA_ASSIGNMENT));
-        assertEquals(bananaSlot.status().getAssignment(), BANANA_ASSIGNMENT);
-
-        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.clear(uriInfo);
-
-        assertOkResponse(response, SlotLifecycleState.UNASSIGNED, APPLE_ASSIGNMENT, appleSlot1, appleSlot2);
-        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-
-        assertEquals(appleSlot1.status().getState(), UNASSIGNED);
-        assertEquals(appleSlot2.status().getState(), UNASSIGNED);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
-    }
-
-    @Test(expectedExceptions = InvalidSlotFilterException.class)
-    public void testClearNoFilterException()
-    {
-        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
-        resource.clear(uriInfo);
     }
 
     private static Installation makeAssignment(Assignment appleAssignment)

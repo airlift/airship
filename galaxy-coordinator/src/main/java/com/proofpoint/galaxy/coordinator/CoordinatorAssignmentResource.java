@@ -23,7 +23,6 @@ import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -99,15 +98,4 @@ public class CoordinatorAssignmentResource
         List<SlotStatus> results = coordinator.upgrade(slotFilter, upgradeVersions);
         return Response.ok(transform(results, fromSlotStatus())).build();
     }
-
-    @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response clear(@Context UriInfo uriInfo)
-    {
-        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo);
-        List<SlotStatus> results = coordinator.clear(slotFilter);
-        return Response.ok(transform(results, fromSlotStatus())).build();
-    }
-
 }

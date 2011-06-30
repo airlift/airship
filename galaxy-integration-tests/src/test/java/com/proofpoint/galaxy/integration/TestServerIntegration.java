@@ -155,7 +155,9 @@ public class TestServerIntegration
             throws Exception
     {
         for (Slot slot : agent.getAllSlots()) {
-            slot.clear();
+            if (slot.status().getAssignment() != null) {
+                slot.stop();
+            }
             agent.terminateSlot(slot.getName());
         }
         for (AgentStatus agentStatus : coordinator.getAllAgentStatus()) {
@@ -234,37 +236,6 @@ public class TestServerIntegration
     }
 
     @Test
-    public void testAssign()
-            throws Exception
-    {
-        appleSlot1.clear();
-        appleSlot2.clear();
-        announcementService.announce();
-
-        String json = assignmentCodec.toJson(AssignmentRepresentation.from(APPLE_ASSIGNMENT));
-        Response response = client.preparePut(urlFor("/v1/slot/assignment?state=unassigned"))
-                .setBody(json)
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
-
-
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
-
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
-        assertEqualsNoOrder(actual, expected);
-        assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot1.status().getAssignment(), APPLE_ASSIGNMENT);
-        assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getAssignment(), APPLE_ASSIGNMENT);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getAssignment(), BANANA_ASSIGNMENT);
-    }
-
-    @Test
     public void testUpgrade()
             throws Exception
     {
@@ -290,27 +261,6 @@ public class TestServerIntegration
 
         assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
         assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
-    }
-
-    @Test
-    public void testClear()
-            throws Exception
-    {
-        Response response = client.prepareDelete(urlFor("/v1/slot/assignment?binary=*:apple:*"))
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
-
-
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
-
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
-        assertEqualsNoOrder(actual, expected);
-        assertEquals(appleSlot1.status().getState(), UNASSIGNED);
-        assertEquals(appleSlot2.status().getState(), UNASSIGNED);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 
     @Test

@@ -109,7 +109,6 @@ public class DeploymentSlot implements Slot
                 deploymentManager.clear();
             }
 
-
             // deploy new server
             deploymentManager.install(installation);
 
@@ -123,47 +122,6 @@ public class DeploymentSlot implements Slot
             SlotStatus slotStatus = new SlotStatus(id, name, self, STOPPED, installation.getAssignment());
             lastSlotStatus.set(slotStatus);
             return slotStatus;
-        }
-        finally {
-            unlock();
-        }
-    }
-
-    @Override
-    public SlotStatus clear()
-    {
-        lock();
-        try {
-            Preconditions.checkState(!terminated, "Slot has been terminated");
-
-            Deployment activeDeployment = deploymentManager.getDeployment();
-            if (activeDeployment != null) {
-
-                // Stop server
-                try {
-                    SlotLifecycleState state = lifecycleManager.stop(activeDeployment);
-                    if (state != STOPPED) {
-                        // todo error
-                    }
-                }
-                catch (RuntimeException e) {
-                    if (e.getMessage().contains("invalid option: --data")) {
-                        // so we added a new option and old binaries won't clear, which is super annoying
-                        // skip these binaries
-                    }
-                    else {
-                        throw e;
-                    }
-                }
-
-                // remove deployment
-                deploymentManager.clear();
-            }
-
-            SlotStatus slotStatus = new SlotStatus(id, name, self);
-            lastSlotStatus.set(slotStatus);
-            return slotStatus;
-
         }
         finally {
             unlock();

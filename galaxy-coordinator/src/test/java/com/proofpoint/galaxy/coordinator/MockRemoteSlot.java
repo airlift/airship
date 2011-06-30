@@ -59,13 +59,6 @@ public class MockRemoteSlot implements RemoteSlot
     }
 
     @Override
-    public SlotStatus clear()
-    {
-        slotStatus = new SlotStatus(slotStatus, UNASSIGNED);
-        return slotStatus;
-    }
-
-    @Override
     public SlotStatus start()
     {
         if (slotStatus.getAssignment() == null) {

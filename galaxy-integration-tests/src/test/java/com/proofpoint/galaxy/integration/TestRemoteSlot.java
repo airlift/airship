@@ -113,7 +113,9 @@ public class TestRemoteSlot
     public void resetState()
     {
         for (Slot slot : agent.getAllSlots()) {
-            slot.clear();
+            if (slot.status().getAssignment() != null) {
+                slot.stop();
+            }
             agent.terminateSlot(slot.getName());
         }
         assertTrue(agent.getAllSlots().isEmpty());
@@ -158,21 +160,6 @@ public class TestRemoteSlot
 
         // verify
         SlotStatus expected = new SlotStatus(slot.status(), STOPPED, BANANA_ASSIGNMENT);
-        assertEquals(actual, expected);
-    }
-
-    @Test
-    public void testClear()
-            throws Exception
-    {
-        // setup
-        assertEquals(slot.assign(APPLE_INSTALLATION).getAssignment(), APPLE_ASSIGNMENT);
-
-        // test
-        SlotStatus actual = remoteSlot.clear();
-
-        // verify
-        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
         assertEquals(actual, expected);
     }
 

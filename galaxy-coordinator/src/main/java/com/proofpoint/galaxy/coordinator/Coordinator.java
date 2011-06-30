@@ -209,18 +209,6 @@ public class Coordinator
         }));
     }
 
-    public List<SlotStatus> clear(Predicate<SlotStatus> filter)
-    {
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>()
-        {
-            @Override
-            public SlotStatus apply(RemoteSlot slot)
-            {
-                return slot.clear();
-            }
-        }));
-    }
-
     public List<SlotStatus> terminate(Predicate<SlotStatus> filter)
     {
         Preconditions.checkNotNull(filter, "filter is null");
