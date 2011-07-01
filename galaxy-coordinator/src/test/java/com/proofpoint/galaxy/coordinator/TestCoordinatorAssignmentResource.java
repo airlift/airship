@@ -47,16 +47,14 @@ import static org.testng.Assert.fail;
 public class TestCoordinatorAssignmentResource
 {
     private CoordinatorAssignmentResource resource;
-
-    private RemoteSlot appleSlot1;
-    private RemoteSlot appleSlot2;
-    private RemoteSlot bananaSlot;
+    private Coordinator coordinator;
+    private UUID agentId;
 
     @BeforeMethod
     public void setup()
             throws Exception
     {
-        Coordinator coordinator = new Coordinator(new MockRemoteAgentFactory(),
+        coordinator = new Coordinator(new MockRemoteAgentFactory(),
                 MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
@@ -67,15 +65,12 @@ public class TestCoordinatorAssignmentResource
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(), "apple2", URI.create("fake://appleServer2/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT);
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(), "banana", URI.create("fake://bananaServer/v1/agent/slot/banana"), STOPPED, BANANA_ASSIGNMENT);
 
-        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(),
+        agentId = UUID.randomUUID();
+        AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://appleServer1/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
-
-        appleSlot1 = coordinator.getSlot(appleSlotStatus1.getId());
-        appleSlot2 = coordinator.getSlot(appleSlotStatus2.getId());
-        bananaSlot = coordinator.getSlot(bananaSlotStatus.getId());
     }
 
     @Test
@@ -98,29 +93,29 @@ public class TestCoordinatorAssignmentResource
 
     private void testUpgrade(UpgradeVersions upgradeVersions)
     {
-        appleSlot1.assign(makeAssignment(APPLE_ASSIGNMENT));
-        appleSlot2.assign(makeAssignment(APPLE_ASSIGNMENT));
-
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.upgrade(upgradeVersions, uriInfo);
 
-        assertOkResponse(response, SlotLifecycleState.STOPPED, appleSlot1, appleSlot2);
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus("apple1");
+        SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
+        SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
+
+        assertOkResponse(response, SlotLifecycleState.STOPPED, apple1Status, apple2Status);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
-        assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
+        assertEquals(apple1Status.getState(), STOPPED);
+        assertEquals(apple2Status.getState(), STOPPED);
+        assertEquals(bananaStatus.getState(), STOPPED);
 
-        assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
-        assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(apple1Status.getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(apple2Status.getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(bananaStatus.getAssignment(), BANANA_ASSIGNMENT);
     }
 
     @Test
     public void testUpgradeAmbiguous()
     {
-        appleSlot1.assign(makeAssignment(APPLE_ASSIGNMENT));
-        appleSlot2.assign(makeAssignment(BANANA_ASSIGNMENT));
-
         UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2,0");
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?state=stopped");
         try {
@@ -131,23 +126,16 @@ public class TestCoordinatorAssignmentResource
         }
     }
 
-    private void assertOkResponse(Response response, SlotLifecycleState state, RemoteSlot... slots)
+    private void assertOkResponse(Response response, SlotLifecycleState state, SlotStatus... slots)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
-        for (RemoteSlot slot : slots) {
-            builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
+        for (SlotStatus slotStatus : slots) {
+            builder.add(SlotStatusRepresentation.from(new SlotStatus(slotStatus, state)));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-    }
-
-    private static Installation makeAssignment(Assignment appleAssignment)
-    {
-        return new Installation(appleAssignment,
-                    URI.create("fake://localhost/binaryFile"),
-                    ImmutableMap.of("config", URI.create("fake://localhost/configFile")));
     }
 }

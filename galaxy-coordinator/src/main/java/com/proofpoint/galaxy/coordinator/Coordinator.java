@@ -104,42 +104,11 @@ public class Coordinator
         return agents.remove(agentId) != null;
     }
 
-    // todo this is only used for testing
-    public RemoteSlot getSlot(UUID slotId)
-    {
-        Preconditions.checkNotNull(slotId, "slotId is null");
-        for (RemoteAgent remoteAgent : agents.values()) {
-            for (RemoteSlot slot : remoteAgent.getSlots()) {
-                if (slotId.equals(slot.getId()))  {
-                    return slot;
-                }
-            }
-        }
-        return null;
-    }
-
-    public List<? extends RemoteSlot> getAllSlots()
-    {
-        return ImmutableList.copyOf(concat(Iterables.transform(agents.values(), new Function<RemoteAgent, List<? extends RemoteSlot>>()
-        {
-            public List<? extends RemoteSlot> apply(RemoteAgent agent)
-            {
-                return agent.getSlots();
-            }
-        })));
-    }
-
-    public List<RemoteAgent> getAgents()
-    {
-        return ImmutableList.copyOf(agents.values());
-    }
-
-
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, final Installation installation)
     {
 
         List<SlotStatus> slots = newArrayList();
-        Iterable<RemoteAgent> agents = filter(getAgents(), filterAgentsBy(filter));
+        Iterable<RemoteAgent> agents = filter(this.agents.values(), filterAgentsBy(filter));
         for (RemoteAgent agent : agents) {
             if (slots.size() >= limit) {
                 break;
@@ -150,6 +119,7 @@ public class Coordinator
         }
         return ImmutableList.copyOf(slots);
     }
+
 
     public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions)
     {
@@ -216,7 +186,8 @@ public class Coordinator
     {
         Preconditions.checkArgument(EnumSet.of(RUNNING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);
 
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>() {
+        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>()
+        {
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
@@ -251,6 +222,17 @@ public class Coordinator
         };
     }
 
+    private List<? extends RemoteSlot> getAllSlots()
+    {
+        return ImmutableList.copyOf(concat(Iterables.transform(agents.values(), new Function<RemoteAgent, List<? extends RemoteSlot>>()
+        {
+            public List<? extends RemoteSlot> apply(RemoteAgent agent)
+            {
+                return agent.getSlots();
+            }
+        })));
+    }
+
     private Predicate<RemoteAgent> filterAgentsBy(final Predicate<AgentStatus> filter)
     {
         return new Predicate<RemoteAgent>()
@@ -263,7 +245,7 @@ public class Coordinator
         };
     }
 
-    public Function<RemoteSlot, SlotStatus> getSlotStatus()
+    private Function<RemoteSlot, SlotStatus> getSlotStatus()
     {
         return new Function<RemoteSlot, SlotStatus>()
         {

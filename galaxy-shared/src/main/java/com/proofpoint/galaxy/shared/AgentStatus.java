@@ -1,10 +1,14 @@
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Immutable
@@ -13,7 +17,7 @@ public class AgentStatus
     private final UUID agentId;
     private final AgentLifecycleState state;
     private final URI uri;
-    private final List<SlotStatus> slots;
+    private final Map<String, SlotStatus> slots;
 
     public AgentStatus(UUID agentId, AgentLifecycleState state, URI uri, List<SlotStatus> slots)
     {
@@ -23,7 +27,13 @@ public class AgentStatus
         this.uri = uri;
         this.state = state;
         this.agentId = agentId;
-        this.slots = slots;
+        this.slots = Maps.uniqueIndex(slots, new Function<SlotStatus, String>()
+        {
+            public String apply(SlotStatus slotStatus)
+            {
+                return slotStatus.getName();
+            }
+        });
     }
 
     public UUID getAgentId()
@@ -41,9 +51,14 @@ public class AgentStatus
         return uri;
     }
 
-    public List<SlotStatus> getSlots()
+    public SlotStatus getSlotStatus(String slotName)
     {
-        return slots;
+        return slots.get(slotName);
+    }
+
+    public List<SlotStatus> getSlotStatuses()
+    {
+        return ImmutableList.copyOf(slots.values());
     }
 
     @Override

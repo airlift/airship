@@ -73,7 +73,7 @@ public class HttpRemoteAgent implements RemoteAgent
     public void updateStatus(AgentStatus status)
     {
         Set<UUID> updatedSlots = newHashSet();
-        for (SlotStatus slotStatus : status.getSlots()) {
+        for (SlotStatus slotStatus : status.getSlotStatuses()) {
             HttpRemoteSlot remoteSlot = slots.get(slotStatus.getId());
             if (remoteSlot != null) {
                 remoteSlot.updateStatus(slotStatus);

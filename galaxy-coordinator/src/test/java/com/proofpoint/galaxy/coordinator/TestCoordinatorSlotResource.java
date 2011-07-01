@@ -108,12 +108,6 @@ public class TestCoordinatorSlotResource
 
     public void testInstall(int numberOfAgents, int limit, Assignment assignment)
     {
-        // clear the agents since install creates slots on the fly
-        // todo remove then when we drop support for assign
-        for (RemoteAgent agent : coordinator.getAgents()) {
-            coordinator.removeAgent(agent.status().getAgentId());
-        }
-
         for (int i = 0; i < numberOfAgents; i++) {
             coordinator.updateAgentStatus(new AgentStatus(UUID.randomUUID(),
                     ONLINE,

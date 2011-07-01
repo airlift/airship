@@ -13,6 +13,7 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
@@ -74,11 +75,7 @@ public class TestCoordinatorServer
     private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = jsonCodec(AgentStatusRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
-
-    private AgentStatus agentStatus;
-    private RemoteSlot appleSlot1;
-    private RemoteSlot appleSlot2;
-    private RemoteSlot bananaSlot;
+    private UUID agentId;
 
     @BeforeClass
     public void startServer()
@@ -135,15 +132,12 @@ public class TestCoordinatorServer
                 STOPPED,
                 BANANA_ASSIGNMENT);
 
-        agentStatus = new AgentStatus(UUID.randomUUID(),
+        agentId = UUID.randomUUID();
+        AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://foo/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
-
-        appleSlot1 = coordinator.getSlot(appleSlotStatus1.getId());
-        appleSlot2 = coordinator.getSlot(appleSlotStatus2.getId());
-        bananaSlot = coordinator.getSlot(bananaSlotStatus.getId());
     }
 
     @AfterClass
@@ -171,10 +165,11 @@ public class TestCoordinatorServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
         assertEqualsNoOrder(actual, ImmutableList.of(
-                SlotStatusRepresentation.from(appleSlot1.status()),
-                SlotStatusRepresentation.from(appleSlot2.status()),
-                SlotStatusRepresentation.from(bananaSlot.status())));
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus("apple1")),
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus("apple2")),
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus("banana"))));
     }
 
     @Test
@@ -192,23 +187,33 @@ public class TestCoordinatorServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus("apple1");
+        SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
+        SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(apple2Status));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
 
-        assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
+        assertEquals(apple1Status.getState(), STOPPED);
+        assertEquals(apple2Status.getState(), STOPPED);
+        assertEquals(bananaStatus.getState(), STOPPED);
 
-        assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
-        assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(apple1Status.getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(apple2Status.getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(bananaStatus.getAssignment(), BANANA_ASSIGNMENT);
     }
 
     @Test
     public void testTerminate()
             throws Exception
     {
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus("apple1");
+        SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
+
         Response response = client.prepareDelete(urlFor("/v1/slot?host=apple*"))
                 .execute()
                 .get();
@@ -216,13 +221,17 @@ public class TestCoordinatorServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        apple1Status = new SlotStatus(apple1Status, TERMINATED);
+        apple2Status = new SlotStatus(apple2Status, TERMINATED);
+        SlotStatus bananaStatus = coordinator.getAgentStatus(agentId).getSlotStatus("banana");
 
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(new SlotStatus(apple2Status, TERMINATED)));
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(appleSlot1.status().getState(), TERMINATED);
-        assertEquals(appleSlot2.status().getState(), TERMINATED);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
+
+        assertEquals(apple1Status.getState(), TERMINATED);
+        assertEquals(apple2Status.getState(), TERMINATED);
+        assertEquals(bananaStatus.getState(), STOPPED);
     }
 
     @Test
@@ -238,13 +247,18 @@ public class TestCoordinatorServer
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus("apple1");
+        SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
+        SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(apple2Status));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(appleSlot1.status().getState(), RUNNING);
-        assertEquals(appleSlot2.status().getState(), RUNNING);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
+        assertEquals(apple1Status.getState(), RUNNING);
+        assertEquals(apple2Status.getState(), RUNNING);
+        assertEquals(bananaStatus.getState(), STOPPED);
     }
 
     @Test
@@ -259,23 +273,25 @@ public class TestCoordinatorServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus("apple1");
+        SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
+        SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(apple2Status));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(appleSlot1.status().getState(), RUNNING);
-        assertEquals(appleSlot2.status().getState(), RUNNING);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
+        assertEquals(apple1Status.getState(), RUNNING);
+        assertEquals(apple2Status.getState(), RUNNING);
+        assertEquals(bananaStatus.getState(), STOPPED);
     }
 
     @Test
     public void testStop()
             throws Exception
     {
-        appleSlot1.start();
-        appleSlot2.start();
-        bananaSlot.start();
+        coordinator.setState(RUNNING, Predicates.<SlotStatus>alwaysTrue());
 
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
                 .setBody("stopped")
@@ -285,14 +301,18 @@ public class TestCoordinatorServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus("apple1");
+        SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
+        SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(apple2Status));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
-        assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), RUNNING);
+        assertEquals(apple1Status.getState(), STOPPED);
+        assertEquals(apple2Status.getState(), STOPPED);
+        assertEquals(bananaStatus.getState(), RUNNING);
     }
 
     @Test
@@ -304,18 +324,24 @@ public class TestCoordinatorServer
                 .execute()
                 .get();
 
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus("apple1");
+        SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
+        SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
+
         assertEquals(response.getStatusCode(), Status.BAD_REQUEST.getStatusCode());
-        assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
+        assertEquals(apple1Status.getState(), STOPPED);
+        assertEquals(apple2Status.getState(), STOPPED);
+        assertEquals(bananaStatus.getState(), STOPPED);
     }
 
     @Test
     public void testInitialAgentStatus()
             throws Exception
     {
+        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
         String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(agentStatus, server.getBaseUrl()));
-        Response response = client.preparePut(urlFor("/v1/announce/" + agentStatus.getAgentId()))
+        Response response = client.preparePut(urlFor("/v1/announce/" + agentId))
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .execute()
@@ -323,20 +349,20 @@ public class TestCoordinatorServer
 
         assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
 
-        assertEquals(coordinator.getAgentStatus(agentStatus.getAgentId()), agentStatus);
+        assertEquals(coordinator.getAgentStatus(agentId), agentStatus);
     }
 
     @Test
     public void testUpdateAgentStatus()
             throws Exception
     {
-        AgentStatus newAgentStatus = new AgentStatus(agentStatus.getAgentId(),
+        AgentStatus newAgentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://foo/"),
                 ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT)));
 
         String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(newAgentStatus, server.getBaseUrl()));
-        Response response = client.preparePut(urlFor("/v1/announce/" + agentStatus.getAgentId()))
+        Response response = client.preparePut(urlFor("/v1/announce/" + agentId))
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .execute()
@@ -344,17 +370,17 @@ public class TestCoordinatorServer
 
         assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
 
-        assertEquals(coordinator.getAgentStatus(agentStatus.getAgentId()), newAgentStatus);
+        assertEquals(coordinator.getAgentStatus(agentId), newAgentStatus);
     }
 
     @Test
     public void testRemoveAgentStatus()
             throws Exception
     {
-        Response response = client.prepareDelete(urlFor("/v1/announce/" + agentStatus.getAgentId())).execute().get();
+        Response response = client.prepareDelete(urlFor("/v1/announce/" + agentId)).execute().get();
         assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
 
-        AgentStatus actualStatus = coordinator.getAgentStatus(agentStatus.getAgentId());
+        AgentStatus actualStatus = coordinator.getAgentStatus(agentId);
         assertEquals(actualStatus.getState(), OFFLINE);
     }
 

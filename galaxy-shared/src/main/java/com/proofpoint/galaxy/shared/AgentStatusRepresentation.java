@@ -21,7 +21,7 @@ public class AgentStatusRepresentation
 
     public static AgentStatusRepresentation from(AgentStatus status, URI baseUri) {
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
-        for (SlotStatus slot : status.getSlots()) {
+        for (SlotStatus slot : status.getSlotStatuses()) {
             builder.add(SlotStatusRepresentation.from(slot));
         }
         return new AgentStatusRepresentation(status.getAgentId(), builder.build(), status.getUri());
