@@ -151,18 +151,6 @@ public class Coordinator
         return ImmutableList.copyOf(slots);
     }
 
-    public List<SlotStatus> assign(Predicate<SlotStatus> filter, final Installation installation)
-    {
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>()
-        {
-            @Override
-            public SlotStatus apply(RemoteSlot slot)
-            {
-                return slot.assign(installation);
-            }
-        }));
-    }
-
     public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions)
     {
         HashSet<Assignment> newAssignments = new HashSet<Assignment>();

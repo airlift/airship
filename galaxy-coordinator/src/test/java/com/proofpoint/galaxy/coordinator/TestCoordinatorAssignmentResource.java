@@ -23,7 +23,6 @@ import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -62,11 +61,7 @@ public class TestCoordinatorAssignmentResource
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
                 new GitConfigRepository(new GitConfigRepositoryConfig(), null));
-        resource = new CoordinatorAssignmentResource(coordinator,
-                MOCK_BINARY_REPO,
-                MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new CoordinatorConfig(), null),
-                new GitConfigRepository(new GitConfigRepositoryConfig(), null));
+        resource = new CoordinatorAssignmentResource(coordinator);
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(), "apple1", URI.create("fake://appleServer1/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT);
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(), "apple2", URI.create("fake://appleServer2/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT);
@@ -109,7 +104,7 @@ public class TestCoordinatorAssignmentResource
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.upgrade(upgradeVersions, uriInfo);
 
-        assertOkResponse(response, SlotLifecycleState.STOPPED, upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT), appleSlot1, appleSlot2);
+        assertOkResponse(response, SlotLifecycleState.STOPPED, appleSlot1, appleSlot2);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertEquals(appleSlot1.status().getState(), STOPPED);
@@ -136,40 +131,7 @@ public class TestCoordinatorAssignmentResource
         }
     }
 
-    @Test(expectedExceptions = InvalidSlotFilterException.class)
-    public void testAssignNoFilterException()
-    {
-        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
-        resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
-    }
-
-    @Test
-    public void testReplaceAssignment()
-    {
-        appleSlot1.assign(makeAssignment(BANANA_ASSIGNMENT));
-        assertEquals(appleSlot1.status().getAssignment(), BANANA_ASSIGNMENT);
-        appleSlot2.assign(makeAssignment(BANANA_ASSIGNMENT));
-        assertEquals(appleSlot2.status().getAssignment(), BANANA_ASSIGNMENT);
-
-        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
-
-        assertOkResponse(response, SlotLifecycleState.STOPPED, APPLE_ASSIGNMENT, appleSlot1, appleSlot2);
-        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-
-        assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), STOPPED);
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void testAssignNullAssignment()
-    {
-        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        resource.assign(null, uriInfo);
-    }
-
-    private void assertOkResponse(Response response, SlotLifecycleState state, Assignment expectedAssignment, RemoteSlot... slots)
+    private void assertOkResponse(Response response, SlotLifecycleState state, RemoteSlot... slots)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

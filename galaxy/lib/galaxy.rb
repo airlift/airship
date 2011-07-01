@@ -86,29 +86,6 @@ module Galaxy
       coordinator_request(filter, options, :post, nil, installation, true)
     end
 
-    def self.assign(filter, options, args)
-      if args.size != 2 then
-        raise CommandError.new(:invalid_usage, "You must specify a binary and config to assign.")
-      end
-      if filter.empty? then
-        raise CommandError.new(:invalid_usage, "You must specify a filter when for assign.")
-
-      end
-      if args[0].start_with? '@'
-        config = args[0]
-        binary = args[1]
-      else
-        binary = args[0]
-        config = args[1]
-
-      end
-      assignment = {
-          :binary => binary,
-          :config => config
-      }
-      coordinator_request(filter, options, :put, 'assignment', assignment, true)
-    end
-
     def self.upgrade(filter, options, args)
       if args.size <= 0 || args.size > 2 then
         raise CommandError.new(:invalid_usage, "You must specify a binary version or a config version for upgrade.")
@@ -248,7 +225,7 @@ module Galaxy
 
   class CLI
 
-    COMMANDS = [:show, :install, :assign, :upgrade, :terminate, :start, :stop, :restart, :ssh]
+    COMMANDS = [:show, :install, :upgrade, :terminate, :start, :stop, :restart, :ssh]
     INITIAL_OPTIONS = {
         :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000'
     }
@@ -305,14 +282,12 @@ module Galaxy
           filter[:uuid] = arg
         end
 
-        opts.on("-s", "--state STATE", "Select 'r{unning}', 's{topped}', 'u{assigned}' or 'unknown' slots", [:running, :r, :stopped, :s, :unassigned, :u, :unknown]) do |arg|
+        opts.on("-s", "--state STATE", "Select 'r{unning}', 's{topped}' or 'unknown' slots", [:running, :r, :stopped, :s, :unknown]) do |arg|
           case arg
             when :running, :r then
               filter[:state] = 'running'
             when :stopped, :s then
               filter[:state] = 'stopped'
-            when :unassigned, :u then
-              filter[:state] = 'unassigned'
             when :unknown then
               filter[:state] = 'unknown'
           end
