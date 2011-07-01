@@ -161,7 +161,7 @@ public class Agent
     public SlotStatus install(Installation installation)
     {
         // create slot
-        String slotName = getNextSlotName();
+        String slotName = getNextSlotName(installation.getAssignment().getConfig().getComponent());
         URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
         Slot slot = new DeploymentSlot(slotUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, config.getMaxLockWait());
 
@@ -200,14 +200,17 @@ public class Agent
         return ImmutableList.copyOf(slots.values());
     }
 
-
-    private static final Pattern SLOT_ID_PATTERN = Pattern.compile("slot(\\d+)");
-
-    private String getNextSlotName()
+    private String getNextSlotName(String baseName)
     {
+        if (!slots.containsKey(baseName)) {
+            return baseName;
+        }
+
+        Pattern pattern = Pattern.compile(baseName + "(\\d+)");
+
         int nextId = 1;
         for (String deploymentId : slots.keySet()) {
-            Matcher matcher = SLOT_ID_PATTERN.matcher(deploymentId);
+            Matcher matcher = pattern.matcher(deploymentId);
             if (matcher.matches()) {
                 try {
                     int id = Integer.parseInt(matcher.group(1));
@@ -219,7 +222,7 @@ public class Agent
         }
 
         for (int i = 0; i < 10000; i++) {
-            String deploymentId = "slot" + (nextId + i);
+            String deploymentId = baseName + (nextId + i);
             if (!new File(slotsDir, deploymentId).exists()) {
                 return deploymentId;
             }
