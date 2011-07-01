@@ -14,7 +14,6 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -29,6 +28,8 @@ import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -50,7 +51,8 @@ public class TestAnnounceResource
         resource = new AnnounceResource(coordinator);
         agentStatus = new AgentStatus(UUID.randomUUID(),
                 ONLINE,
-                URI.create("fake://foo/"), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
+                URI.create("fake://foo/"),
+                ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT)));
     }
 
     @Test
@@ -59,7 +61,10 @@ public class TestAnnounceResource
         coordinator.updateAgentStatus(agentStatus);
         AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(),
                 ONLINE,
-                URI.create("fake://foo/"), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo")), new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"))));
+                URI.create("fake://foo/"),
+                ImmutableList.of(
+                        new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT),
+                        new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"), STOPPED, APPLE_ASSIGNMENT)));
 
         Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, URI.create("http://localhost/v1/agent")));
 

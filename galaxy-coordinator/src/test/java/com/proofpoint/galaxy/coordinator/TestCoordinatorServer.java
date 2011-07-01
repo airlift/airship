@@ -61,7 +61,6 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -333,7 +332,8 @@ public class TestCoordinatorServer
     {
         AgentStatus newAgentStatus = new AgentStatus(agentStatus.getAgentId(),
                 ONLINE,
-                URI.create("fake://foo/"), ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"))));
+                URI.create("fake://foo/"),
+                ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT)));
 
         String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(newAgentStatus, server.getBaseUrl()));
         Response response = client.preparePut(urlFor("/v1/announce/" + agentStatus.getAgentId()))

@@ -34,7 +34,7 @@ import java.net.URI;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
+import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;

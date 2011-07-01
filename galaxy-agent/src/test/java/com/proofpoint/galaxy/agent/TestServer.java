@@ -23,6 +23,7 @@ import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
+import com.proofpoint.galaxy.shared.InstallationHelper;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.json.JsonModule;

@@ -1,7 +1,5 @@
 package com.proofpoint.galaxy.shared;
 
-import com.proofpoint.galaxy.shared.Assignment;
-
 public class AssignmentHelper
 {
     public static final Assignment APPLE_ASSIGNMENT = new Assignment("food.fruit:apple:1.0", "@prod:apple:1.0");

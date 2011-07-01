@@ -13,6 +13,7 @@
  */
 package com.proofpoint.galaxy.agent;
 
+import com.proofpoint.galaxy.shared.InstallationHelper;
 import org.testng.annotations.BeforeMethod;
 
 public class TestMockDeploymentManager extends AbstractDeploymentManagerTest

@@ -9,7 +9,6 @@ import java.util.UUID;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 
 public class MockRemoteSlot implements RemoteSlot
 {
@@ -52,7 +51,7 @@ public class MockRemoteSlot implements RemoteSlot
     @Override
     public SlotStatus terminate()
     {
-        if (slotStatus.getState() == STOPPED || slotStatus.getState() == UNASSIGNED) {
+        if (slotStatus.getState() == STOPPED) {
             slotStatus = new SlotStatus(slotStatus, TERMINATED);
         }
         return slotStatus;

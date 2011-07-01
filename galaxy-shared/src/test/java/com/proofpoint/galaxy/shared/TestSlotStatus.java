@@ -13,7 +13,6 @@
  */
 package com.proofpoint.galaxy.shared;
 
-import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
 import java.net.URI;
@@ -23,7 +22,9 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static java.util.Arrays.asList;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static com.proofpoint.testing.EquivalenceTester.equivalenceTester;
 
 public class TestSlotStatus
 {
@@ -38,37 +39,29 @@ public class TestSlotStatus
         String bananaSlotName = "banana";
         URI bananaSelf = URI.create("fake://banana");
 
-        EquivalenceTester.check(
-                asList(
-                        new SlotStatus(appleId, appleSlotName, appleSelf),
-                        new SlotStatus(appleId, appleSlotName, appleSelf)
-
-                ),
-                asList(
-                        new SlotStatus(bananaId, appleSlotName, appleSelf),
-                        new SlotStatus(bananaId, appleSlotName, appleSelf)
-
-                ),
-                asList(
+        equivalenceTester()
+                .addEquivalentGroup(
+                        new SlotStatus(appleId, appleSlotName, appleSelf, TERMINATED, null),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, TERMINATED, null))
+                .addEquivalentGroup(
+                        new SlotStatus(bananaId, appleSlotName, appleSelf, TERMINATED, null),
+                        new SlotStatus(bananaId, appleSlotName, appleSelf, TERMINATED, null))
+                .addEquivalentGroup(
                         new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, APPLE_ASSIGNMENT),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, APPLE_ASSIGNMENT)
-
-                ),
-                asList(
+                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, APPLE_ASSIGNMENT))
+                .addEquivalentGroup(
                         new SlotStatus(bananaId, bananaSlotName, bananaSelf, RUNNING, APPLE_ASSIGNMENT),
-                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, RUNNING, APPLE_ASSIGNMENT)
-
-                ),
-                asList(
+                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, RUNNING, APPLE_ASSIGNMENT))
+                .addEquivalentGroup(
                         new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, BANANA_ASSIGNMENT),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, BANANA_ASSIGNMENT)
-
-                ),
-                asList(
+                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, BANANA_ASSIGNMENT))
+                .addEquivalentGroup(
                         new SlotStatus(appleId, appleSlotName, appleSelf, STOPPED, APPLE_ASSIGNMENT),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, STOPPED, APPLE_ASSIGNMENT)
-                )
-        );
+                        new SlotStatus(appleId, appleSlotName, appleSelf, STOPPED, APPLE_ASSIGNMENT))
+                .addEquivalentGroup(
+                        new SlotStatus(appleId, appleSlotName, appleSelf, UNKNOWN, APPLE_ASSIGNMENT),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, UNKNOWN, APPLE_ASSIGNMENT))
+                .check();
     }
 
 }

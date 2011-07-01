@@ -39,7 +39,6 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static org.testng.Assert.assertEquals;
@@ -69,15 +68,9 @@ public class TestCoordinatorAssignmentResource
                 new LocalConfigRepository(new CoordinatorConfig(), null),
                 new GitConfigRepository(new GitConfigRepositoryConfig(), null));
 
-        SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
-                "apple1",
-                URI.create("fake://appleServer1/v1/agent/slot/apple1"));
-        SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
-                "apple2",
-                URI.create("fake://appleServer2/v1/agent/slot/apple1"));
-        SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
-                "banana",
-                URI.create("fake://bananaServer/v1/agent/slot/banana"));
+        SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(), "apple1", URI.create("fake://appleServer1/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT);
+        SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(), "apple2", URI.create("fake://appleServer2/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT);
+        SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(), "banana", URI.create("fake://bananaServer/v1/agent/slot/banana"), STOPPED, BANANA_ASSIGNMENT);
 
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(),
                 ONLINE,
@@ -88,20 +81,6 @@ public class TestCoordinatorAssignmentResource
         appleSlot1 = coordinator.getSlot(appleSlotStatus1.getId());
         appleSlot2 = coordinator.getSlot(appleSlotStatus2.getId());
         bananaSlot = coordinator.getSlot(bananaSlotStatus.getId());
-    }
-
-    @Test
-    public void testAssign()
-    {
-        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.assign(AssignmentRepresentation.from(APPLE_ASSIGNMENT), uriInfo);
-
-        assertOkResponse(response, SlotLifecycleState.STOPPED, APPLE_ASSIGNMENT, appleSlot1, appleSlot2);
-        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-
-        assertEquals(appleSlot1.status().getState(), STOPPED);
-        assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), UNASSIGNED);
     }
 
     @Test
@@ -135,7 +114,7 @@ public class TestCoordinatorAssignmentResource
 
         assertEquals(appleSlot1.status().getState(), STOPPED);
         assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), UNASSIGNED);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
 
         assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
         assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
@@ -180,7 +159,7 @@ public class TestCoordinatorAssignmentResource
 
         assertEquals(appleSlot1.status().getState(), STOPPED);
         assertEquals(appleSlot2.status().getState(), STOPPED);
-        assertEquals(bananaSlot.status().getState(), UNASSIGNED);
+        assertEquals(bananaSlot.status().getState(), STOPPED);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -197,13 +176,7 @@ public class TestCoordinatorAssignmentResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (RemoteSlot slot : slots) {
-            if (state != UNASSIGNED) {
-                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
-                assertEquals(slot.status().getAssignment(), expectedAssignment);
-            }
-            else {
-                builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
-            }
+            builder.add(SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

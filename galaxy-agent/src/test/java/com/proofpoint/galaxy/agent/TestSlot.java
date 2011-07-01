@@ -14,72 +14,36 @@
 package com.proofpoint.galaxy.agent;
 
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.units.Duration;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.agent.InstallationHelper.APPLE_INSTALLATION;
+import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.agent.InstallationHelper.BANANA_INSTALLATION;
+import static com.proofpoint.galaxy.shared.InstallationHelper.BANANA_INSTALLATION;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 public class TestSlot
 {
-
-    @Test
-    public void testInitialState()
-            throws Exception
-    {
-        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager("slot"), new MockLifecycleManager());
-        assertEquals(slot.getName(), "slot");
-
-        // should start unassigned
-        SlotStatus status = slot.status();
-        assertEquals(status.getName(), "slot");
-        assertEquals(status.getAssignment(), null);
-        assertEquals(status.getState(), UNASSIGNED);
-
-        // lifecycle should fail when unassigned
-        try {
-            slot.start();
-            fail("expected IllegalStateException");
-        }
-        catch (IllegalStateException expected) {
-        }
-        try {
-            slot.restart();
-            fail("expected IllegalStateException");
-        }
-        catch (IllegalStateException expected) {
-        }
-        try {
-            slot.stop();
-            fail("expected IllegalStateException");
-        }
-        catch (IllegalStateException expected) {
-        }
-    }
-
     @Test
     public void testAssignment()
             throws Exception
     {
-
         MockLifecycleManager lifecycleManager = new MockLifecycleManager();
         MockDeploymentManager deploymentManager = new MockDeploymentManager("slot");
-        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), deploymentManager, lifecycleManager);
-        assertEquals(slot.getName(), "slot");
 
-        // assign apple and verify state
-        SlotStatus status = slot.assign(APPLE_INSTALLATION);
+        // create slot with initial apple assignment
+        Slot slot = new DeploymentSlot(URI.create("fake://localhost"), deploymentManager, lifecycleManager, APPLE_INSTALLATION, new Duration(1, SECONDS));
+        assertEquals(slot.getName(), "slot");
+        SlotStatus status = slot.status();
         assertNotNull(status);
         assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), APPLE_ASSIGNMENT);
@@ -109,14 +73,9 @@ public class TestSlot
     public void testLifecycle()
             throws Exception
     {
-
-        Slot slot = new DeploymentSlot("slot", new AgentConfig(), URI.create("fake://localhost"), new MockDeploymentManager("slot"), new MockLifecycleManager());
+        Slot slot = new DeploymentSlot(URI.create("fake://localhost"), new MockDeploymentManager("slot"), new MockLifecycleManager(), APPLE_INSTALLATION, new Duration(1, SECONDS));
         SlotStatus running = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
         SlotStatus stopped = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
-        SlotStatus unassigned = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf());
-
-        // default state is unassigned
-        assertEquals(slot.status(), unassigned);
 
         // assign => stopped
         assertEquals(slot.assign(APPLE_INSTALLATION), stopped);

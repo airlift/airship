@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 @Immutable
@@ -32,26 +31,13 @@ public class SlotStatus
     private final Assignment assignment;
     private final SlotLifecycleState state;
 
-    public SlotStatus(UUID id, String name, URI self)
-    {
-        Preconditions.checkNotNull(id, "id is null");
-        Preconditions.checkNotNull(name, "name is null");
-        Preconditions.checkNotNull(self, "self is null");
-
-        this.id = id;
-        this.name = name;
-        this.self = self;
-        this.assignment = null;
-        this.state = UNASSIGNED;
-    }
-
     public SlotStatus(UUID id, String name, URI self, SlotLifecycleState state, Assignment assignment)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(self, "self is null");
         Preconditions.checkNotNull(state, "state is null");
-        if (state != UNASSIGNED && state != TERMINATED && state != UNKNOWN) {
+        if (state != TERMINATED && state != UNKNOWN) {
             Preconditions.checkNotNull(assignment, "assignment is null");
         }
 
@@ -70,7 +56,7 @@ public class SlotStatus
         this.id = status.id;
         this.name = status.name;
         this.self = status.self;
-        if (state != UNASSIGNED && state != TERMINATED) {
+        if (state != TERMINATED) {
             this.assignment = status.assignment;
         }
         else {

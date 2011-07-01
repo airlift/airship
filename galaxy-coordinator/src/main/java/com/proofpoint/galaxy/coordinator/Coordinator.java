@@ -31,7 +31,6 @@ import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNASSIGNED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 public class Coordinator
@@ -171,7 +170,7 @@ public class Coordinator
         for (RemoteSlot slot : ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)))) {
             SlotStatus status = slot.status();
             SlotLifecycleState state = status.getState();
-            if (state != UNASSIGNED && state != TERMINATED && state != UNKNOWN) {
+            if (state != TERMINATED && state != UNKNOWN) {
                 Assignment assignment = upgradeVersions.upgradeAssignment(status.getAssignment());
                 newAssignments.add(assignment);
                 slotsToUpgrade.add(slot);

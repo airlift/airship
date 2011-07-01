@@ -5,7 +5,6 @@ import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.MockUriInfo;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import org.testng.annotations.BeforeMethod;
@@ -22,6 +21,7 @@ import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static java.lang.Math.min;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -50,8 +50,8 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlots()
     {
-        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"));
-        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"));
+        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"), STOPPED, APPLE_ASSIGNMENT);
+        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"), STOPPED, APPLE_ASSIGNMENT);
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), ImmutableList.of(slot1, slot2));
         coordinator.updateAgentStatus(agentStatus);
 
@@ -65,8 +65,8 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlotsWithFilter()
     {
-        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"));
-        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"));
+        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"), STOPPED, APPLE_ASSIGNMENT);
+        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"), STOPPED, APPLE_ASSIGNMENT);
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), ImmutableList.of(slot1, slot2));
         coordinator.updateAgentStatus(agentStatus);
 
@@ -80,7 +80,7 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlotEmpty()
     {
-        URI requestUri = URI.create("http://localhost/v1/slot?state=unassigned");
+        URI requestUri = URI.create("http://localhost/v1/slot?state=unknown");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of());
@@ -131,7 +131,7 @@ public class TestCoordinatorSlotResource
         for (SlotStatusRepresentation slotRepresentation : slots) {
             SlotStatus slot = slotRepresentation.toSlotStatus();
             assertEquals(slot.getAssignment(), assignment);
-            assertEquals(slot.getState(), SlotLifecycleState.STOPPED);
+            assertEquals(slot.getState(), STOPPED);
         }
 
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

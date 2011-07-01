@@ -1,7 +1,6 @@
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.shared.Installation;
 
 import java.io.File;
 import java.net.URI;

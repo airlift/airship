@@ -47,7 +47,7 @@ public class Agent
     private final UUID agentId;
     private final ConcurrentMap<String, Slot> slots;
     private final AgentConfig config;
-    private final DeploymentManagerFactory deploymentManager;
+    private final DeploymentManagerFactory deploymentManagerFactory;
     private final LifecycleManager lifecycleManager;
     private final File slotsDir;
     private final HttpServerInfo httpServerInfo;
@@ -65,7 +65,7 @@ public class Agent
         this.config = config;
         this.httpServerInfo = httpServerInfo;
 
-        this.deploymentManager = deploymentManagerFactory;
+        this.deploymentManagerFactory = deploymentManagerFactory;
         this.lifecycleManager = lifecycleManager;
 
         slots = new ConcurrentHashMap<String, Slot>();
@@ -122,11 +122,15 @@ public class Agent
         //
         // Load existing slots
         //
-        for (DeploymentManager manager : deploymentManager.loadSlots()) {
-            String slotName = manager.getSlotName();
-            URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
-            Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(slotName), lifecycleManager);
-            slots.put(slotName, slot);
+        for (DeploymentManager deploymentManager : this.deploymentManagerFactory.loadSlots()) {
+            String slotName = deploymentManager.getSlotName();
+            if (deploymentManager.getDeployment() == null) {
+                // todo bad slot
+            } else {
+                URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
+                Slot slot = new DeploymentSlot(slotUri, deploymentManager, lifecycleManager, config.getMaxLockWait());
+                slots.put(slotName, slot);
+            }
         }
     }
 
@@ -159,7 +163,7 @@ public class Agent
         // create slot
         String slotName = getNextSlotName();
         URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
-        Slot slot = new DeploymentSlot(slotName, config, slotUri, deploymentManager.createDeploymentManager(slotName), lifecycleManager);
+        Slot slot = new DeploymentSlot(slotUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, config.getMaxLockWait());
 
         // install the software
         SlotStatus status;

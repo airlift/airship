@@ -27,7 +27,7 @@ public class DirectoryDeploymentManagerFactory implements DeploymentManagerFacto
     }
 
     @Override
-    public List<DeploymentManager> loadSlots()
+    public List<DeploymentManager>  loadSlots()
     {
         ImmutableList.Builder<DeploymentManager> builder = ImmutableList.builder();
         for (File dir : listFiles(slotDir)) {
