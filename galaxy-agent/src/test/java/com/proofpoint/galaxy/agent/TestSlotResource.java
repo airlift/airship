@@ -34,6 +34,7 @@ import java.net.URI;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -108,7 +109,7 @@ public class TestSlotResource
         Response response = resource.getAllSlotsStatus(uriInfo);
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertInstanceOf(response.getEntity(), Collection.class);
-        ExtraAssertions.assertEqualsNoOrder((Collection<?>) response.getEntity(), ImmutableMultiset.of(
+        assertEqualsNoOrder((Collection<?>) response.getEntity(), ImmutableMultiset.of(
                 SlotStatusRepresentation.from(slotStatus1),
                 SlotStatusRepresentation.from(slotStatus2)
         ));

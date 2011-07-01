@@ -1,47 +1,40 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.galaxy.shared.ConfigSpec;
+import com.proofpoint.galaxy.shared.FileUtils;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.lib.AnyObjectId;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+
+import static com.proofpoint.galaxy.shared.FileUtils.newFile;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class GitConfigRepository implements ConfigRepository
 {
     private static final Logger log = Logger.get(GitConfigRepository.class);
-    private final Repository repository;
     private final URI blobUri;
     private final ScheduledExecutorService executorService;
     private final File localRepository;
     private final Duration refreshInterval;
+    private final RepositoryUpdater repositoryUpdater;
 
     @Inject
     public GitConfigRepository(GitConfigRepositoryConfig config, HttpServerInfo httpServerInfo)
@@ -50,42 +43,26 @@ public class GitConfigRepository implements ConfigRepository
         Preconditions.checkNotNull(config, "config is null");
 
         if (config.getRemoteUri() == null) {
-            repository = null;
             blobUri = null;
             localRepository = null;
             refreshInterval = null;
             executorService = null;
-        } else {
-
+            repositoryUpdater = null;
+        }
+        else {
             localRepository = new File(config.getLocalConfigRepo());
             log.info("Local repository  is %s", localRepository.getAbsolutePath());
 
-            Git git;
-            if (!localRepository.isDirectory()) {
-                // clone
-                git = Git.cloneRepository()
-                        .setURI(config.getRemoteUri())
-                        .setBranch("HEAD")
-                        .setDirectory(localRepository)
-                        .setBare(true)
-                        .call();
-            }
-            else {
-                // open
-                git = Git.open(localRepository);
-            }
-
-            repository = git.getRepository();
-
             if (httpServerInfo.getHttpsUri() != null) {
-                blobUri = httpServerInfo.getHttpsUri().resolve("/v1/git/blob/");
+                blobUri = httpServerInfo.getHttpsUri().resolve("/v1/git/blob/master/");
             }
             else {
-                blobUri = httpServerInfo.getHttpUri().resolve("/v1/git/blob/");
+                blobUri = httpServerInfo.getHttpUri().resolve("/v1/git/blob/master/");
             }
 
             refreshInterval = config.getRefreshInterval();
             executorService = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("GitConfigRepository-%s").setDaemon(true).build());
+            repositoryUpdater = new RepositoryUpdater(config);
         }
     }
 
@@ -93,7 +70,7 @@ public class GitConfigRepository implements ConfigRepository
     public void start()
     {
         if (executorService != null) {
-            executorService.scheduleWithFixedDelay(new FetchGitConfigRepository(localRepository), 0, (long) refreshInterval.toMillis(), TimeUnit.MILLISECONDS);
+            executorService.scheduleWithFixedDelay(repositoryUpdater, 0, (long) refreshInterval.toMillis(), MILLISECONDS);
         }
     }
 
@@ -108,107 +85,98 @@ public class GitConfigRepository implements ConfigRepository
     @Override
     public Map<String, URI> getConfigMap(ConfigSpec configSpec)
     {
-        if (repository == null) {
+        if (localRepository == null) {
             return null;
         }
 
-        try {
-            // find HEAD commit id
-            Ref headRef = repository.getRef("origin/master");
-            AnyObjectId headId = headRef.getObjectId();
-
-            // parse the head commit
-            RevWalk revWalk = new RevWalk(repository);
-            RevCommit headCommit = revWalk.parseCommit(headId);
-
-            // get the tree id of the head commit
-            RevTree headTree = headCommit.getTree();
-
-            // walk the head tree
-            TreeWalk treeWalk = new TreeWalk(repository);
-            treeWalk.addTree(headTree);
-            treeWalk.setRecursive(true);
-
-
-            String pool = configSpec.getPool();
-            if (pool == null) {
-                pool = "general";
-            }
-            String pathPrefix = String.format("%s/%s/%s/%s/", configSpec.getEnvironment(), configSpec.getComponent(), pool, configSpec.getVersion());
-            treeWalk.setFilter(PathFilter.create(pathPrefix));
-
-            ImmutableMap.Builder<String, URI> blobs = ImmutableMap.builder();
-            while (treeWalk.next()) {
-                CanonicalTreeParser ft = treeWalk.getTree(0, CanonicalTreeParser.class);
-                String path = ft.getEntryPathString();
-
-                ObjectId objectId = treeWalk.getObjectId(0);
-                String subPath = path.substring(pathPrefix.length());
-                blobs.put(subPath, blobUri.resolve(objectId.getName()));
-            }
-
-            // Did the repo contain the configuration?
-            Map<String, URI> configMap = blobs.build();
-            if (configMap.isEmpty()) {
-                return null;
-            }
-            else {
-                return configMap;
-            }
+        String pool = configSpec.getPool();
+        if (pool == null) {
+            pool = "general";
         }
-        catch (IOException e) {
-            throw new RuntimeException("Error reading get config repository", e);
+
+        File configDir = newFile(localRepository, configSpec.getEnvironment(), configSpec.getComponent(), pool, configSpec.getVersion());
+        if (!configDir.isDirectory()) {
+            return null;
         }
+
+        ImmutableMap.Builder<String, URI> configMap = ImmutableMap.builder();
+        for (String path : getConfigMap(String.format("%s/%s/%s/%s/", configSpec.getEnvironment(), configSpec.getComponent(), pool, configSpec.getVersion()), configDir)) {
+            configMap.put(path, blobUri.resolve(path));
+        }
+        return configMap.build();
     }
 
-    public InputSupplier<InputStream> getBlob(String objectIdString)
+    private List<String> getConfigMap(String basePath, File dir)
     {
-        if (repository == null) {
-            return null;
-        }
-
-        final ObjectId objectId;
-        try {
-            objectId = ObjectId.fromString(objectIdString);
-        }
-        catch (Exception e) {
-            // invalid objectId
-            return null;
-        }
-        if (!repository.hasObject(objectId)) {
-            return null;
-        }
-
-        return new InputSupplier<InputStream>()
-        {
-            @Override
-            public InputStream getInput()
-                    throws IOException
-            {
-                ObjectLoader objectLoader = repository.open(objectId);
-                return objectLoader.openStream();
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        for (File file : FileUtils.listFiles(dir)) {
+            String path = basePath + file.getName();
+            if (file.isDirectory()) {
+                builder.addAll(getConfigMap(path + "/", file));
+            } else {
+                builder.add(path);
             }
-        };
+        }
+
+        return builder.build();
     }
 
-    private static class FetchGitConfigRepository implements Runnable
+    public InputSupplier<? extends InputStream> getBlob(String objectIdString)
+    {
+        if (localRepository == null) {
+            return null;
+        }
+
+        File file = newFile(localRepository, objectIdString);
+        if (!file.canRead()) {
+            return null;
+        }
+
+        return Files.newInputStreamSupplier(file);
+    }
+
+    private static class RepositoryUpdater implements Runnable
     {
         private final File localRepository;
+        private final String remoteGitUri;
+        private boolean failed;
 
-        public FetchGitConfigRepository(File localRepository)
+        public RepositoryUpdater(GitConfigRepositoryConfig config)
         {
-            this.localRepository = localRepository;
+            this.localRepository = new File(config.getLocalConfigRepo());
+            this.remoteGitUri = config.getRemoteUri();
         }
 
         @Override
         public void run()
         {
             try {
-                // timeout is in seconds
-                Git.open(localRepository).fetch().setTimeout(60).call();
+                if (!localRepository.isDirectory()) {
+                    // clone
+                    Git.cloneRepository()
+                            .setURI(remoteGitUri)
+                            .setDirectory(localRepository)
+                            .setTimeout(60) // timeout is in seconds
+                            .call();
+                }
+                else {
+                    Git git = Git.open(localRepository);
+                    git.fetch()
+                            .setRemote("origin")
+                            .setTimeout(60) // timeout is in seconds
+                            .call();
+                    git.merge()
+                            .include(git.getRepository().getRef("refs/remotes/origin/master"))
+                            .call();
+                }
+
+                failed = false;
             }
             catch (Exception e) {
-                log.error("Unable to fetch git config repository", e);
+                if (!failed) {
+                    failed = true;
+                    log.error("Unable to fetch git config repository", e);
+                }
             }
         }
     }

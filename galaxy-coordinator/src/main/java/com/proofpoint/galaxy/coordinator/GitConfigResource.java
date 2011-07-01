@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 
-@Path("/v1/git")
+@Path("/v1/git/blob/master/")
 public class GitConfigResource
 {
     private final GitConfigRepository gitConfigRepository;
@@ -22,10 +22,10 @@ public class GitConfigResource
     }
 
     @GET
-    @Path("blob/{objectId}")
-    public Response getConfigFile(@PathParam("objectId") String objectId)
+    @Path("{path: \\S*}")
+    public Response getConfigFile(@PathParam("path") String objectId)
     {
-        InputSupplier<InputStream> blob = gitConfigRepository.getBlob(objectId);
+        InputSupplier<? extends InputStream> blob = gitConfigRepository.getBlob(objectId);
         if (blob == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
