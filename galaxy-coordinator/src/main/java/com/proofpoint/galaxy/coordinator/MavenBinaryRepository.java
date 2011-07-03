@@ -1,26 +1,36 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Charsets;
+
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteProcessor;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.InputSupplier;
-import com.google.common.io.Resources;
-import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.BinarySpec;
-import com.proofpoint.http.server.HttpServerInfo;
-import org.apache.maven.settings.Profile;
-import org.apache.maven.settings.Repository;
+import com.proofpoint.log.Logger;
+import org.apache.maven.repository.internal.DefaultServiceLocator;
+import org.apache.maven.repository.internal.MavenRepositorySystemSession;
 import org.apache.maven.settings.Settings;
-import org.apache.maven.settings.building.DefaultSettingsBuilder;
 import org.apache.maven.settings.building.DefaultSettingsBuilderFactory;
 import org.apache.maven.settings.building.DefaultSettingsBuildingRequest;
-import org.apache.maven.settings.building.SettingsBuildingResult;
+import org.apache.maven.settings.building.SettingsBuilder;
+import org.apache.maven.settings.building.SettingsBuildingException;
+import org.apache.maven.settings.building.SettingsBuildingRequest;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.collection.CollectRequest;
+import org.sonatype.aether.connector.async.AsyncRepositoryConnectorFactory;
+import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory;
+import org.sonatype.aether.graph.Dependency;
+import org.sonatype.aether.graph.DependencyNode;
+import org.sonatype.aether.repository.LocalRepository;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.resolution.ArtifactRequest;
+import org.sonatype.aether.resolution.ArtifactResolutionException;
+import org.sonatype.aether.resolution.DependencyRequest;
+import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
+import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 
+import javax.inject.Inject;
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
@@ -28,184 +38,119 @@ import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 
 public class MavenBinaryRepository implements BinaryRepository
 {
-    private final List<URI> binaryRepositoryBases;
-    private final URI localMavenRepo;
-    private final URI localBinaryUri;
-
-    public MavenBinaryRepository(URI binaryRepositoryBase, URI... binaryRepositoryBases)
-    {
-        this.binaryRepositoryBases = ImmutableList.<URI>builder().add(binaryRepositoryBase).add(binaryRepositoryBases).build();
-        localMavenRepo = null;
-        localBinaryUri = null;
-    }
-
-    public MavenBinaryRepository(Iterable<URI> binaryRepositoryBases)
-    {
-        this.binaryRepositoryBases = ImmutableList.copyOf(binaryRepositoryBases);
-        localMavenRepo = null;
-        localBinaryUri = null;
-    }
+    private static final Logger log = Logger.get(MavenBinaryRepository.class);
+    private final List<RemoteRepository> remoteRepositories;
+    private final RepositorySystem repositorySystem;
+    private final RepositorySystemSession resolutionSession;
 
     @Inject
-    public MavenBinaryRepository(CoordinatorConfig config, HttpServerInfo httpServerInfo)
-            throws Exception
+    public MavenBinaryRepository(CoordinatorConfig config)
     {
-        Builder<URI> builder = ImmutableList.builder();
-        if (config.isLocalMavenRepositoryEnabled()) {
-            // add the local maven repository first
-            File localMavenRepo = newFile(System.getProperty("user.home"), ".m2", "repository");
-            if (localMavenRepo.isDirectory()) {
-                this.localMavenRepo = localMavenRepo.toURI();
-            } else {
-                this.localMavenRepo = null;
-            }
+        this(config.getLocalConfigRepo(), config.isLocalMavenRepositoryEnabled(), config.getBinaryRepoBases());
+    }
 
+    public MavenBinaryRepository(String localRepository, boolean userLocalRepositoryEnabled, String... binaryRepoBases)
+    {
+        this(localRepository, userLocalRepositoryEnabled, ImmutableList.copyOf(binaryRepoBases));
+    }
 
-            // add all automatically activated repositories in the settings.xml file
-            File settingsFile = newFile(System.getProperty("user.home"), ".m2", "settings.xml");
-            if (settingsFile.canRead()) {
-                DefaultSettingsBuilder settingsBuilder = new DefaultSettingsBuilderFactory().newInstance();
-                SettingsBuildingResult settingsBuildingResult = settingsBuilder.build(new DefaultSettingsBuildingRequest()
-                        .setUserSettingsFile(settingsFile)
-                );
-                Settings settings = settingsBuildingResult.getEffectiveSettings();
-                for (Profile profile : settings.getProfiles()) {
-                    if (isProfileActive(settings, profile)) {
-                        for (Repository repository : profile.getRepositories()) {
-                            String url = repository.getUrl();
-                            if (!url.endsWith("/")) {
-                                url = url + "/";
-                            }
-                            builder.add(URI.create(url));
-                        }
-                    }
+    public MavenBinaryRepository(String localRepository, boolean userLocalRepositoryEnabled, Iterable<String> binaryRepoBases)
+    {
+        if (localRepository == null || localRepository.trim().isEmpty()) {
+            Settings settings = readMavenSettings();
+            localRepository = settings.getLocalRepository();
+            if (localRepository == null || localRepository.trim().isEmpty()) {
+                if (userLocalRepositoryEnabled) {
+                    localRepository = newFile(System.getProperty("user.home"), ".m2", "repository").getAbsolutePath();
+                }
+                else {
+                    localRepository = newFile(".m2", "repository").getAbsolutePath();
                 }
             }
-
-        } else {
-            localMavenRepo = null;
         }
 
-        if (httpServerInfo.getHttpsUri() != null) {
-            localBinaryUri = httpServerInfo.getHttpsUri().resolve("/v1/binary/");
-        }
-        else {
-            localBinaryUri = httpServerInfo.getHttpUri().resolve("/v1/binary/");
-        }
+        repositorySystem = new DefaultServiceLocator()
+                .addService(RepositoryConnectorFactory.class, AsyncRepositoryConnectorFactory.class)
+                .addService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class)
+                .getService(RepositorySystem.class);
 
-        for (String binaryRepoBase : config.getBinaryRepoBases()) {
-            if (!binaryRepoBase.endsWith("/")) {
-                binaryRepoBase = binaryRepoBase + "/";
-            }
-            builder.add(URI.create(binaryRepoBase));
+        long repositoryId = 1;
+        ImmutableList.Builder<RemoteRepository> repositories = ImmutableList.builder();
+        for (String binaryRepositoryBase : binaryRepoBases) {
+            RemoteRepository remoteRepository = new RemoteRepository("repository" + repositoryId++, "default", binaryRepositoryBase);
+            repositories.add(remoteRepository);
         }
-        binaryRepositoryBases = builder.build();
+        remoteRepositories = repositories.build();
+
+        resolutionSession = new MavenRepositorySystemSession()
+                .setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(new LocalRepository(localRepository)))
+                .setTransferListener(new AetherTransferListener());
     }
 
     @Override
     public URI getBinaryUri(BinarySpec binarySpec)
     {
-        List<URI> checkedUris = Lists.newArrayList();
-        if (localMavenRepo != null) {
-            URI uri = getBinaryUri(binarySpec, localMavenRepo);
-            checkedUris.add(uri);
-            if (isValidBinary(uri)) {
-                String binaryPath;
-                if (binarySpec.getClassifier() != null) {
-                    binaryPath = String.format("%s/%s/%s/%s/%s", binarySpec.getGroupId(), binarySpec.getArtifactId(), binarySpec.getVersion(), binarySpec.getPackaging(), binarySpec.getClassifier());
-                }
-                else {
-                    binaryPath = String.format("%s/%s/%s/%s", binarySpec.getGroupId(), binarySpec.getArtifactId(), binarySpec.getVersion(), binarySpec.getPackaging());
-                }
-                return localBinaryUri.resolve(binaryPath);
-            }
-        }
-
-        for (URI binaryRepositoryBase : binaryRepositoryBases) {
-            URI uri = getBinaryUri(binarySpec, binaryRepositoryBase);
-            checkedUris.add(uri);
-            if (isValidBinary(uri)) {
-                return uri;
-            }
-        }
-        throw new RuntimeException("Unable to find binary " + binarySpec + " at " + checkedUris);
-    }
-
-    public static URI getBinaryUri(BinarySpec binarySpec, URI binaryRepositoryBase)
-    {
-        String fileVersion = binarySpec.getVersion();
-        if (binarySpec.getVersion().contains("SNAPSHOT")) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(binarySpec.getGroupId().replace('.', '/')).append('/');
-            builder.append(binarySpec.getArtifactId()).append('/');
-            builder.append(binarySpec.getVersion()).append('/');
-            builder.append("maven-metadata.xml");
-
-            URI uri = binaryRepositoryBase.resolve(builder.toString());
-            try {
-                MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
-                fileVersion = String.format("%s-%s-%s",
-                        binarySpec.getVersion().replaceAll("-SNAPSHOT", ""),
-                        metadata.versioning.snapshot.timestamp,
-                        metadata.versioning.snapshot.buildNumber);
-            }
-            catch (Exception ignored) {
-                // no maven-metadata.xml file... hope this is laid out normally
-            }
-
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append(binarySpec.getGroupId().replace('.', '/')).append('/');
-        builder.append(binarySpec.getArtifactId()).append('/');
-        builder.append(binarySpec.getVersion()).append('/');
-        builder.append(binarySpec.getArtifactId()).append('-').append(fileVersion);
-        if (binarySpec.getClassifier() != null) {
-            builder.append('-').append(binarySpec.getClassifier());
-        }
-        builder.append('.').append(binarySpec.getPackaging());
-
-        URI uri = binaryRepositoryBase.resolve(builder.toString());
-        return uri;
-    }
-
-    private boolean isValidBinary(URI uri)
-    {
         try {
-            InputSupplier<InputStream> inputSupplier = Resources.newInputStreamSupplier(uri.toURL());
-            ByteStreams.readBytes(inputSupplier, new ByteProcessor<Void>()
-            {
-                private int count;
-
-                public boolean processBytes(byte[] buffer, int offset, int length)
-                {
-                    count += length;
-                    // make sure we got at least 10 bytes
-                    return count < 10;
-                }
-
-                public Void getResult()
-                {
-                    return null;
-                }
-            });
-            return true;
+            return resolve(binarySpec.toGAV("jar")).toURI();
         }
-        catch (Exception ignored) {
+        catch (ArtifactResolutionException e) {
+            return null;
         }
-        return false;
     }
 
-    private static boolean isProfileActive(Settings settings, Profile profile)
+    public File resolve(String coordinates)
+            throws ArtifactResolutionException
     {
-        if ((profile.getActivation() != null) && profile.getActivation().isActiveByDefault()) {
-            return true;
+        DefaultArtifact artifact = new DefaultArtifact(coordinates);
+
+        ArtifactRequest request = new ArtifactRequest();
+        request.setArtifact(artifact);
+        for (RemoteRepository remoteRepository : remoteRepositories) {
+            request.addRepository(remoteRepository);
         }
-        for (String profileId : settings.getActiveProfiles()) {
-            if (profileId.equals(profile.getId())) {
-                return true;
-            }
+
+        return repositorySystem.resolveArtifact(resolutionSession, request).getArtifact().getFile();
+    }
+
+    /**
+     * This resolves the root dependency and all its transitive dependencies
+     */
+    public ImmutableList<File> resolveTransitive(String coordinates)
+            throws DependencyResolutionException
+    {
+        Dependency dependency = new Dependency(new DefaultArtifact(coordinates), "runtime");
+
+        CollectRequest request = new CollectRequest();
+        request.setRoot(dependency);
+        for (RemoteRepository remoteRepository : remoteRepositories) {
+            request.addRepository(remoteRepository);
         }
-        return false;
+
+        DependencyRequest dependencyRequest = new DependencyRequest();
+        dependencyRequest.setCollectRequest(request);
+
+        DependencyNode rootNode = repositorySystem.resolveDependencies(resolutionSession, dependencyRequest).getRoot();
+        PreorderNodeListGenerator preorderNodeListGenerator = new PreorderNodeListGenerator();
+        rootNode.accept(preorderNodeListGenerator);
+        return ImmutableList.copyOf(preorderNodeListGenerator.getFiles());
+    }
+
+    private static Settings readMavenSettings()
+    {
+        SettingsBuilder settingsBuilder = new DefaultSettingsBuilderFactory().newInstance();
+
+        SettingsBuildingRequest request = new DefaultSettingsBuildingRequest();
+        request.setSystemProperties(System.getProperties());
+        request.setUserSettingsFile(new File(System.getProperty("user.home"), ".m2/settings.xml"));
+
+        Settings settings;
+        try {
+            settings = settingsBuilder.build(request).getEffectiveSettings();
+        }
+        catch (SettingsBuildingException e) {
+            settings = new Settings();
+        }
+
+        return settings;
     }
 }

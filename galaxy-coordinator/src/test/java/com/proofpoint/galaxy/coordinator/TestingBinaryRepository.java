@@ -25,7 +25,7 @@ public class TestingBinaryRepository extends MavenBinaryRepository
 
     public TestingBinaryRepository(File targetRepo)
     {
-        super(targetRepo.toURI());
+        super(null, false, targetRepo.toURI().toString());
         this.targetRepo = targetRepo;
     }
 

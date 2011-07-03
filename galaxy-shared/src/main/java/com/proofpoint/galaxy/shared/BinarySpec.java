@@ -138,10 +138,15 @@ public class BinarySpec
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        return toGAV(DEFAULT_PACKAGING);
+    }
+
+    public String toGAV(String defaultPackaging)
+    {
+        final StringBuilder sb = new StringBuilder();
         sb.append(groupId).append(':');
         sb.append(artifactId).append(':');
-        if (!packaging.equals(DEFAULT_PACKAGING) || classifier != null) {
+        if (!packaging.equals(defaultPackaging) || classifier != null) {
             sb.append(packaging).append(':');
         }
         if (classifier != null) {
