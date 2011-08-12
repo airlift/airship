@@ -33,6 +33,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
@@ -96,7 +97,11 @@ public class CoordinatorSlotResource
             configMap = configRepository.getConfigMap(assignment.getConfig());
         }
 
-        Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configMap);
+        URI binaryUri = binaryRepository.getBinaryUri(assignment.getBinary());
+        if (binaryUri == null) {
+            return Response.status(Status.NOT_FOUND).entity("Unknown binary: " + assignment.getBinary()).build();
+        }
+        Installation installation = new Installation(assignment, binaryUri, configMap);
 
         Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo);
         List<SlotStatus> results = coordinator.install(agentFilter, limit, installation);

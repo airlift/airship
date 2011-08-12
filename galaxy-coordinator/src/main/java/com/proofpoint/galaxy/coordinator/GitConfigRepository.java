@@ -100,8 +100,9 @@ public class GitConfigRepository implements ConfigRepository
         }
 
         ImmutableMap.Builder<String, URI> configMap = ImmutableMap.builder();
-        for (String path : getConfigMap(String.format("%s/%s/%s/%s/", configSpec.getEnvironment(), configSpec.getComponent(), pool, configSpec.getVersion()), configDir)) {
-            configMap.put(path, blobUri.resolve(path));
+        URI baseConfigUri = blobUri.resolve(String.format("%s/%s/%s/%s/", configSpec.getEnvironment(), configSpec.getComponent(), pool, configSpec.getVersion()));
+        for (String path : getConfigMap("", configDir)) {
+            configMap.put(path, baseConfigUri.resolve(path));
         }
         return configMap.build();
     }
