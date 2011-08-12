@@ -16,6 +16,7 @@ import com.proofpoint.galaxy.shared.UpgradeVersions;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -108,7 +109,10 @@ public class Coordinator
     {
 
         List<SlotStatus> slots = newArrayList();
-        Iterable<RemoteAgent> agents = filter(this.agents.values(), filterAgentsBy(filter));
+        List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), filterAgentsBy(filter)));
+        // randomize agents so all processes don't end up on the same node
+        // todo sort agents by number of process already installed on them
+        Collections.shuffle(agents);
         for (RemoteAgent agent : agents) {
             if (slots.size() >= limit) {
                 break;
