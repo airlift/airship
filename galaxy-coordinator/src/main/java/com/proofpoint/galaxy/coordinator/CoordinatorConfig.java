@@ -26,6 +26,7 @@ import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 
 public class CoordinatorConfig
 {
+    private String localBinaryRepo;
     private List<String> binaryRepoBases = ImmutableList.of();
     private boolean localMavenRepositoryEnabled;
     private List<String> configRepoBases = ImmutableList.of();
@@ -42,6 +43,18 @@ public class CoordinatorConfig
     public CoordinatorConfig setBinaryRepoBases(String binaryRepoBases)
     {
         this.binaryRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(binaryRepoBases));
+        return this;
+    }
+
+    public String getLocalBinaryRepo()
+    {
+        return localBinaryRepo;
+    }
+
+    @Config("coordinator.binary-repo.local")
+    public CoordinatorConfig setLocalBinaryRepo(String localBinaryRepo)
+    {
+        this.localBinaryRepo = localBinaryRepo;
         return this;
     }
 

@@ -46,7 +46,7 @@ public class MavenBinaryRepository implements BinaryRepository
     @Inject
     public MavenBinaryRepository(CoordinatorConfig config)
     {
-        this(config.getLocalConfigRepo(), config.isLocalMavenRepositoryEnabled(), config.getBinaryRepoBases());
+        this(config.getLocalBinaryRepo(), config.isLocalMavenRepositoryEnabled(), config.getBinaryRepoBases());
     }
 
     public MavenBinaryRepository(String localRepository, boolean userLocalRepositoryEnabled, String... binaryRepoBases)
