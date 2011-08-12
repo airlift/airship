@@ -46,6 +46,9 @@ public class MainModule implements Module
     @Override
     public void configure(Binder binder)
     {
+        binder.disableCircularProxies();
+        binder.requireExplicitBindings();
+
         binder.bind(Coordinator.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorSlotResource.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorAssignmentResource.class).in(Scopes.SINGLETON);

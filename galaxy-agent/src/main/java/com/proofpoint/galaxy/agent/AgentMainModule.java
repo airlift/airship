@@ -24,6 +24,9 @@ public class AgentMainModule
 {
     public void configure(Binder binder)
     {
+        binder.disableCircularProxies();
+        binder.requireExplicitBindings();
+
         binder.bind(Agent.class).in(Scopes.SINGLETON);
         MBeanModule.newExporter(binder).export(Agent.class).withGeneratedName();
 
