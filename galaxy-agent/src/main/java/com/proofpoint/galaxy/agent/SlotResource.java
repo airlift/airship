@@ -72,7 +72,7 @@ public class SlotResource
                 .build();
     }
 
-    @Path("{slotName: [a-z0-9]+}")
+    @Path("{slotName: [a-z0-9_.-]+}")
     @DELETE
     public Response terminateSlot(@PathParam("slotName") String id)
     {
@@ -86,7 +86,7 @@ public class SlotResource
         return Response.ok(SlotStatusRepresentation.from(slotStatus)).build();
     }
 
-    @Path("{slotName: [a-z0-9]+}")
+    @Path("{slotName: [a-z0-9_.-]+}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSlotStatus(@PathParam("slotName") String slotName, @Context UriInfo uriInfo)

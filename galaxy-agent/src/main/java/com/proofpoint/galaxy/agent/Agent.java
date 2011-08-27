@@ -202,6 +202,7 @@ public class Agent
 
     private String getNextSlotName(String baseName)
     {
+        baseName = baseName.replace("[^a-zA-Z0-9_.-]", "_");
         if (!slots.containsKey(baseName)) {
             return baseName;
         }
