@@ -19,8 +19,10 @@ import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
+import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.http.server.HttpServerInfo;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -49,22 +51,26 @@ public class CoordinatorSlotResource
     private final BinaryRepository binaryRepository;
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
-    private final GitConfigRepository gitConfigRepository;
+    private final URI baseBinaryResourceUri;
 
     @Inject
-    public CoordinatorSlotResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository, GitConfigRepository gitConfigRepository)
+    public CoordinatorSlotResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository, HttpServerInfo httpServerInfo)
     {
         Preconditions.checkNotNull(coordinator, "coordinator must not be null");
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
         Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
-        Preconditions.checkNotNull(gitConfigRepository, "gitConfigRepository is null");
 
         this.coordinator = coordinator;
         this.binaryRepository = binaryRepository;
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
-        this.gitConfigRepository = gitConfigRepository;
+        if (httpServerInfo != null) {
+            baseBinaryResourceUri = httpServerInfo.getHttpUri().resolve(BinaryResource.class.getAnnotation(Path.class).value());
+        }
+        else {
+            baseBinaryResourceUri = null;
+        }
     }
 
     @GET
@@ -91,15 +97,19 @@ public class CoordinatorSlotResource
         Assignment assignment = assignmentRepresentation.toAssignment();
         Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
         if (configMap == null) {
-            configMap = gitConfigRepository.getConfigMap(assignment.getConfig());
-        }
-        if (configMap == null) {
             configMap = configRepository.getConfigMap(assignment.getConfig());
         }
 
-        URI binaryUri = binaryRepository.getBinaryUri(assignment.getBinary());
+        BinarySpec binary = assignment.getBinary();
+        URI binaryUri = binaryRepository.getBinaryUri(binary);
         if (binaryUri == null) {
-            return Response.status(Status.NOT_FOUND).entity("Unknown binary: " + assignment.getBinary()).build();
+            return Response.status(Status.NOT_FOUND).entity("Unknown binary: " + binary).build();
+        }
+        if ("file".equalsIgnoreCase(binaryUri.getScheme()) && binaryUri != null) {
+            binaryUri = baseBinaryResourceUri.resolve(String.format("%s/%s/%s/%s/", binary.getGroupId(), binary.getArtifactId(), binary.getVersion(), binary.getPackaging()));
+            if (binary.getClassifier() != null) {
+                binaryUri.resolve(binary.getClassifier());
+            }
         }
         Installation installation = new Installation(assignment, binaryUri, configMap);
 
