@@ -52,28 +52,24 @@ public class DirectoryDeploymentManager implements DeploymentManager
         // verify deployment file is readable and writable
         deploymentFile = new File(baseDir, "galaxy-deployment.json");
         if (deploymentFile.exists()) {
-            Preconditions.checkArgument(deploymentFile.canRead(), "can not read " + deploymentFile.getAbsolutePath());
-            Preconditions.checkArgument(deploymentFile.canWrite(), "can not write " + deploymentFile.getAbsolutePath());
+            Preconditions.checkArgument(deploymentFile.canRead(), "Can not read slot-id file %s", deploymentFile.getAbsolutePath());
+            Preconditions.checkArgument(deploymentFile.canWrite(), "Can not write slot-id file %s", deploymentFile.getAbsolutePath());
         }
 
         // load deployments
         if (deploymentFile.exists()) {
             try {
                 Deployment deployment = load(deploymentFile);
-                if (deployment.getDeploymentDir().isDirectory()) {
-                    this.deployment = deployment;
-                }
-                else {
-                    // todo this is totally borked
-                    log.warn(deploymentFile.getAbsolutePath() + " references a deployment that no longer exists: deleting");
-                    deploymentFile.delete();
-                }
+                Preconditions.checkArgument(deployment.getDeploymentDir().isDirectory(), "Deployment directory is not a directory: %s", deployment.getDeploymentDir());
+                this.deployment = deployment;
             }
             catch (IOException e) {
-                log.error(e, "Invalid deployment file: " + deploymentFile.getAbsolutePath());
+                throw new IllegalArgumentException("Invalid deployment file: " + deploymentFile.getAbsolutePath(), e);
             }
+            Preconditions.checkArgument(slotName.equals(deployment.getSlotName()), "Slot name in deployment info is %s, but expected %s", deployment.getSlotName(), slotName);
         }
 
+        // load slot-id
         File slotIdFile = new File(baseDir, "galaxy-slot-id.txt");
         UUID uuid = null;
         if (slotIdFile.exists()) {

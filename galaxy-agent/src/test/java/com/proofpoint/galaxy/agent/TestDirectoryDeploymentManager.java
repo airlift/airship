@@ -74,7 +74,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         Deployment appleDeployment = manager.install(appleInstallation);
 
         // replace the deployment manager with a new one, which will cause the persistent data to reload
-        manager = new DirectoryDeploymentManager(new AgentConfig(), tempDir.getName(), tempDir);
+        manager = new DirectoryDeploymentManager(new AgentConfig(), appleDeployment.getSlotName(), tempDir);
 
         // active deployment should still be apple
         assertEquals(manager.getDeployment(), appleDeployment);
