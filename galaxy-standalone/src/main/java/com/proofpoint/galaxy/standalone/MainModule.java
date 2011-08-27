@@ -15,20 +15,19 @@ import com.proofpoint.galaxy.agent.LauncherLifecycleManager;
 import com.proofpoint.galaxy.agent.LifecycleManager;
 import com.proofpoint.galaxy.agent.LifecycleResource;
 import com.proofpoint.galaxy.agent.SlotResource;
+import com.proofpoint.galaxy.configuration.ConfigurationResource;
+import com.proofpoint.galaxy.configuration.GitConfigurationRepository;
+import com.proofpoint.galaxy.configuration.GitConfigurationRepositoryConfig;
 import com.proofpoint.galaxy.coordinator.AdminResource;
 import com.proofpoint.galaxy.coordinator.AnnounceResource;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
 import com.proofpoint.galaxy.coordinator.BinaryResource;
 import com.proofpoint.galaxy.coordinator.ConfigRepository;
-import com.proofpoint.galaxy.coordinator.ConfigResource;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorAssignmentResource;
 import com.proofpoint.galaxy.coordinator.CoordinatorConfig;
 import com.proofpoint.galaxy.coordinator.CoordinatorLifecycleResource;
 import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
-import com.proofpoint.galaxy.coordinator.GitConfigRepository;
-import com.proofpoint.galaxy.coordinator.GitConfigRepositoryConfig;
-import com.proofpoint.galaxy.coordinator.GitConfigResource;
 import com.proofpoint.galaxy.coordinator.HttpRemoteAgentFactory;
 import com.proofpoint.galaxy.coordinator.InvalidSlotFilterExceptionMapper;
 import com.proofpoint.galaxy.coordinator.LocalConfigRepository;
@@ -60,12 +59,11 @@ public class MainModule implements Module
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
         binder.bind(ConfigRepository.class).to(SimpleConfigRepository.class).in(Scopes.SINGLETON);
 
-        binder.bind(ConfigResource.class).in(Scopes.SINGLETON);
         binder.bind(LocalConfigRepository.class).in(Scopes.SINGLETON);
 
-        ConfigurationModule.bindConfig(binder).to(GitConfigRepositoryConfig.class);
-        binder.bind(GitConfigRepository.class).in(Scopes.SINGLETON);
-        binder.bind(GitConfigResource.class).in(Scopes.SINGLETON);
+        ConfigurationModule.bindConfig(binder).to(GitConfigurationRepositoryConfig.class);
+        binder.bind(GitConfigurationRepository.class).in(Scopes.SINGLETON);
+        binder.bind(ConfigurationResource.class).in(Scopes.SINGLETON);
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 

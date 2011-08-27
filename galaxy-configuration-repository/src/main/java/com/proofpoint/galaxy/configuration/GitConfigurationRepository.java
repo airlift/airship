@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.configuration;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.File;
-import java.io.InputStream;
+import java.io.FileInputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +27,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public class GitConfigRepository implements ConfigRepository
+public class GitConfigurationRepository implements ConfigurationRepository
 {
-    private static final Logger log = Logger.get(GitConfigRepository.class);
+    private static final Logger log = Logger.get(GitConfigurationRepository.class);
     private final URI blobUri;
     private final ScheduledExecutorService executorService;
     private final File localRepository;
@@ -37,33 +37,28 @@ public class GitConfigRepository implements ConfigRepository
     private final RepositoryUpdater repositoryUpdater;
 
     @Inject
-    public GitConfigRepository(GitConfigRepositoryConfig config, HttpServerInfo httpServerInfo)
+    public GitConfigurationRepository(GitConfigurationRepositoryConfig config, HttpServerInfo httpServerInfo)
             throws Exception
     {
         Preconditions.checkNotNull(config, "config is null");
 
-        if (config.getRemoteUri() == null) {
-            blobUri = null;
-            localRepository = null;
-            refreshInterval = null;
-            executorService = null;
-            repositoryUpdater = null;
+        localRepository = new File(config.getLocalConfigRepo()).getAbsoluteFile();
+        if (localRepository.isDirectory()) {
+            FileUtils.deleteDirectoryContents(localRepository);
+        }
+
+        log.info("Local repository  is %s", localRepository.getAbsolutePath());
+
+        if (httpServerInfo.getHttpsUri() != null) {
+            blobUri = httpServerInfo.getHttpsUri().resolve("/v1/config/");
         }
         else {
-            localRepository = new File(config.getLocalConfigRepo());
-            log.info("Local repository  is %s", localRepository.getAbsolutePath());
-
-            if (httpServerInfo.getHttpsUri() != null) {
-                blobUri = httpServerInfo.getHttpsUri().resolve("/v1/git/blob/master/");
-            }
-            else {
-                blobUri = httpServerInfo.getHttpUri().resolve("/v1/git/blob/master/");
-            }
-
-            refreshInterval = config.getRefreshInterval();
-            executorService = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("GitConfigRepository-%s").setDaemon(true).build());
-            repositoryUpdater = new RepositoryUpdater(config);
+            blobUri = httpServerInfo.getHttpUri().resolve("/v1/config/");
         }
+
+        refreshInterval = config.getRefreshInterval();
+        executorService = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("GitConfigRepository-%s").setDaemon(true).build());
+        repositoryUpdater = new RepositoryUpdater(new File(config.getLocalConfigRepo()), config.getRemoteUri());
     }
 
     @PostConstruct
@@ -122,17 +117,16 @@ public class GitConfigRepository implements ConfigRepository
         return builder.build();
     }
 
-    public InputSupplier<? extends InputStream> getBlob(String objectIdString)
+    public InputSupplier<FileInputStream> getConfigFile(ConfigSpec configSpec, String path)
     {
         if (localRepository == null) {
             return null;
         }
 
-        File file = newFile(localRepository, objectIdString);
+        File file = newFile(localRepository, configSpec.getEnvironment(), configSpec.getComponent(), configSpec.getPool(), configSpec.getVersion(), path);
         if (!file.canRead()) {
             return null;
         }
-
         return Files.newInputStreamSupplier(file);
     }
 
@@ -142,17 +136,17 @@ public class GitConfigRepository implements ConfigRepository
         private final String remoteGitUri;
         private boolean failed;
 
-        public RepositoryUpdater(GitConfigRepositoryConfig config)
+        public RepositoryUpdater(File localRepository, String remoteUri)
         {
-            this.localRepository = new File(config.getLocalConfigRepo());
-            this.remoteGitUri = config.getRemoteUri();
+            this.localRepository = localRepository;
+            this.remoteGitUri = remoteUri;
         }
 
         @Override
         public void run()
         {
             try {
-                if (!localRepository.isDirectory()) {
+                if (!new File(localRepository, ".git").isDirectory()) {
                     // clone
                     Git.cloneRepository()
                             .setURI(remoteGitUri)

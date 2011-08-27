@@ -40,12 +40,7 @@ public class CoordinatorMainModule
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
         binder.bind(ConfigRepository.class).to(SimpleConfigRepository.class).in(Scopes.SINGLETON);
 
-        binder.bind(ConfigResource.class).in(Scopes.SINGLETON);
         binder.bind(LocalConfigRepository.class).in(Scopes.SINGLETON);
-
-        ConfigurationModule.bindConfig(binder).to(GitConfigRepositoryConfig.class);
-        binder.bind(GitConfigRepository.class).in(Scopes.SINGLETON);
-        binder.bind(GitConfigResource.class).in(Scopes.SINGLETON);
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 

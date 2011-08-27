@@ -29,6 +29,11 @@
         </dependency>
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
+            <artifactId>galaxy-configuration-repository</artifactId>
+            <version>0.7-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy</artifactId>
             <version>0.7-SNAPSHOT</version>
             <type>gem</type>

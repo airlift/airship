@@ -41,21 +41,18 @@ public class Coordinator
     private final BinaryRepository binaryRepository;
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
-    private final GitConfigRepository gitConfigRepository;
 
     @Inject
-    public Coordinator(final RemoteAgentFactory remoteAgentFactory, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository, GitConfigRepository gitConfigRepository)
+    public Coordinator(final RemoteAgentFactory remoteAgentFactory, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository)
     {
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
         Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
-        Preconditions.checkNotNull(gitConfigRepository, "gitConfigRepository is null");
 
         this.binaryRepository = binaryRepository;
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
-        this.gitConfigRepository = gitConfigRepository;
 
         agents = new MapMaker().makeComputingMap(new Function<UUID, RemoteAgent>()
         {
@@ -151,9 +148,6 @@ public class Coordinator
         Assignment assignment = newAssignments.iterator().next();
 
         Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
-        if (configMap == null) {
-            configMap = gitConfigRepository.getConfigMap(assignment.getConfig());
-        }
         if (configMap == null) {
             configMap = configRepository.getConfigMap(assignment.getConfig());
         }

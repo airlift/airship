@@ -57,8 +57,7 @@ public class TestCoordinatorAssignmentResource
         coordinator = new Coordinator(new MockRemoteAgentFactory(),
                 MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new CoordinatorConfig(), null),
-                new GitConfigRepository(new GitConfigRepositoryConfig(), null));
+                new LocalConfigRepository(new CoordinatorConfig(), null));
         resource = new CoordinatorAssignmentResource(coordinator);
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(), "apple1", URI.create("fake://appleServer1/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT);

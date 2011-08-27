@@ -46,8 +46,7 @@ public class TestAnnounceResource
         coordinator = new Coordinator(new MockRemoteAgentFactory(),
                 MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new CoordinatorConfig(), null),
-                new GitConfigRepository(new GitConfigRepositoryConfig(), null));
+                new LocalConfigRepository(new CoordinatorConfig(), null));
         resource = new AnnounceResource(coordinator);
         agentStatus = new AgentStatus(UUID.randomUUID(),
                 ONLINE,

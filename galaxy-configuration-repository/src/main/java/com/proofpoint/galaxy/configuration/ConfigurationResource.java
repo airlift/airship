@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.configuration;
 
 import com.google.common.io.InputSupplier;
 import com.proofpoint.galaxy.shared.ConfigSpec;
@@ -9,22 +9,19 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 
 @Path("/v1/config/{environment}/{type}/{pool}/{version}")
-public class ConfigResource
+public class ConfigurationResource
 {
-    private final LocalConfigRepository localConfigRepository;
-    private final GitConfigRepository gitConfigRepository;
+    private final ConfigurationRepository configurationRepository;
 
     @Inject
-    public ConfigResource(LocalConfigRepository localConfigRepository, GitConfigRepository gitConfigRepository)
+    public ConfigurationResource(ConfigurationRepository configRepository)
     {
-        this.localConfigRepository = localConfigRepository;
-        this.gitConfigRepository = gitConfigRepository;
+        this.configurationRepository = configRepository;
     }
 
     @GET
@@ -35,10 +32,7 @@ public class ConfigResource
             @PathParam("version") String version)
     {
         ConfigSpec configSpec = new ConfigSpec(environment, type, version, pool);
-        Map<String, URI> configMap = localConfigRepository.getConfigMap(configSpec);
-        if (configMap == null) {
-            configMap = gitConfigRepository.getConfigMap(configSpec);
-        }
+        Map<String, URI> configMap = configurationRepository.getConfigMap(configSpec);
         if (configMap == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
@@ -55,7 +49,7 @@ public class ConfigResource
             @PathParam("path") String path)
     {
         ConfigSpec configSpec = new ConfigSpec(environment, type, version, pool);
-        InputSupplier<FileInputStream> configFile = localConfigRepository.getConfigFile(configSpec, path);
+        InputSupplier<? extends InputStream> configFile = configurationRepository.getConfigFile(configSpec, path);
         if (configFile == null) {
             return Response.status(Status.NOT_FOUND).build();
         }

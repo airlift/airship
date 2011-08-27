@@ -32,6 +32,7 @@
         <module>galaxy-agent</module>
         <module>galaxy-integration-tests</module>
         <module>galaxy-standalone</module>
+        <module>galaxy-configuration-repository</module>
         <module>galaxy</module>
     </modules>
 

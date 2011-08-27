@@ -108,7 +108,6 @@ public class MavenBinaryRepository implements BinaryRepository
         for (RemoteRepository remoteRepository : remoteRepositories) {
             request.addRepository(remoteRepository);
         }
-
         return repositorySystem.resolveArtifact(resolutionSession, request).getArtifact().getFile();
     }
 

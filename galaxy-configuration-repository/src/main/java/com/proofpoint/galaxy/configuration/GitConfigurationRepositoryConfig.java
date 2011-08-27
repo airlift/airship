@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.configuration;
 
 import com.proofpoint.configuration.Config;
 import com.proofpoint.units.Duration;
@@ -19,7 +19,7 @@ import com.proofpoint.units.Duration;
 import javax.validation.constraints.NotNull;
 import java.util.concurrent.TimeUnit;
 
-public class GitConfigRepositoryConfig
+public class GitConfigurationRepositoryConfig
 {
     private String remoteUri;
     private String localConfigRepo = "git-config-repo";
@@ -30,7 +30,7 @@ public class GitConfigRepositoryConfig
         return remoteUri;
     }
 
-    @Config("coordinator.git-config-repo.uri")
+    @Config("configuration-repository.git.uri")
     public void setRemoteUri(String remoteUri)
     {
         this.remoteUri = remoteUri;
@@ -42,7 +42,7 @@ public class GitConfigRepositoryConfig
         return localConfigRepo;
     }
 
-    @Config("coordinator.git-config-repo.local")
+    @Config("configuration-repository.git.local")
     public void setLocalConfigRepo(String localConfigRepo)
     {
         this.localConfigRepo = localConfigRepo;
@@ -53,8 +53,8 @@ public class GitConfigRepositoryConfig
         return refreshInterval;
     }
 
-    @Config("coordinator.git-config-repo.refresh-interval")
-    public GitConfigRepositoryConfig setRefreshInterval(Duration refreshInterval)
+    @Config("configuration-repository.git.refresh-interval")
+    public GitConfigurationRepositoryConfig setRefreshInterval(Duration refreshInterval)
     {
         this.refreshInterval = refreshInterval;
         return this;
