@@ -5,7 +5,6 @@
         <groupId>com.proofpoint.platform</groupId>
         <artifactId>rest-server-base</artifactId>
         <version>0.44-SNAPSHOT</version>
-        <relativePath />
     </parent>
 
     <properties>
