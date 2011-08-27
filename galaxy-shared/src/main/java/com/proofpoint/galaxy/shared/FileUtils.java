@@ -69,7 +69,7 @@ public class FileUtils
             // a symbolic link has a different name between the canonical and absolute path
             return !canonicalFile.getName().equals(absoluteFile.getName()) ||
                     // or the canonical parent path is not the same as the files parent path
-                    !canonicalFile.getParent().equals(file.getParentFile().getCanonicalPath());
+                    !canonicalFile.getParent().equals(absoluteFile.getParentFile().getCanonicalPath());
         }
         catch (IOException e) {
             // error on the side of caution
