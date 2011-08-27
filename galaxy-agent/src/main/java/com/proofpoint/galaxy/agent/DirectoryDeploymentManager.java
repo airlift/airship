@@ -126,7 +126,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
         Assignment assignment = installation.getAssignment();
 
-        File dataDir = getDataDir(assignment);
+        File dataDir = getDataDir();
 
         Deployment deployment = new Deployment("deployment", slotName, UUID.randomUUID(), deploymentDir, dataDir, assignment);
         File tempDir = createTempDir(baseDir, "tmp-install");
@@ -234,17 +234,13 @@ public class DirectoryDeploymentManager implements DeploymentManager
     {
         String json = Files.toString(deploymentFile, UTF_8);
         DeploymentRepresentation data = jsonCodec.fromJson(json);
-        Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()), getDataDir(data.getAssignment().toAssignment()));
+        Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()), getDataDir());
         return deployment;
     }
 
-    private File getDataDir(Assignment assignment)
+    private File getDataDir()
     {
-        String pool = assignment.getConfig().getPool();
-        if (pool == null) {
-            pool = "general";
-        }
-        File dataDir = new File(new File(new File(baseDir, "data"), assignment.getConfig().getComponent()), pool);
+        File dataDir = new File(baseDir, "data");
         dataDir.mkdirs();
         if (!dataDir.isDirectory()) {
             throw new RuntimeException(String.format("Unable to create data dir %s", dataDir.getAbsolutePath()));
