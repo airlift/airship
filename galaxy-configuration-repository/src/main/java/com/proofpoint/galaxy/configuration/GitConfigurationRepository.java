@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -35,6 +36,7 @@ public class GitConfigurationRepository implements ConfigurationRepository
     private final File localRepository;
     private final Duration refreshInterval;
     private final RepositoryUpdater repositoryUpdater;
+    private final File defaultsDir;
 
     @Inject
     public GitConfigurationRepository(GitConfigurationRepositoryConfig config, HttpServerInfo httpServerInfo)
@@ -59,6 +61,7 @@ public class GitConfigurationRepository implements ConfigurationRepository
         refreshInterval = config.getRefreshInterval();
         executorService = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("GitConfigRepository-%s").setDaemon(true).build());
         repositoryUpdater = new RepositoryUpdater(new File(config.getLocalConfigRepo()), config.getRemoteUri());
+        defaultsDir = newFile(localRepository, "defaults");
     }
 
     @PostConstruct
@@ -94,12 +97,17 @@ public class GitConfigurationRepository implements ConfigurationRepository
             return null;
         }
 
-        ImmutableMap.Builder<String, URI> configMap = ImmutableMap.builder();
+        Map<String, URI> configMap = newLinkedHashMap();
         URI baseConfigUri = blobUri.resolve(String.format("%s/%s/%s/%s/", configSpec.getEnvironment(), configSpec.getComponent(), pool, configSpec.getVersion()));
         for (String path : getConfigMap("", configDir)) {
             configMap.put(path, baseConfigUri.resolve(path));
         }
-        return configMap.build();
+        for (String path : getConfigMap("", defaultsDir)) {
+            if (!configMap.containsKey(path)) {
+                configMap.put(path, baseConfigUri.resolve(path));
+            }
+        }
+        return ImmutableMap.copyOf(configMap);
     }
 
     private List<String> getConfigMap(String basePath, File dir)
@@ -125,7 +133,7 @@ public class GitConfigurationRepository implements ConfigurationRepository
 
         File file = newFile(localRepository, configSpec.getEnvironment(), configSpec.getComponent(), configSpec.getPool(), configSpec.getVersion(), path);
         if (!file.canRead()) {
-            return null;
+            file = newFile(defaultsDir, path);
         }
         return Files.newInputStreamSupplier(file);
     }
