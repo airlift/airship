@@ -202,6 +202,7 @@ module Galaxy
       response = HTTPClient.new.request(method, uri, query, body, headers).body
 
       # parse response as json
+      response = response.content if response.respond_to?(:content)
       slots_json = JSON.parse(response)
 
       # log response if in debug mode
