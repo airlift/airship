@@ -36,7 +36,6 @@ public class GitConfigurationRepository implements ConfigurationRepository
     private final File localRepository;
     private final Duration refreshInterval;
     private final RepositoryUpdater repositoryUpdater;
-    private final File defaultsDir;
 
     @Inject
     public GitConfigurationRepository(GitConfigurationRepositoryConfig config, HttpServerInfo httpServerInfo)
@@ -61,7 +60,6 @@ public class GitConfigurationRepository implements ConfigurationRepository
         refreshInterval = config.getRefreshInterval();
         executorService = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("GitConfigRepository-%s").setDaemon(true).build());
         repositoryUpdater = new RepositoryUpdater(new File(config.getLocalConfigRepo()), config.getRemoteUri());
-        defaultsDir = newFile(localRepository, "defaults");
     }
 
     @PostConstruct
@@ -102,7 +100,7 @@ public class GitConfigurationRepository implements ConfigurationRepository
         for (String path : getConfigMap("", configDir)) {
             configMap.put(path, baseConfigUri.resolve(path));
         }
-        for (String path : getConfigMap("", defaultsDir)) {
+        for (String path : getConfigMap("", newFile(localRepository, configSpec.getEnvironment(), "defaults"))) {
             if (!configMap.containsKey(path)) {
                 configMap.put(path, baseConfigUri.resolve(path));
             }
@@ -133,7 +131,7 @@ public class GitConfigurationRepository implements ConfigurationRepository
 
         File file = newFile(localRepository, configSpec.getEnvironment(), configSpec.getComponent(), configSpec.getPool(), configSpec.getVersion(), path);
         if (!file.canRead()) {
-            file = newFile(defaultsDir, path);
+            file = newFile(newFile(localRepository, configSpec.getEnvironment(), "defaults"), path);
         }
         return Files.newInputStreamSupplier(file);
     }
