@@ -122,8 +122,7 @@ public class LauncherLifecycleManager implements LifecycleManager
         Command command = new Command(launcherScript.getAbsolutePath(), commandName)
                 .setDirectory(deployment.getDataDir())
                 .setTimeLimit(timeLimit)
-                .addEnvironment("HOME", deployment.getDataDir().getAbsolutePath())
-                .addArgs("--data").addArgs(deployment.getDataDir().getAbsolutePath());
+                .addEnvironment("HOME", deployment.getDataDir().getAbsolutePath());
 
         return command;
     }
@@ -137,7 +136,7 @@ public class LauncherLifecycleManager implements LifecycleManager
         map.put("node.pool", getPool(deployment.getAssignment().getConfig()));
         map.put("node.id", deployment.getNodeId().toString());
         map.put("node.location", nodeInfo.getLocation() + "/" + deployment.getSlotName());
-        map.put("discovery.uri", discoveryServiceURI.toString());
+        map.put("node.data-dir", deployment.getDataDir().getAbsolutePath());
 
         // add ip only if explicitly set on the agent
         if (InetAddresses.coerceToInteger(nodeInfo.getBindIp()) != 0) {
