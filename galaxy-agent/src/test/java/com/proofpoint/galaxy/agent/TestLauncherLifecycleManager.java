@@ -122,7 +122,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
     private static void verifyNodeConfig(Deployment deployment)
             throws IOException
     {
-        File nodeConfig = new File(deployment.getDeploymentDir(), "env/node.config");
+        File nodeConfig = new File(deployment.getDeploymentDir(), "etc/node.config");
         assertTrue(nodeConfig.exists());
 
         String conf = Files.toString(nodeConfig, Charsets.UTF_8);
