@@ -143,7 +143,7 @@ public class LauncherLifecycleManager implements LifecycleManager
             map.put("node.ip", nodeInfo.getBindIp().getHostAddress());
         }
 
-        File nodeConfig = new File(deployment.getDeploymentDir(), "etc/node.config");
+        File nodeConfig = new File(deployment.getDeploymentDir(), "etc/node.properties");
         nodeConfig.getParentFile().mkdir();
 
         try {
