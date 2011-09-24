@@ -67,7 +67,6 @@ public class ConfigurationResource
             StringBuilder additionalConfig = new StringBuilder();
             additionalConfig.append("#\n");
             additionalConfig.append("# Automatically provided by Galaxy Configuration Repository\n");
-            additionalConfig.append("node.environment=").append(environment).append("\n");
             List<URI> discoveryServers = discoverDiscovery.getDiscoveryServers();
             if (!discoveryServers.isEmpty()) {
                 additionalConfig.append("discovery.uri=").append(Joiner.on(",").join(discoveryServers)).append("\n");
