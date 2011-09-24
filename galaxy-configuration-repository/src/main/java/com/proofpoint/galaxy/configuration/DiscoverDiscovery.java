@@ -136,7 +136,7 @@ public class DiscoverDiscovery
     private URI getDiscoveryUri(SlotStatusRepresentation slot)
     {
         BinarySpec binarySpec = BinarySpec.valueOf(slot.getBinary());
-        if (!"com.proofpoint.discovery".equals(binarySpec.getGroupId()) || !"server".equals(binarySpec.getArtifactId())) {
+        if (!"com.proofpoint.discovery".equals(binarySpec.getGroupId()) || !"discovery-server".equals(binarySpec.getArtifactId())) {
             return null;
         }
 
