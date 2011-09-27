@@ -34,10 +34,10 @@ module Galaxy
       @ip = IPSocket::getaddress(host)
     end
 
-    def print_col
+    def columns(colors = false)
       status = @status
 
-      if STDOUT.tty?
+      if colors
         status = case status
           when "RUNNING" then Colorize::colorize(status, :bright, :green)
           when "STOPPED" then status
@@ -45,7 +45,7 @@ module Galaxy
         end
       end
 
-      puts "#{uuid}\t#{host}\t#{status}\t#{binary}\t#{config}"
+      return [@uuid, @host, status, @binary, @config]
     end
   end
 
@@ -338,8 +338,23 @@ NOTES
         slots = Commands.send(command, filter, options, command_args)
         slots = slots.sort_by { |slot| [slot.ip, slot.binary, slot.config, slot.uuid] }
         puts '' if options[:debug]
-        puts "uuid\tip\tstatus\tbinary\tconfig"
-        slots.each { |slot| slot.print_col } unless slots.nil?
+
+        names = ['uuid', 'ip', 'status', 'binary', 'config']
+        if STDOUT.tty?
+          format = slots.map { |slot| slot.columns }.
+                         map { |cols| cols.map(&:size) }.
+                         transpose.
+                         map(&:max).
+                         map { |size| "%-#{size}s" }.
+                         join('  ')
+
+          puts format % names
+        else
+          format = names.map { "%s" }.join("\t")
+        end
+
+        slots.each { |slot| puts format % slot.columns(STDOUT.tty?) }
+
         exit EXIT_CODES[:success]
       rescue CommandError => e
         puts e.message
