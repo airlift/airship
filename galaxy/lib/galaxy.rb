@@ -347,7 +347,7 @@ NOTES
                          map { |size| "%-#{size}s" }.
                          join('  ')
 
-          puts format % names
+          puts Colorize::colorize(format % names, :bright, :cyan)
         else
           format = names.map { "%s" }.join("\t")
         end

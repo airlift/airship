@@ -5,7 +5,9 @@ module Colorize
       :bright => "\e[1m",
 
       :red => "\e[31m",
-      :green => "\e[32m"
+      :green => "\e[32m",
+      :blue => "\e[34m",
+      :cyan => "\e[36m"
     }
   end
 
