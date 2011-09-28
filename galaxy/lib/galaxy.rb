@@ -44,7 +44,7 @@ module Galaxy
         end
       end
 
-      return [@short_id, @host, status, @binary, @config]
+      return [@short_id, @host, status, @binary, @config].map { |value| value || '' }
     end
   end
 
@@ -335,7 +335,7 @@ NOTES
       begin
         (command, filter, options, command_args) = parse_command_line(args)
         slots = Commands.send(command, filter, options, command_args)
-        slots = slots.sort_by { |slot| [slot.ip, slot.binary, slot.config, slot.uuid] }
+        slots = slots.sort_by { |slot| [slot.ip, slot.binary || '', slot.config || '', slot.uuid] }
         puts '' if options[:debug]
 
         names = ['uuid', 'ip', 'status', 'binary', 'config']
