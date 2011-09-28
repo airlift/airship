@@ -6,8 +6,6 @@ require 'galaxy/version'
 require 'galaxy/colorize'
 
 module Galaxy
-  include Colorize
-
   GALAXY_VERSION = "0.1"
 
   EXIT_CODES = {
@@ -21,10 +19,11 @@ module Galaxy
   # Slot Information
   #
   class Slot
-    attr_reader :uuid, :host, :ip, :url, :binary, :config, :status
+    attr_reader :uuid, :short_id, :host, :ip, :url, :binary, :config, :status
 
-    def initialize(uuid, url, binary, config, status)
+    def initialize(uuid, short_id, url, binary, config, status)
       @uuid = uuid
+      @short_id = short_id
       @url = url
       @binary = binary
       @config = config
@@ -34,10 +33,10 @@ module Galaxy
       @ip = IPSocket::getaddress(host)
     end
 
-    def print_col
+    def columns(colors = false)
       status = @status
 
-      if STDOUT.tty?
+      if colors
         status = case status
           when "RUNNING" then Colorize::colorize(status, :bright, :green)
           when "STOPPED" then status
@@ -45,7 +44,7 @@ module Galaxy
         end
       end
 
-      puts "#{uuid}\t#{host}\t#{status}\t#{binary}\t#{config}"
+      return [@short_id, @host, status, @binary, @config]
     end
   end
 
@@ -212,7 +211,7 @@ module Galaxy
 
       # convert parsed json into slot objects
       slots = slots_json.map do |slot_json|
-        Slot.new(slot_json['id'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'])
+        Slot.new(slot_json['id'], slot_json['shortId'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'])
       end
 
       # verify response
@@ -336,10 +335,25 @@ NOTES
       begin
         (command, filter, options, command_args) = parse_command_line(args)
         slots = Commands.send(command, filter, options, command_args)
-        slots = slots.sort_by { |slot| "#{slot.ip}|#{slot.binary}|#{slot.config}|#{slot.uuid}" }
+        slots = slots.sort_by { |slot| [slot.ip, slot.binary, slot.config, slot.uuid] }
         puts '' if options[:debug]
-        puts "uuid\tip\tstatus\tbinary\tconfig"
-        slots.each { |slot| slot.print_col } unless slots.nil?
+
+        names = ['uuid', 'ip', 'status', 'binary', 'config']
+        if STDOUT.tty?
+          format = slots.map { |slot| slot.columns }.
+                         map { |cols| cols.map(&:size) }.
+                         transpose.
+                         map(&:max).
+                         map { |size| "%-#{size}s" }.
+                         join('  ')
+
+          puts format % names
+        else
+          format = names.map { "%s" }.join("\t")
+        end
+
+        slots.each { |slot| puts format % slot.columns(STDOUT.tty?) }
+
         exit EXIT_CODES[:success]
       rescue CommandError => e
         puts e.message

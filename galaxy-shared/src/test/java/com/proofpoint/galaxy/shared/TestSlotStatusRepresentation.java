@@ -17,6 +17,7 @@ public class TestSlotStatusRepresentation
     private final JsonCodec<SlotStatusRepresentation> codec = jsonCodec(SlotStatusRepresentation.class);
 
     private final SlotStatusRepresentation expected = new SlotStatusRepresentation(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            "aaaaa",
             "slot1",
             URI.create("fake://apple"),
             AssignmentHelper.APPLE_ASSIGNMENT.getBinary().toString(),

@@ -21,6 +21,7 @@ import org.sonatype.aether.graph.Dependency;
 import org.sonatype.aether.graph.DependencyNode;
 import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.repository.RepositoryPolicy;
 import org.sonatype.aether.resolution.ArtifactRequest;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.resolution.DependencyRequest;
@@ -84,7 +85,8 @@ public class MavenBinaryRepository implements BinaryRepository
 
         resolutionSession = new MavenRepositorySystemSession()
                 .setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(new LocalRepository(localRepository)))
-                .setTransferListener(new AetherTransferListener());
+                .setTransferListener(new AetherTransferListener())
+                .setUpdatePolicy(RepositoryPolicy.UPDATE_POLICY_ALWAYS);
     }
 
     @Override

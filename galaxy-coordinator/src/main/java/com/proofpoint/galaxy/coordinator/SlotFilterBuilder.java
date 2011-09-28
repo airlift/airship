@@ -1,8 +1,10 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
 import com.proofpoint.galaxy.shared.BinarySpec;
@@ -14,18 +16,21 @@ import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.regex.Pattern;
+
+import static com.google.common.base.Functions.compose;
+import static com.proofpoint.galaxy.coordinator.StringFunctions.startsWith;
+import static com.proofpoint.galaxy.coordinator.StringFunctions.toLowerCase;
+import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
+import static java.lang.String.format;
 
 public class SlotFilterBuilder
 {
-    public static Predicate<SlotStatus> build(UriInfo uriInfo)
-    {
-        return build(uriInfo, true);
-    }
-
-    public static Predicate<SlotStatus> build(UriInfo uriInfo, boolean filterRequired)
+    public static Predicate<SlotStatus> build(UriInfo uriInfo, boolean filterRequired, List<UUID> allUuids)
     {
         SlotFilterBuilder builder = new SlotFilterBuilder(filterRequired);
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
@@ -40,8 +45,21 @@ public class SlotFilterBuilder
                 }
             }
             else if ("uuid" .equals(entry.getKey())) {
-                for (String uuidGlob : entry.getValue()) {
-                    builder.addSlotUuidGlobFilter(uuidGlob);
+                for (String shortId : entry.getValue()) {
+                    Predicate<UUID> startsWithPrefix = Predicates.compose(startsWith(shortId.toLowerCase()), compose(toLowerCase(), StringFunctions.<UUID>toStringFunction()));
+                    Collection<UUID> matches = Collections2.filter(allUuids, startsWithPrefix);
+
+                    if (matches.size() > 1) {
+                        throw new IllegalArgumentException(format("Ambiguous expansion for id '%s': %s", shortId, matches));
+                    }
+
+                    if (matches.isEmpty()) {
+                        builder.shortCircuit();
+                        break;
+                    }
+                    else {
+                        builder.addSlotUuidFilter(matches.iterator().next());
+                    }
                 }
             }
             else if ("ip" .equals(entry.getKey())) {
@@ -64,6 +82,7 @@ public class SlotFilterBuilder
     }
 
     private final boolean filterRequired;
+    private boolean shortCircuit;
     private final List<StatePredicate> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<SlotUuidPredicate> slotUuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<HostPredicate> hostFilters = Lists.newArrayListWithCapacity(6);
@@ -76,6 +95,11 @@ public class SlotFilterBuilder
         this.filterRequired = filterRequired;
     }
 
+    private void shortCircuit()
+    {
+        shortCircuit = true;
+    }
+
     public void addStateFilter(String stateFilter)
     {
         Preconditions.checkNotNull(stateFilter, "stateFilter is null");
@@ -84,10 +108,10 @@ public class SlotFilterBuilder
         stateFilters.add(new StatePredicate(state));
     }
 
-    public void addSlotUuidGlobFilter(String slotUuidGlob)
+    public void addSlotUuidFilter(UUID uuid)
     {
-        Preconditions.checkNotNull(slotUuidGlob, "slotUuidGlob is null");
-        slotUuidFilters.add(new SlotUuidPredicate(slotUuidGlob));
+        Preconditions.checkNotNull(uuid, "uuid is null");
+        slotUuidFilters.add(new SlotUuidPredicate(uuid));
     }
 
     public void addHostGlobFilter(String hostGlob)
@@ -116,6 +140,10 @@ public class SlotFilterBuilder
 
     public Predicate<SlotStatus> build()
     {
+        if (shortCircuit) {
+            return Predicates.alwaysFalse();
+        }
+
         // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<SlotStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
         if (!stateFilters.isEmpty()) {
@@ -155,11 +183,11 @@ public class SlotFilterBuilder
 
     public static class SlotUuidPredicate implements Predicate<SlotStatus>
     {
-        private final Predicate<CharSequence> predicate;
+        private final UUID uuid;
 
-        public SlotUuidPredicate(String slotUuidGlobGlob)
+        public SlotUuidPredicate(UUID uuid)
         {
-            predicate = new GlobPredicate(slotUuidGlobGlob.toLowerCase());
+            this.uuid = uuid;
         }
 
         @Override
@@ -167,7 +195,7 @@ public class SlotFilterBuilder
         {
             return slotStatus != null &&
                     slotStatus.getId() != null &&
-                    predicate.apply(slotStatus.getId().toString().toLowerCase());
+                    uuid.equals(slotStatus.getId());
         }
     }
 

@@ -22,7 +22,9 @@ import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -55,10 +57,12 @@ public class TestCoordinatorSlotResource
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), ImmutableList.of(slot1, slot2));
         coordinator.updateAgentStatus(agentStatus);
 
+        int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString())));
+
         URI requestUri = URI.create("http://localhost/v1/slot");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1), SlotStatusRepresentation.from(slot2)));
+        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1, prefixSize), SlotStatusRepresentation.from(slot2, prefixSize)));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -70,10 +74,12 @@ public class TestCoordinatorSlotResource
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), ImmutableList.of(slot1, slot2));
         coordinator.updateAgentStatus(agentStatus);
 
+        int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString())));
+
         URI requestUri = URI.create("http://localhost/v1/slot?host=foo");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1)));
+        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1, prefixSize)));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 

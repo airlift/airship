@@ -153,6 +153,7 @@ public class TestServer
 
         Map<String, Object> expected = mapCodec.fromJson(Resources.toString(Resources.getResource("slot-status.json"), Charsets.UTF_8));
         expected.put("id", slotStatus.getId().toString());
+        expected.put("shortId", slotStatus.getId().toString());
         expected.put("name", slotStatus.getName());
         expected.put("self", urlFor(slotStatus));
 
@@ -185,9 +186,11 @@ public class TestServer
 
         List<Map<String, Object>> expected = listCodec.fromJson(Resources.toString(Resources.getResource("slot-status-list.json"), Charsets.UTF_8));
         expected.get(0).put("id", appleSlotStatus.getId().toString());
+        expected.get(0).put("shortId", appleSlotStatus.getId().toString());
         expected.get(0).put("name", appleSlotStatus.getName());
         expected.get(0).put("self", urlFor(appleSlotStatus));
         expected.get(1).put("id", bananaSlotStatus.getId().toString());
+        expected.get(1).put("shortId", bananaSlotStatus.getId().toString());
         expected.get(1).put("name", bananaSlotStatus.getName());
         expected.get(1).put("self", urlFor(bananaSlotStatus));
 
@@ -213,6 +216,7 @@ public class TestServer
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slot.getId().toString())
+                .put("shortId", slot.getId().toString())
                 .put("name", slot.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
@@ -240,6 +244,7 @@ public class TestServer
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slotStatus.getId().toString())
+                .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
                 .put("self", urlFor(slotStatus))
                 .put("status", TERMINATED.toString())
@@ -293,6 +298,7 @@ public class TestServer
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slotStatus.getId().toString())
+                .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
@@ -320,6 +326,7 @@ public class TestServer
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slotStatus.getId().toString())
+                .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
@@ -348,6 +355,7 @@ public class TestServer
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slotStatus.getId().toString())
+                .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
@@ -375,6 +383,7 @@ public class TestServer
 
         Map<String, String> expected = ImmutableMap.<String, String>builder()
                 .put("id", slotStatus.getId().toString())
+                .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary().toString())
                 .put("config", appleInstallation.getAssignment().getConfig().toString())

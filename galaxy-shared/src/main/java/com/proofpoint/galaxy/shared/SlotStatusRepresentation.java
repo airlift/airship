@@ -28,11 +28,25 @@ import java.util.UUID;
 public class SlotStatusRepresentation
 {
     private final UUID id;
+    private final String shortId;
     private final String name;
     private final URI self;
     private final String binary;
     private final String config;
     private final String status;
+
+    private final static int MAX_ID_SIZE = UUID.randomUUID().toString().length();
+
+    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatusWithShortIdPrefixSize(final int size)
+    {
+        return new Function<SlotStatus, SlotStatusRepresentation>()
+        {
+            public SlotStatusRepresentation apply(SlotStatus status)
+            {
+                return from(status, size);
+            }
+        };
+    }
 
     public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus()
     {
@@ -47,8 +61,14 @@ public class SlotStatusRepresentation
 
     public static SlotStatusRepresentation from(SlotStatus slotStatus)
     {
+        return from(slotStatus, MAX_ID_SIZE);
+    }
+
+    public static SlotStatusRepresentation from(SlotStatus slotStatus, int shortIdPrefixSize)
+    {
         if (slotStatus.getAssignment() != null) {
             return new SlotStatusRepresentation(slotStatus.getId(),
+                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
                     slotStatus.getName(),
                     slotStatus.getSelf(),
                     slotStatus.getAssignment().getBinary().toString(),
@@ -58,6 +78,7 @@ public class SlotStatusRepresentation
         }
         else {
             return new SlotStatusRepresentation(slotStatus.getId(),
+                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
                     slotStatus.getName(),
                     slotStatus.getSelf(),
                     null,
@@ -68,6 +89,7 @@ public class SlotStatusRepresentation
 
     @JsonCreator
     public SlotStatusRepresentation(@JsonProperty("id") UUID id,
+            @JsonProperty("shortId") String shortId,
             @JsonProperty("name") String name,
             @JsonProperty("self") URI self,
             @JsonProperty("binary") String binary,
@@ -75,6 +97,7 @@ public class SlotStatusRepresentation
             @JsonProperty("status") String status)
     {
         this.id = id;
+        this.shortId = shortId;
         this.name = name;
         this.self = self;
         this.binary = binary;
@@ -87,6 +110,13 @@ public class SlotStatusRepresentation
     public UUID getId()
     {
         return id;
+    }
+
+    @JsonProperty
+    @NotNull(message = "is missing")
+    public String getShortId()
+    {
+        return shortId;
     }
 
     @JsonProperty
@@ -156,6 +186,9 @@ public class SlotStatusRepresentation
         if (id != null ? !id.equals(that.id) : that.id != null) {
             return false;
         }
+        if (shortId != null ? !shortId.equals(that.shortId) : that.shortId != null) {
+            return false;
+        }
         if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
         }
@@ -173,6 +206,7 @@ public class SlotStatusRepresentation
     public int hashCode()
     {
         int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (shortId != null ? shortId.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (binary != null ? binary.hashCode() : 0);
         result = 31 * result + (config != null ? config.hashCode() : 0);
@@ -188,6 +222,7 @@ public class SlotStatusRepresentation
         sb.append("SlotStatusRepresentation");
         sb.append("{id=").append(id);
         sb.append(", name='").append(name).append('\'');
+        sb.append(", shortId='").append(shortId).append('\'');
         sb.append(", self=").append(self);
         sb.append(", binary='").append(binary).append('\'');
         sb.append(", config='").append(config).append('\'');

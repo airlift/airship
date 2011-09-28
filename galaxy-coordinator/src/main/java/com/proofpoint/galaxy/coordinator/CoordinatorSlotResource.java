@@ -15,6 +15,8 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
@@ -40,9 +42,14 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
+import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 @Path("/v1/slot")
 public class CoordinatorSlotResource
@@ -52,6 +59,8 @@ public class CoordinatorSlotResource
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
     private final URI baseBinaryResourceUri;
+
+    public static final int MIN_PREFIX_SIZE = 4;
 
     @Inject
     public CoordinatorSlotResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository, HttpServerInfo httpServerInfo)
@@ -77,10 +86,18 @@ public class CoordinatorSlotResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllSlots(@Context UriInfo uriInfo)
     {
-        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, false);
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+
+        int prefixSize = MIN_PREFIX_SIZE;
+        if (!uuids.isEmpty()) {
+            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
+        }
+
+        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, false, uuids);
+
         List<SlotStatus> result = coordinator.getAllSlotsStatus(slotFilter);
 
-        return Response.ok(transform(result, fromSlotStatus())).build();
+        return Response.ok(transform(result, fromSlotStatusWithShortIdPrefixSize(prefixSize))).build();
     }
 
     @POST
@@ -116,16 +133,27 @@ public class CoordinatorSlotResource
         Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo);
         List<SlotStatus> results = coordinator.install(agentFilter, limit, installation);
 
-        return Response.ok(transform(results, fromSlotStatus())).build();
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        int uniquePrefixSize = max(Strings.shortestUniquePrefix(transform(uuids, toStringFunction())), MIN_PREFIX_SIZE);
+
+        return Response.ok(transform(results, fromSlotStatusWithShortIdPrefixSize(uniquePrefixSize))).build();
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response terminateSlots(@Context UriInfo uriInfo)
     {
-        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, true);
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+
+        int prefixSize = MIN_PREFIX_SIZE;
+        if (!uuids.isEmpty()) {
+            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
+        }
+
+        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, true, uuids);
+
         List<SlotStatus> result = coordinator.terminate(slotFilter);
 
-        return Response.ok(transform(result, fromSlotStatus())).build();
+        return Response.ok(transform(result, fromSlotStatusWithShortIdPrefixSize(prefixSize))).build();
     }
 }

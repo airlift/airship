@@ -1,5 +1,6 @@
 {
     "id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "shortId": "aaaaa",
     "name":"slot1",
     "self":"fake://apple",
     "binary":"food.fruit:apple:1.0",

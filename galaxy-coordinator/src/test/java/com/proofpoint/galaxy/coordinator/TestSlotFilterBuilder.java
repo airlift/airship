@@ -17,12 +17,16 @@ import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.StatePredicate;
 import org.testng.annotations.Test;
 
 import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -34,15 +38,21 @@ public class TestSlotFilterBuilder
             UNKNOWN,
             APPLE_ASSIGNMENT);
 
+
+    private Predicate<SlotStatus> buildFilter(String key, String value, List<UUID> uuids)
+    {
+        return SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value), true, uuids);
+    }
+
     private Predicate<SlotStatus> buildFilter(String key, String value)
     {
-        return SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value));
+        return buildFilter(key, value, Collections.<UUID>emptyList());
     }
 
     @Test(expectedExceptions = InvalidSlotFilterException.class)
     public void testEmptyFilter()
     {
-        SlotFilterBuilder.build(MockUriInfo.from("fake://localhost")).apply(status);
+        SlotFilterBuilder.build(MockUriInfo.from("fake://localhost"), true, Collections.<UUID>emptyList()).apply(status);
     }
 
     @Test
@@ -61,18 +71,10 @@ public class TestSlotFilterBuilder
     @Test
     public void testSlotUuidPredicate()
     {
-        assertTrue(new SlotUuidPredicate("12345678-1234-1234-1234-123456789012").apply(status));
-        assertTrue(buildFilter("uuid", "12345678-1234-1234-1234-123456789012").apply(status));
-        assertTrue(new SlotUuidPredicate("12345*").apply(status));
-        assertTrue(buildFilter("uuid", "12345*").apply(status));
-        assertTrue(new SlotUuidPredicate("12345*").apply(status));
-        assertTrue(buildFilter("uuid", "12345*").apply(status));
-        assertTrue(new SlotUuidPredicate("12345*").apply(status));
-        assertTrue(buildFilter("uuid", "12345*").apply(status));
-        assertTrue(new SlotUuidPredicate("12345*").apply(status));
-        assertTrue(buildFilter("uuid", "12345*").apply(status));
-        assertFalse(new SlotUuidPredicate("foo").apply(status));
-        assertFalse(buildFilter("uuid", "foo").apply(status));
+        assertTrue(new SlotUuidPredicate(UUID.fromString("12345678-1234-1234-1234-123456789012")).apply(status));
+        assertTrue(buildFilter("uuid", "12345678-1234-1234-1234-123456789012", asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
+        assertFalse(new SlotUuidPredicate(UUID.fromString("00000000-0000-0000-0000-000000000000")).apply(status));
+        assertFalse(buildFilter("uuid", "00000000-0000-0000-0000-000000000000").apply(status));
     }
 
     @Test
