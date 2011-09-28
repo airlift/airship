@@ -16,3 +16,5 @@ test-output
 .externalToolBuilders
 *~
 .rvmrc
+.m2/
+git-config-repo/
