@@ -35,6 +35,19 @@ public class SlotStatusRepresentation
     private final String config;
     private final String status;
 
+    private final static int MAX_ID_SIZE = UUID.randomUUID().toString().length();
+
+    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatusWithShortIdPrefixSize(final int size)
+    {
+        return new Function<SlotStatus, SlotStatusRepresentation>()
+        {
+            public SlotStatusRepresentation apply(SlotStatus status)
+            {
+                return from(status, size);
+            }
+        };
+    }
+
     public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus()
     {
         return new Function<SlotStatus, SlotStatusRepresentation>()
@@ -48,9 +61,14 @@ public class SlotStatusRepresentation
 
     public static SlotStatusRepresentation from(SlotStatus slotStatus)
     {
+        return from(slotStatus, MAX_ID_SIZE);
+    }
+
+    public static SlotStatusRepresentation from(SlotStatus slotStatus, int shortIdPrefixSize)
+    {
         if (slotStatus.getAssignment() != null) {
             return new SlotStatusRepresentation(slotStatus.getId(),
-                    slotStatus.getId().toString(),
+                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
                     slotStatus.getName(),
                     slotStatus.getSelf(),
                     slotStatus.getAssignment().getBinary().toString(),
@@ -60,7 +78,7 @@ public class SlotStatusRepresentation
         }
         else {
             return new SlotStatusRepresentation(slotStatus.getId(),
-                    slotStatus.getId().toString(),
+                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
                     slotStatus.getName(),
                     slotStatus.getSelf(),
                     null,

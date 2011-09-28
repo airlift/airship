@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -50,9 +51,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.google.common.base.Functions.toStringFunction;
+import static com.google.common.collect.Lists.transform;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
@@ -62,6 +66,9 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -70,6 +77,7 @@ public class TestCoordinatorServer
     private AsyncHttpClient client;
     private TestingHttpServer server;
 
+    private int prefixSize;
     private Coordinator coordinator;
 
     private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = jsonCodec(AgentStatusRepresentation.class);
@@ -138,6 +146,10 @@ public class TestCoordinatorServer
                 URI.create("fake://foo/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
+
+        prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(transform(
+                transform(asList(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus), uuidGetter()),
+                toStringFunction())));
     }
 
     @AfterClass
@@ -166,10 +178,17 @@ public class TestCoordinatorServer
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+
+        int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
+                agentStatus.getSlotStatus("apple1").getId().toString(),
+                agentStatus.getSlotStatus("apple2").getId().toString(),
+                agentStatus.getSlotStatus("banana").getId().toString())));
+
+
         assertEqualsNoOrder(actual, ImmutableList.of(
-                SlotStatusRepresentation.from(agentStatus.getSlotStatus("apple1")),
-                SlotStatusRepresentation.from(agentStatus.getSlotStatus("apple2")),
-                SlotStatusRepresentation.from(agentStatus.getSlotStatus("banana"))));
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus("apple1"), prefixSize),
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus("apple2"), prefixSize),
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus("banana"), prefixSize)));
     }
 
     @Test
@@ -192,7 +211,9 @@ public class TestCoordinatorServer
         SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
         SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(apple2Status));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                SlotStatusRepresentation.from(apple1Status, prefixSize),
+                SlotStatusRepresentation.from(apple2Status, prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -225,7 +246,9 @@ public class TestCoordinatorServer
         apple2Status = new SlotStatus(apple2Status, TERMINATED);
         SlotStatus bananaStatus = coordinator.getAgentStatus(agentId).getSlotStatus("banana");
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(new SlotStatus(apple2Status, TERMINATED)));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                SlotStatusRepresentation.from(apple1Status, prefixSize),
+                SlotStatusRepresentation.from(new SlotStatus(apple2Status, TERMINATED), prefixSize));
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
 
@@ -252,7 +275,9 @@ public class TestCoordinatorServer
         SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
         SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(apple2Status));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                SlotStatusRepresentation.from(apple1Status, prefixSize),
+                SlotStatusRepresentation.from(apple2Status, prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -278,7 +303,9 @@ public class TestCoordinatorServer
         SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
         SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(apple2Status));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                SlotStatusRepresentation.from(apple1Status, prefixSize),
+                SlotStatusRepresentation.from(apple2Status, prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -306,7 +333,9 @@ public class TestCoordinatorServer
         SlotStatus apple2Status = agentStatus.getSlotStatus("apple2");
         SlotStatus bananaStatus = agentStatus.getSlotStatus("banana");
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(apple1Status), SlotStatusRepresentation.from(apple2Status));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                SlotStatusRepresentation.from(apple1Status, prefixSize),
+                SlotStatusRepresentation.from(apple2Status, prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);

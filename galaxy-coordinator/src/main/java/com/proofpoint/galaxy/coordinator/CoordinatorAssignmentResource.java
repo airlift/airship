@@ -15,6 +15,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
@@ -28,9 +29,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
+import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
+import static java.lang.Math.max;
 
 @Path("/v1/slot/assignment")
 public class CoordinatorAssignmentResource
@@ -52,8 +57,17 @@ public class CoordinatorAssignmentResource
     {
         Preconditions.checkNotNull(upgradeVersions, "upgradeRepresentation must not be null");
 
-        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo);
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+
+        int prefixSize = CoordinatorSlotResource.MIN_PREFIX_SIZE;
+        if (!uuids.isEmpty()) {
+            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
+        }
+
+        Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, true, uuids);
+
         List<SlotStatus> results = coordinator.upgrade(slotFilter, upgradeVersions);
-        return Response.ok(transform(results, fromSlotStatus())).build();
+
+        return Response.ok(transform(results, fromSlotStatusWithShortIdPrefixSize(prefixSize))).build();
     }
 }

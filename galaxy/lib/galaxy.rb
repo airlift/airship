@@ -19,10 +19,11 @@ module Galaxy
   # Slot Information
   #
   class Slot
-    attr_reader :uuid, :host, :ip, :url, :binary, :config, :status
+    attr_reader :uuid, :short_id, :host, :ip, :url, :binary, :config, :status
 
-    def initialize(uuid, url, binary, config, status)
+    def initialize(uuid, short_id, url, binary, config, status)
       @uuid = uuid
+      @short_id = short_id
       @url = url
       @binary = binary
       @config = config
@@ -43,7 +44,7 @@ module Galaxy
         end
       end
 
-      return [@uuid, @host, status, @binary, @config]
+      return [@short_id, @host, status, @binary, @config]
     end
   end
 
@@ -210,7 +211,7 @@ module Galaxy
 
       # convert parsed json into slot objects
       slots = slots_json.map do |slot_json|
-        Slot.new(slot_json['id'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'])
+        Slot.new(slot_json['id'], slot_json['shortId'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'])
       end
 
       # verify response

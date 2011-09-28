@@ -37,6 +37,8 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static java.lang.Math.max;
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -47,6 +49,7 @@ public class TestCoordinatorLifecycleResource
 
     private Coordinator coordinator;
     private UUID agentId;
+    private int prefixSize;
 
     @BeforeMethod
     public void setup()
@@ -78,6 +81,10 @@ public class TestCoordinatorLifecycleResource
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://foo/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+
+        prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
+                appleSlotStatus1.getId().toString(), appleSlotStatus2.getId().toString(),
+                bananaSlotStatus.getId().toString())));
 
         coordinator.updateAgentStatus(agentStatus);
     }
@@ -157,7 +164,7 @@ public class TestCoordinatorLifecycleResource
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (String slotName : slotNames) {
             SlotStatus slotStatus = agentStatus.getSlotStatus(slotName);
-            builder.add(SlotStatusRepresentation.from(new SlotStatus(slotStatus, state)));
+            builder.add(SlotStatusRepresentation.from(new SlotStatus(slotStatus, state), prefixSize));
             assertEquals(slotStatus.getAssignment(), APPLE_ASSIGNMENT);
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());

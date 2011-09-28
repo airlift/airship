@@ -40,6 +40,8 @@ import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
+import static java.lang.Math.max;
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
@@ -49,6 +51,7 @@ public class TestCoordinatorAssignmentResource
     private CoordinatorAssignmentResource resource;
     private Coordinator coordinator;
     private UUID agentId;
+    private int prefixSize;
 
     @BeforeMethod
     public void setup()
@@ -68,6 +71,9 @@ public class TestCoordinatorAssignmentResource
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://appleServer1/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+
+        prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
+                appleSlotStatus1.getId().toString(), appleSlotStatus2.getId().toString(), bananaSlotStatus.getId().toString())));
 
         coordinator.updateAgentStatus(agentStatus);
     }
@@ -132,7 +138,7 @@ public class TestCoordinatorAssignmentResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (SlotStatus slotStatus : slots) {
-            builder.add(SlotStatusRepresentation.from(new SlotStatus(slotStatus, state)));
+            builder.add(SlotStatusRepresentation.from(new SlotStatus(slotStatus, state), prefixSize));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

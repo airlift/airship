@@ -22,6 +22,8 @@ import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
+import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
+import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.json.JsonModule;
@@ -65,6 +67,8 @@ import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static java.lang.Math.max;
+import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -91,6 +95,8 @@ public class TestServerIntegration
     private File configRepoDir;
     private BinaryRepository binaryRepository;
     private ConfigRepository configRepository;
+
+    private int prefixSize;
 
     @BeforeClass
     public void startServer()
@@ -176,6 +182,11 @@ public class TestServerIntegration
                 binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
                 configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig()))).getName());
         announcementService.announce();
+
+        prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
+                appleSlot1.getId().toString(),
+                appleSlot2.getId().toString(),
+                bananaSlot.getId().toString())));
     }
 
     @AfterClass
@@ -225,7 +236,7 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -249,7 +260,7 @@ public class TestServerIntegration
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -274,7 +285,7 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -296,7 +307,7 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -322,7 +333,7 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status()), SlotStatusRepresentation.from(appleSlot2.status()));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);

@@ -3,6 +3,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.MapMaker;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
+import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
@@ -201,6 +203,11 @@ public class Coordinator
                 return slotStatus;
             }
         }));
+    }
+
+    public List<SlotStatus> getAllSlotStatus()
+    {
+        return getAllSlotsStatus(Predicates.<SlotStatus>alwaysTrue());
     }
 
     public List<SlotStatus> getAllSlotsStatus(Predicate<SlotStatus> slotFilter)

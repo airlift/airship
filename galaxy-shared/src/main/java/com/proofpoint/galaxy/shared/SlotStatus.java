@@ -13,6 +13,7 @@
  */
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.Immutable;
@@ -158,4 +159,16 @@ public class SlotStatus
         sb.append('}');
         return sb.toString();
     }
+
+    public static Function<SlotStatus, UUID> uuidGetter()
+    {
+        return new Function<SlotStatus, UUID>()
+        {
+            public UUID apply(SlotStatus input)
+            {
+                return input.getId();
+            }
+        };
+    }
+
 }
