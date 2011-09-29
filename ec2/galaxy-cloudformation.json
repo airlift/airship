@@ -1,0 +1,229 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Parameters" : {
+        "Environment": {
+            "Type": "String",
+            "AllowedPattern": "[a-z0-9][_a-z0-9]*"
+        },
+        "CoordinatorInstanceType" : {
+            "Default" : "t1.micro",
+            "Type" : "String"
+        },
+        "AgentInstanceType" : {
+            "Default" : "t1.micro",
+            "Type" : "String"
+        },
+        "NumberOfAgents" : {
+            "Default" : "1",
+            "Type" : "String"
+        },
+        "SecurityGroup": {
+            "Type": "String",
+            "Default": "default"
+        },
+        "KeyName" : {
+            "Description" : "Name of and existing EC2 KeyPair to enable SSH access to the instances",
+            "Type" : "String",
+            "Default": "keypair"
+        },
+        "CoordinatorPort": {
+            "Type": "Number",
+            "Default": "64000",
+            "MinValue": "1",
+            "MaxValue": "65535"
+        },
+        "BinaryRepoURI": {
+            "Type": "String",
+            "Default": "https://oss.sonatype.org/content/repositories/releases/,https://oss.sonatype.org/content/repositories/snapshots,http://10.242.211.107:8000/nexus/content/repositories/proofpoint-dev,http://10.242.211.107:8000/nexus/content/repositories/proofpoint-eng-snapshots"
+        },
+        "ConfigGitRepoURI": {
+            "Type": "String",
+            "Default": "git://10.242.211.107/config.git"
+        },
+        "GalaxyVersion": {
+            "Type": "String",
+            "Default": "0.7-SNAPSHOT"
+        }
+    },
+    "Resources" : {
+        "CoordinatorInstance" : {
+            "Type" : "AWS::EC2::Instance",
+            "Properties" : {
+                "ImageId" : "ami-27b7744e",
+                "InstanceType" : {
+                    "Ref" : "CoordinatorInstanceType"
+                },
+                "SecurityGroups" : [
+                    {
+                        "Ref": "SecurityGroup"
+                    }
+                ],
+                "KeyName" : {
+                    "Ref" : "KeyName"
+                },
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : { "Fn::Join": ["-", ["galaxy", { "Ref": "AWS::StackName" }]] }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": ["\n",
+                                     [
+                                             "Content-Type: multipart/mixed; boundary=\"===============4809107299230207060==\"",
+                                             "MIME-Version: 1.0",
+                                             "",
+                                             "--===============4809107299230207060==",
+                                             "Content-Type: text/x-include-url; charset=\"us-ascii\"",
+                                             "MIME-Version: 1.0",
+                                             "Content-Transfer-Encoding: 7bit",
+                                             "Content-Disposition: attachment; filename=\"galaxy-part-handler.py\"",
+                                             "",
+                                             "http://s3.amazonaws.com/proofpoint-s3/galaxy-part-handler.py",
+                                             "",
+                                             "--===============4809107299230207060==",
+                                             "Content-Type: text/plain; charset=\"us-ascii\"",
+                                             "MIME-Version: 1.0",
+                                             "Content-Transfer-Encoding: 7bit",
+                                             "Content-Disposition: attachment; filename=\"galaxy-coordinator.properties\"",
+                                             "",
+                                             {
+                                                 "Fn::Join": ["=", ["galaxy.version", { "Ref": "GalaxyVersion" }]]
+                                             },
+                                             {
+                                                 "Fn::Join": ["=", ["http-server.http.port", { "Ref": "CoordinatorPort" }]]
+                                             },
+                                             {
+                                                 "Fn::Join": ["=", ["coordinator.binary-repo", { "Ref": "BinaryRepoURI" }]]
+                                             },
+                                             {
+                                                 "Fn::Join": ["=", ["agent.coordinator-uri", {
+                                                        "Fn::Join" : [ "", [ "http://localhost:", { "Ref" : "CoordinatorPort" }]]
+                                                    }
+                                                 ]]
+                                             },
+                                             {
+                                                 "Fn::Join": ["=", ["node.environment", { "Ref": "Environment" }]]
+                                             },
+                                             "",
+                                             "--===============4809107299230207060==",
+                                             "Content-Type: text/plain; charset=\"us-ascii\"",
+                                             "MIME-Version: 1.0",
+                                             "Content-Transfer-Encoding: 7bit",
+                                             "Content-Disposition: attachment; filename=\"galaxy-configuration-repository.properties\"",
+                                             "",
+                                             {
+                                                 "Fn::Join": ["=", ["galaxy.version", { "Ref": "GalaxyVersion" }]]
+                                             },
+                                             {
+                                                 "Fn::Join": ["=", ["configuration-repository.git.uri", { "Ref": "ConfigGitRepoURI" }]]
+                                             },
+                                             {
+                                                 "Fn::Join": ["=", ["node.environment", { "Ref": "Environment" }]]
+                                             },
+                                             "",
+                                             "--===============4809107299230207060==",
+                                             "Content-Type: text/x-include-url; charset=\"us-ascii\"",
+                                             "MIME-Version: 1.0",
+                                             "Content-Transfer-Encoding: 7bit",
+                                             "Content-Disposition: attachment; filename=\"galaxy-install.rb\"",
+                                             "",
+                                             "http://s3.amazonaws.com/proofpoint-s3/galaxy-install.rb",
+                                             "",
+                                             "--===============4809107299230207060=="
+                                     ]
+                        ]
+                    }
+                }
+            }
+        },
+        "AgentLaunchConfig" : {
+            "Type" : "AWS::AutoScaling::LaunchConfiguration",
+            "Properties" : {
+                "ImageId" : "ami-27b7744e",
+                "SecurityGroups" : [
+                    {
+                        "Ref": "SecurityGroup"
+                    }
+                ],
+                "InstanceType" : {
+                    "Ref" : "AgentInstanceType"
+                },
+                "KeyName" : {
+                    "Ref" : "KeyName"
+                },
+                "InstanceMonitoring": "false",
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": ["\n",
+                                     [
+                                         "Content-Type: multipart/mixed; boundary=\"===============4809107299230207060==\"",
+                                         "MIME-Version: 1.0",
+                                         "",
+                                         "--===============4809107299230207060==",
+                                         "Content-Type: text/x-include-url; charset=\"us-ascii\"",
+                                         "MIME-Version: 1.0",
+                                         "Content-Transfer-Encoding: 7bit",
+                                         "Content-Disposition: attachment; filename=\"url-1.txt\"",
+                                         "",
+                                         "http://s3.amazonaws.com/proofpoint-s3/galaxy-part-handler.py",
+                                         "",
+                                         "--===============4809107299230207060==",
+                                         "Content-Type: text/plain; charset=\"us-ascii\"",
+                                         "MIME-Version: 1.0",
+                                         "Content-Transfer-Encoding: 7bit",
+                                         "Content-Disposition: attachment; filename=\"galaxy-agent.properties\"",
+                                         "",
+                                         {
+                                             "Fn::Join": ["=", ["galaxy.version", { "Ref": "GalaxyVersion" }]]
+                                         },
+                                         {
+                                             "Fn::Join": ["=", ["agent.coordinator-uri", {
+                                                    "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "CoordinatorInstance" , "PrivateIp" ] }, ":", { "Ref" : "CoordinatorPort" }]]
+                                                }
+                                             ]]
+                                         },
+                                         {
+                                             "Fn::Join": ["=", ["node.environment", { "Ref": "Environment" }]]
+                                         },
+                                         "",
+                                         "--===============4809107299230207060==",
+                                         "Content-Type: text/x-include-url; charset=\"us-ascii\"",
+                                         "MIME-Version: 1.0",
+                                         "Content-Transfer-Encoding: 7bit",
+                                         "Content-Disposition: attachment; filename=\"galaxy-install.rb\"",
+                                         "",
+                                         "http://s3.amazonaws.com/proofpoint-s3/galaxy-install.rb",
+                                         "",
+                                         "--===============4809107299230207060=="
+                                     ]
+                        ]
+                    }
+                }
+            }
+        },
+        "AgentInstanceGroup" : {
+            "Type" : "AWS::AutoScaling::AutoScalingGroup",
+            "Properties" : {
+                "AvailabilityZones": {
+                    "Fn::GetAZs" : ""
+                },
+                "LaunchConfigurationName" : { "Ref" : "AgentLaunchConfig" },
+                "MinSize" : "0",
+                "MaxSize" : { "Ref" : "NumberOfAgents" },
+                "DesiredCapacity" : { "Ref" : "NumberOfAgents" }
+            }
+        }
+    },
+    "Outputs" : {
+        "CoordinatorURL" : {
+            "Value" : {
+                "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "CoordinatorInstance" , "PublicIp" ] }, ":", { "Ref" : "CoordinatorPort" }]]
+            }
+        },
+        "AgentsAutoScalingGroup": {
+            "Value" : { "Ref": "AgentInstanceGroup" }
+        }
+    }
+}
