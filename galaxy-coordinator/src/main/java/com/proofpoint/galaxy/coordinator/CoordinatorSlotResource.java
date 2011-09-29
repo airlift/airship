@@ -58,12 +58,11 @@ public class CoordinatorSlotResource
     private final BinaryRepository binaryRepository;
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
-    private final URI baseBinaryResourceUri;
 
     public static final int MIN_PREFIX_SIZE = 4;
 
     @Inject
-    public CoordinatorSlotResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository, HttpServerInfo httpServerInfo)
+    public CoordinatorSlotResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository)
     {
         Preconditions.checkNotNull(coordinator, "coordinator must not be null");
         Preconditions.checkNotNull(configRepository, "repository is null");
@@ -74,12 +73,6 @@ public class CoordinatorSlotResource
         this.binaryRepository = binaryRepository;
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
-        if (httpServerInfo != null) {
-            baseBinaryResourceUri = httpServerInfo.getHttpUri().resolve(BinaryResource.class.getAnnotation(Path.class).value());
-        }
-        else {
-            baseBinaryResourceUri = null;
-        }
     }
 
     @GET
@@ -112,26 +105,9 @@ public class CoordinatorSlotResource
         Preconditions.checkArgument(limit > 0, "limit must be at least 1");
 
         Assignment assignment = assignmentRepresentation.toAssignment();
-        Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
-        if (configMap == null) {
-            configMap = configRepository.getConfigMap(assignment.getConfig());
-        }
-
-        BinarySpec binary = assignment.getBinary();
-        URI binaryUri = binaryRepository.getBinaryUri(binary);
-        if (binaryUri == null) {
-            return Response.status(Status.NOT_FOUND).entity("Unknown binary: " + binary).build();
-        }
-        if ("file".equalsIgnoreCase(binaryUri.getScheme()) && binaryUri != null) {
-            binaryUri = baseBinaryResourceUri.resolve(String.format("%s/%s/%s/%s/", binary.getGroupId(), binary.getArtifactId(), binary.getVersion(), binary.getPackaging()));
-            if (binary.getClassifier() != null) {
-                binaryUri.resolve(binary.getClassifier());
-            }
-        }
-        Installation installation = new Installation(assignment, binaryUri, configMap);
 
         Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo);
-        List<SlotStatus> results = coordinator.install(agentFilter, limit, installation);
+        List<SlotStatus> results = coordinator.install(agentFilter, limit, assignment);
 
         List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         int uniquePrefixSize = max(Strings.shortestUniquePrefix(transform(uuids, toStringFunction())), MIN_PREFIX_SIZE);

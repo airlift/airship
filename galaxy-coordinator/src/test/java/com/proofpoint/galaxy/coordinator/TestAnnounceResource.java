@@ -17,6 +17,9 @@ import com.google.common.collect.ImmutableList;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.http.server.HttpServerConfig;
+import com.proofpoint.http.server.HttpServerInfo;
+import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -43,8 +46,10 @@ public class TestAnnounceResource
     public void setup()
             throws Exception
     {
+        BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), new NodeInfo("testing")));
+
         coordinator = new Coordinator(new MockRemoteAgentFactory(),
-                MOCK_BINARY_REPO,
+                urlResolver,
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null));
         resource = new AnnounceResource(coordinator);

@@ -40,19 +40,19 @@ public class Coordinator
 {
     private final ConcurrentMap<UUID, RemoteAgent> agents;
 
-    private final BinaryRepository binaryRepository;
+    private final BinaryUrlResolver binaryUrlResolver;
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
 
     @Inject
-    public Coordinator(final RemoteAgentFactory remoteAgentFactory, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository)
+    public Coordinator(final RemoteAgentFactory remoteAgentFactory, BinaryUrlResolver binaryUrlResolver, ConfigRepository configRepository, LocalConfigRepository localConfigRepository)
     {
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(configRepository, "repository is null");
-        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
+        Preconditions.checkNotNull(binaryUrlResolver, "binaryUrlResolver is null");
         Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
 
-        this.binaryRepository = binaryRepository;
+        this.binaryUrlResolver = binaryUrlResolver;
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
 
@@ -104,8 +104,14 @@ public class Coordinator
         return agents.remove(agentId) != null;
     }
 
-    public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, final Installation installation)
+    public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
+        Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
+        if (configMap == null) {
+            configMap = configRepository.getConfigMap(assignment.getConfig());
+        }
+
+        Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap);
 
         List<SlotStatus> slots = newArrayList();
         List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), filterAgentsBy(filter)));
@@ -154,7 +160,7 @@ public class Coordinator
             configMap = configRepository.getConfigMap(assignment.getConfig());
         }
 
-        final Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configMap);
+        final Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap);
 
         return ImmutableList.copyOf(transform(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
         {
