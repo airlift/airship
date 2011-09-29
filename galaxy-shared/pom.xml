@@ -64,7 +64,7 @@
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>units</artifactId>
-            <version>0.44-SNAPSHOT</version>
+            <version>0.47-SNAPSHOT</version>
         </dependency>
 
         <!-- for testing -->
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>experimental</artifactId>
-            <version>0.44-SNAPSHOT</version>
+            <version>0.47-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
