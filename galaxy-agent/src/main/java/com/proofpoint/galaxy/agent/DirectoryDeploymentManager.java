@@ -137,7 +137,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
                 Files.copy(Resources.newInputStreamSupplier(installation.getBinaryFile().toURL()), binary);
             }
             catch (IOException e) {
-                throw new RuntimeException("Unable to download binary " + assignment.getBinary() + " from " + installation.getBinaryFile());
+                throw new RuntimeException("Unable to download binary " + assignment.getBinary() + " from " + installation.getBinaryFile(), e);
             }
 
             // unpack the binary into a temp unpack dir
