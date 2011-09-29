@@ -82,6 +82,7 @@ class AgentConfigurator
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
         node.environment=#{properties['node.environment']}
+        node.location=#{properties['node.location']}
         agent.coordinator-uri=#{properties['agent.coordinator-uri']}
         http-server.http.port=0
         agent.slots-dir=/tmp/agent/slots
@@ -101,6 +102,7 @@ class CoordinatorConfigurator
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
         node.environment=#{properties['node.environment']}
+        node.location=#{properties['node.location']}
         coordinator.binary-repo=#{properties['coordinator.binary-repo']}
         coordinator.config-repo=http://localhost:64001/v1/config
         http-server.http.port=64000
@@ -119,6 +121,7 @@ class ConfigurationServerConfigurator
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
         node.environment=#{properties['node.environment']}
+        node.location=#{properties['node.location']}
         configuration-repository.git.uri=#{properties['configuration-repository.git.uri']}
         configuration-repository.coordinator-uri=http://localhost:64000
         http-server.http.port=64001
@@ -146,6 +149,13 @@ configurators = {
         'galaxy-configuration-repository' => ConfigurationServerConfigurator.new
 }
 
+availability_zone = open("http://169.254.169.254/latest/meta-data/placement/availability-zone") { |io| io.read }
+instance_id = open("http://169.254.169.254/latest/meta-data/instance-id") { |io| io.read }
+
+# ec2 availability zones use the name of the region plus a 1 letter zone identifier
+region = availability_zone[0..-2]
+
+location = "/ec2/#{region}/#{availability_zone}/#{instance_id}"
 
 # become user 'ubuntu'
 user = Etc.getpwnam('ubuntu')
@@ -187,6 +197,7 @@ Dir[config_dir + '/*.properties'].each do |config_file|
   puts "Found #{artifact_id}"
   properties = parse(config_file)
 
+  properties['node.location'] = location
   version = properties['galaxy.version']
   coordinator_url = properties['agent.coordinator-uri']
 
