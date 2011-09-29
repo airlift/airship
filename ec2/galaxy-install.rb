@@ -135,10 +135,6 @@ end
 urls = ['http://oss.sonatype.org/content/repositories/releases',
         'http://oss.sonatype.org/content/repositories/snapshots']
 
-#config_dir = '/tmp/cloudconf'
-#install_path = "/tmp/galaxy"
-#downloads_path = '/tmp/downloads'
-
 bashrc_path = '/home/ubuntu/.bashrc'
 downloads_path = "/home/ubuntu/downloads"
 install_path = "/home/ubuntu/galaxy"
