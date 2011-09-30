@@ -14,7 +14,6 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.testing.FakeTicker;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -26,7 +25,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +59,8 @@ public class TestAnnounceResource
         agentStatus = new AgentStatus(UUID.randomUUID(),
                 ONLINE,
                 URI.create("fake://foo/"),
+                "unknown/location",
+                "instance.type",
                 ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT, "/foo")));
     }
 
@@ -71,11 +71,13 @@ public class TestAnnounceResource
         AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(),
                 ONLINE,
                 URI.create("fake://foo/"),
+                "unknown/location",
+                "instance.type",
                 ImmutableList.of(
                         new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT, "/foo"),
                         new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"), STOPPED, APPLE_ASSIGNMENT, "/moo")));
 
-        Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, URI.create("http://localhost/v1/agent")));
+        Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent));
 
         assertEquals(response.getStatus(), Response.Status.NO_CONTENT.getStatusCode());
         assertNull(response.getEntity());

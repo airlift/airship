@@ -49,6 +49,7 @@ public class TestLifecycleResource
         Agent agent = new Agent(
                 new AgentConfig().setSlotsDir(new File(tempDir, "slots").getAbsolutePath()),
                 new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test")),
+                new NodeInfo("test"),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager()
         );

@@ -24,6 +24,7 @@ import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
+import com.proofpoint.node.NodeInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,19 +52,26 @@ public class Agent
     private final LifecycleManager lifecycleManager;
     private final File slotsDir;
     private final HttpServerInfo httpServerInfo;
+    private final String location;
+    private final String instanceType;
 
     @Inject
     public Agent(AgentConfig config,
             HttpServerInfo httpServerInfo,
+            NodeInfo nodeInfo,
             DeploymentManagerFactory deploymentManagerFactory,
             LifecycleManager lifecycleManager)
     {
         Preconditions.checkNotNull(config, "config is null");
+        Preconditions.checkNotNull(httpServerInfo, "httpServerInfo is null");
+        Preconditions.checkNotNull(nodeInfo, "nodeInfo is null");
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
 
         this.config = config;
         this.httpServerInfo = httpServerInfo;
+        location = nodeInfo.getLocation();
+        instanceType = config.getInstanceType();
 
         this.deploymentManagerFactory = deploymentManagerFactory;
         this.lifecycleManager = lifecycleManager;
@@ -146,7 +154,7 @@ public class Agent
             SlotStatus slotStatus = slot.status();
             builder.add(slotStatus);
         }
-        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, httpServerInfo.getHttpUri(), builder.build());
+        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, httpServerInfo.getHttpUri(), location, instanceType, builder.build());
         return agentStatus;
     }
 

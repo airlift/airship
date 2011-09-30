@@ -60,6 +60,7 @@ public class TestSlotResource
         HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test"));
         agent = new Agent(agentConfig,
                 httpServerInfo,
+                new NodeInfo("test"),
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager()
         );

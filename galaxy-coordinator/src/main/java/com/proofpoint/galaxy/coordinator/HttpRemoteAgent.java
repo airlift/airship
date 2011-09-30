@@ -42,6 +42,8 @@ public class HttpRemoteAgent implements RemoteAgent
     private AgentLifecycleState state;
     private URI uri;
     private long lastUpdateTimestamp;
+    private String location;
+    private String instanceType;
 
     public HttpRemoteAgent(UUID agentId, AsyncHttpClient httpClient, JsonCodec<InstallationRepresentation> installationCodec, JsonCodec<SlotStatusRepresentation> slotStatusCodec, Ticker ticker)
     {
@@ -59,7 +61,7 @@ public class HttpRemoteAgent implements RemoteAgent
     @Override
     public AgentStatus status()
     {
-        return new AgentStatus(agentId, state, uri, ImmutableList.copyOf(Iterables.transform(slots.values(), new Function<HttpRemoteSlot, SlotStatus>()
+        return new AgentStatus(agentId, state, uri, location, instanceType, ImmutableList.copyOf(Iterables.transform(slots.values(), new Function<HttpRemoteSlot, SlotStatus>()
         {
             public SlotStatus apply(HttpRemoteSlot slot)
             {
@@ -101,6 +103,8 @@ public class HttpRemoteAgent implements RemoteAgent
         state = status.getState();
         uri = status.getUri();
         lastUpdateTimestamp = ticker.read();
+        location = status.getLocation();
+        instanceType = status.getInstanceType();
     }
 
     @Override

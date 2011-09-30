@@ -61,7 +61,7 @@ public class TestCoordinatorSlotResource
     {
         SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"), STOPPED, APPLE_ASSIGNMENT, "/slot1");
         SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"), STOPPED, APPLE_ASSIGNMENT, "/slot2");
-        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), ImmutableList.of(slot1, slot2));
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2));
         coordinator.updateAgentStatus(agentStatus);
 
         int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString())));
@@ -78,7 +78,7 @@ public class TestCoordinatorSlotResource
     {
         SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"), STOPPED, APPLE_ASSIGNMENT, "/slot1");
         SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"), STOPPED, APPLE_ASSIGNMENT, "/slot2");
-        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), ImmutableList.of(slot1, slot2));
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2));
         coordinator.updateAgentStatus(agentStatus);
 
         int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString())));
@@ -125,6 +125,8 @@ public class TestCoordinatorSlotResource
             coordinator.updateAgentStatus(new AgentStatus(UUID.randomUUID(),
                     ONLINE,
                     URI.create("fake://appleServer1/"),
+                    "unknown/location",
+                    "instance.type",
                     ImmutableList.<SlotStatus>of()));
         }
 

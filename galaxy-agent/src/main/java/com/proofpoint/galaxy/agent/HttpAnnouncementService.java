@@ -85,7 +85,7 @@ public class HttpAnnouncementService implements AnnouncementService
     {
         try {
             AgentStatus agentStatus = agent.getAgentStatus();
-            AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus, httpServerInfo.getHttpUri());
+            AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus);
             String json = codec.toJson(agentStatusRepresentation);
 
             Response response = client.preparePut(announcementUrl)

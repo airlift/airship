@@ -45,7 +45,7 @@ public class MockRemoteAgent implements RemoteAgent
     @Override
     public AgentStatus status()
     {
-        return new AgentStatus(agentId, state, uri, ImmutableList.copyOf(Iterables.transform(slots.values(), new Function<MockRemoteSlot, SlotStatus>()
+        return new AgentStatus(agentId, state, uri, "unknown/location", "instance.type", ImmutableList.copyOf(Iterables.transform(slots.values(), new Function<MockRemoteSlot, SlotStatus>()
         {
             public SlotStatus apply(MockRemoteSlot slot)
             {

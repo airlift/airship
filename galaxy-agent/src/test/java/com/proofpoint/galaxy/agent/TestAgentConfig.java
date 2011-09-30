@@ -33,7 +33,9 @@ public class TestAgentConfig
                 .setLauncherTimeout(new Duration(1, TimeUnit.SECONDS))
                 .setLauncherStopTimeout(new Duration(10, TimeUnit.SECONDS))
                 .setTarTimeout(new Duration(1, TimeUnit.MINUTES))
-                .setMaxLockWait(new Duration(1, TimeUnit.SECONDS)));
+                .setMaxLockWait(new Duration(1, TimeUnit.SECONDS))
+                .setInstanceType(null)
+        );
     }
 
     @Test
@@ -46,6 +48,7 @@ public class TestAgentConfig
                 .put("agent.launcher-stop-timeout", "50m")
                 .put("agent.tar-timeout", "10m")
                 .put("agent.max-lock-wait", "1m")
+                .put("agent.instance-type", "instance.type")
                 .build();
 
         AgentConfig expected = new AgentConfig()
@@ -54,7 +57,8 @@ public class TestAgentConfig
                 .setLauncherTimeout(new Duration(5, TimeUnit.MINUTES))
                 .setLauncherStopTimeout(new Duration(50, TimeUnit.MINUTES))
                 .setTarTimeout(new Duration(10, TimeUnit.MINUTES))
-                .setMaxLockWait(new Duration(1, TimeUnit.MINUTES));
+                .setMaxLockWait(new Duration(1, TimeUnit.MINUTES))
+                .setInstanceType("instance.type");
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }

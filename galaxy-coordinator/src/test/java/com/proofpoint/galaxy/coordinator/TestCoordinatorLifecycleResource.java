@@ -91,7 +91,10 @@ public class TestCoordinatorLifecycleResource
         agentId = UUID.randomUUID();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
-                URI.create("fake://foo/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+                URI.create("fake://foo/"),
+                "unknown/location",
+                "instance.type",
+                ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
                 appleSlotStatus1.getId().toString(), appleSlotStatus2.getId().toString(),

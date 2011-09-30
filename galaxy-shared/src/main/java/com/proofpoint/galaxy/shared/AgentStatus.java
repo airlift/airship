@@ -18,8 +18,10 @@ public class AgentStatus
     private final AgentLifecycleState state;
     private final URI uri;
     private final Map<String, SlotStatus> slots;
+    private final String location;
+    private final String instanceType;
 
-    public AgentStatus(UUID agentId, AgentLifecycleState state, URI uri, List<SlotStatus> slots)
+    public AgentStatus(UUID agentId, AgentLifecycleState state, URI uri, String location, String instanceType, List<SlotStatus> slots)
     {
         Preconditions.checkNotNull(agentId, "agentId is null");
         Preconditions.checkNotNull(slots, "slots is null");
@@ -27,6 +29,8 @@ public class AgentStatus
         this.uri = uri;
         this.state = state;
         this.agentId = agentId;
+        this.location = location;
+        this.instanceType = instanceType;
         this.slots = Maps.uniqueIndex(slots, new Function<SlotStatus, String>()
         {
             public String apply(SlotStatus slotStatus)
@@ -49,6 +53,16 @@ public class AgentStatus
     public URI getUri()
     {
         return uri;
+    }
+
+    public String getLocation()
+    {
+        return location;
+    }
+
+    public String getInstanceType()
+    {
+        return instanceType;
     }
 
     public SlotStatus getSlotStatus(String slotName)

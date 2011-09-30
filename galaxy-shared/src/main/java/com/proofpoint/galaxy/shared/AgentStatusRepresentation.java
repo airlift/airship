@@ -18,27 +18,32 @@ public class AgentStatusRepresentation
     private final UUID agentId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
+    private final AgentLifecycleState state;
+    private final String location;
+    private final String instanceType;
 
-    public static AgentStatusRepresentation from(AgentStatus status, URI baseUri) {
+    public static AgentStatusRepresentation from(AgentStatus status) {
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (SlotStatus slot : status.getSlotStatuses()) {
             builder.add(SlotStatusRepresentation.from(slot));
         }
-        return new AgentStatusRepresentation(status.getAgentId(), builder.build(), status.getUri());
+        return new AgentStatusRepresentation(status.getAgentId(), status.getState(), status.getUri(), status.getLocation(), status.getInstanceType(), builder.build());
     }
-
-    public static URI getSelfUri(AgentStatus status, URI baseUri)
-    {
-        return baseUri.resolve("/v1/agent/" + status.getAgentId());
-    }
-
 
     @JsonCreator
-    public AgentStatusRepresentation(@JsonProperty("agentId") UUID agentId, @JsonProperty("slots") List<SlotStatusRepresentation> slots, @JsonProperty("self") URI self)
+    public AgentStatusRepresentation(
+            @JsonProperty("agentId") UUID agentId,
+            @JsonProperty("state") AgentLifecycleState state,
+            @JsonProperty("self") URI self,
+            @JsonProperty("location") String location,
+            @JsonProperty("instanceType") String instanceType, @JsonProperty("slots") List<SlotStatusRepresentation> slots)
     {
         this.agentId = agentId;
         this.slots = slots;
         this.self = self;
+        this.state = state;
+        this.location = location;
+        this.instanceType = instanceType;
     }
 
     @JsonProperty
@@ -62,13 +67,31 @@ public class AgentStatusRepresentation
         return self;
     }
 
+    @JsonProperty
+    public AgentLifecycleState getState()
+    {
+        return state;
+    }
+
+    @JsonProperty
+    public String getLocation()
+    {
+        return location;
+    }
+
+    @JsonProperty
+    public String getInstanceType()
+    {
+        return instanceType;
+    }
+
     public AgentStatus toAgentStatus()
     {
         Builder<SlotStatus> builder = ImmutableList.builder();
         for (SlotStatusRepresentation slot : slots) {
             builder.add(slot.toSlotStatus());
         }
-        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, self, builder.build());
+        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, self, location, instanceType, builder.build());
     }
 
     @Override
@@ -99,9 +122,12 @@ public class AgentStatusRepresentation
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("AgentStatusRepresentation");
         sb.append("{agentId=").append(agentId);
+        sb.append(", state=").append(state);
+        sb.append(", location=").append(location);
+        sb.append(", instanceType=").append(instanceType);
         sb.append(", slots=").append(slots);
         sb.append('}');
         return sb.toString();

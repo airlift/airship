@@ -144,7 +144,7 @@ public class TestCoordinatorServer
         agentId = UUID.randomUUID();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
-                URI.create("fake://foo/"), ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+                URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
         coordinator.updateAgentStatus(agentStatus);
 
@@ -370,7 +370,7 @@ public class TestCoordinatorServer
             throws Exception
     {
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
-        String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(agentStatus, server.getBaseUrl()));
+        String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(agentStatus));
         Response response = client.preparePut(urlFor("/v1/announce/" + agentId))
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
@@ -389,9 +389,11 @@ public class TestCoordinatorServer
         AgentStatus newAgentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://foo/"),
+                "unknown/location",
+                "instance.type",
                 ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT, "/foo")));
 
-        String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(newAgentStatus, server.getBaseUrl()));
+        String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(newAgentStatus));
         Response response = client.preparePut(urlFor("/v1/announce/" + agentId))
                 .setBody(json)
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)

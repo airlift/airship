@@ -53,7 +53,7 @@ public class TestCoordinator extends TestCase
         UUID agentId = UUID.randomUUID();
         URI agentUri = URI.create("fake://agent/" + agentId);
 
-        AgentStatus status = new AgentStatus(agentId, AgentLifecycleState.ONLINE, agentUri, ImmutableList.<SlotStatus>of());
+        AgentStatus status = new AgentStatus(agentId, AgentLifecycleState.ONLINE, agentUri, "unknown/location", "instance.type", ImmutableList.<SlotStatus>of());
         coordinator.updateAgentStatus(status);
 
         assertEquals(coordinator.getAllAgentStatus(), ImmutableList.of(status));
@@ -70,7 +70,7 @@ public class TestCoordinator extends TestCase
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
         // announce the new agent and verify
-        AgentStatus status = new AgentStatus(agentId, AgentLifecycleState.ONLINE, agentUri, ImmutableList.<SlotStatus>of());
+        AgentStatus status = new AgentStatus(agentId, AgentLifecycleState.ONLINE, agentUri, "unknown/location", "instance.type", ImmutableList.<SlotStatus>of());
         coordinator.updateAgentStatus(status);
 
         assertEquals(coordinator.getAllAgentStatus(), ImmutableList.of(status));

@@ -17,6 +17,7 @@ import com.google.common.base.Preconditions;
 import com.proofpoint.configuration.Config;
 import com.proofpoint.units.Duration;
 
+import javax.print.DocFlavor.STRING;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +30,7 @@ public class AgentConfig
     private Duration launcherStopTimeout = new Duration(10, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);
+    private String instanceType;
 
     @NotNull
     public URI getCoordinatorBaseURI()
@@ -109,6 +111,18 @@ public class AgentConfig
         Preconditions.checkArgument(lockWait.toMillis() > 0, "ttl must be > 0");
 
         this.maxLockWait = lockWait;
+        return this;
+    }
+
+    public String getInstanceType()
+    {
+        return instanceType;
+    }
+
+    @Config("agent.instance-type")
+    public AgentConfig setInstanceType(String instanceType)
+    {
+        this.instanceType = instanceType;
         return this;
     }
 }

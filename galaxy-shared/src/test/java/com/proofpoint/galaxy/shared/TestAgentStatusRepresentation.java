@@ -22,6 +22,7 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
@@ -33,6 +34,10 @@ public class TestAgentStatusRepresentation
     private final JsonCodec<AgentStatusRepresentation> codec = jsonCodec(AgentStatusRepresentation.class);
 
     private final AgentStatusRepresentation expected = new AgentStatusRepresentation(UUID.fromString("44444444-4444-4444-4444-444444444444"),
+            ONLINE,
+            URI.create("fake://agent"),
+            "unknown/location",
+            "instance.type",
             ImmutableList.of(
                     new SlotStatusRepresentation(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             null,
@@ -49,8 +54,8 @@ public class TestAgentStatusRepresentation
                             BANANA_ASSIGNMENT.getBinary().toString(),
                             BANANA_ASSIGNMENT.getConfig().toString(),
                             STOPPED.toString(),
-                            "/banana")),
-            URI.create("fake://agent"));
+                            "/banana"))
+    );
 
     @Test
     public void testJsonRoundTrip()
