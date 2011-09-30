@@ -170,7 +170,7 @@ module Galaxy
       else
         path = Shell::quote(slot.path)
       end
-      remote_command = "cd #{path}; bash --login"
+      remote_command = "cd #{path}; #{options[:ssh_command]}"
       command = "#{ssh} #{slot.host} -t #{Shell::quote(remote_command)}"
 
       puts command if options[:debug]
@@ -239,7 +239,8 @@ module Galaxy
 
     COMMANDS = [:show, :install, :upgrade, :terminate, :start, :stop, :restart, :ssh]
     INITIAL_OPTIONS = {
-        :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000'
+        :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000',
+        :ssh_command => "bash --login"
     }
 
     def self.parse_command_line(args)
@@ -292,6 +293,11 @@ module Galaxy
 
         opts.on("-u", "--uuid SLOT_UUID", "Select slots with given slot uuid") do |arg|
           filter[:uuid] = arg
+        end
+
+        # todo find a better command line argument
+        opts.on("-x", "--ssh-command SSH_COMMAND", "Command to execute with ssh") do |arg|
+          options[:ssh_command] = arg
         end
 
         opts.on("-s", "--state STATE", "Select 'r{unning}', 's{topped}' or 'unknown' slots", [:running, :r, :stopped, :s, :unknown]) do |arg|
