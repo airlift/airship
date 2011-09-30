@@ -1,7 +1,7 @@
 module Colorize
   module ANSIColors
     COLORS = {
-      :normal => "\e[0m",
+      :normal => "\e[39m",
       :bright => "\e[1m",
 
       :red => "\e[31m",
