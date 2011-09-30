@@ -112,4 +112,17 @@ public class AgentStatus
         sb.append('}');
         return sb.toString();
     }
+
+
+    public static Function<AgentStatus, UUID> uuidGetter()
+    {
+        return new Function<AgentStatus, UUID>()
+        {
+            public UUID apply(AgentStatus input)
+            {
+                return input.getAgentId();
+            }
+        };
+    }
+
 }

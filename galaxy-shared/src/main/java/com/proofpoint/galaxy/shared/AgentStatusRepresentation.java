@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
@@ -16,29 +17,67 @@ import java.util.UUID;
 public class AgentStatusRepresentation
 {
     private final UUID agentId;
+    private final String shortId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
     private final AgentLifecycleState state;
     private final String location;
     private final String instanceType;
 
+    private final static int MAX_ID_SIZE = UUID.randomUUID().toString().length();
+
+    public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatusWithShortIdPrefixSize(final int size)
+    {
+        return new Function<AgentStatus, AgentStatusRepresentation>()
+        {
+            public AgentStatusRepresentation apply(AgentStatus status)
+            {
+                return from(status, size);
+            }
+        };
+    }
+
+    public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatus()
+    {
+        return new Function<AgentStatus, AgentStatusRepresentation>()
+        {
+            public AgentStatusRepresentation apply(AgentStatus status)
+            {
+                return from(status);
+            }
+        };
+    }
+
     public static AgentStatusRepresentation from(AgentStatus status) {
+        return from(status, MAX_ID_SIZE) ;
+    }
+
+    public static AgentStatusRepresentation from(AgentStatus status, int shortIdPrefixSize) {
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (SlotStatus slot : status.getSlotStatuses()) {
             builder.add(SlotStatusRepresentation.from(slot));
         }
-        return new AgentStatusRepresentation(status.getAgentId(), status.getState(), status.getUri(), status.getLocation(), status.getInstanceType(), builder.build());
+        return new AgentStatusRepresentation(
+                status.getAgentId(),
+                status.getAgentId().toString().substring(0, shortIdPrefixSize),
+                status.getState(),
+                status.getUri(),
+                status.getLocation(),
+                status.getInstanceType(),
+                builder.build());
     }
 
     @JsonCreator
     public AgentStatusRepresentation(
             @JsonProperty("agentId") UUID agentId,
+            @JsonProperty("shortId") String shortId,
             @JsonProperty("state") AgentLifecycleState state,
             @JsonProperty("self") URI self,
             @JsonProperty("location") String location,
             @JsonProperty("instanceType") String instanceType, @JsonProperty("slots") List<SlotStatusRepresentation> slots)
     {
         this.agentId = agentId;
+        this.shortId = shortId;
         this.slots = slots;
         this.self = self;
         this.state = state;
@@ -51,6 +90,12 @@ public class AgentStatusRepresentation
     public UUID getAgentId()
     {
         return agentId;
+    }
+
+    @JsonProperty
+    public String getShortId()
+    {
+        return shortId;
     }
 
     @JsonProperty
@@ -125,6 +170,7 @@ public class AgentStatusRepresentation
         final StringBuilder sb = new StringBuilder();
         sb.append("AgentStatusRepresentation");
         sb.append("{agentId=").append(agentId);
+        sb.append(", shortId=").append(shortId);
         sb.append(", state=").append(state);
         sb.append(", location=").append(location);
         sb.append(", instanceType=").append(instanceType);

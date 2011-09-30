@@ -33,7 +33,9 @@ public class TestAgentStatusRepresentation
 {
     private final JsonCodec<AgentStatusRepresentation> codec = jsonCodec(AgentStatusRepresentation.class);
 
-    private final AgentStatusRepresentation expected = new AgentStatusRepresentation(UUID.fromString("44444444-4444-4444-4444-444444444444"),
+    private final AgentStatusRepresentation expected = new AgentStatusRepresentation(
+            UUID.fromString("44444444-4444-4444-4444-444444444444"),
+            null,
             ONLINE,
             URI.create("fake://agent"),
             "unknown/location",

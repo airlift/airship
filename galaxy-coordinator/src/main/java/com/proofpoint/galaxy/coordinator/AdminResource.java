@@ -1,9 +1,11 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -17,10 +19,17 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.UUID;
 
+import static com.google.common.collect.Collections2.transform;
+import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
+import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatusWithShortIdPrefixSize;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
+import static java.lang.Math.max;
+
 @Path("/v1/admin/")
 public class AdminResource
 {
     private final Coordinator coordinator;
+    public static final int MIN_PREFIX_SIZE = 4;
 
     @Inject
     public AdminResource(Coordinator coordinator)
@@ -34,11 +43,15 @@ public class AdminResource
     public Response getAllSlotsStatus(@Context UriInfo uriInfo)
     {
         List<AgentStatus> agents = coordinator.getAllAgentStatus();
-        ImmutableList.Builder<AgentStatusRepresentation> builder = ImmutableList.builder();
-        for (AgentStatus agentStatus : agents) {
-            builder.add(AgentStatusRepresentation.from(agentStatus));
+
+        List<UUID> uuids = Lists.transform(agents, AgentStatus.uuidGetter());
+
+        int prefixSize = MIN_PREFIX_SIZE;
+        if (!uuids.isEmpty()) {
+            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
         }
-        return Response.ok(builder.build()).build();
+
+        return Response.ok(transform(agents, fromAgentStatusWithShortIdPrefixSize(prefixSize))).build();
     }
 
     @DELETE
