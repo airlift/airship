@@ -4,9 +4,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.MapMaker;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
@@ -14,7 +16,9 @@ import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.units.Duration;
 
+import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Predicates.alwaysTrue;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
@@ -43,18 +50,45 @@ public class Coordinator
     private final BinaryUrlResolver binaryUrlResolver;
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
+    private ScheduledExecutorService timerService;
+    private final Duration statusExpiration;
+    private final Ticker ticker;
 
     @Inject
-    public Coordinator(final RemoteAgentFactory remoteAgentFactory, BinaryUrlResolver binaryUrlResolver, ConfigRepository configRepository, LocalConfigRepository localConfigRepository)
+    public Coordinator(CoordinatorConfig config,
+            final RemoteAgentFactory remoteAgentFactory,
+            BinaryUrlResolver binaryUrlResolver,
+            ConfigRepository configRepository,
+            LocalConfigRepository localConfigRepository)
+    {
+        this(remoteAgentFactory,
+                binaryUrlResolver,
+                configRepository,
+                localConfigRepository,
+                checkNotNull(config, "config is null").getStatusExpiration(),
+                Ticker.systemTicker()
+        );
+    }
+
+    public Coordinator(final RemoteAgentFactory remoteAgentFactory,
+            BinaryUrlResolver binaryUrlResolver,
+            ConfigRepository configRepository,
+            LocalConfigRepository localConfigRepository,
+            Duration statusExpiration,
+            Ticker ticker)
     {
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(binaryUrlResolver, "binaryUrlResolver is null");
         Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
+        Preconditions.checkNotNull(statusExpiration, "statusExpiration is null");
+        Preconditions.checkNotNull(ticker, "ticker is null");
 
         this.binaryUrlResolver = binaryUrlResolver;
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
+        this.statusExpiration = statusExpiration;
+        this.ticker = ticker;
 
         agents = new MapMaker().makeComputingMap(new Function<UUID, RemoteAgent>()
         {
@@ -63,6 +97,21 @@ public class Coordinator
                 return remoteAgentFactory.createRemoteAgent(agentId);
             }
         });
+
+        timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
+    }
+
+    @PostConstruct
+    public void start() {
+        // check for expiration often enough that timeouts are not exceeded by more than 20%
+        timerService.scheduleWithFixedDelay(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                checkAgentStatuses();
+            }
+        }, 0, (long) statusExpiration.toMillis() / 5, TimeUnit.MILLISECONDS);
     }
 
     public List<AgentStatus> getAllAgentStatus()
@@ -85,17 +134,27 @@ public class Coordinator
         return agent.status();
     }
 
+    public void checkAgentStatuses()
+    {
+        long minUpdateTime = (long) (ticker.read() - statusExpiration.convertTo(TimeUnit.NANOSECONDS));
+        for (RemoteAgent remoteAgent : agents.values()) {
+            if (remoteAgent.getLastUpdateTimestamp() < minUpdateTime) {
+                remoteAgent.markAgentOffline();
+            }
+        }
+    }
+
     public void updateAgentStatus(AgentStatus status)
     {
         agents.get(status.getAgentId()).updateStatus(status);
     }
 
-    public boolean agentOffline(UUID agentId)
+    public boolean markAgentOffline(UUID agentId)
     {
         if (!agents.containsKey(agentId)) {
             return false;
         }
-        agents.get(agentId).agentOffline();
+        agents.get(agentId).markAgentOffline();
         return true;
     }
 

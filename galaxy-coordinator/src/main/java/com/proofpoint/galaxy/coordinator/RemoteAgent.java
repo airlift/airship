@@ -17,7 +17,9 @@ public interface RemoteAgent
 
     List<? extends RemoteSlot> getSlots();
 
+    long getLastUpdateTimestamp();
+
     void updateStatus(AgentStatus status);
 
-    void agentOffline();
+    void markAgentOffline();
 }

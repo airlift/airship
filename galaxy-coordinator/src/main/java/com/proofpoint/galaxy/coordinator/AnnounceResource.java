@@ -46,7 +46,7 @@ public class AnnounceResource
     {
         Preconditions.checkNotNull(agentId, "agentId must not be null");
 
-        if (!coordinator.agentOffline(agentId)) {
+        if (!coordinator.markAgentOffline(agentId)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 

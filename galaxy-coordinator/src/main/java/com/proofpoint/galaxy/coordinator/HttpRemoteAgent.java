@@ -3,6 +3,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.ning.http.client.AsyncHttpClient;
@@ -33,22 +34,26 @@ public class HttpRemoteAgent implements RemoteAgent
 {
     private final JsonCodec<InstallationRepresentation> installationCodec;
     private final JsonCodec<SlotStatusRepresentation> slotStatusCodec;
+    private final Ticker ticker;
     private final ConcurrentMap<UUID, HttpRemoteSlot> slots;
 
     private final UUID agentId;
     private final AsyncHttpClient httpClient;
     private AgentLifecycleState state;
     private URI uri;
+    private long lastUpdateTimestamp;
 
-    public HttpRemoteAgent(UUID agentId, AsyncHttpClient httpClient, JsonCodec<InstallationRepresentation> installationCodec, JsonCodec<SlotStatusRepresentation> slotStatusCodec)
+    public HttpRemoteAgent(UUID agentId, AsyncHttpClient httpClient, JsonCodec<InstallationRepresentation> installationCodec, JsonCodec<SlotStatusRepresentation> slotStatusCodec, Ticker ticker)
     {
         this.agentId = agentId;
         this.httpClient = httpClient;
         this.installationCodec = installationCodec;
         this.slotStatusCodec = slotStatusCodec;
+        this.ticker = ticker;
 
         slots = new ConcurrentHashMap<UUID, HttpRemoteSlot>();
         state = OFFLINE;
+        lastUpdateTimestamp = ticker.read();
     }
 
     @Override
@@ -67,6 +72,12 @@ public class HttpRemoteAgent implements RemoteAgent
     public List<? extends RemoteSlot> getSlots()
     {
         return ImmutableList.copyOf(slots.values());
+    }
+
+    @Override
+    public long getLastUpdateTimestamp()
+    {
+        return lastUpdateTimestamp;
     }
 
     @Override
@@ -89,13 +100,15 @@ public class HttpRemoteAgent implements RemoteAgent
 
         state = status.getState();
         uri = status.getUri();
+        lastUpdateTimestamp = ticker.read();
     }
 
     @Override
-    public void agentOffline()
+    public void markAgentOffline()
     {
         uri = null;
         state = OFFLINE;
+        lastUpdateTimestamp = ticker.read();
         for (HttpRemoteSlot remoteSlot : slots.values()) {
             remoteSlot.updateStatus(new SlotStatus(remoteSlot.status(), SlotLifecycleState.UNKNOWN));
         }
