@@ -10,7 +10,7 @@ import java.net.URI;
 public class BinaryUrlResolver
 {
     private final BinaryRepository repository;
-    private URI baseUri;
+    private final URI baseUri;
 
     @Inject
     public BinaryUrlResolver(BinaryRepository repository, HttpServerInfo serverInfo)
