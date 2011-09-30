@@ -49,6 +49,38 @@ module Galaxy
       return [@short_id, @host, status, @binary, @config].map { |value| value || '' }
     end
   end
+  #
+  # Agent Information
+  #
+  class Agent
+    attr_reader :uuid, :short_id, :host, :ip, :url, :status, :location, :path
+
+    def initialize(uuid, short_id, status, url, location)
+      @uuid = uuid
+      @short_id = short_id
+      @url = url
+      @status = status
+      @path = path
+      uri = URI.parse(url)
+      @host = uri.host
+      @ip = IPSocket::getaddress(host)
+      @location = location
+    end
+
+    def columns(colors = false)
+      status = @status
+
+      if colors
+        status = case status
+          when "ONLINE" then Colorize::colorize(status, :bright, :green)
+          when "OFFLINE" then Colorize::colorize(status, :red)
+          else status
+        end
+      end
+
+      return [@short_id, @host, status, @location].map { |value| value || '' }
+    end
+  end
 
   class CommandError < RuntimeError
     attr_reader :code
@@ -178,6 +210,13 @@ module Galaxy
       []
     end
 
+    def self.agent_show(filter, options, args)
+      if !args.empty? then
+        raise CommandError.new(:invalid_usage, "You can not pass arguments to show.")
+      end
+      coordinator_agent_request(filter, options, :get)
+    end
+
     private
 
     def self.coordinator_request(filter, options, method, sub_path = nil, value = nil, is_json = false)
@@ -233,11 +272,57 @@ module Galaxy
 
       slots
     end
+
+    def self.coordinator_agent_request(filter, options, method, sub_path = nil, value = nil, is_json = false)
+      # build the uri
+      uri = options[:coordinator_url]
+      uri += '/' unless uri.end_with? '/'
+      uri += 'v1/admin/agent'
+      uri += sub_path unless sub_path.nil?
+
+      # encode body as json if necessary
+      body = value
+      headers = {}
+      if is_json
+        body = value.to_json
+        headers['Content-Type'] = 'application/json'
+      end
+
+      # log request in as a valid curl command if in debug mode
+      if options[:debug]
+        if value then
+          puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}' -d '"
+          puts body
+          puts "'"
+        else
+          puts "curl -X#{method.to_s.upcase} '#{uri}'"
+        end
+      end
+
+      # execute request
+      response = HTTPClient.new.request(method, uri, nil, body, headers).body
+
+      # parse response as json
+      response = response.content if response.respond_to?(:content)
+      agents_json = JSON.parse(response)
+
+      # log response if in debug mode
+      if options[:debug]
+        puts agents_json
+      end
+
+      # convert parsed json into slot objects
+      agents = agents_json.map do |agent_json|
+        Agent.new(agent_json['agentId'], agent_json['shortId'], agent_json['state'], agent_json['self'], agent_json['location'])
+      end
+
+      return agents
+    end
   end
 
   class CLI
 
-    COMMANDS = [:show, :install, :upgrade, :terminate, :start, :stop, :restart, :ssh]
+    COMMANDS = [:show, :install, :upgrade, :terminate, :start, :stop, :restart, :ssh, :agent_show]
     INITIAL_OPTIONS = {
         :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000',
         :ssh_command => "bash --login"
@@ -331,12 +416,23 @@ NOTES
       puts options.map { |k, v| "#{k}=#{v}" }.join("\n") if options[:debug]
       puts filter.map { |k, v| "#{k}=#{v}" }.join("\n") if options[:debug]
 
-      if args.length == 0
+      if args.length == 0 then
         puts option_parser
         exit EXIT_CODES[:success]
       end
 
       command = args[0].to_sym
+
+      is_agent = false
+      if command == :agent then
+        args = args.drop(1)
+        if args.length == 0 then
+          puts option_parser
+          exit EXIT_CODES[:success]
+        end
+        command = "#{command}_#{args[0]}".to_sym
+        is_agent = true
+      end
 
       unless COMMANDS.include?(command)
         raise CommandError.new(:invalid_usage, "Unsupported command: #{command}")
@@ -346,31 +442,53 @@ NOTES
         raise CommandError.new(:invalid_usage, "You must set Galaxy coordinator host by passing --coordinator COORDINATOR or by setting the GALAXY_COORDINATOR environment variable.")
       end
 
-      return [command, filter, options, args.drop(1)]
+      return [command, filter, options, is_agent, args.drop(1)]
     end
 
     def self.execute(args)
       begin
-        (command, filter, options, command_args) = parse_command_line(args)
-        slots = Commands.send(command, filter, options, command_args)
-        slots = slots.sort_by { |slot| [slot.ip, slot.binary || '', slot.config || '', slot.uuid] }
-        puts '' if options[:debug]
+        (command, filter, options, is_agent, command_args) = parse_command_line(args)
+        result = Commands.send(command, filter, options, command_args)
+        if !is_agent  then
+          slots = result.sort_by { |slot| [slot.ip, slot.binary || '', slot.config || '', slot.uuid] }
+          puts '' if options[:debug]
 
-        names = ['uuid', 'ip', 'status', 'binary', 'config']
-        if STDOUT.tty?
-          format = slots.map { |slot| slot.columns }.
-                         map { |cols| cols.map(&:size) }.
-                         transpose.
-                         map(&:max).
-                         map { |size| "%-#{size}s" }.
-                         join('  ')
+          names = ['uuid', 'ip', 'status', 'binary', 'config']
+          if STDOUT.tty?
+            format = slots.map { |slot| slot.columns }.
+                           map { |cols| cols.map(&:size) }.
+                           transpose.
+                           map(&:max).
+                           map { |size| "%-#{size}s" }.
+                           join('  ')
 
-          puts Colorize::colorize(format % names, :bright, :cyan)
+            puts Colorize::colorize(format % names, :bright, :cyan)
+          else
+            format = names.map { "%s" }.join("\t")
+          end
+
+          slots.each { |slot| puts format % slot.columns(STDOUT.tty?) }
         else
-          format = names.map { "%s" }.join("\t")
+          agents = result.sort_by { |agent| [agent.ip, agent.uuid] }
+          puts '' if options[:debug]
+
+          names = ['uuid', 'ip', 'status', 'location']
+          if STDOUT.tty?
+            format = agents.map { |agent| agent.columns }.
+                           map { |cols| cols.map(&:size) }.
+                           transpose.
+                           map(&:max).
+                           map { |size| "%-#{size}s" }.
+                           join('  ')
+
+            puts Colorize::colorize(format % names, :bright, :cyan)
+          else
+            format = names.map { "%s" }.join("\t")
+          end
+
+          agents.each { |agent| puts format % agent.columns(STDOUT.tty?) }
         end
 
-        slots.each { |slot| puts format % slot.columns(STDOUT.tty?) }
 
         exit EXIT_CODES[:success]
       rescue CommandError => e
@@ -388,4 +506,10 @@ NOTES
     end
 
   end
+end
+
+
+if __FILE__ == $0 then
+  $:.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
+  Galaxy::CLI.execute(ARGV)
 end
