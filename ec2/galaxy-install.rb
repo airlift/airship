@@ -75,17 +75,27 @@ def parse(properties_file)
   Hash[IO.readlines(properties_file).map { |line| line.strip.split(/\s*=\s*/, 2) }]
 end
 
+class NodeConfigurator
+  def configure(deploy_path, properties)
+    File.open("#{deploy_path}/etc/node.properties", "w") do |file|
+      file.puts <<-PROPERTIES
+        node.environment=#{properties['node.environment']}
+        node.location=#{properties['node.location']}
+        node.data-dir=#{properties['node.data-dir']}
+      PROPERTIES
+    end
+  end
+end
+
 class AgentConfigurator
   def configure(deploy_path, properties)
     FileUtils.makedirs("#{deploy_path}/etc")
 
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
-        node.environment=#{properties['node.environment']}
-        node.location=#{properties['node.location']}
         agent.coordinator-uri=#{properties['agent.coordinator-uri']}
         http-server.http.port=0
-        agent.slots-dir=/tmp/agent/slots
+        agent.slots-dir=slots
         discovery.uri=http://localhost:8080
       PROPERTIES
     end
@@ -101,8 +111,6 @@ class CoordinatorConfigurator
 
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
-        node.environment=#{properties['node.environment']}
-        node.location=#{properties['node.location']}
         coordinator.binary-repo=#{properties['coordinator.binary-repo']}
         coordinator.config-repo=http://localhost:64001/v1/config
         http-server.http.port=64000
@@ -120,8 +128,6 @@ class ConfigurationServerConfigurator
 
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
-        node.environment=#{properties['node.environment']}
-        node.location=#{properties['node.location']}
         configuration-repository.git.uri=#{properties['configuration-repository.git.uri']}
         configuration-repository.coordinator-uri=http://localhost:64000
         http-server.http.port=64001
@@ -144,9 +150,9 @@ install_path = "/home/ubuntu/galaxy"
 config_dir = '/home/ubuntu/cloudconf'
 
 configurators = {
-        'galaxy-coordinator' => CoordinatorConfigurator.new,
-        'galaxy-agent' => AgentConfigurator.new,
-        'galaxy-configuration-repository' => ConfigurationServerConfigurator.new
+        'galaxy-coordinator' => [CoordinatorConfigurator.new, NodeConfigurator.new],
+        'galaxy-agent' => [AgentConfigurator.new, NodeConfigurator.new],
+        'galaxy-configuration-repository' => [ConfigurationServerConfigurator.new, NodeConfigurator.new]
 }
 
 availability_zone = open("http://169.254.169.254/latest/meta-data/placement/availability-zone") { |io| io.read }
@@ -197,7 +203,10 @@ Dir[config_dir + '/*.properties'].each do |config_file|
   puts "Found #{artifact_id}"
   properties = parse(config_file)
 
+  data_dir = "#{install_path}/#{artifact_id}-data"
+
   properties['node.location'] = location
+  properties['node.data-dir'] = data_dir
   version = properties['galaxy.version']
   coordinator_url = properties['agent.coordinator-uri']
 
@@ -221,7 +230,10 @@ Dir[config_dir + '/*.properties'].each do |config_file|
   deploy_path = install_path + "/" + artifact_id + "-" + version
   puts "Configuring #{deploy_path}"
 
-  configurators[artifact_id].configure(deploy_path, properties)
+  puts "Creating data directory '#{data_dir}'"
+  FileUtils.makedirs(data_dir)
+
+  configurators[artifact_id].each { |configurator| configurator.configure(deploy_path, properties) }
 
   puts "Launching #{deploy_path}/bin/launcher"
   system("#{deploy_path}/bin/launcher start")
