@@ -110,7 +110,6 @@ public class HttpRemoteAgent implements RemoteAgent
     @Override
     public void markAgentOffline()
     {
-        uri = null;
         state = OFFLINE;
         lastUpdateTimestamp = ticker.read();
         for (HttpRemoteSlot remoteSlot : slots.values()) {

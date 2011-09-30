@@ -91,7 +91,6 @@ public class MockRemoteAgent implements RemoteAgent
     @Override
     public void markAgentOffline()
     {
-        uri = null;
         state = OFFLINE;
         lastUpdateTime = ticker.read();
         for (MockRemoteSlot remoteSlot : slots.values()) {

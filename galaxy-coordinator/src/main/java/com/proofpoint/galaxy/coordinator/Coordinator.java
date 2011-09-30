@@ -125,6 +125,15 @@ public class Coordinator
         }));
     }
 
+    public List<AgentStatus> getAllAgents()
+    {
+        ImmutableList.Builder<AgentStatus> builder = ImmutableList.builder();
+        for (RemoteAgent remoteAgent : agents.values()) {
+            builder.add(remoteAgent.status());
+        }
+        return builder.build();
+    }
+
     public AgentStatus getAgentStatus(UUID agentId)
     {
         RemoteAgent agent = agents.get(agentId);
