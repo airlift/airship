@@ -156,6 +156,7 @@ public class TestServer
         expected.put("shortId", slotStatus.getId().toString());
         expected.put("name", slotStatus.getName());
         expected.put("self", urlFor(slotStatus));
+        expected.put("installPath", slotStatus.getInstallPath());
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
         assertEquals(actual, expected);
@@ -189,10 +190,12 @@ public class TestServer
         expected.get(0).put("shortId", appleSlotStatus.getId().toString());
         expected.get(0).put("name", appleSlotStatus.getName());
         expected.get(0).put("self", urlFor(appleSlotStatus));
+        expected.get(0).put("installPath", appleSlotStatus.getInstallPath());
         expected.get(1).put("id", bananaSlotStatus.getId().toString());
         expected.get(1).put("shortId", bananaSlotStatus.getId().toString());
         expected.get(1).put("name", bananaSlotStatus.getName());
         expected.get(1).put("self", urlFor(bananaSlotStatus));
+        expected.get(1).put("installPath", bananaSlotStatus.getInstallPath());
 
         List<Map<String, Object>> actual = listCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -222,6 +225,7 @@ public class TestServer
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slot))
                 .put("status", STOPPED.toString())
+                .put("installPath", slot.status().getInstallPath())
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -304,6 +308,7 @@ public class TestServer
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slotStatus))
                 .put("status", STOPPED.toString())
+                .put("installPath", slotStatus.getInstallPath())
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -332,6 +337,7 @@ public class TestServer
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slotStatus))
                 .put("status", RUNNING.toString())
+                .put("installPath", slotStatus.getInstallPath())
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -361,6 +367,7 @@ public class TestServer
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slotStatus))
                 .put("status", STOPPED.toString())
+                .put("installPath", slotStatus.getInstallPath())
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -389,6 +396,7 @@ public class TestServer
                 .put("config", appleInstallation.getAssignment().getConfig().toString())
                 .put("self", urlFor(slotStatus))
                 .put("status", RUNNING.toString())
+                .put("installPath", slotStatus.getInstallPath())
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());

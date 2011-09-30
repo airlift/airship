@@ -31,8 +31,9 @@ public class SlotStatus
     private final URI self;
     private final Assignment assignment;
     private final SlotLifecycleState state;
+    private final String installPath;
 
-    public SlotStatus(UUID id, String name, URI self, SlotLifecycleState state, Assignment assignment)
+    public SlotStatus(UUID id, String name, URI self, SlotLifecycleState state, Assignment assignment, String installPath)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
@@ -47,6 +48,7 @@ public class SlotStatus
         this.self = self;
         this.assignment = assignment;
         this.state = state;
+        this.installPath = installPath;
     }
 
     public SlotStatus(SlotStatus status, SlotLifecycleState state)
@@ -59,14 +61,21 @@ public class SlotStatus
         this.self = status.self;
         if (state != TERMINATED) {
             this.assignment = status.assignment;
+            this.installPath = status.installPath;
         }
         else {
             this.assignment = null;
+            this.installPath = null;
         }
         this.state = state;
     }
     
     public SlotStatus(SlotStatus status, SlotLifecycleState state, Assignment assignment)
+    {
+        this(status, state, assignment, status.getInstallPath());
+    }
+
+    public SlotStatus(SlotStatus status, SlotLifecycleState state, Assignment assignment, String installPath)
     {
         Preconditions.checkNotNull(status, "status is null");
         Preconditions.checkNotNull(state, "state is null");
@@ -77,6 +86,7 @@ public class SlotStatus
         this.self = status.self;
         this.assignment = assignment;
         this.state = state;
+        this.installPath = installPath;
     }
 
     public UUID getId()
@@ -104,6 +114,11 @@ public class SlotStatus
         return state;
     }
 
+    public String getInstallPath()
+    {
+        return installPath;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -120,6 +135,9 @@ public class SlotStatus
             return false;
         }
         if (!id.equals(that.id)) {
+            return false;
+        }
+        if (installPath != null ? !installPath.equals(that.installPath) : that.installPath != null) {
             return false;
         }
         if (!name.equals(that.name)) {
@@ -143,21 +161,21 @@ public class SlotStatus
         result = 31 * result + self.hashCode();
         result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
         result = 31 * result + state.hashCode();
+        result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("SlotStatus");
-        sb.append("{id=").append(id);
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", self=").append(self);
-        sb.append(", assignment=").append(assignment);
-        sb.append(", state=").append(state);
-        sb.append('}');
-        return sb.toString();
+        return "SlotStatus{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", self=" + self +
+                ", assignment=" + assignment +
+                ", state=" + state +
+                ", installPath='" + installPath + '\'' +
+                '}';
     }
 
     public static Function<SlotStatus, UUID> uuidGetter()

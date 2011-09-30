@@ -4,6 +4,7 @@ require 'httpclient'
 require 'json'
 require 'galaxy/version'
 require 'galaxy/colorize'
+require 'galaxy/shell'
 
 module Galaxy
   GALAXY_VERSION = "0.1"
@@ -19,15 +20,16 @@ module Galaxy
   # Slot Information
   #
   class Slot
-    attr_reader :uuid, :short_id, :host, :ip, :url, :binary, :config, :status
+    attr_reader :uuid, :short_id, :host, :ip, :url, :binary, :config, :status, :path
 
-    def initialize(uuid, short_id, url, binary, config, status)
+    def initialize(uuid, short_id, url, binary, config, status, path)
       @uuid = uuid
       @short_id = short_id
       @url = url
       @binary = binary
       @config = config
       @status = status
+      @path = path
       uri = URI.parse(url)
       @host = uri.host
       @ip = IPSocket::getaddress(host)
@@ -161,8 +163,18 @@ module Galaxy
       end
 
       slot = slots.first
-      command = ENV['GALAXY_SSH_COMMAND'] || "ssh"
-      Kernel.system "#{command} #{slot.host}"
+      ssh = ENV['GALAXY_SSH_COMMAND'] || "ssh"
+
+      if slot.path.nil?
+        path = "$HOME"
+      else
+        path = Shell::quote(slot.path)
+      end
+      remote_command = "cd #{path}; bash --login"
+      command = "#{ssh} #{slot.host} -t #{Shell::quote(remote_command)}"
+
+      puts command if options[:debug]
+      system(command)
       []
     end
 
@@ -211,7 +223,7 @@ module Galaxy
 
       # convert parsed json into slot objects
       slots = slots_json.map do |slot_json|
-        Slot.new(slot_json['id'], slot_json['shortId'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'])
+        Slot.new(slot_json['id'], slot_json['shortId'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'], slot_json['installPath'])
       end
 
       # verify response

@@ -174,7 +174,7 @@ public class TestRemoteSlot
         SlotStatus actual = remoteSlot.terminate();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), TERMINATED, null);
+        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), TERMINATED, null, null);
         assertEquals(actual, expected);
     }
 

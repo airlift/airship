@@ -92,7 +92,7 @@ public class MockRemoteAgent implements RemoteAgent
         Preconditions.checkState(state != OFFLINE, "agent is offline");
 
         UUID slotId = UUID.randomUUID();
-        SlotStatus slotStatus = new SlotStatus(slotId, "", uri.resolve("slot/" + slotId), SlotLifecycleState.STOPPED, installation.getAssignment());
+        SlotStatus slotStatus = new SlotStatus(slotId, "", uri.resolve("slot/" + slotId), SlotLifecycleState.STOPPED, installation.getAssignment(), "/" + slotId);
         MockRemoteSlot slot = new MockRemoteSlot(slotStatus);
         slots.put(slotId, slot);
 

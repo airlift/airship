@@ -40,14 +40,16 @@ public class TestAgentStatusRepresentation
                             URI.create("fake://apple"),
                             APPLE_ASSIGNMENT.getBinary().toString(),
                             APPLE_ASSIGNMENT.getConfig().toString(),
-                            STOPPED.toString()),
+                            STOPPED.toString(),
+                            "/apple"),
                     new SlotStatusRepresentation(UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             null,
                             "slot2",
                             URI.create("fake://banana"),
                             BANANA_ASSIGNMENT.getBinary().toString(),
                             BANANA_ASSIGNMENT.getConfig().toString(),
-                            STOPPED.toString())),
+                            STOPPED.toString(),
+                            "/banana")),
             URI.create("fake://agent"));
 
     @Test

@@ -36,7 +36,8 @@ public class TestSlotFilterBuilder
             "slotName",
             URI.create("fake://localhost"),
             UNKNOWN,
-            APPLE_ASSIGNMENT);
+            APPLE_ASSIGNMENT,
+            "/slotName");
 
 
     private Predicate<SlotStatus> buildFilter(String key, String value, List<UUID> uuids)
@@ -135,7 +136,8 @@ public class TestSlotFilterBuilder
                 "slotName",
                 URI.create("fake://localhost"),
                 UNKNOWN,
-                new Assignment(BinarySpec.valueOf("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT"), APPLE_ASSIGNMENT.getConfig()));
+                new Assignment(BinarySpec.valueOf("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT"), APPLE_ASSIGNMENT.getConfig()),
+                "/slotName");
         RemoteSlot slot = new HttpRemoteSlot(status, new AsyncHttpClient());
 
         assertTrue(new BinarySpecPredicate("*:*:*:*:*").apply(status));

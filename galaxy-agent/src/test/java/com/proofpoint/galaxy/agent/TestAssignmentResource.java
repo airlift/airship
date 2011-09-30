@@ -88,11 +88,12 @@ public class TestAssignmentResource
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
 
-        SlotStatus expectedStatus = new SlotStatus(slotStatus, STOPPED, BANANA_ASSIGNMENT);
-
         Response response = resource.assign(slotStatus.getName(), InstallationRepresentation.from(BANANA_INSTALLATION), uriInfo);
 
         SlotStatusRepresentation actualEntity = (SlotStatusRepresentation) response.getEntity();
+
+        SlotStatus expectedStatus = new SlotStatus(slotStatus, STOPPED, BANANA_ASSIGNMENT, actualEntity.getInstallPath());
+
         Assert.assertEquals(actualEntity, SlotStatusRepresentation.from(expectedStatus));
 
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

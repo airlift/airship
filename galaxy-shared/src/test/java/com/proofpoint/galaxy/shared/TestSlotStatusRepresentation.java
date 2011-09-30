@@ -22,7 +22,8 @@ public class TestSlotStatusRepresentation
             URI.create("fake://apple"),
             AssignmentHelper.APPLE_ASSIGNMENT.getBinary().toString(),
             AssignmentHelper.APPLE_ASSIGNMENT.getConfig().toString(),
-            STOPPED.toString());
+            STOPPED.toString(),
+            "/apple");
 
     @Test
     public void testJsonRoundTrip()

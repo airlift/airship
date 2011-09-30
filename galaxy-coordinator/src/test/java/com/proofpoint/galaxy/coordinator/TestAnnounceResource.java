@@ -56,7 +56,7 @@ public class TestAnnounceResource
         agentStatus = new AgentStatus(UUID.randomUUID(),
                 ONLINE,
                 URI.create("fake://foo/"),
-                ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT)));
+                ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT, "/foo")));
     }
 
     @Test
@@ -67,8 +67,8 @@ public class TestAnnounceResource
                 ONLINE,
                 URI.create("fake://foo/"),
                 ImmutableList.of(
-                        new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT),
-                        new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"), STOPPED, APPLE_ASSIGNMENT)));
+                        new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT, "/foo"),
+                        new SlotStatus(UUID.randomUUID(), "moo", URI.create("fake://moo"), STOPPED, APPLE_ASSIGNMENT, "/moo")));
 
         Response response = resource.updateAgentStatus(newFooAgent.getAgentId(), AgentStatusRepresentation.from(newFooAgent, URI.create("http://localhost/v1/agent")));
 

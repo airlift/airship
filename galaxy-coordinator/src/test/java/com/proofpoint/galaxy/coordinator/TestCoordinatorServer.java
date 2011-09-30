@@ -128,17 +128,20 @@ public class TestCoordinatorServer
                 "apple1",
                 URI.create("fake://appleServer1/v1/agent/slot/apple1"),
                 STOPPED,
-                APPLE_ASSIGNMENT);
+                APPLE_ASSIGNMENT,
+                "/apple1");
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
                 URI.create("fake://appleServer2/v1/agent/slot/apple1"),
                 STOPPED,
-                APPLE_ASSIGNMENT);
+                APPLE_ASSIGNMENT,
+                "/apple2");
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
                 URI.create("fake://bananaServer/v1/agent/slot/banana"),
                 STOPPED,
-                BANANA_ASSIGNMENT);
+                BANANA_ASSIGNMENT,
+                "/banana");
 
         agentId = UUID.randomUUID();
         AgentStatus agentStatus = new AgentStatus(agentId,
@@ -388,7 +391,7 @@ public class TestCoordinatorServer
         AgentStatus newAgentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://foo/"),
-                ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT)));
+                ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT, "/foo")));
 
         String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(newAgentStatus, server.getBaseUrl()));
         Response response = client.preparePut(urlFor("/v1/announce/" + agentId))

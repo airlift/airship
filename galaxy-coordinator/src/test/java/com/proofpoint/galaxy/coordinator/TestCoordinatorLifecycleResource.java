@@ -70,17 +70,20 @@ public class TestCoordinatorLifecycleResource
                 "apple1",
                 URI.create("fake://foo/v1/agent/slot/apple1"),
                 STOPPED,
-                APPLE_ASSIGNMENT);
+                APPLE_ASSIGNMENT,
+                "/apple1");
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
                 "apple2",
                 URI.create("fake://foo/v1/agent/slot/apple1"),
                 STOPPED,
-                APPLE_ASSIGNMENT);
+                APPLE_ASSIGNMENT,
+                "/apple2");
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
                 "banana",
                 URI.create("fake://foo/v1/agent/slot/banana"),
                 STOPPED,
-                BANANA_ASSIGNMENT);
+                BANANA_ASSIGNMENT,
+                "/banana");
 
         agentId = UUID.randomUUID();
         AgentStatus agentStatus = new AgentStatus(agentId,
