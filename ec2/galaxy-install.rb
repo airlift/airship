@@ -93,6 +93,7 @@ class AgentConfigurator
 
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
+        agent.id=#{properties['agent.id']}
         agent.coordinator-uri=#{properties['agent.coordinator-uri']}
         http-server.http.port=0
         agent.slots-dir=slots
@@ -206,6 +207,7 @@ Dir[config_dir + '/*.properties'].each do |config_file|
 
   data_dir = "#{install_path}/#{artifact_id}-data"
 
+  properties['agent.id'] = instance_id
   properties['node.location'] = location
   properties['node.data-dir'] = data_dir
   version = properties['galaxy.version']
