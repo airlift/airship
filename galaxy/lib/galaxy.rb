@@ -247,7 +247,10 @@ module Galaxy
       uri += sub_path unless sub_path.nil?
 
       # create filter query
-      query = filter.map { |k, v| "#{URI.escape(k.to_s)}=#{URI.escape(v)}" }.join('&')
+      params = filter
+      # todo this arbitrary rename here is just wrong
+      params["limit"] = options[:count] unless options[:count].nil?
+      query = params.map { |k, v| "#{URI.escape(k.to_s)}=#{URI.escape(v)}" }.join('&')
 
       # encode body as json if necessary
       body = value
