@@ -111,6 +111,7 @@ class CoordinatorConfigurator
 
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
+        galaxy.version=#{properties['galaxy.version']}
         coordinator.binary-repo=#{properties['coordinator.binary-repo']}
         coordinator.config-repo=http://localhost:64001/v1/config
         http-server.http.port=64000
