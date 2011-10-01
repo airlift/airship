@@ -116,9 +116,16 @@ public class TestServerIntegration
         }
 
         Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
+                .put("galaxy.version", "123")
                 .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
                 .put("coordinator.config-repo", configRepoDir.toURI().toString())
                 .put("coordinator.status.expiration", "100d")
+                .put("coordinator.aws.access-key", "my-access-key")
+                .put("coordinator.aws.secret-key", "my-secret-key")
+                .put("coordinator.aws.agent.ami", "ami-0123abcd")
+                .put("coordinator.aws.agent.keypair", "keypair")
+                .put("coordinator.aws.agent.security-group", "default")
+                .put("coordinator.aws.agent.default-instance-type", "t1.micro")
                 .build();
 
         Injector coordinatorInjector = Guice.createInjector(new TestingHttpServerModule(),

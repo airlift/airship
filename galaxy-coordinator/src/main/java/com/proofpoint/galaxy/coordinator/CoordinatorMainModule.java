@@ -56,6 +56,7 @@ public class CoordinatorMainModule
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);
 
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);
+        ConfigurationModule.bindConfig(binder).to(CoordinatorAwsConfig.class);
     }
 
     @Provides
