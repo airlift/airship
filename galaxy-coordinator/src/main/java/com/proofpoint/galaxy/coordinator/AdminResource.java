@@ -21,7 +21,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
-import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Lists.newArrayList;
@@ -69,17 +68,17 @@ public class AdminResource
             @Context UriInfo uriInfo)
             throws Exception
     {
-        // TODO: provision all agents in one call
+        List<Ec2Location> locations = provisioner.provisionAgents(count, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
+
         List<AgentStatus> agents = newArrayList();
-        for (int i = 0; i < count; i++) {
-            String agentId = UUID.randomUUID().toString();
-            AgentStatus agentStatus = new AgentStatus(agentId,
+        for (Ec2Location location : locations) {
+            AgentStatus agentStatus = new AgentStatus(
+                    location.getInstanceId(),
                     AgentLifecycleState.PROVISIONING,
                     URI.create("http://localhost"),
-                    (provisioning.getAvailabilityZone() == null ? "unknown" : provisioning.getAvailabilityZone()) + "/" + agentId,
+                    location.toString(),
                     provisioning.getInstanceType(),
                     ImmutableList.<SlotStatus>of());
-            provisioner.provisionAgent(agentId, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
             coordinator.updateAgentStatus(agentStatus);
             agents.add(agentStatus);
         }

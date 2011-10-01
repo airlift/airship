@@ -2,13 +2,14 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Placement;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.Tag;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
@@ -17,12 +18,10 @@ import org.apache.commons.codec.binary.Base64;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 
 public class AwsProvisioner
 {
@@ -58,11 +57,9 @@ public class AwsProvisioner
         awsAgentDefaultInstanceType = awsConfig.getAwsAgentDefaultInstanceType();
     }
 
-    public String provisionAgent(String agentNodeId, String instanceType, String availabilityZone)
+    public List<Ec2Location> provisionAgents(int agentCount, String instanceType, String availabilityZone)
             throws Exception
     {
-        checkNotNull(agentNodeId, "agentNodeId is null");
-
         if (instanceType == null) {
             instanceType = awsAgentDefaultInstanceType;
         }
@@ -73,57 +70,55 @@ public class AwsProvisioner
                 .withSecurityGroups(awsAgentSecurityGroup)
                 .withInstanceType(instanceType)
                 .withPlacement(new Placement(availabilityZone))
-                .withUserData(getUserData(agentNodeId))
-                .withMinCount(1)
-                .withMaxCount(1);
+                .withUserData(getUserData())
+                .withMinCount(agentCount)
+                .withMaxCount(agentCount);
 
         log.debug("launching instances: %s", request);
         RunInstancesResult result = ec2Client.runInstances(request);
         log.debug("launched instances: %s", result);
 
-        String instanceId = result.getReservation().getInstances().get(0).getInstanceId();
+        List<Ec2Location> locations = newArrayList();
+        List<String> instanceIds = newArrayList();
 
-        Map<String, String> tags = ImmutableMap.<String, String>builder()
-                .put("Name", format("%s-agent-%s", environment, agentNodeId))
-                .put("role", "agent")
-                .put("environment", environment)
-                .put("agentId", agentNodeId)
+        for (Instance instance : result.getReservation().getInstances()) {
+            String zone = instance.getPlacement().getAvailabilityZone();
+            String region = zone.substring(0, zone.length() - 1);
+            locations.add(new Ec2Location(region, zone, instance.getInstanceId(), "agent"));
+            instanceIds.add(instance.getInstanceId());
+        }
+
+        List<Tag> tags = ImmutableList.<Tag>builder()
+                .add(new Tag("Name", format("%s-agent", environment)))
+                .add(new Tag("role", "agent"))
+                .add(new Tag("environment", environment))
                 .build();
-        createInstanceTagsWithRetry(instanceId, tags);
+        createInstanceTagsWithRetry(instanceIds, tags);
 
-        return instanceId;
+        return locations;
     }
 
-    private void createInstanceTagsWithRetry(String instanceId, Map<String, String> tags)
+    private void createInstanceTagsWithRetry(List<String> instanceIds, List<Tag> tags)
     {
         Exception lastException = null;
         for (int i = 0; i < 5; i++) {
             try {
-                createInstanceTags(instanceId, tags);
+                ec2Client.createTags(new CreateTagsRequest(instanceIds, tags));
                 return;
             }
             catch (Exception e) {
                 lastException = e;
             }
         }
-        log.error(lastException, "failed to create tags for instance: " + instanceId);
+        log.error(lastException, "failed to create tags for instances: %s", instanceIds);
     }
 
-    private void createInstanceTags(String instanceId, Map<String, String> tags)
+    private String getUserData()
     {
-        List<Tag> tagList = newArrayList();
-        for (Map.Entry<String, String> entry : tags.entrySet()) {
-            tagList.add(new Tag(entry.getKey(), entry.getValue()));
-        }
-        ec2Client.createTags(new CreateTagsRequest(asList(instanceId), tagList));
+        return encodeBase64(getRawUserData());
     }
 
-    private String getUserData(String agentNodeId)
-    {
-        return encodeBase64(getRawUserData(agentNodeId));
-    }
-
-    private String getRawUserData(String agentNodeId)
+    private String getRawUserData()
     {
         String boundary = "===============884613ba9e744d0c851955611107553e==";
         String boundaryLine = "--" + boundary;
@@ -144,7 +139,6 @@ public class AwsProvisioner
                 format("galaxy.version=%s", galaxyVersion),
                 format("agent.coordinator-uri=%s", coordinatorUri),
                 format("node.environment=%s", environment),
-                format("node.id=%s", agentNodeId),
                 "", boundaryLine,
 
                 contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-install.rb"), "",
