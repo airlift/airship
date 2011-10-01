@@ -16,7 +16,7 @@ import java.util.UUID;
 @JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation
 {
-    private final UUID agentId;
+    private final String agentId;
     private final String shortId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
@@ -69,7 +69,7 @@ public class AgentStatusRepresentation
 
     @JsonCreator
     public AgentStatusRepresentation(
-            @JsonProperty("agentId") UUID agentId,
+            @JsonProperty("agentId") String agentId,
             @JsonProperty("shortId") String shortId,
             @JsonProperty("state") AgentLifecycleState state,
             @JsonProperty("self") URI self,
@@ -87,7 +87,7 @@ public class AgentStatusRepresentation
 
     @JsonProperty
     @NotNull
-    public UUID getAgentId()
+    public String getAgentId()
     {
         return agentId;
     }

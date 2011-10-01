@@ -23,7 +23,6 @@ import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.json.JsonModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.DeploymentManagerFactory;
@@ -38,6 +37,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.json.JsonModule;
 import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -47,6 +47,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
@@ -83,6 +84,7 @@ public class TestRemoteSlot
     {
         tempDir = createTempDir("agent");
         Map<String, String> properties = ImmutableMap.<String, String>builder()
+                .put("agent.id", UUID.randomUUID().toString())
                 .put("agent.coordinator-uri", "http://localhost:9999/")
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
                 .build();

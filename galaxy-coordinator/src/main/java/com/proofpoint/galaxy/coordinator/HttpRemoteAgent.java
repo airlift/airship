@@ -37,7 +37,7 @@ public class HttpRemoteAgent implements RemoteAgent
     private final Ticker ticker;
     private final ConcurrentMap<UUID, HttpRemoteSlot> slots;
 
-    private final UUID agentId;
+    private final String agentId;
     private final AsyncHttpClient httpClient;
     private AgentLifecycleState state;
     private URI uri;
@@ -45,7 +45,7 @@ public class HttpRemoteAgent implements RemoteAgent
     private String location;
     private String instanceType;
 
-    public HttpRemoteAgent(UUID agentId, AsyncHttpClient httpClient, JsonCodec<InstallationRepresentation> installationCodec, JsonCodec<SlotStatusRepresentation> slotStatusCodec, Ticker ticker)
+    public HttpRemoteAgent(String agentId, AsyncHttpClient httpClient, JsonCodec<InstallationRepresentation> installationCodec, JsonCodec<SlotStatusRepresentation> slotStatusCodec, Ticker ticker)
     {
         this.agentId = agentId;
         this.httpClient = httpClient;

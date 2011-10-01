@@ -50,11 +50,11 @@ public class AdminResource
     {
         List<AgentStatus> agents = coordinator.getAllAgentStatus();
 
-        List<UUID> uuids = Lists.transform(agents, AgentStatus.uuidGetter());
+        List<String> agentIds = Lists.transform(agents, AgentStatus.idGetter());
 
         int prefixSize = MIN_PREFIX_SIZE;
-        if (!uuids.isEmpty()) {
-            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
+        if (!agentIds.isEmpty()) {
+            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(agentIds, toStringFunction())));
         }
 
         return Response.ok(transform(agents, fromAgentStatusWithShortIdPrefixSize(prefixSize))).build();
@@ -72,23 +72,23 @@ public class AdminResource
         // TODO: provision all agents in one call
         List<AgentStatus> agents = newArrayList();
         for (int i = 0; i < count; i++) {
-            UUID agentId = UUID.randomUUID();
+            String agentId = UUID.randomUUID().toString();
             AgentStatus agentStatus = new AgentStatus(agentId,
                     AgentLifecycleState.PROVISIONING,
                     URI.create("http://localhost"),
                     (provisioning.getAvailabilityZone() == null ? "unknown" : provisioning.getAvailabilityZone()) + "/" + agentId,
                     provisioning.getInstanceType(),
                     ImmutableList.<SlotStatus>of());
-            provisioner.provisionAgent(agentId.toString(), provisioning.getInstanceType(), provisioning.getAvailabilityZone());
+            provisioner.provisionAgent(agentId, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
             coordinator.updateAgentStatus(agentStatus);
             agents.add(agentStatus);
         }
 
-        List<UUID> uuids = Lists.transform(coordinator.getAllAgents(), AgentStatus.uuidGetter());
+        List<String> agentIds = Lists.transform(coordinator.getAllAgents(), AgentStatus.idGetter());
 
         int prefixSize = MIN_PREFIX_SIZE;
-        if (!uuids.isEmpty()) {
-            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
+        if (!agentIds.isEmpty()) {
+            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(agentIds, toStringFunction())));
         }
 
         return Response.ok(transform(agents, fromAgentStatusWithShortIdPrefixSize(prefixSize))).build();
@@ -96,7 +96,7 @@ public class AdminResource
 
     @DELETE
     @Path("/agent/{agentId: [a-z0-9-]+}")
-    public Response deleteAgent(UUID agentId, @Context UriInfo uriInfo)
+    public Response deleteAgent(String agentId, @Context UriInfo uriInfo)
     {
         if (coordinator.removeAgent(agentId)) {
             return Response.ok().build();

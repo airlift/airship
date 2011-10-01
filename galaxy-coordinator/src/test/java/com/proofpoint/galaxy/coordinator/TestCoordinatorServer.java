@@ -81,7 +81,7 @@ public class TestCoordinatorServer
     private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = jsonCodec(AgentStatusRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
-    private UUID agentId;
+    private String agentId;
 
     @BeforeClass
     public void startServer()
@@ -148,7 +148,7 @@ public class TestCoordinatorServer
                 BANANA_ASSIGNMENT,
                 "/banana");
 
-        agentId = UUID.randomUUID();
+        agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));

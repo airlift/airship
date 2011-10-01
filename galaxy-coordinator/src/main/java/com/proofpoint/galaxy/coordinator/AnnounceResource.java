@@ -12,7 +12,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.UUID;
 
 @Path("/v1/announce/{agentId}")
 public class AnnounceResource
@@ -27,7 +26,7 @@ public class AnnounceResource
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateAgentStatus(@PathParam("agentId") UUID agentId, AgentStatusRepresentation statusRepresentation)
+    public Response updateAgentStatus(@PathParam("agentId") String agentId, AgentStatusRepresentation statusRepresentation)
     {
         Preconditions.checkNotNull(agentId, "agentId must not be null");
         Preconditions.checkNotNull(statusRepresentation, "statusRepresentation must not be null");
@@ -42,7 +41,7 @@ public class AnnounceResource
     }
 
     @DELETE
-    public Response agentOffline(@PathParam("agentId") UUID agentId)
+    public Response agentOffline(@PathParam("agentId") String agentId)
     {
         Preconditions.checkNotNull(agentId, "agentId must not be null");
 

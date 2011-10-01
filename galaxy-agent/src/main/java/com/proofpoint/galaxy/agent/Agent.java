@@ -17,7 +17,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
-import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
@@ -27,16 +26,13 @@ import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Charsets.UTF_8;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static java.lang.Math.max;
@@ -45,7 +41,7 @@ import static java.lang.String.format;
 public class Agent
 {
     private static final Logger log = Logger.get(Agent.class);
-    private final UUID agentId;
+    private final String agentId;
     private final ConcurrentMap<String, Slot> slots;
     private final AgentConfig config;
     private final DeploymentManagerFactory deploymentManagerFactory;
@@ -68,6 +64,7 @@ public class Agent
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
 
+        this.agentId = config.getAgentId();
         this.config = config;
         this.httpServerInfo = httpServerInfo;
         location = nodeInfo.getLocation();
@@ -92,42 +89,6 @@ public class Agent
         }
 
         //
-        // Load agent id or create a new one (and save it)
-        //
-        File agentIdFile = new File(config.getSlotsDir(), "galaxy-agent-id.txt");
-        UUID uuid = null;
-        if (agentIdFile.exists()) {
-            Preconditions.checkArgument(agentIdFile.canRead(), "can not read " + agentIdFile.getAbsolutePath());
-            try {
-                String agentIdString = Files.toString(agentIdFile, UTF_8).trim();
-                try {
-                    uuid = UUID.fromString(agentIdString);
-                }
-                catch (IllegalArgumentException e) {
-
-                }
-                if (uuid == null) {
-                    log.warn("Invalid agent id [" + agentIdString + "]: attempting to delete galaxy-agent-id.txt file and recreating a new one");
-                    agentIdFile.delete();
-                }
-            }
-            catch (IOException e) {
-                Preconditions.checkArgument(agentIdFile.canRead(), "can not read " + agentIdFile.getAbsolutePath());
-            }
-        }
-
-        if (uuid == null) {
-            uuid = UUID.randomUUID();
-            try {
-                Files.write(uuid.toString(), agentIdFile, UTF_8);
-            }
-            catch (IOException e) {
-                Preconditions.checkArgument(agentIdFile.canRead(), "can not write " + agentIdFile.getAbsolutePath());
-            }
-        }
-        agentId = uuid;
-
-        //
         // Load existing slots
         //
         for (DeploymentManager deploymentManager : this.deploymentManagerFactory.loadSlots()) {
@@ -142,7 +103,7 @@ public class Agent
         }
     }
 
-    public UUID getAgentId()
+    public String getAgentId()
     {
         return agentId;
     }

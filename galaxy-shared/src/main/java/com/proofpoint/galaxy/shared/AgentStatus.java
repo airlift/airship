@@ -9,19 +9,18 @@ import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Immutable
 public class AgentStatus
 {
-    private final UUID agentId;
+    private final String agentId;
     private final AgentLifecycleState state;
     private final URI uri;
     private final Map<String, SlotStatus> slots;
     private final String location;
     private final String instanceType;
 
-    public AgentStatus(UUID agentId, AgentLifecycleState state, URI uri, String location, String instanceType, List<SlotStatus> slots)
+    public AgentStatus(String agentId, AgentLifecycleState state, URI uri, String location, String instanceType, List<SlotStatus> slots)
     {
         Preconditions.checkNotNull(agentId, "agentId is null");
         Preconditions.checkNotNull(slots, "slots is null");
@@ -40,7 +39,7 @@ public class AgentStatus
         });
     }
 
-    public UUID getAgentId()
+    public String getAgentId()
     {
         return agentId;
     }
@@ -114,11 +113,11 @@ public class AgentStatus
     }
 
 
-    public static Function<AgentStatus, UUID> uuidGetter()
+    public static Function<AgentStatus, String> idGetter()
     {
-        return new Function<AgentStatus, UUID>()
+        return new Function<AgentStatus, String>()
         {
-            public UUID apply(AgentStatus input)
+            public String apply(AgentStatus input)
             {
                 return input.getAgentId();
             }

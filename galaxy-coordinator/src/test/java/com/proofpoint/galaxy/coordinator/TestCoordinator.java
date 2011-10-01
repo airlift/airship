@@ -50,7 +50,7 @@ public class TestCoordinator extends TestCase
     public void testOneAgent()
             throws Exception
     {
-        UUID agentId = UUID.randomUUID();
+        String agentId = UUID.randomUUID().toString();
         URI agentUri = URI.create("fake://agent/" + agentId);
 
         AgentStatus status = new AgentStatus(agentId, AgentLifecycleState.ONLINE, agentUri, "unknown/location", "instance.type", ImmutableList.<SlotStatus>of());
@@ -64,7 +64,7 @@ public class TestCoordinator extends TestCase
     public void testAgentTimeout()
             throws Exception
     {
-        UUID agentId = UUID.randomUUID();
+        String agentId = UUID.randomUUID().toString();
         URI agentUri = URI.create("fake://agent/" + agentId);
 
         assertTrue(coordinator.getAllAgentStatus().isEmpty());

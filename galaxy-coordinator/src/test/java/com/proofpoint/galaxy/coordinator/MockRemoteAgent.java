@@ -25,14 +25,14 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 public class MockRemoteAgent implements RemoteAgent
 {
     private final ConcurrentMap<UUID, MockRemoteSlot> slots = new ConcurrentHashMap<UUID, MockRemoteSlot>();
-    private final UUID agentId;
+    private final String agentId;
     private final Ticker ticker;
     private AgentLifecycleState state;
     private URI uri;
     private long lastUpdateTime;
 
 
-    public MockRemoteAgent(UUID agentId, Ticker ticker)
+    public MockRemoteAgent(String agentId, Ticker ticker)
     {
         this.ticker = ticker;
         Preconditions.checkNotNull(agentId, "agentId is null");

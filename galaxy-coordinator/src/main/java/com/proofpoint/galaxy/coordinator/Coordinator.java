@@ -45,7 +45,7 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 public class Coordinator
 {
-    private final ConcurrentMap<UUID, RemoteAgent> agents;
+    private final ConcurrentMap<String, RemoteAgent> agents;
 
     private final BinaryUrlResolver binaryUrlResolver;
     private final ConfigRepository configRepository;
@@ -90,9 +90,9 @@ public class Coordinator
         this.statusExpiration = statusExpiration;
         this.ticker = ticker;
 
-        agents = new MapMaker().makeComputingMap(new Function<UUID, RemoteAgent>()
+        agents = new MapMaker().makeComputingMap(new Function<String, RemoteAgent>()
         {
-            public RemoteAgent apply(UUID agentId)
+            public RemoteAgent apply(String agentId)
             {
                 return remoteAgentFactory.createRemoteAgent(agentId);
             }
@@ -134,7 +134,7 @@ public class Coordinator
         return builder.build();
     }
 
-    public AgentStatus getAgentStatus(UUID agentId)
+    public AgentStatus getAgentStatus(String agentId)
     {
         RemoteAgent agent = agents.get(agentId);
         if (agent == null) {
@@ -158,7 +158,7 @@ public class Coordinator
         agents.get(status.getAgentId()).updateStatus(status);
     }
 
-    public boolean markAgentOffline(UUID agentId)
+    public boolean markAgentOffline(String agentId)
     {
         if (!agents.containsKey(agentId)) {
             return false;
@@ -167,7 +167,7 @@ public class Coordinator
         return true;
     }
 
-    public boolean removeAgent(UUID agentId)
+    public boolean removeAgent(String agentId)
     {
         return agents.remove(agentId) != null;
     }
