@@ -53,9 +53,9 @@ module Galaxy
   # Agent Information
   #
   class Agent
-    attr_reader :uuid, :short_id, :host, :ip, :url, :status, :location, :path
+    attr_reader :uuid, :short_id, :host, :ip, :url, :status, :location, :path, :instance_type
 
-    def initialize(uuid, short_id, status, url, location)
+    def initialize(uuid, short_id, status, url, location, instance_type)
       @uuid = uuid
       @short_id = short_id
       @url = url
@@ -65,6 +65,7 @@ module Galaxy
       @host = uri.host
       @ip = IPSocket::getaddress(host)
       @location = location
+      @instance_type = instance_type
     end
 
     def columns(colors = false)
@@ -73,12 +74,13 @@ module Galaxy
       if colors
         status = case status
           when "ONLINE" then Colorize::colorize(status, :bright, :green)
-          when "OFFLINE" then Colorize::colorize(status, :red)
+          when "OFFLINE" then Colorize::colorize(status, :bright, :red)
+          when "PROVISIONING" then Colorize::colorize(status, :bright, :blue)
           else status
         end
       end
 
-      return [@short_id, @host, status, @location].map { |value| value || '' }
+      return [@short_id, @host, status, @instance_type, @location].map { |value| value || '' }
     end
   end
 
@@ -212,9 +214,27 @@ module Galaxy
 
     def self.agent_show(filter, options, args)
       if !args.empty? then
-        raise CommandError.new(:invalid_usage, "You can not pass arguments to show.")
+        raise CommandError.new(:invalid_usage, "You can not pass arguments to abent show.")
       end
       coordinator_agent_request(filter, options, :get)
+    end
+
+    def self.agent_add(filter, options, args)
+      if args.size > 1 then
+        raise CommandError.new(:invalid_usage, "Agent add only accepts one argument.")
+      end
+
+      if args.size > 0 then
+        instance_type = args[0]
+      end
+
+      provisioning = {}
+      provisioning[:instanceType] = instance_type if instance_type
+      provisioning[:availabilityZone] = options[:availability_zone] if options[:availability_zone]
+
+      query = "count=#{options[:count] || 1}"
+
+      coordinator_agent_request(filter, options, :post, query, nil, provisioning, true)
     end
 
     private
@@ -273,7 +293,7 @@ module Galaxy
       slots
     end
 
-    def self.coordinator_agent_request(filter, options, method, sub_path = nil, value = nil, is_json = false)
+    def self.coordinator_agent_request(filter, options, method, query = '', sub_path = nil, value = nil, is_json = false)
       # build the uri
       uri = options[:coordinator_url]
       uri += '/' unless uri.end_with? '/'
@@ -291,16 +311,16 @@ module Galaxy
       # log request in as a valid curl command if in debug mode
       if options[:debug]
         if value then
-          puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}' -d '"
+          puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}?#{query}' -d '"
           puts body
           puts "'"
         else
-          puts "curl -X#{method.to_s.upcase} '#{uri}'"
+          puts "curl -X#{method.to_s.upcase} '#{uri}?#{query}'"
         end
       end
 
       # execute request
-      response = HTTPClient.new.request(method, uri, nil, body, headers).body
+      response = HTTPClient.new.request(method, uri, query, body, headers).body
 
       # parse response as json
       response = response.content if response.respond_to?(:content)
@@ -313,7 +333,7 @@ module Galaxy
 
       # convert parsed json into slot objects
       agents = agents_json.map do |agent_json|
-        Agent.new(agent_json['agentId'], agent_json['shortId'], agent_json['state'], agent_json['self'], agent_json['location'])
+        Agent.new(agent_json['agentId'], agent_json['shortId'], agent_json['state'], agent_json['self'], agent_json['location'], agent_json['instanceType'])
       end
 
       return agents
@@ -322,7 +342,7 @@ module Galaxy
 
   class CLI
 
-    COMMANDS = [:show, :install, :upgrade, :terminate, :start, :stop, :restart, :ssh, :agent_show]
+    COMMANDS = [:show, :install, :upgrade, :terminate, :start, :stop, :restart, :ssh, :agent_show, :agent_add]
     INITIAL_OPTIONS = {
         :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000',
         :ssh_command => "bash --login"
@@ -378,6 +398,14 @@ module Galaxy
 
         opts.on("-u", "--uuid SLOT_UUID", "Select slots with given slot uuid") do |arg|
           filter[:uuid] = arg
+        end
+
+        opts.on("--count count", "Number of instances to install or agents to provision") do |arg|
+          options[:count] = arg
+        end
+
+        opts.on("--availability-zone AVAILABILITY_ZONE", "Availability zone to agent provisioning") do |arg|
+          options[:availability_zone] = arg
         end
 
         # todo find a better command line argument
@@ -472,7 +500,7 @@ NOTES
           agents = result.sort_by { |agent| [agent.ip, agent.uuid] }
           puts '' if options[:debug]
 
-          names = ['uuid', 'ip', 'status', 'location']
+          names = ['uuid', 'ip', 'status', 'type', 'location']
           if STDOUT.tty?
             format = agents.map { |agent| agent.columns }.
                            map { |cols| cols.map(&:size) }.

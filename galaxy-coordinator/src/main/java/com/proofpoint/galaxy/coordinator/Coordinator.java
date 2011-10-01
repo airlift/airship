@@ -147,7 +147,7 @@ public class Coordinator
     {
         long minUpdateTime = (long) (ticker.read() - statusExpiration.convertTo(TimeUnit.NANOSECONDS));
         for (RemoteAgent remoteAgent : agents.values()) {
-            if (remoteAgent.getLastUpdateTimestamp() < minUpdateTime) {
+            if (remoteAgent.status().getState() == ONLINE && remoteAgent.getLastUpdateTimestamp() < minUpdateTime) {
                 remoteAgent.markAgentOffline();
             }
         }

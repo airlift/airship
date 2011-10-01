@@ -21,5 +21,5 @@ import java.util.Map;
 
 public enum AgentLifecycleState
 {
-    ONLINE, OFFLINE
+    PROVISIONING, ONLINE, OFFLINE
 }
