@@ -22,16 +22,28 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.shared.FileUtils.newFile;
-
 public class CoordinatorConfig
 {
+    private String galaxyVersion;
     private String localBinaryRepo;
     private List<String> binaryRepoBases = ImmutableList.of();
     private boolean localMavenRepositoryEnabled;
     private List<String> configRepoBases = ImmutableList.of();
     private String localConfigRepo;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
+
+    @NotNull
+    public String getGalaxyVersion()
+    {
+        return galaxyVersion;
+    }
+
+    @Config("galaxy.version")
+    public CoordinatorConfig setGalaxyVersion(String galaxyVersion)
+    {
+        this.galaxyVersion = galaxyVersion;
+        return this;
+    }
 
     @NotNull
     public List<String> getBinaryRepoBases()

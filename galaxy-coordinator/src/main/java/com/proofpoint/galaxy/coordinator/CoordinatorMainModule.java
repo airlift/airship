@@ -13,8 +13,13 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
@@ -45,9 +50,23 @@ public class CoordinatorMainModule
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 
+        binder.bind(AwsProvisioner.class).in(Scopes.SINGLETON);
+
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(InstallationRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);
 
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);
+    }
+
+    @Provides
+    public AmazonEC2 provideAmazonEC2(AWSCredentials awsCredentials)
+    {
+        return new AmazonEC2Client(awsCredentials);
+    }
+
+    @Provides
+    public AWSCredentials provideAwsCredentials(CoordinatorAwsConfig config)
+    {
+        return new BasicAWSCredentials(config.getAwsAccessKey(), config.getAwsSecretKey());
     }
 }
