@@ -33,12 +33,14 @@ import static java.lang.Math.max;
 public class AdminResource
 {
     private final Coordinator coordinator;
+    private final AwsProvisioner provisioner;
     public static final int MIN_PREFIX_SIZE = 4;
 
     @Inject
-    public AdminResource(Coordinator coordinator)
+    public AdminResource(Coordinator coordinator, AwsProvisioner provisioner)
     {
         this.coordinator = coordinator;
+        this.provisioner = provisioner;
     }
 
     @GET
@@ -65,8 +67,9 @@ public class AdminResource
             AgentProvisioningRepresentation provisioning,
             @DefaultValue("1") @QueryParam("count") int count,
             @Context UriInfo uriInfo)
+            throws Exception
     {
-        // todo provision instance
+        // TODO: provision all agents in one call
         List<AgentStatus> agents = newArrayList();
         for (int i = 0; i < count; i++) {
             UUID agentId = UUID.randomUUID();
@@ -76,6 +79,7 @@ public class AdminResource
                     (provisioning.getAvailabilityZone() == null ? "unknown" : provisioning.getAvailabilityZone()) + "/" + agentId,
                     provisioning.getInstanceType(),
                     ImmutableList.<SlotStatus>of());
+            provisioner.provisionAgent(agentId.toString(), provisioning.getInstanceType(), provisioning.getAvailabilityZone());
             coordinator.updateAgentStatus(agentStatus);
             agents.add(agentStatus);
         }
