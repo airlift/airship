@@ -53,7 +53,7 @@ public class TestCoordinatorLifecycleResource
     private CoordinatorLifecycleResource resource;
 
     private Coordinator coordinator;
-    private UUID agentId;
+    private String agentId;
     private int prefixSize;
 
     @BeforeMethod
@@ -88,7 +88,7 @@ public class TestCoordinatorLifecycleResource
                 BANANA_ASSIGNMENT,
                 "/banana");
 
-        agentId = UUID.randomUUID();
+        agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://foo/"),

@@ -14,11 +14,12 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static com.proofpoint.experimental.testing.ValidationAssertions.assertValidates;
-import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertEquals;
 
 public class TestProvisionAgent
 {
@@ -53,12 +54,11 @@ public class TestProvisionAgent
         HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), nodeInfo);
         AwsProvisioner awsProvisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, coordinatorConfig, awsConfig);
 
-        String agentNodeId = UUID.randomUUID().toString();
+        int agentCount = 3;
+        List<Ec2Location> locations = awsProvisioner.provisionAgents(agentCount, null, null);
+        assertEquals(locations.size(), agentCount);
 
-        String instanceId = awsProvisioner.provisionAgent(agentNodeId, null, null);
-        assertNotNull(instanceId);
-
-        System.out.println("provisioned instance: " + instanceId);
+        System.out.println("provisioned instances: " + locations);
     }
 
     private static NodeInfo createTestNodeInfo()

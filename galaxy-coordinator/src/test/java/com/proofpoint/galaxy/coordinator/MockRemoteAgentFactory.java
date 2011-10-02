@@ -19,7 +19,7 @@ public class MockRemoteAgentFactory implements RemoteAgentFactory
     }
 
     @Override
-    public RemoteAgent createRemoteAgent(UUID agentId)
+    public RemoteAgent createRemoteAgent(String agentId)
     {
         return new MockRemoteAgent(agentId, ticker);
     }

@@ -15,22 +15,13 @@ package com.proofpoint.galaxy.integration;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
-import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
-import com.proofpoint.galaxy.coordinator.Strings;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
-import com.proofpoint.http.server.HttpServerConfig;
-import com.proofpoint.json.JsonCodec;
-import com.proofpoint.json.JsonModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.AnnouncementService;
@@ -39,31 +30,33 @@ import com.proofpoint.galaxy.coordinator.BinaryRepository;
 import com.proofpoint.galaxy.coordinator.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
+import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
+import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
 import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.json.JsonCodec;
+import com.proofpoint.json.JsonModule;
 import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
@@ -71,6 +64,9 @@ import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.json.JsonCodec.jsonCodec;
+import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -116,9 +112,16 @@ public class TestServerIntegration
         }
 
         Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
+                .put("galaxy.version", "123")
                 .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
                 .put("coordinator.config-repo", configRepoDir.toURI().toString())
                 .put("coordinator.status.expiration", "100d")
+                .put("coordinator.aws.access-key", "my-access-key")
+                .put("coordinator.aws.secret-key", "my-secret-key")
+                .put("coordinator.aws.agent.ami", "ami-0123abcd")
+                .put("coordinator.aws.agent.keypair", "keypair")
+                .put("coordinator.aws.agent.security-group", "default")
+                .put("coordinator.aws.agent.default-instance-type", "t1.micro")
                 .build();
 
         Injector coordinatorInjector = Guice.createInjector(new TestingHttpServerModule(),
@@ -138,6 +141,7 @@ public class TestServerIntegration
 
         tempDir = createTempDir("agent");
         Map<String, String> agentProperties = ImmutableMap.<String, String>builder()
+                .put("agent.id", UUID.randomUUID().toString())
                 .put("agent.coordinator-uri", coordinatorServer.getBaseUrl().toString())
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
                 .put("discovery.uri", "fake://server")

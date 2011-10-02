@@ -52,7 +52,7 @@ public class TestCoordinatorAssignmentResource
 {
     private CoordinatorAssignmentResource resource;
     private Coordinator coordinator;
-    private UUID agentId;
+    private String agentId;
     private int prefixSize;
 
     @BeforeMethod
@@ -72,7 +72,7 @@ public class TestCoordinatorAssignmentResource
         SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(), "apple2", URI.create("fake://appleServer2/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT, "/apple2");
         SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(), "banana", URI.create("fake://bananaServer/v1/agent/slot/banana"), STOPPED, BANANA_ASSIGNMENT, "/banana");
 
-        agentId = UUID.randomUUID();
+        agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
                 URI.create("fake://appleServer1/"),

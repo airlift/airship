@@ -44,6 +44,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
@@ -84,6 +85,7 @@ public class TestServer
     {
         tempDir = createTempDir("agent");
         Map<String, String> properties = ImmutableMap.<String, String>builder()
+                .put("agent.id", UUID.randomUUID().toString())
                 .put("agent.coordinator-uri", "http://localhost:9999/")
                 .put("agent.slots-dir", tempDir.getAbsolutePath())
                 .put("discovery.uri", "fake://server")

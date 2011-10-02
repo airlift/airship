@@ -56,7 +56,7 @@ public class TestAnnounceResource
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null));
         resource = new AnnounceResource(coordinator);
-        agentStatus = new AgentStatus(UUID.randomUUID(),
+        agentStatus = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://foo/"),
                 "unknown/location",
@@ -68,7 +68,7 @@ public class TestAnnounceResource
     public void testUpdateAgentStatus()
     {
         coordinator.updateAgentStatus(agentStatus);
-        AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID(),
+        AgentStatus newFooAgent = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://foo/"),
                 "unknown/location",
@@ -102,7 +102,7 @@ public class TestAnnounceResource
     @Test
     public void testRemoveAgentStatusMissing()
     {
-        Response response = resource.agentOffline(UUID.randomUUID());
+        Response response = resource.agentOffline(UUID.randomUUID().toString());
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
         assertNull(response.getEntity());
     }

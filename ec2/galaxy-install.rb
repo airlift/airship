@@ -93,6 +93,7 @@ class AgentConfigurator
 
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
+        agent.id=#{properties['agent.id']}
         agent.coordinator-uri=#{properties['agent.coordinator-uri']}
         http-server.http.port=0
         agent.slots-dir=slots
@@ -111,6 +112,7 @@ class CoordinatorConfigurator
 
     File.open("#{deploy_path}/etc/config.properties", "w") do |file|
       file.puts <<-PROPERTIES
+        galaxy.version=#{properties['galaxy.version']}
         coordinator.binary-repo=#{properties['coordinator.binary-repo']}
         coordinator.config-repo=http://localhost:64001/v1/config
         http-server.http.port=64000
@@ -205,6 +207,7 @@ Dir[config_dir + '/*.properties'].each do |config_file|
 
   data_dir = "#{install_path}/#{artifact_id}-data"
 
+  properties['agent.id'] = instance_id
   properties['node.location'] = location
   properties['node.data-dir'] = data_dir
   version = properties['galaxy.version']

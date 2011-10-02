@@ -21,7 +21,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
-import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Lists.newArrayList;
@@ -50,11 +49,11 @@ public class AdminResource
     {
         List<AgentStatus> agents = coordinator.getAllAgentStatus();
 
-        List<UUID> uuids = Lists.transform(agents, AgentStatus.uuidGetter());
+        List<String> agentIds = Lists.transform(agents, AgentStatus.idGetter());
 
         int prefixSize = MIN_PREFIX_SIZE;
-        if (!uuids.isEmpty()) {
-            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
+        if (!agentIds.isEmpty()) {
+            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(agentIds, toStringFunction())));
         }
 
         return Response.ok(transform(agents, fromAgentStatusWithShortIdPrefixSize(prefixSize))).build();
@@ -69,26 +68,26 @@ public class AdminResource
             @Context UriInfo uriInfo)
             throws Exception
     {
-        // TODO: provision all agents in one call
+        List<Ec2Location> locations = provisioner.provisionAgents(count, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
+
         List<AgentStatus> agents = newArrayList();
-        for (int i = 0; i < count; i++) {
-            UUID agentId = UUID.randomUUID();
-            AgentStatus agentStatus = new AgentStatus(agentId,
+        for (Ec2Location location : locations) {
+            AgentStatus agentStatus = new AgentStatus(
+                    location.getInstanceId(),
                     AgentLifecycleState.PROVISIONING,
                     URI.create("http://localhost"),
-                    (provisioning.getAvailabilityZone() == null ? "unknown" : provisioning.getAvailabilityZone()) + "/" + agentId,
+                    location.toString(),
                     provisioning.getInstanceType(),
                     ImmutableList.<SlotStatus>of());
-            provisioner.provisionAgent(agentId.toString(), provisioning.getInstanceType(), provisioning.getAvailabilityZone());
             coordinator.updateAgentStatus(agentStatus);
             agents.add(agentStatus);
         }
 
-        List<UUID> uuids = Lists.transform(coordinator.getAllAgents(), AgentStatus.uuidGetter());
+        List<String> agentIds = Lists.transform(coordinator.getAllAgents(), AgentStatus.idGetter());
 
         int prefixSize = MIN_PREFIX_SIZE;
-        if (!uuids.isEmpty()) {
-            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
+        if (!agentIds.isEmpty()) {
+            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(agentIds, toStringFunction())));
         }
 
         return Response.ok(transform(agents, fromAgentStatusWithShortIdPrefixSize(prefixSize))).build();
@@ -96,7 +95,7 @@ public class AdminResource
 
     @DELETE
     @Path("/agent/{agentId: [a-z0-9-]+}")
-    public Response deleteAgent(UUID agentId, @Context UriInfo uriInfo)
+    public Response deleteAgent(String agentId, @Context UriInfo uriInfo)
     {
         if (coordinator.removeAgent(agentId)) {
             return Response.ok().build();

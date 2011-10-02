@@ -7,8 +7,6 @@ import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.json.JsonCodec;
 
-import java.util.UUID;
-
 public class HttpRemoteAgentFactory implements RemoteAgentFactory
 {
     private final AsyncHttpClient httpClient;
@@ -31,7 +29,7 @@ public class HttpRemoteAgentFactory implements RemoteAgentFactory
     }
 
     @Override
-    public RemoteAgent createRemoteAgent(UUID agentId)
+    public RemoteAgent createRemoteAgent(String agentId)
     {
         return new HttpRemoteAgent(agentId, httpClient, installationCodec, slotStatusCodec, ticker);
     }
