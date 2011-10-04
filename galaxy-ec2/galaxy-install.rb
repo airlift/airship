@@ -147,8 +147,8 @@ urls = ['http://oss.sonatype.org/content/repositories/releases',
         'http://oss.sonatype.org/content/repositories/snapshots']
 
 bashrc_path = '/home/ubuntu/.bashrc'
-downloads_path = "/home/ubuntu/downloads"
-install_path = "/home/ubuntu/galaxy"
+downloads_path = "/tmp/downloads"
+install_path = "/mnt/galaxy"
 config_dir = '/home/ubuntu/cloudconf'
 
 configurators = {
@@ -165,8 +165,13 @@ region = availability_zone[0..-2]
 
 location = "/ec2/#{region}/#{availability_zone}/#{instance_id}"
 
+FileUtils.makedirs(install_path)
+
 # become user 'ubuntu'
 user = Etc.getpwnam('ubuntu')
+
+FileUtils.chown(user.uid, user.gid, install_path)
+
 Process::Sys.setgid(user.gid)
 Process::Sys.setuid(user.uid)
 
