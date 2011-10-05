@@ -6,11 +6,9 @@ import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentConfig;
-import com.proofpoint.galaxy.agent.AnnouncementService;
 import com.proofpoint.galaxy.agent.AssignmentResource;
 import com.proofpoint.galaxy.agent.DeploymentManagerFactory;
 import com.proofpoint.galaxy.agent.DirectoryDeploymentManagerFactory;
-import com.proofpoint.galaxy.agent.HttpAnnouncementService;
 import com.proofpoint.galaxy.agent.LauncherLifecycleManager;
 import com.proofpoint.galaxy.agent.LifecycleManager;
 import com.proofpoint.galaxy.agent.LifecycleResource;
@@ -19,7 +17,6 @@ import com.proofpoint.galaxy.configuration.ConfigurationResource;
 import com.proofpoint.galaxy.configuration.GitConfigurationRepository;
 import com.proofpoint.galaxy.configuration.GitConfigurationRepositoryConfig;
 import com.proofpoint.galaxy.coordinator.AdminResource;
-import com.proofpoint.galaxy.coordinator.AnnounceResource;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
 import com.proofpoint.galaxy.coordinator.BinaryResource;
 import com.proofpoint.galaxy.coordinator.ConfigRepository;
@@ -53,7 +50,6 @@ public class MainModule implements Module
         binder.bind(CoordinatorAssignmentResource.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorLifecycleResource.class).in(Scopes.SINGLETON);
         binder.bind(InvalidSlotFilterExceptionMapper.class).in(Scopes.SINGLETON);
-        binder.bind(AnnounceResource.class).in(Scopes.SINGLETON);
         binder.bind(AdminResource.class).in(Scopes.SINGLETON);
         binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
@@ -79,8 +75,6 @@ public class MainModule implements Module
 
         binder.bind(DeploymentManagerFactory.class).to(DirectoryDeploymentManagerFactory.class).in(Scopes.SINGLETON);
         binder.bind(LifecycleManager.class).to(LauncherLifecycleManager.class).in(Scopes.SINGLETON);
-
-        binder.bind(AnnouncementService.class).to(HttpAnnouncementService.class).in(Scopes.SINGLETON);
 
         jsonCodecBinder(binder).bindJsonCodec(InstallationRepresentation.class);
         jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);

@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.MapMaker;
@@ -26,7 +25,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -52,21 +50,22 @@ public class Coordinator
     private final LocalConfigRepository localConfigRepository;
     private ScheduledExecutorService timerService;
     private final Duration statusExpiration;
-    private final Ticker ticker;
+    private final Provisioner provisioner;
+    private final RemoteAgentFactory remoteAgentFactory;
 
     @Inject
     public Coordinator(CoordinatorConfig config,
             final RemoteAgentFactory remoteAgentFactory,
             BinaryUrlResolver binaryUrlResolver,
             ConfigRepository configRepository,
-            LocalConfigRepository localConfigRepository)
+            LocalConfigRepository localConfigRepository,
+            Provisioner provisioner)
     {
         this(remoteAgentFactory,
                 binaryUrlResolver,
                 configRepository,
                 localConfigRepository,
-                checkNotNull(config, "config is null").getStatusExpiration(),
-                Ticker.systemTicker()
+                provisioner, checkNotNull(config, "config is null").getStatusExpiration()
         );
     }
 
@@ -74,44 +73,44 @@ public class Coordinator
             BinaryUrlResolver binaryUrlResolver,
             ConfigRepository configRepository,
             LocalConfigRepository localConfigRepository,
-            Duration statusExpiration,
-            Ticker ticker)
+            Provisioner provisioner,
+            Duration statusExpiration)
     {
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(binaryUrlResolver, "binaryUrlResolver is null");
         Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
+        Preconditions.checkNotNull(provisioner, "provisioner is null");
         Preconditions.checkNotNull(statusExpiration, "statusExpiration is null");
-        Preconditions.checkNotNull(ticker, "ticker is null");
 
+        this.remoteAgentFactory = remoteAgentFactory;
         this.binaryUrlResolver = binaryUrlResolver;
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
+        this.provisioner = provisioner;
         this.statusExpiration = statusExpiration;
-        this.ticker = ticker;
 
-        agents = new MapMaker().makeComputingMap(new Function<String, RemoteAgent>()
-        {
-            public RemoteAgent apply(String agentId)
-            {
-                return remoteAgentFactory.createRemoteAgent(agentId);
-            }
-        });
+        agents = new MapMaker().makeMap();
+
+        for (Ec2Location ec2Location : this.provisioner.listAgents()) {
+            agents.put(ec2Location.getInstanceId(), remoteAgentFactory.createRemoteAgent(ec2Location.getInstanceId(), ec2Location.getUri()));
+        }
 
         timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
+
+        updateAllAgentsStatus();
     }
 
     @PostConstruct
     public void start() {
-        // check for expiration often enough that timeouts are not exceeded by more than 20%
         timerService.scheduleWithFixedDelay(new Runnable()
         {
             @Override
             public void run()
             {
-                checkAgentStatuses();
+                updateAllAgentsStatus();
             }
-        }, 0, (long) statusExpiration.toMillis() / 5, TimeUnit.MILLISECONDS);
+        }, 0, (long) statusExpiration.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     public List<AgentStatus> getAllAgentStatus()
@@ -143,28 +142,29 @@ public class Coordinator
         return agent.status();
     }
 
-    public void checkAgentStatuses()
+    public void updateAllAgentsStatus()
     {
-        long minUpdateTime = (long) (ticker.read() - statusExpiration.convertTo(TimeUnit.NANOSECONDS));
-        for (RemoteAgent remoteAgent : agents.values()) {
-            if (remoteAgent.status().getState() == ONLINE && remoteAgent.getLastUpdateTimestamp() < minUpdateTime) {
-                remoteAgent.markAgentOffline();
+        for (Ec2Location ec2Location : this.provisioner.listAgents()) {
+            RemoteAgent existing = agents.putIfAbsent(ec2Location.getInstanceId(), remoteAgentFactory.createRemoteAgent(ec2Location.getInstanceId(), ec2Location.getUri()));
+            if (existing != null) {
+                existing.setUri(ec2Location.getUri());
             }
         }
-    }
 
-    public void updateAgentStatus(AgentStatus status)
-    {
-        agents.get(status.getAgentId()).updateStatus(status);
-    }
-
-    public boolean markAgentOffline(String agentId)
-    {
-        if (!agents.containsKey(agentId)) {
-            return false;
+        for (RemoteAgent remoteAgent : agents.values()) {
+            remoteAgent.updateStatus();
         }
-        agents.get(agentId).markAgentOffline();
-        return true;
+    }
+
+    public void setAgentStatus(AgentStatus status)
+    {
+
+        RemoteAgent remoteAgent = agents.get(status.getAgentId());
+        if (remoteAgent == null) {
+            remoteAgent = remoteAgentFactory.createRemoteAgent(status.getAgentId(), status.getUri());
+            agents.put(status.getAgentId(), remoteAgent);
+        }
+        remoteAgent.setStatus(status);
     }
 
     public boolean removeAgent(String agentId)

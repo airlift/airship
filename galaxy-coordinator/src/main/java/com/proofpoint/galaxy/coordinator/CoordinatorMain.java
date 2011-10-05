@@ -33,7 +33,8 @@ public class CoordinatorMain
                 new JaxrsModule(),
                 new MBeanModule(),
                 new JmxModule(),
-                new CoordinatorMainModule());
+                new CoordinatorMainModule(),
+                new LocalProvisionerModule());
 
         app.strictConfig().initialize();
     }

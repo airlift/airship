@@ -37,7 +37,6 @@ import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.node.testing.TestingNodeModule;
-import org.eclipse.jetty.http.HttpHeaders;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -52,7 +51,6 @@ import java.util.UUID;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.collect.Lists.transform;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
@@ -103,7 +101,9 @@ public class TestCoordinatorServer
                 new TestingNodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
-                Modules.override(new CoordinatorMainModule()).with(new Module() {
+                new LocalProvisionerModule(),
+                Modules.override(new CoordinatorMainModule()).with(new Module()
+                {
                     public void configure(Binder binder)
                     {
                         binder.bind(RemoteAgentFactory.class).to(MockRemoteAgentFactory.class).in(Scopes.SINGLETON);
@@ -153,7 +153,7 @@ public class TestCoordinatorServer
                 ONLINE,
                 URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
 
-        coordinator.updateAgentStatus(agentStatus);
+        coordinator.setAgentStatus(agentStatus);
 
         prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(transform(
                 transform(asList(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus), uuidGetter()),
@@ -370,65 +370,6 @@ public class TestCoordinatorServer
         assertEquals(apple1Status.getState(), STOPPED);
         assertEquals(apple2Status.getState(), STOPPED);
         assertEquals(bananaStatus.getState(), STOPPED);
-    }
-
-    @Test
-    public void testInitialAgentStatus()
-            throws Exception
-    {
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
-        String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(agentStatus));
-        Response response = client.preparePut(urlFor("/v1/announce/" + agentId))
-                .setBody(json)
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
-
-        assertEquals(coordinator.getAgentStatus(agentId), agentStatus);
-    }
-
-    @Test
-    public void testUpdateAgentStatus()
-            throws Exception
-    {
-        AgentStatus newAgentStatus = new AgentStatus(agentId,
-                ONLINE,
-                URI.create("fake://foo/"),
-                "unknown/location",
-                "instance.type",
-                ImmutableList.of(new SlotStatus(UUID.randomUUID(), "foo", URI.create("fake://foo"), STOPPED, APPLE_ASSIGNMENT, "/foo")));
-
-        String json = agentStatusRepresentationCodec.toJson(AgentStatusRepresentation.from(newAgentStatus));
-        Response response = client.preparePut(urlFor("/v1/announce/" + agentId))
-                .setBody(json)
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
-
-        assertEquals(coordinator.getAgentStatus(agentId), newAgentStatus);
-    }
-
-    @Test
-    public void testRemoveAgentStatus()
-            throws Exception
-    {
-        Response response = client.prepareDelete(urlFor("/v1/announce/" + agentId)).execute().get();
-        assertEquals(response.getStatusCode(), Status.NO_CONTENT.getStatusCode());
-
-        AgentStatus actualStatus = coordinator.getAgentStatus(agentId);
-        assertEquals(actualStatus.getState(), OFFLINE);
-    }
-
-    @Test
-    public void testRemoveAgentStatusMissing()
-            throws Exception
-    {
-        Response response = client.prepareDelete(urlFor("/v1/announce/" + UUID.randomUUID())).execute().get();
-        assertEquals(response.getStatusCode(), Status.NOT_FOUND.getStatusCode());
     }
 
     private String urlFor(String path)

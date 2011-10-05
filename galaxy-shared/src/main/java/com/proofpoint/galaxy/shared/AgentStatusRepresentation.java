@@ -13,6 +13,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import static java.lang.Math.min;
+
 @JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation
 {
@@ -59,7 +61,7 @@ public class AgentStatusRepresentation
         }
         return new AgentStatusRepresentation(
                 status.getAgentId(),
-                status.getAgentId().toString().substring(0, shortIdPrefixSize),
+                status.getAgentId().substring(0, min(shortIdPrefixSize, status.getAgentId().length())),
                 status.getState(),
                 status.getUri(),
                 status.getLocation(),

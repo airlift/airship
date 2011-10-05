@@ -32,11 +32,11 @@ import static java.lang.Math.max;
 public class AdminResource
 {
     private final Coordinator coordinator;
-    private final AwsProvisioner provisioner;
+    private final Provisioner provisioner;
     public static final int MIN_PREFIX_SIZE = 4;
 
     @Inject
-    public AdminResource(Coordinator coordinator, AwsProvisioner provisioner)
+    public AdminResource(Coordinator coordinator, Provisioner provisioner)
     {
         this.coordinator = coordinator;
         this.provisioner = provisioner;
@@ -79,7 +79,7 @@ public class AdminResource
                     location.toString(),
                     provisioning.getInstanceType(),
                     ImmutableList.<SlotStatus>of());
-            coordinator.updateAgentStatus(agentStatus);
+            coordinator.setAgentStatus(agentStatus);
             agents.add(agentStatus);
         }
 

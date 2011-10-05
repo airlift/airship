@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 
 public class AgentConfig
 {
-    private URI coordinatorBaseURI;
     private String slotsDir = "slots";
     private Duration launcherTimeout = new Duration(1, TimeUnit.SECONDS);
     private Duration launcherStopTimeout = new Duration(10, TimeUnit.SECONDS);
@@ -31,19 +30,6 @@ public class AgentConfig
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);
     private String agentId;
     private String instanceType;
-
-    @NotNull
-    public URI getCoordinatorBaseURI()
-    {
-        return coordinatorBaseURI;
-    }
-
-    @Config("agent.coordinator-uri")
-    public AgentConfig setCoordinatorBaseURI(URI coordinatorBaseURI)
-    {
-        this.coordinatorBaseURI = coordinatorBaseURI;
-        return this;
-    }
 
     @NotNull
     public String getSlotsDir()

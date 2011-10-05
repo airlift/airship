@@ -13,15 +13,11 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.json.JsonCodecBinder;
@@ -39,7 +35,6 @@ public class CoordinatorMainModule
         binder.bind(CoordinatorAssignmentResource.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorLifecycleResource.class).in(Scopes.SINGLETON);
         binder.bind(InvalidSlotFilterExceptionMapper.class).in(Scopes.SINGLETON);
-        binder.bind(AnnounceResource.class).in(Scopes.SINGLETON);
         binder.bind(AdminResource.class).in(Scopes.SINGLETON);
         binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
@@ -50,24 +45,11 @@ public class CoordinatorMainModule
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 
-        binder.bind(AwsProvisioner.class).in(Scopes.SINGLETON);
 
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(InstallationRepresentation.class);
+        JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(AgentStatusRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);
 
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);
-        ConfigurationModule.bindConfig(binder).to(CoordinatorAwsConfig.class);
-    }
-
-    @Provides
-    public AmazonEC2 provideAmazonEC2(AWSCredentials awsCredentials)
-    {
-        return new AmazonEC2Client(awsCredentials);
-    }
-
-    @Provides
-    public AWSCredentials provideAwsCredentials(CoordinatorAwsConfig config)
-    {
-        return new BasicAWSCredentials(config.getAwsAccessKey(), config.getAwsSecretKey());
     }
 }

@@ -2,14 +2,17 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Placement;
+import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.Tag;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
@@ -17,13 +20,15 @@ import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 
-public class AwsProvisioner
+public class AwsProvisioner implements Provisioner
 {
     private static final Logger log = Logger.get(AwsProvisioner.class);
 
@@ -37,7 +42,7 @@ public class AwsProvisioner
     private final String awsAgentDefaultInstanceType;
 
     @Inject
-    public AwsProvisioner(AmazonEC2 ec2Client, NodeInfo nodeInfo, HttpServerInfo httpServerInfo, CoordinatorConfig coordinatorConfig, CoordinatorAwsConfig awsConfig)
+    public AwsProvisioner(AmazonEC2 ec2Client, NodeInfo nodeInfo, HttpServerInfo httpServerInfo, CoordinatorConfig coordinatorConfig, AwsProvisionerConfig awsProvisionerConfig)
     {
         this.ec2Client = checkNotNull(ec2Client, "ec2Client is null");
 
@@ -50,13 +55,49 @@ public class AwsProvisioner
         checkNotNull(coordinatorConfig, "coordinatorConfig is null");
         galaxyVersion = coordinatorConfig.getGalaxyVersion();
 
-        checkNotNull(awsConfig, "awsConfig is null");
-        awsAgentAmi = awsConfig.getAwsAgentAmi();
-        awsAgentKeypair = awsConfig.getAwsAgentKeypair();
-        awsAgentSecurityGroup = awsConfig.getAwsAgentSecurityGroup();
-        awsAgentDefaultInstanceType = awsConfig.getAwsAgentDefaultInstanceType();
+        checkNotNull(awsProvisionerConfig, "awsConfig is null");
+        awsAgentAmi = awsProvisionerConfig.getAwsAgentAmi();
+        awsAgentKeypair = awsProvisionerConfig.getAwsAgentKeypair();
+        awsAgentSecurityGroup = awsProvisionerConfig.getAwsAgentSecurityGroup();
+        awsAgentDefaultInstanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
     }
 
+    @Override
+    public List<Ec2Location> listAgents()
+    {
+        DescribeInstancesResult describeInstancesResult = ec2Client.describeInstances();
+        List<Reservation> reservations = describeInstancesResult.getReservations();
+        List<Ec2Location> locations = newArrayList();
+
+        for (Reservation reservation : reservations) {
+            for (Instance instance : reservation.getInstances()) {
+                Map<String, String> tags = toMap(instance.getTags());
+                if ("agent".equals(tags.get("role")) && environment.equals(tags.get("environment"))) {
+                    String zone = instance.getPlacement().getAvailabilityZone();
+                    String region = zone.substring(0, zone.length() - 1);
+
+                    int port = 65000;
+                    try {
+                        port = Integer.parseInt(tags.get("galaxy-port"));
+                    }
+                    catch (Exception e) {
+                    }
+
+                    URI uri;
+                    try {
+                        uri = new URI("http", null, instance.getPrivateIpAddress(), port, null, null, null);
+                    }
+                    catch (URISyntaxException e) {
+                        throw new AssertionError(e);
+                    }
+                    locations.add(new Ec2Location(region, zone, instance.getInstanceId(), "agent", uri));
+                }
+            }
+        }
+        return locations;
+    }
+
+    @Override
     public List<Ec2Location> provisionAgents(int agentCount, String instanceType, String availabilityZone)
             throws Exception
     {
@@ -151,5 +192,14 @@ public class AwsProvisioner
     private static String encodeBase64(String s)
     {
         return Base64.encodeBase64String(s.getBytes(Charsets.UTF_8));
+    }
+
+    private Map<String, String> toMap(List<Tag> tags)
+    {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        for (Tag tag : tags) {
+            builder.put(tag.getKey(), tag.getValue());
+        }
+        return builder.build();
     }
 }

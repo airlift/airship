@@ -24,18 +24,20 @@ import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
-import com.proofpoint.galaxy.agent.AnnouncementService;
 import com.proofpoint.galaxy.agent.Slot;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
 import com.proofpoint.galaxy.coordinator.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
+import com.proofpoint.galaxy.coordinator.Ec2Location;
+import com.proofpoint.galaxy.coordinator.LocalProvisioner;
+import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
+import com.proofpoint.galaxy.coordinator.Provisioner;
 import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
 import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
@@ -79,7 +81,6 @@ public class TestServerIntegration
     private TestingHttpServer coordinatorServer;
 
     private Agent agent;
-    private AnnouncementService announcementService;
     private Coordinator coordinator;
 
     private Slot appleSlot1;
@@ -87,7 +88,6 @@ public class TestServerIntegration
     private Slot bananaSlot;
     private File tempDir;
 
-    private final JsonCodec<AssignmentRepresentation> assignmentCodec = jsonCodec(AssignmentRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
 
@@ -97,6 +97,8 @@ public class TestServerIntegration
     private ConfigRepository configRepository;
 
     private int prefixSize;
+    private Ec2Location agentLocation;
+    private LocalProvisioner provisioner;
 
     @BeforeClass
     public void startServer()
@@ -129,12 +131,14 @@ public class TestServerIntegration
                 new JsonModule(),
                 new JaxrsModule(),
                 new CoordinatorMainModule(),
+                new LocalProvisionerModule(),
                 new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
 
         coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
         coordinator = coordinatorInjector.getInstance(Coordinator.class);
         binaryRepository = coordinatorInjector.getInstance(BinaryRepository.class);
         configRepository = coordinatorInjector.getInstance(ConfigRepository.class);
+        provisioner = (LocalProvisioner) coordinatorInjector.getInstance(Provisioner.class);
 
         coordinatorServer.start();
         client = new AsyncHttpClient();
@@ -157,8 +161,6 @@ public class TestServerIntegration
 
         agentServer = agentInjector.getInstance(TestingHttpServer.class);
         agent = agentInjector.getInstance(Agent.class);
-        announcementService = agentInjector.getInstance(AnnouncementService.class);
-
         agentServer.start();
         client = new AsyncHttpClient();
     }
@@ -189,7 +191,10 @@ public class TestServerIntegration
         bananaSlot = agent.getSlot(agent.install(new Installation(BANANA_ASSIGNMENT,
                 binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
                 configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig()))).getName());
-        announcementService.announce();
+
+        agentLocation = new Ec2Location("region", "zone", agent.getAgentId(), "agent", agentServer.getBaseUrl());
+        provisioner.addAgent(agentLocation);
+        coordinator.updateAllAgentsStatus();
 
         prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
                 appleSlot1.getId().toString(),
@@ -224,17 +229,10 @@ public class TestServerIntegration
     }
 
     @Test
-    public void testAnnounce()
-            throws Exception
-    {
-        AgentStatus agentStatus = coordinator.getAgentStatus(agent.getAgentId());
-        assertEquals(agentStatus, agent.getAgentStatus());
-    }
-
-    @Test
     public void testStart()
             throws Exception
     {
+        coordinator.getAllAgents();
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
                 .setBody("running")
                 .execute()

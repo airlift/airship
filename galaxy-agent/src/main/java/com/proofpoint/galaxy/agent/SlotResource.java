@@ -38,16 +38,13 @@ import java.util.List;
 public class SlotResource
 {
     private final Agent agent;
-    private final AnnouncementService announcementService;
 
     @Inject
-    public SlotResource(Agent agent, AnnouncementService announcementService)
+    public SlotResource(Agent agent)
     {
         Preconditions.checkNotNull(agent, "agent is null");
-        Preconditions.checkNotNull(announcementService, "announcementService is null");
 
         this.agent = agent;
-        this.announcementService = announcementService;
     }
 
     @POST
@@ -58,13 +55,6 @@ public class SlotResource
         Preconditions.checkNotNull(installation, "installation must not be null");
 
         SlotStatus slotStatus = agent.install(installation.toInstallation());
-
-        // try to announce the new slot
-        try {
-            announcementService.announce();
-        }
-        catch (Exception ignored) {
-        }
 
         return Response
                 .created(getSelfUri(slotStatus.getName(), uriInfo.getBaseUri()))

@@ -2,7 +2,6 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
@@ -18,6 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
@@ -26,20 +26,15 @@ public class MockRemoteAgent implements RemoteAgent
 {
     private final ConcurrentMap<UUID, MockRemoteSlot> slots = new ConcurrentHashMap<UUID, MockRemoteSlot>();
     private final String agentId;
-    private final Ticker ticker;
     private AgentLifecycleState state;
     private URI uri;
-    private long lastUpdateTime;
 
-
-    public MockRemoteAgent(String agentId, Ticker ticker)
+    public MockRemoteAgent(String agentId, URI uri)
     {
-        this.ticker = ticker;
-        Preconditions.checkNotNull(agentId, "agentId is null");
-        this.agentId = agentId;
+        this.agentId = checkNotNull(agentId, "agentId is null");
+        this.uri = uri;
         this.uri = URI.create("fake://agent/" + agentId);
         state = ONLINE;
-        lastUpdateTime = ticker.read();
     }
 
     @Override
@@ -55,19 +50,30 @@ public class MockRemoteAgent implements RemoteAgent
     }
 
     @Override
+    public URI getUri()
+    {
+        return uri;
+    }
+
+    @Override
+    public void setUri(URI uri)
+    {
+        this.uri = uri;
+    }
+
+    @Override
     public List<? extends RemoteSlot> getSlots()
     {
         return ImmutableList.copyOf(slots.values());
     }
 
     @Override
-    public long getLastUpdateTimestamp()
+    public void updateStatus()
     {
-        return lastUpdateTime;
     }
 
     @Override
-    public void updateStatus(AgentStatus status)
+    public void setStatus(AgentStatus status)
     {
         Set<UUID> updatedSlots = newHashSet();
         for (SlotStatus slotStatus : status.getSlotStatuses()) {
@@ -85,17 +91,6 @@ public class MockRemoteAgent implements RemoteAgent
         slots.keySet().retainAll(updatedSlots);
 
         uri = status.getUri();
-        lastUpdateTime = ticker.read();
-    }
-
-    @Override
-    public void markAgentOffline()
-    {
-        state = OFFLINE;
-        lastUpdateTime = ticker.read();
-        for (MockRemoteSlot remoteSlot : slots.values()) {
-            remoteSlot.updateStatus(new SlotStatus(remoteSlot.status(), SlotLifecycleState.UNKNOWN));
-        }
     }
 
     @Override

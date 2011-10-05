@@ -66,7 +66,8 @@ public class TestCoordinatorLifecycleResource
                 new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new CoordinatorConfig(), null));
+                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new LocalProvisioner());
         resource = new CoordinatorLifecycleResource(coordinator);
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
@@ -100,7 +101,7 @@ public class TestCoordinatorLifecycleResource
                 appleSlotStatus1.getId().toString(), appleSlotStatus2.getId().toString(),
                 bananaSlotStatus.getId().toString())));
 
-        coordinator.updateAgentStatus(agentStatus);
+        coordinator.setAgentStatus(agentStatus);
     }
 
     @Test

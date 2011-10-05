@@ -21,6 +21,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.Immutable;
+import java.net.URI;
 import java.util.List;
 
 import static com.google.common.base.Objects.equal;
@@ -36,9 +37,16 @@ public class Ec2Location
     private final String availabilityZone;
     private final String instanceId;
     private final String slot;
+    private final URI uri;
 
     public Ec2Location(String region, String availabilityZone, String instanceId, String slot)
     {
+        this(region, availabilityZone, instanceId, slot, null);
+    }
+
+    public Ec2Location(String region, String availabilityZone, String instanceId, String slot, URI uri)
+    {
+        this.uri = uri;
         this.region = checkNotNull(region, "region is null");
         this.availabilityZone = checkNotNull(availabilityZone, "availabilityZone is null");
         this.instanceId = checkNotNull(instanceId, "instanceId is null");
@@ -63,6 +71,11 @@ public class Ec2Location
     public String getSlot()
     {
         return slot;
+    }
+
+    public URI getUri()
+    {
+        return uri;
     }
 
     @Override

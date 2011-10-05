@@ -1,7 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.testing.FakeTicker;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -22,8 +21,8 @@ public class TestCoordinator extends TestCase
 {
 
     private Coordinator coordinator;
-    private FakeTicker fakeTicker = new FakeTicker();
-    private Duration statusExpiration = new Duration(5, TimeUnit.MILLISECONDS);
+    private Duration statusExpiration = new Duration(500, TimeUnit.MILLISECONDS);
+    private LocalProvisioner provisioner;
 
     @Override
     public void setUp()
@@ -31,12 +30,13 @@ public class TestCoordinator extends TestCase
     {
         BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), new NodeInfo("testing")));
 
-        coordinator = new Coordinator(new MockRemoteAgentFactory(fakeTicker),
+        provisioner = new LocalProvisioner();
+        coordinator = new Coordinator(new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
-                statusExpiration,
-                fakeTicker
+                provisioner,
+                statusExpiration
         );
 
     }
@@ -54,38 +54,34 @@ public class TestCoordinator extends TestCase
         URI agentUri = URI.create("fake://agent/" + agentId);
 
         AgentStatus status = new AgentStatus(agentId, AgentLifecycleState.ONLINE, agentUri, "unknown/location", "instance.type", ImmutableList.<SlotStatus>of());
-        coordinator.updateAgentStatus(status);
+        coordinator.setAgentStatus(status);
 
         assertEquals(coordinator.getAllAgentStatus(), ImmutableList.of(status));
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
         assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
     }
 
-    public void testAgentTimeout()
+    public void testAgentProvision()
             throws Exception
     {
         String agentId = UUID.randomUUID().toString();
         URI agentUri = URI.create("fake://agent/" + agentId);
 
+        // provision the agent
+        provisioner.addAgent(new Ec2Location("region", "zone", agentId, "agent", agentUri));
+
+        // coordinator won't see it until it update is called
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
         // announce the new agent and verify
-        AgentStatus status = new AgentStatus(agentId, AgentLifecycleState.ONLINE, agentUri, "unknown/location", "instance.type", ImmutableList.<SlotStatus>of());
-        coordinator.updateAgentStatus(status);
-
-        assertEquals(coordinator.getAllAgentStatus(), ImmutableList.of(status));
+        coordinator.updateAllAgentsStatus();
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
         assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
 
-        // force timeout byt advancing past the timeout
-        fakeTicker.advance((long) (statusExpiration.convertTo(TimeUnit.NANOSECONDS) * 2));
-        coordinator.checkAgentStatuses();
-
-        // verify server is offline
+        // remove the slot from provisioner and coordinator remember it
+        provisioner.removeAgent(agentId);
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
-        assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.OFFLINE);
-        // this works because equals is based solely on agentId
-        assertEquals(coordinator.getAllAgentStatus(), ImmutableList.of(status));
-
+        // slot is online because MOCK slot is fake.... a real slot would transition to offline
+        assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
     }
 }

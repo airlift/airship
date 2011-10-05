@@ -11,15 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package com.proofpoint.galaxy.coordinator;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
-import org.weakref.jmx.guice.MBeanModule;
 
-public class AgentMainModule
+public class LocalProvisionerModule
         implements Module
 {
     public void configure(Binder binder)
@@ -27,18 +26,7 @@ public class AgentMainModule
         binder.disableCircularProxies();
         binder.requireExplicitBindings();
 
-        binder.bind(Agent.class).in(Scopes.SINGLETON);
-        MBeanModule.newExporter(binder).export(Agent.class).withGeneratedName();
-
-        binder.bind(AgentResource.class).in(Scopes.SINGLETON);
-
-        binder.bind(SlotResource.class).in(Scopes.SINGLETON);
-        binder.bind(AssignmentResource.class).in(Scopes.SINGLETON);
-        binder.bind(LifecycleResource.class).in(Scopes.SINGLETON);
-
-        binder.bind(DeploymentManagerFactory.class).to(DirectoryDeploymentManagerFactory.class).in(Scopes.SINGLETON);
-        binder.bind(LifecycleManager.class).to(LauncherLifecycleManager.class).in(Scopes.SINGLETON);
-
-        ConfigurationModule.bindConfig(binder).to(AgentConfig.class);
+        binder.bind(Provisioner.class).to(LocalProvisioner.class).in(Scopes.SINGLETON);
+        ConfigurationModule.bindConfig(binder).to(LocalProvisionerConfig.class);
     }
 }

@@ -65,7 +65,8 @@ public class TestCoordinatorAssignmentResource
                 new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new CoordinatorConfig(), null));
+                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new LocalProvisioner());
         resource = new CoordinatorAssignmentResource(coordinator);
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(), "apple1", URI.create("fake://appleServer1/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT, "/apple1");
@@ -83,7 +84,7 @@ public class TestCoordinatorAssignmentResource
         prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
                 appleSlotStatus1.getId().toString(), appleSlotStatus2.getId().toString(), bananaSlotStatus.getId().toString())));
 
-        coordinator.updateAgentStatus(agentStatus);
+        coordinator.setAgentStatus(agentStatus);
     }
 
     @Test

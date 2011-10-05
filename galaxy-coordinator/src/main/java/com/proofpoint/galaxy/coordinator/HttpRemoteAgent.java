@@ -3,13 +3,13 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
@@ -33,29 +33,33 @@ import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 public class HttpRemoteAgent implements RemoteAgent
 {
     private final JsonCodec<InstallationRepresentation> installationCodec;
+    private final JsonCodec<AgentStatusRepresentation> agentStatusCodec;
     private final JsonCodec<SlotStatusRepresentation> slotStatusCodec;
-    private final Ticker ticker;
     private final ConcurrentMap<UUID, HttpRemoteSlot> slots;
 
     private final String agentId;
     private final AsyncHttpClient httpClient;
     private AgentLifecycleState state;
     private URI uri;
-    private long lastUpdateTimestamp;
     private String location;
     private String instanceType;
 
-    public HttpRemoteAgent(String agentId, AsyncHttpClient httpClient, JsonCodec<InstallationRepresentation> installationCodec, JsonCodec<SlotStatusRepresentation> slotStatusCodec, Ticker ticker)
+    public HttpRemoteAgent(String agentId,
+            URI uri,
+            AsyncHttpClient httpClient,
+            JsonCodec<InstallationRepresentation> installationCodec,
+            JsonCodec<AgentStatusRepresentation> agentStatusCodec,
+            JsonCodec<SlotStatusRepresentation> slotStatusCodec)
     {
         this.agentId = agentId;
+        this.uri = uri;
         this.httpClient = httpClient;
         this.installationCodec = installationCodec;
+        this.agentStatusCodec = agentStatusCodec;
         this.slotStatusCodec = slotStatusCodec;
-        this.ticker = ticker;
 
         slots = new ConcurrentHashMap<UUID, HttpRemoteSlot>();
         state = OFFLINE;
-        lastUpdateTimestamp = ticker.read();
     }
 
     @Override
@@ -71,19 +75,57 @@ public class HttpRemoteAgent implements RemoteAgent
     }
 
     @Override
+    public URI getUri()
+    {
+        return uri;
+    }
+
+    @Override
+    public void setUri(URI uri)
+    {
+        this.uri = uri;
+    }
+
+    @Override
     public List<? extends RemoteSlot> getSlots()
     {
         return ImmutableList.copyOf(slots.values());
     }
 
     @Override
-    public long getLastUpdateTimestamp()
+    public void updateStatus()
     {
-        return lastUpdateTimestamp;
+        if (uri != null) {
+            try {
+                String uri = this.uri.toString();
+                if (!uri.endsWith("/")) {
+                    uri += "/";
+                }
+                uri += "v1/agent";
+                Response response = httpClient.prepareGet(uri)
+                        .execute()
+                        .get();
+
+                if (response.getStatusCode() == Status.OK.getStatusCode()) {
+                    String responseJson = response.getResponseBody();
+                    AgentStatusRepresentation agentStatusRepresentation = agentStatusCodec.fromJson(responseJson);
+                    setStatus(agentStatusRepresentation.toAgentStatus());
+                    return;
+                }
+            }
+            catch (Exception ignored) {
+            }
+        }
+
+        // error talking to agent -- mark agent offline
+        state = OFFLINE;
+        for (HttpRemoteSlot remoteSlot : slots.values()) {
+            remoteSlot.updateStatus(new SlotStatus(remoteSlot.status(), SlotLifecycleState.UNKNOWN));
+        }
     }
 
     @Override
-    public void updateStatus(AgentStatus status)
+    public void setStatus(AgentStatus status)
     {
         Set<UUID> updatedSlots = newHashSet();
         for (SlotStatus slotStatus : status.getSlotStatuses()) {
@@ -102,19 +144,8 @@ public class HttpRemoteAgent implements RemoteAgent
 
         state = status.getState();
         uri = status.getUri();
-        lastUpdateTimestamp = ticker.read();
         location = status.getLocation();
         instanceType = status.getInstanceType();
-    }
-
-    @Override
-    public void markAgentOffline()
-    {
-        state = OFFLINE;
-        lastUpdateTimestamp = ticker.read();
-        for (HttpRemoteSlot remoteSlot : slots.values()) {
-            remoteSlot.updateStatus(new SlotStatus(remoteSlot.status(), SlotLifecycleState.UNKNOWN));
-        }
     }
 
     @Override

@@ -14,7 +14,6 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,14 +31,14 @@ public class TestProvisionAgent
         String awsAccessKey = map.get("access-id");
         String awsSecretKey = map.get("private-key");
 
-        CoordinatorAwsConfig awsConfig = new CoordinatorAwsConfig()
+        AwsProvisionerConfig awsProvisionerConfig = new AwsProvisionerConfig()
                 .setAwsAccessKey(awsAccessKey)
                 .setAwsSecretKey(awsSecretKey)
                 .setAwsAgentAmi("ami-27b7744e")
                 .setAwsAgentKeypair("keypair")
                 .setAwsAgentSecurityGroup("default")
                 .setAwsAgentDefaultInstanceType("t1.micro");
-        assertValidates(awsConfig);
+        assertValidates(awsProvisionerConfig);
 
         CoordinatorConfig coordinatorConfig = new CoordinatorConfig()
                 .setGalaxyVersion("0.7-SNAPSHOT")
@@ -48,23 +47,23 @@ public class TestProvisionAgent
                 .setLocalConfigRepo("git://10.242.211.107/config.git");
         assertValidates(coordinatorConfig);
 
-        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsConfig.getAwsAccessKey(), awsConfig.getAwsSecretKey());
+        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsProvisionerConfig.getAwsAccessKey(), awsProvisionerConfig.getAwsSecretKey());
         AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
         NodeInfo nodeInfo = createTestNodeInfo();
         HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), nodeInfo);
-        AwsProvisioner awsProvisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, coordinatorConfig, awsConfig);
+        Provisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 3;
-        List<Ec2Location> locations = awsProvisioner.provisionAgents(agentCount, null, null);
-        assertEquals(locations.size(), agentCount);
+//        List<Ec2Location> locations = awsProvisioner.provisionAgents(agentCount, null, null);
+//        assertEquals(locations.size(), agentCount);
 
-        System.out.println("provisioned instances: " + locations);
+        System.out.println("provisioned instances: " + provisioner.listAgents());
     }
 
     private static NodeInfo createTestNodeInfo()
     {
         String nodeId = UUID.randomUUID().toString();
-        return new NodeInfo("testing", "general", nodeId, getTestIp(), "/test/" + nodeId);
+        return new NodeInfo("production", "general", nodeId, getTestIp(), "/test/" + nodeId);
     }
 
     private static InetAddress getTestIp()

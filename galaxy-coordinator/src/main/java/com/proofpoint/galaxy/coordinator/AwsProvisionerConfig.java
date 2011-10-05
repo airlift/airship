@@ -5,7 +5,7 @@ import com.proofpoint.configuration.ConfigDescription;
 
 import javax.validation.constraints.NotNull;
 
-public class CoordinatorAwsConfig
+public class AwsProvisionerConfig
 {
     private String awsAccessKey;
     private String awsSecretKey;
@@ -16,7 +16,7 @@ public class CoordinatorAwsConfig
 
     @Config("coordinator.aws.access-key")
     @ConfigDescription("AWS access key for provisioning agents")
-    public CoordinatorAwsConfig setAwsAccessKey(String awsAccessKey)
+    public AwsProvisionerConfig setAwsAccessKey(String awsAccessKey)
     {
         this.awsAccessKey = awsAccessKey;
         return this;
@@ -30,7 +30,7 @@ public class CoordinatorAwsConfig
 
     @Config("coordinator.aws.secret-key")
     @ConfigDescription("AWS secret key for provisioning agents")
-    public CoordinatorAwsConfig setAwsSecretKey(String awsSecretKey)
+    public AwsProvisionerConfig setAwsSecretKey(String awsSecretKey)
     {
         this.awsSecretKey = awsSecretKey;
         return this;
@@ -44,7 +44,7 @@ public class CoordinatorAwsConfig
 
     @Config("coordinator.aws.agent.ami")
     @ConfigDescription("AWS AMI for provisioned agents")
-    public CoordinatorAwsConfig setAwsAgentAmi(String awsAgentAmi)
+    public AwsProvisionerConfig setAwsAgentAmi(String awsAgentAmi)
     {
         this.awsAgentAmi = awsAgentAmi;
         return this;
@@ -58,7 +58,7 @@ public class CoordinatorAwsConfig
 
     @Config("coordinator.aws.agent.keypair")
     @ConfigDescription("AWS keypair for provisioned agents")
-    public CoordinatorAwsConfig setAwsAgentKeypair(String awsAgentKeypair)
+    public AwsProvisionerConfig setAwsAgentKeypair(String awsAgentKeypair)
     {
         this.awsAgentKeypair = awsAgentKeypair;
         return this;
@@ -72,7 +72,7 @@ public class CoordinatorAwsConfig
 
     @Config("coordinator.aws.agent.security-group")
     @ConfigDescription("AWS security group for provisioned agents")
-    public CoordinatorAwsConfig setAwsAgentSecurityGroup(String awsAgentSecurityGroup)
+    public AwsProvisionerConfig setAwsAgentSecurityGroup(String awsAgentSecurityGroup)
     {
         this.awsAgentSecurityGroup = awsAgentSecurityGroup;
         return this;
@@ -86,7 +86,7 @@ public class CoordinatorAwsConfig
 
     @Config("coordinator.aws.agent.default-instance-type")
     @ConfigDescription("AWS default instance type for provisioned agents")
-    public CoordinatorAwsConfig setAwsAgentDefaultInstanceType(String awsAgentDefaultInstanceType)
+    public AwsProvisionerConfig setAwsAgentDefaultInstanceType(String awsAgentDefaultInstanceType)
     {
         this.awsAgentDefaultInstanceType = awsAgentDefaultInstanceType;
         return this;

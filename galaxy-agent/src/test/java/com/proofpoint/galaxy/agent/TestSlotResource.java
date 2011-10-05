@@ -55,7 +55,6 @@ public class TestSlotResource
         File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
         AgentConfig agentConfig = new AgentConfig()
-                .setCoordinatorBaseURI(URI.create("fake://server"))
                 .setSlotsDir(new File(tempDir, "slots").getAbsolutePath());
         HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test"));
         agent = new Agent(agentConfig,
@@ -64,7 +63,7 @@ public class TestSlotResource
                 new MockDeploymentManagerFactory(),
                 new MockLifecycleManager()
         );
-        resource = new SlotResource(agent, new MockAnnouncementService());
+        resource = new SlotResource(agent);
     }
 
     @Test

@@ -21,12 +21,12 @@ import org.testng.annotations.Test;
 
 import java.util.Map;
 
-public class TestCoordinatorAwsConfig
+public class TestAwsProvisionerConfig
 {
     @Test
     public void testDefaults()
     {
-        ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(CoordinatorAwsConfig.class)
+        ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(AwsProvisionerConfig.class)
                 .setAwsAccessKey(null)
                 .setAwsSecretKey(null)
                 .setAwsAgentAmi(null)
@@ -48,7 +48,7 @@ public class TestCoordinatorAwsConfig
                 .put("coordinator.aws.agent.default-instance-type", "t1.micro")
                 .build();
 
-        CoordinatorAwsConfig expected = new CoordinatorAwsConfig()
+        AwsProvisionerConfig expected = new AwsProvisionerConfig()
                 .setAwsAccessKey("my-access-key")
                 .setAwsSecretKey("my-secret-key")
                 .setAwsAgentAmi("ami-0123abcd")

@@ -2,25 +2,13 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Ticker;
 
-import java.util.UUID;
+import java.net.URI;
 
 public class MockRemoteAgentFactory implements RemoteAgentFactory
 {
-    private final Ticker ticker;
-
-    public MockRemoteAgentFactory()
-    {
-        this(Ticker.systemTicker());
-    }
-
-    public MockRemoteAgentFactory(Ticker ticker)
-    {
-        this.ticker = ticker;
-    }
-
     @Override
-    public RemoteAgent createRemoteAgent(String agentId)
+    public RemoteAgent createRemoteAgent(String agentId, URI uri)
     {
-        return new MockRemoteAgent(agentId, ticker);
+        return new MockRemoteAgent(agentId, uri);
     }
 }
