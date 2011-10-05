@@ -14,7 +14,6 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.inject.Inject;
@@ -40,7 +39,6 @@ import static java.lang.String.format;
 
 public class Agent
 {
-    private static final Logger log = Logger.get(Agent.class);
     private final String agentId;
     private final ConcurrentMap<String, Slot> slots;
     private final AgentConfig config;
@@ -133,19 +131,10 @@ public class Agent
         String slotName = getNextSlotName(installation.getAssignment().getConfig().getComponent());
         URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
         Slot slot = new DeploymentSlot(slotUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, config.getMaxLockWait());
+        slots.put(slotName, slot);
 
-        // install the software
-        SlotStatus status;
-        try {
-            status = slot.assign(installation);
-            slots.put(slotName, slot);
-        }
-        catch (Exception e) {
-            slot.terminate();
-            throw Throwables.propagate(e);
-        }
-
-        return status;
+        // return last slot status
+        return slot.getLastSlotStatus();
     }
 
     public SlotStatus terminateSlot(String name)

@@ -194,6 +194,12 @@ public class DeploymentSlot implements Slot
     }
 
     @Override
+    public SlotStatus getLastSlotStatus()
+    {
+        return lastSlotStatus.get();
+    }
+
+    @Override
     public SlotStatus status()
     {
         try {
