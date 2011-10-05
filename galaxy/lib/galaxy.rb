@@ -53,11 +53,10 @@ module Galaxy
   # Agent Information
   #
   class Agent
-    attr_reader :uuid, :short_id, :host, :ip, :url, :status, :location, :path, :instance_type
+    attr_reader :agent_id, :host, :ip, :url, :status, :location, :path, :instance_type
 
-    def initialize(uuid, short_id, status, url, location, instance_type)
-      @uuid = uuid
-      @short_id = short_id
+    def initialize(agent_id, status, url, location, instance_type)
+      @agent_id = agent_id
       @url = url
       @status = status
       @path = path
@@ -80,7 +79,7 @@ module Galaxy
         end
       end
 
-      return [@short_id, @host, status, @instance_type, @location].map { |value| value || '' }
+      return [@agent_id, @host, status, @instance_type, @location].map { |value| value || '' }
     end
   end
 
@@ -336,7 +335,7 @@ module Galaxy
 
       # convert parsed json into slot objects
       agents = agents_json.map do |agent_json|
-        Agent.new(agent_json['agentId'], agent_json['shortId'], agent_json['state'], agent_json['self'], agent_json['location'], agent_json['instanceType'])
+        Agent.new(agent_json['agentId'], agent_json['state'], agent_json['self'], agent_json['location'], agent_json['instanceType'])
       end
 
       return agents
@@ -500,10 +499,10 @@ NOTES
 
           slots.each { |slot| puts format % slot.columns(STDOUT.tty?) }
         else
-          agents = result.sort_by { |agent| [agent.ip, agent.uuid] }
+          agents = result.sort_by { |agent| [agent.ip, agent.agent_id] }
           puts '' if options[:debug]
 
-          names = ['uuid', 'ip', 'status', 'type', 'location']
+          names = ['id', 'ip', 'status', 'type', 'location']
           if STDOUT.tty?
             format = agents.map { |agent| agent.columns }.
                            map { |cols| cols.map(&:size) }.

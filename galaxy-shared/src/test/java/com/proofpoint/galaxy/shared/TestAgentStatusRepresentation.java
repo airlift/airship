@@ -35,7 +35,6 @@ public class TestAgentStatusRepresentation
 
     private final AgentStatusRepresentation expected = new AgentStatusRepresentation(
             "44444444-4444-4444-4444-444444444444",
-            null,
             ONLINE,
             URI.create("fake://agent"),
             "unknown/location",

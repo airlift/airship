@@ -11,33 +11,16 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.List;
-import java.util.UUID;
-
-import static java.lang.Math.min;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation
 {
     private final String agentId;
-    private final String shortId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
     private final AgentLifecycleState state;
     private final String location;
     private final String instanceType;
-
-    private final static int MAX_ID_SIZE = UUID.randomUUID().toString().length();
-
-    public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatusWithShortIdPrefixSize(final int size)
-    {
-        return new Function<AgentStatus, AgentStatusRepresentation>()
-        {
-            public AgentStatusRepresentation apply(AgentStatus status)
-            {
-                return from(status, size);
-            }
-        };
-    }
 
     public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatus()
     {
@@ -51,17 +34,12 @@ public class AgentStatusRepresentation
     }
 
     public static AgentStatusRepresentation from(AgentStatus status) {
-        return from(status, MAX_ID_SIZE) ;
-    }
-
-    public static AgentStatusRepresentation from(AgentStatus status, int shortIdPrefixSize) {
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (SlotStatus slot : status.getSlotStatuses()) {
             builder.add(SlotStatusRepresentation.from(slot));
         }
         return new AgentStatusRepresentation(
                 status.getAgentId(),
-                status.getAgentId().substring(0, min(shortIdPrefixSize, status.getAgentId().length())),
                 status.getState(),
                 status.getUri(),
                 status.getLocation(),
@@ -72,14 +50,12 @@ public class AgentStatusRepresentation
     @JsonCreator
     public AgentStatusRepresentation(
             @JsonProperty("agentId") String agentId,
-            @JsonProperty("shortId") String shortId,
             @JsonProperty("state") AgentLifecycleState state,
             @JsonProperty("self") URI self,
             @JsonProperty("location") String location,
             @JsonProperty("instanceType") String instanceType, @JsonProperty("slots") List<SlotStatusRepresentation> slots)
     {
         this.agentId = agentId;
-        this.shortId = shortId;
         this.slots = slots;
         this.self = self;
         this.state = state;
@@ -92,12 +68,6 @@ public class AgentStatusRepresentation
     public String getAgentId()
     {
         return agentId;
-    }
-
-    @JsonProperty
-    public String getShortId()
-    {
-        return shortId;
     }
 
     @JsonProperty
@@ -172,7 +142,6 @@ public class AgentStatusRepresentation
         final StringBuilder sb = new StringBuilder();
         sb.append("AgentStatusRepresentation");
         sb.append("{agentId=").append(agentId);
-        sb.append(", shortId=").append(shortId);
         sb.append(", state=").append(state);
         sb.append(", location=").append(location);
         sb.append(", instanceType=").append(instanceType);

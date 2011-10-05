@@ -25,7 +25,7 @@ import java.util.List;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatusWithShortIdPrefixSize;
+import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
 import static java.lang.Math.max;
 
 @Path("/v1/admin/")
@@ -48,15 +48,7 @@ public class AdminResource
     public Response getAllSlotsStatus(@Context UriInfo uriInfo)
     {
         List<AgentStatus> agents = coordinator.getAllAgentStatus();
-
-        List<String> agentIds = Lists.transform(agents, AgentStatus.idGetter());
-
-        int prefixSize = MIN_PREFIX_SIZE;
-        if (!agentIds.isEmpty()) {
-            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(agentIds, toStringFunction())));
-        }
-
-        return Response.ok(transform(agents, fromAgentStatusWithShortIdPrefixSize(prefixSize))).build();
+        return Response.ok(transform(agents, fromAgentStatus())).build();
     }
 
     @POST
@@ -83,14 +75,7 @@ public class AdminResource
             agents.add(agentStatus);
         }
 
-        List<String> agentIds = Lists.transform(coordinator.getAllAgents(), AgentStatus.idGetter());
-
-        int prefixSize = MIN_PREFIX_SIZE;
-        if (!agentIds.isEmpty()) {
-            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(agentIds, toStringFunction())));
-        }
-
-        return Response.ok(transform(agents, fromAgentStatusWithShortIdPrefixSize(prefixSize))).build();
+        return Response.ok(transform(agents, fromAgentStatus())).build();
     }
 
     @DELETE
