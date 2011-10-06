@@ -217,7 +217,10 @@ module Galaxy
 
     def self.agent_show(filter, options, args)
       if !args.empty? then
-        raise CommandError.new(:invalid_usage, "You can not pass arguments to abent show.")
+        raise CommandError.new(:invalid_usage, "You can not pass arguments to agent show.")
+      end
+      if !filter.empty? then
+        raise CommandError.new(:invalid_usage, "You can not use filters with agent show.")
       end
       coordinator_agent_request(filter, options, :get)
     end
@@ -225,6 +228,9 @@ module Galaxy
     def self.agent_add(filter, options, args)
       if args.size > 1 then
         raise CommandError.new(:invalid_usage, "Agent add only accepts one argument.")
+      end
+      if !filter.empty? then
+        raise CommandError.new(:invalid_usage, "You can not use filters with agent show.")
       end
 
       if args.size > 0 then
@@ -252,9 +258,9 @@ module Galaxy
       # create filter query
       params = filter
       # todo this arbitrary rename here is just wrong
-      params["limit"] = options[:count] unless options[:count].nil?
-      params["pretty"] = "true" unless options[:debug].nil?
-      query = params.map { |k, v| "#{URI.escape(k.to_s)}=#{URI.escape(v)}" }.join('&')
+      params["limit"] <<= options[:count] unless options[:count].nil?
+      params["pretty"] <<= "true" unless options[:debug].nil?
+      query = params.map { |k, v| v.map { |v1| "#{k}=#{URI.escape(v1)}" }.join('&') }.join('&')
 
       # encode body as json if necessary
       body = value
@@ -374,7 +380,7 @@ module Galaxy
     def self.parse_command_line(args)
       options = INITIAL_OPTIONS
 
-      filter = Hash.new
+      filter = Hash.new{[]}
 
       option_parser = OptionParser.new do |opts|
         opts.banner = "Usage: #{File.basename($0)} [options] <command>"
@@ -404,23 +410,23 @@ module Galaxy
         opts.separator 'Filters:'
 
         opts.on("-b", "--binary BINARY", "Select slots with a given binary") do |arg|
-          filter[:binary] = arg
+          filter[:binary] <<= arg
         end
 
         opts.on("-c", "--config CONFIG", "Select slots with given configuration") do |arg|
-          filter[:config] = arg
+          filter[:config] <<= arg
         end
 
         opts.on("-i", "--host HOST", "Select slots on the given hostname") do |arg|
-          filter[:host] = arg
+          filter[:host] <<= arg
         end
 
         opts.on("-I", "--ip IP", "Select slots at the given IP address") do |arg|
-          filter[:ip] = arg
+          filter[:ip] <<= arg
         end
 
         opts.on("-u", "--uuid SLOT_UUID", "Select slots with given slot uuid") do |arg|
-          filter[:uuid] = arg
+          filter[:uuid] <<= arg
         end
 
         opts.on("--count count", "Number of instances to install or agents to provision") do |arg|
@@ -439,11 +445,11 @@ module Galaxy
         opts.on("-s", "--state STATE", "Select 'r{unning}', 's{topped}' or 'unknown' slots", [:running, :r, :stopped, :s, :unknown]) do |arg|
           case arg
             when :running, :r then
-              filter[:state] = 'running'
+              filter[:state] <<= 'running'
             when :stopped, :s then
-              filter[:state] = 'stopped'
+              filter[:state] <<= 'stopped'
             when :unknown then
-              filter[:state] = 'unknown'
+              filter[:state] <<= 'unknown'
           end
         end
 
@@ -465,7 +471,7 @@ NOTES
       option_parser.parse!(args)
 
       puts options.map { |k, v| "#{k}=#{v}" }.join("\n") if options[:debug]
-      puts filter.map { |k, v| "#{k}=#{v}" }.join("\n") if options[:debug]
+      puts filter.map { |k, v| v.map { |v1| "#{k}=#{URI.escape(v1)}" }.join('\n') }.join('\n')
 
       if args.length == 0 then
         puts option_parser
