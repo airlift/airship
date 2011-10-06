@@ -258,27 +258,11 @@ public class SlotFilterBuilder
 
     public static class BinarySpecPredicate implements Predicate<SlotStatus>
     {
-
-        private final Predicate<CharSequence> groupIdGlob;
-        private final Predicate<CharSequence> artifactIdGlob;
-        private final Predicate<CharSequence> packingGlob;
-        private final Predicate<CharSequence> classifierGlob;
-        private final Predicate<CharSequence> versionGlob;
+        private final Predicate<CharSequence> glob;
 
         public BinarySpecPredicate(String binaryFilter)
         {
-            BinarySpec binarySpec = BinarySpec.valueOf(binaryFilter);
-            groupIdGlob = new GlobPredicate(binarySpec.getGroupId());
-            artifactIdGlob = new GlobPredicate(binarySpec.getArtifactId());
-            packingGlob = new GlobPredicate(binarySpec.getPackaging());
-            if (binarySpec.getClassifier() != null) {
-                classifierGlob = new GlobPredicate(binarySpec.getClassifier());
-            }
-            else {
-                classifierGlob = Predicates.isNull();
-            }
-            versionGlob = new GlobPredicate(binarySpec.getVersion());
-
+            glob = new GlobPredicate(binaryFilter);
         }
 
         @Override
@@ -288,35 +272,17 @@ public class SlotFilterBuilder
                 return false;
             }
             BinarySpec binary = slotStatus.getAssignment().getBinary();
-            return binary != null &&
-                    groupIdGlob.apply(binary.getGroupId()) &&
-                    artifactIdGlob.apply(binary.getArtifactId()) &&
-                    packingGlob.apply(binary.getPackaging()) &&
-                    classifierGlob.apply(binary.getClassifier()) &&
-                    versionGlob.apply(binary.getVersion());
-
+            return binary != null && glob.apply(binary.toString());
         }
     }
 
     public static class ConfigSpecPredicate implements Predicate<SlotStatus>
     {
-
-        private final Predicate<CharSequence> componentGlob;
-        private final Predicate<CharSequence> poolGlob;
-        private final Predicate<CharSequence> versionGlob;
+        private final Predicate<CharSequence> glob;
 
         public ConfigSpecPredicate(String configFilter)
         {
-            ConfigSpec configSpec = ConfigSpec.valueOf(configFilter);
-            componentGlob = new GlobPredicate(configSpec.getComponent());
-            if (configSpec.getPool() != null) {
-                poolGlob = new GlobPredicate(configSpec.getPool());
-            }
-            else {
-                poolGlob = Predicates.isNull();
-            }
-            versionGlob = new GlobPredicate(configSpec.getVersion());
-
+            glob = new GlobPredicate(configFilter);
         }
 
         @Override
@@ -326,11 +292,7 @@ public class SlotFilterBuilder
                 return false;
             }
             ConfigSpec config = slotStatus.getAssignment().getConfig();
-            return config != null &&
-                    componentGlob.apply(config.getComponent()) &&
-                    poolGlob.apply(config.getPool()) &&
-                    versionGlob.apply(config.getVersion());
-
+            return config != null && glob.apply(config.toString());
         }
     }
 

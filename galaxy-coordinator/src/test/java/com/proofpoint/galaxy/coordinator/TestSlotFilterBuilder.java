@@ -107,26 +107,35 @@ public class TestSlotFilterBuilder
     @Test
     public void testBinarySpecPredicate()
     {
-        assertTrue(new BinarySpecPredicate("*:*:*").apply(status));
-        assertTrue(buildFilter("binary", "*:*:*").apply(status));
+        assertTrue(new BinarySpecPredicate("*").apply(status));
+        assertTrue(buildFilter("binary", "*").apply(status));
+
         assertTrue(new BinarySpecPredicate("food.fruit:apple:1.0").apply(status));
         assertTrue(buildFilter("binary", "food.fruit:apple:1.0").apply(status));
-        assertTrue(new BinarySpecPredicate("food.fruit:apple:tar.gz:1.0").apply(status));
-        assertTrue(buildFilter("binary", "food.fruit:apple:tar.gz:1.0").apply(status));
+
+        assertTrue(new BinarySpecPredicate("*apple*").apply(status));
+        assertTrue(buildFilter("binary", "*apple*").apply(status));
+
         assertTrue(new BinarySpecPredicate("*:apple:1.0").apply(status));
         assertTrue(buildFilter("binary", "*:apple:1.0").apply(status));
+
         assertTrue(new BinarySpecPredicate("food.fruit:*:1.0").apply(status));
         assertTrue(buildFilter("binary", "food.fruit:*:1.0").apply(status));
+
         assertTrue(new BinarySpecPredicate("food.fruit:apple:*").apply(status));
         assertTrue(buildFilter("binary", "food.fruit:apple:*").apply(status));
+
         assertTrue(new BinarySpecPredicate("f*:a*:1.*").apply(status));
         assertTrue(buildFilter("binary", "f*:a*:1.*").apply(status));
+
+        assertFalse(new BinarySpecPredicate("*banana*").apply(status));
+        assertFalse(buildFilter("binary", "*banana*").apply(status));
+
         assertFalse(new BinarySpecPredicate("x:apple:1.0").apply(status));
         assertFalse(buildFilter("binary", "x:apple:1.0").apply(status));
+
         assertFalse(new BinarySpecPredicate("food.fruit:apple:zip:1.0").apply(status));
         assertFalse(buildFilter("binary", "food.fruit:apple:zip:1.0").apply(status));
-        assertFalse(new BinarySpecPredicate("food.fruit:apple:tar.gz:x:1.0").apply(status));
-        assertFalse(buildFilter("binary", "food.fruit:apple:tar.gz:x:1.0").apply(status));
     }
 
     @Test
