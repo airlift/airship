@@ -1,7 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.json.JsonCodec;
@@ -10,6 +9,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
+import com.proofpoint.log.Logger;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -21,6 +21,7 @@ import static com.proofpoint.json.JsonCodec.jsonCodec;
 
 public class HttpRemoteSlot implements RemoteSlot
 {
+    private static final Logger log = Logger.get(HttpRemoteSlot.class);
     private static final JsonCodec<InstallationRepresentation> installationCodec = jsonCodec(InstallationRepresentation.class);
     private static final JsonCodec<SlotStatusRepresentation> slotStatusCodec = jsonCodec(SlotStatusRepresentation.class);
 
@@ -54,6 +55,13 @@ public class HttpRemoteSlot implements RemoteSlot
         this.slotStatus.set(slotStatus);
     }
 
+    private SlotStatus setErrorStatus(SlotLifecycleState status, String statusMessage)
+    {
+        SlotStatus currentStatus = slotStatus.get();
+        slotStatus.set(currentStatus.updateState(status));
+        return currentStatus.updateState(status, statusMessage);
+    }
+
     @Override
     public SlotStatus assign(Installation installation)
     {
@@ -66,7 +74,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                throw new RuntimeException("Assignment Failed with " + response.getStatusCode() + " " + response.getStatusText());
+                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -74,8 +82,8 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
-            throw Throwables.propagate(e);
+            log.error(e);
+            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
         }
     }
 
@@ -88,7 +96,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                throw new RuntimeException("Terminate Failed with " + response.getStatusCode() + " " + response.getStatusText());
+                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -96,8 +104,8 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
-            throw Throwables.propagate(e);
+            log.error(e);
+            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
         }
     }
 
@@ -117,7 +125,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                throw new RuntimeException("Assignment Failed with " + response.getStatusCode() + " " + response.getStatusText());
+                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -125,8 +133,8 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
-            throw Throwables.propagate(e);
+            log.error(e);
+            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
         }
     }
 
@@ -140,7 +148,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                throw new RuntimeException("Assignment Failed with " + response.getStatusCode() + " " + response.getStatusText());
+                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -148,8 +156,8 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
-            throw Throwables.propagate(e);
+            log.error(e);
+            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
         }
     }
 
@@ -163,7 +171,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                throw new RuntimeException("Assignment Failed with " + response.getStatusCode() + " " + response.getStatusText());
+                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -171,8 +179,8 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
-            throw Throwables.propagate(e);
+            log.error(e);
+            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
         }
     }
 }

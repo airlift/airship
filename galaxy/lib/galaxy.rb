@@ -13,22 +13,24 @@ module Galaxy
       :success => 0,
       :no_slots => 1,
       :unsupported => 3,
-      :invalid_usage => 64
+      :invalid_usage => 64,
+      :general_error => 99
   }
 
   #
   # Slot Information
   #
   class Slot
-    attr_reader :uuid, :short_id, :host, :ip, :url, :binary, :config, :status, :path
+    attr_reader :uuid, :short_id, :host, :ip, :url, :binary, :config, :status, :status_message, :path
 
-    def initialize(uuid, short_id, url, binary, config, status, path)
+    def initialize(uuid, short_id, url, binary, config, status, status_message, path)
       @uuid = uuid
       @short_id = short_id
       @url = url
       @binary = binary
       @config = config
       @status = status
+      @status_message = status_message
       @path = path
       uri = URI.parse(url)
       @host = uri.host
@@ -37,6 +39,7 @@ module Galaxy
 
     def columns(colors = false)
       status = @status
+      status_message = @status_message
 
       if colors
         status = case status
@@ -44,9 +47,10 @@ module Galaxy
           when "STOPPED" then status
           else status
         end
+        status_message = Colorize::colorize(status_message, :red)
       end
 
-      return [@short_id, @host, status, @binary, @config].map { |value| value || '' }
+      return [@short_id, @host, status, @binary, @config, status_message].map { |value| value || '' }
     end
   end
   #
@@ -249,6 +253,7 @@ module Galaxy
       params = filter
       # todo this arbitrary rename here is just wrong
       params["limit"] = options[:count] unless options[:count].nil?
+      params["pretty"] = "true" unless options[:debug].nil?
       query = params.map { |k, v| "#{URI.escape(k.to_s)}=#{URI.escape(v)}" }.join('&')
 
       # encode body as json if necessary
@@ -271,20 +276,27 @@ module Galaxy
       end
 
       # execute request
-      response = HTTPClient.new.request(method, uri, query, body, headers).body
-
-      # parse response as json
-      response = response.content if response.respond_to?(:content)
-      slots_json = JSON.parse(response)
-
+      response = HTTPClient.new.request(method, uri, query, body, headers)
+      response_body = response.body if response.respond_to?(:body)
+      response_body = response_body.content if response_body.respond_to?(:content)
       # log response if in debug mode
       if options[:debug]
-        puts slots_json
+        puts
+        puts response
+        puts response_body
       end
+
+      # check response code
+      if response.status / 100 != 2 then
+        raise CommandError.new(:general_error, response.reason || "Unknown error executing command")
+      end
+
+      # parse response as json
+      slots_json = JSON.parse(response_body)
 
       # convert parsed json into slot objects
       slots = slots_json.map do |slot_json|
-        Slot.new(slot_json['id'], slot_json['shortId'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'], slot_json['installPath'])
+        Slot.new(slot_json['id'], slot_json['shortId'], slot_json['self'], slot_json['binary'], slot_json['config'], slot_json['status'], slot_json['statusMessage'], slot_json['installPath'])
       end
 
       # verify response
@@ -322,9 +334,18 @@ module Galaxy
       end
 
       # execute request
-      response = HTTPClient.new.request(method, uri, query, body, headers).body
+      response = HTTPClient.new.request(method, uri, query, body, headers)
+
+      # check response code
+      if response.status / 100 != 2 then
+        if options[:debug]
+          puts response
+        end
+        raise CommandError.new(:command_error, response.reason || "Unknown error executing command")
+      end
 
       # parse response as json
+      response = response.body if response.respond_to?(:body)
       response = response.content if response.respond_to?(:content)
       agents_json = JSON.parse(response)
 
@@ -483,14 +504,15 @@ NOTES
           slots = result.sort_by { |slot| [slot.ip, slot.binary || '', slot.config || '', slot.uuid] }
           puts '' if options[:debug]
 
-          names = ['uuid', 'ip', 'status', 'binary', 'config']
+          names = ['uuid', 'ip', 'status', 'binary', 'config', '']
           if STDOUT.tty?
             format = slots.map { |slot| slot.columns }.
                            map { |cols| cols.map(&:size) }.
                            transpose.
                            map(&:max).
-                           map { |size| "%-#{size}s" }.
-                           join('  ')
+                           map { |size| "%-#{size}s" }
+            format[-1] = "%s"
+            format = format.join('  ')
 
             puts Colorize::colorize(format % names, :bright, :cyan)
           else
@@ -521,6 +543,9 @@ NOTES
 
 
         exit EXIT_CODES[:success]
+      rescue Errno::ECONNREFUSED
+        puts "Coordinator refused connection: #{options[:coordinator_url]}"
+        exit EXIT_CODES[:general_error]
       rescue CommandError => e
         puts e.message
         if e.code == :invalid_usage
@@ -531,7 +556,7 @@ NOTES
           puts ''
           puts "exit: #{e.code}"
         end
-        exit EXIT_CODES[e.code]
+        exit EXIT_CODES[e.code || :general_error]
       end
     end
 
