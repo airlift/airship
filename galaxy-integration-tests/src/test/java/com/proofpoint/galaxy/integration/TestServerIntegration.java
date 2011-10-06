@@ -46,6 +46,8 @@ import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.json.JsonModule;
+import com.proofpoint.node.NodeInfo;
+import com.proofpoint.node.NodeModule;
 import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -114,6 +116,7 @@ public class TestServerIntegration
         }
 
         Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
+                .put("node.environment", "prod")
                 .put("galaxy.version", "123")
                 .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
                 .put("coordinator.config-repo", configRepoDir.toURI().toString())
@@ -127,7 +130,7 @@ public class TestServerIntegration
                 .build();
 
         Injector coordinatorInjector = Guice.createInjector(new TestingHttpServerModule(),
-                new TestingNodeModule(),
+                new NodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
                 new CoordinatorMainModule(),

@@ -41,7 +41,7 @@ public class UpgradeVersions
         }
         ConfigSpec config = assignment.getConfig();
         if (configVersion != null) {
-            config = new ConfigSpec(config.getEnvironment(), config.getComponent(), configVersion, config.getPool());
+            config = new ConfigSpec(config.getComponent(), configVersion, config.getPool());
         }
 
         return new Assignment(binary, config);

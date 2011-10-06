@@ -34,7 +34,7 @@ public class TestCoordinator extends TestCase
         coordinator = new Coordinator(new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new LocalConfigRepository(new NodeInfo("test"), new CoordinatorConfig(), null),
                 provisioner,
                 statusExpiration
         );

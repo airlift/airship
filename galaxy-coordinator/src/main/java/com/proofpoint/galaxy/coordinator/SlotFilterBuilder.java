@@ -1,6 +1,5 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -25,7 +24,6 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Functions.compose;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.startsWith;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toLowerCase;
-import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static java.lang.String.format;
 
 public class SlotFilterBuilder
@@ -304,7 +302,6 @@ public class SlotFilterBuilder
     {
 
         private final Predicate<CharSequence> componentGlob;
-        private final Predicate<CharSequence> environmentGlob;
         private final Predicate<CharSequence> poolGlob;
         private final Predicate<CharSequence> versionGlob;
 
@@ -312,7 +309,6 @@ public class SlotFilterBuilder
         {
             ConfigSpec configSpec = ConfigSpec.valueOf(configFilter);
             componentGlob = new GlobPredicate(configSpec.getComponent());
-            environmentGlob = new GlobPredicate(configSpec.getEnvironment());
             if (configSpec.getPool() != null) {
                 poolGlob = new GlobPredicate(configSpec.getPool());
             }
@@ -332,7 +328,6 @@ public class SlotFilterBuilder
             ConfigSpec config = slotStatus.getAssignment().getConfig();
             return config != null &&
                     componentGlob.apply(config.getComponent()) &&
-                    environmentGlob.apply(config.getEnvironment()) &&
                     poolGlob.apply(config.getPool()) &&
                     versionGlob.apply(config.getVersion());
 

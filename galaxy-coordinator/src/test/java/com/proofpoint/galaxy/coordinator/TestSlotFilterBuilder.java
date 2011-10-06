@@ -170,22 +170,20 @@ public class TestSlotFilterBuilder
     @Test
     public void testConfigSpecPredicate()
     {
-        assertTrue(new ConfigSpecPredicate("@*:*:*").apply(status));
-        assertTrue(buildFilter("config", "@*:*:*").apply(status));
-        assertTrue(new ConfigSpecPredicate("@prod:apple:1.0").apply(status));
-        assertTrue(buildFilter("config", "@prod:apple:1.0").apply(status));
-        assertTrue(new ConfigSpecPredicate("@*:apple:1.0").apply(status));
-        assertTrue(buildFilter("config", "@*:apple:1.0").apply(status));
-        assertTrue(new ConfigSpecPredicate("@prod:*:1.0").apply(status));
-        assertTrue(buildFilter("config", "@prod:*:1.0").apply(status));
-        assertTrue(new ConfigSpecPredicate("@prod:apple:*").apply(status));
-        assertTrue(buildFilter("config", "@prod:apple:*").apply(status));
-        assertTrue(new ConfigSpecPredicate("@p*:a*:1.*").apply(status));
-        assertTrue(buildFilter("config", "@p*:a*:1.*").apply(status));
-        assertFalse(new ConfigSpecPredicate("@x:apple:1.0").apply(status));
-        assertFalse(buildFilter("config", "@x:apple:1.0").apply(status));
-        assertFalse(new ConfigSpecPredicate("@prod:apple:x:1.0").apply(status));
-        assertFalse(buildFilter("config", "@prod:apple:x:1.0").apply(status));
+        assertTrue(new ConfigSpecPredicate("@*:*").apply(status));
+        assertTrue(buildFilter("config", "@*:*").apply(status));
+        assertTrue(new ConfigSpecPredicate("@apple:1.0").apply(status));
+        assertTrue(buildFilter("config", "@apple:1.0").apply(status));
+        assertTrue(new ConfigSpecPredicate("@apple:1.0").apply(status));
+        assertTrue(buildFilter("config", "@apple:1.0").apply(status));
+        assertTrue(new ConfigSpecPredicate("@*:1.0").apply(status));
+        assertTrue(buildFilter("config", "@*:1.0").apply(status));
+        assertTrue(new ConfigSpecPredicate("@apple:*").apply(status));
+        assertTrue(buildFilter("config", "@apple:*").apply(status));
+        assertTrue(new ConfigSpecPredicate("@a*:1.*").apply(status));
+        assertTrue(buildFilter("config", "@a*:1.*").apply(status));
+        assertFalse(new ConfigSpecPredicate("@apple:x:1.0").apply(status));
+        assertFalse(buildFilter("config", "@apple:x:1.0").apply(status));
     }
 
     @Test

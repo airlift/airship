@@ -10,6 +10,7 @@ import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.ConfigSpec;
+import com.proofpoint.node.NodeInfo;
 
 import java.net.URI;
 import java.util.List;
@@ -22,25 +23,22 @@ public class SimpleConfigRepository implements ConfigRepository
 {
     private static final JsonCodec<Map<String, String>> configCodec = mapJsonCodec(String.class, String.class);
     private final List<URI> configRepositoryBases;
+    private final String environment;
 
-    public SimpleConfigRepository(URI configRepositoryBase, URI... configRepositoryBases)
+    public SimpleConfigRepository(String environment, URI configRepositoryBase, URI... configRepositoryBases)
     {
+        this.environment = environment;
         Preconditions.checkNotNull(configRepositoryBase, "configRepositoryBase is null");
         Preconditions.checkNotNull(configRepositoryBases, "configRepositoryBases is null");
         this.configRepositoryBases = ImmutableList.<URI>builder().add(configRepositoryBase).add(configRepositoryBases).build();
     }
 
-    public SimpleConfigRepository(Iterable<URI> configRepositoryBases)
-    {
-        Preconditions.checkNotNull(configRepositoryBases, "configRepositoryBases is null");
-        this.configRepositoryBases = ImmutableList.copyOf(configRepositoryBases);
-        Preconditions.checkArgument(!this.configRepositoryBases.isEmpty(), "configRepositoryBases is empty");
-    }
-
     @Inject
-    public SimpleConfigRepository(CoordinatorConfig config)
+    public SimpleConfigRepository(NodeInfo nodeInfo, CoordinatorConfig config)
     {
+        Preconditions.checkNotNull(nodeInfo, "nodeInfo is null");
         Preconditions.checkNotNull(config, "config is null");
+        environment = nodeInfo.getEnvironment();
         ImmutableList.Builder<URI> builder = ImmutableList.builder();
         for (String configRepoBase : config.getConfigRepoBases()) {
             if (!configRepoBase.endsWith("/")) {
@@ -55,7 +53,7 @@ public class SimpleConfigRepository implements ConfigRepository
     public Map<String, URI> getConfigMap(ConfigSpec configSpec)
     {
         StringBuilder uriBuilder = new StringBuilder();
-        uriBuilder.append(configSpec.getEnvironment()).append('/');
+        uriBuilder.append(environment).append('/');
         uriBuilder.append(configSpec.getComponent()).append('/');
         if (configSpec.getPool() != null) {
             uriBuilder.append(configSpec.getPool()).append('/');

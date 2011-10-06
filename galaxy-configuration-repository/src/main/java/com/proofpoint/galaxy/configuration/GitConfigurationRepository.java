@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.FileUtils;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
@@ -28,7 +27,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public class GitConfigurationRepository implements ConfigurationRepository
+public class GitConfigurationRepository
 {
     private static final Logger log = Logger.get(GitConfigurationRepository.class);
     private final URI blobUri;
@@ -78,29 +77,23 @@ public class GitConfigurationRepository implements ConfigurationRepository
         }
     }
 
-    @Override
-    public Map<String, URI> getConfigMap(ConfigSpec configSpec)
+    public Map<String, URI> getConfigMap(String environment, String type, String version, String pool)
     {
         if (localRepository == null) {
             return null;
         }
 
-        String pool = configSpec.getPool();
-        if (pool == null) {
-            pool = "general";
-        }
-
-        File configDir = newFile(localRepository, configSpec.getEnvironment(), configSpec.getComponent(), pool, configSpec.getVersion());
+        File configDir = newFile(localRepository, environment, type, pool, version);
         if (!configDir.isDirectory()) {
             return null;
         }
 
         Map<String, URI> configMap = newLinkedHashMap();
-        URI baseConfigUri = blobUri.resolve(String.format("%s/%s/%s/%s/", configSpec.getEnvironment(), configSpec.getComponent(), pool, configSpec.getVersion()));
+        URI baseConfigUri = blobUri.resolve(String.format("%s/%s/%s/%s/", environment, type, pool, version));
         for (String path : getConfigMap("", configDir)) {
             configMap.put(path, baseConfigUri.resolve(path));
         }
-        for (String path : getConfigMap("", newFile(localRepository, configSpec.getEnvironment(), "defaults"))) {
+        for (String path : getConfigMap("", newFile(localRepository, environment, "defaults"))) {
             if (!configMap.containsKey(path)) {
                 configMap.put(path, baseConfigUri.resolve(path));
             }
@@ -123,15 +116,15 @@ public class GitConfigurationRepository implements ConfigurationRepository
         return builder.build();
     }
 
-    public InputSupplier<FileInputStream> getConfigFile(ConfigSpec configSpec, String path)
+    public InputSupplier<FileInputStream> getConfigFile(String environment, String type, String version, String pool, String path)
     {
         if (localRepository == null) {
             return null;
         }
 
-        File file = newFile(localRepository, configSpec.getEnvironment(), configSpec.getComponent(), configSpec.getPool(), configSpec.getVersion(), path);
+        File file = newFile(localRepository, environment, type, pool, version, path);
         if (!file.canRead()) {
-            file = newFile(newFile(localRepository, configSpec.getEnvironment(), "defaults"), path);
+            file = newFile(newFile(localRepository, environment, "defaults"), path);
         }
         return Files.newInputStreamSupplier(file);
     }

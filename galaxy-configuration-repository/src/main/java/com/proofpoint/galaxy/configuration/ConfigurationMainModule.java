@@ -16,11 +16,7 @@ package com.proofpoint.galaxy.configuration;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
-import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.json.JsonCodecBinder;
-
-import javax.inject.Scope;
 
 import static com.proofpoint.configuration.ConfigurationModule.bindConfig;
 import static com.proofpoint.json.JsonCodecBinder.jsonCodecBinder;
@@ -34,7 +30,7 @@ public class ConfigurationMainModule
         binder.requireExplicitBindings();
 
         binder.bind(ConfigurationResource.class).in(Scopes.SINGLETON);
-        binder.bind(ConfigurationRepository.class).to(GitConfigurationRepository.class).in(Scopes.SINGLETON);
+        binder.bind(GitConfigurationRepository.class).in(Scopes.SINGLETON);
         bindConfig(binder).to(GitConfigurationRepositoryConfig.class);
 
         binder.bind(DiscoverDiscovery.class).in(Scopes.SINGLETON);

@@ -60,13 +60,14 @@ public class TestCoordinatorLifecycleResource
     public void setup()
             throws Exception
     {
-        BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), new NodeInfo("testing")));
+        NodeInfo nodeInfo = new NodeInfo("testing");
+        BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), nodeInfo));
 
         coordinator = new Coordinator(new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
                 new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new CoordinatorConfig(), null),
+                new LocalConfigRepository(nodeInfo, new CoordinatorConfig(), null),
                 new LocalProvisioner());
         resource = new CoordinatorLifecycleResource(coordinator);
 

@@ -22,9 +22,8 @@ import java.util.regex.Pattern;
 @Immutable
 public class ConfigSpec
 {
-    public static final String CONFIG_SPEC_REGEX = "^@([^:]+):([^:]+)(?::([^:]+))?:([^:]+)$";
+    public static final String CONFIG_SPEC_REGEX = "^@([^:]+)(?::([^:]+))?:([^:]+)$";
     private static final Pattern CONFIG_SPEC_PATTERN = Pattern.compile(CONFIG_SPEC_REGEX);
-    private final String environment;
     private final String component;
     private final String pool;
     private final String version;
@@ -35,33 +34,25 @@ public class ConfigSpec
         if (!matcher.matches()) {
             throw new IllegalArgumentException("Invalid config spec: " + configSpec);
         }
-        String environment = matcher.group(1);
-        String component = matcher.group(2);
-        String pool = matcher.group(3);
-        String version = matcher.group(4);
-        return new ConfigSpec(environment, component, version, pool);
+        String component = matcher.group(1);
+        String pool = matcher.group(2);
+        String version = matcher.group(3);
+        return new ConfigSpec(component, version, pool);
     }
 
-    public ConfigSpec(String environment, String component, String version)
+    public ConfigSpec(String component, String version)
     {
-        this(environment, component, version, null);
+        this(component, version, null);
     }
 
-    public ConfigSpec(String environment, String component, String version, String pool)
+    public ConfigSpec(String component, String version, String pool)
     {
-        Preconditions.checkNotNull(environment, "groupId is null");
         Preconditions.checkNotNull(component, "artifactId is null");
         Preconditions.checkNotNull(version, "version is null");
 
-        this.environment = environment;
         this.component = component;
         this.pool = pool;
         this.version = version;
-    }
-
-    public String getEnvironment()
-    {
-        return environment;
     }
 
     public String getComponent()
@@ -97,9 +88,6 @@ public class ConfigSpec
         if (pool != null ? !pool.equals(that.pool) : that.pool != null) {
             return false;
         }
-        if (!environment.equals(that.environment)) {
-            return false;
-        }
         if (!version.equals(that.version)) {
             return false;
         }
@@ -110,8 +98,7 @@ public class ConfigSpec
     @Override
     public int hashCode()
     {
-        int result = environment.hashCode();
-        result = 31 * result + component.hashCode();
+        int result =  component.hashCode();
         result = 31 * result + (pool != null ? pool.hashCode() : 0);
         result = 31 * result + version.hashCode();
         return result;
@@ -120,9 +107,8 @@ public class ConfigSpec
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append('@');
-        sb.append(environment).append(':');
         sb.append(component).append(':');
         if (pool != null) {
             sb.append(pool).append(':');

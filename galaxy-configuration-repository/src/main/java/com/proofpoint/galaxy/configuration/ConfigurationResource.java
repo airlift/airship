@@ -3,10 +3,7 @@ package com.proofpoint.galaxy.configuration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
-import com.proofpoint.galaxy.shared.ConfigSpec;
-import com.proofpoint.node.NodeInfo;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -22,11 +19,11 @@ import java.util.Map;
 @Path("/v1/config/{environment}/{type}/{pool}/{version}")
 public class ConfigurationResource
 {
-    private final ConfigurationRepository configurationRepository;
+    private final GitConfigurationRepository configurationRepository;
     private final DiscoverDiscovery discoverDiscovery;
 
     @Inject
-    public ConfigurationResource(ConfigurationRepository configRepository, DiscoverDiscovery discoverDiscovery)
+    public ConfigurationResource(GitConfigurationRepository configRepository, DiscoverDiscovery discoverDiscovery)
     {
         this.configurationRepository = configRepository;
         this.discoverDiscovery = discoverDiscovery;
@@ -39,8 +36,7 @@ public class ConfigurationResource
             @PathParam("pool") String pool,
             @PathParam("version") String version)
     {
-        ConfigSpec configSpec = new ConfigSpec(environment, type, version, pool);
-        Map<String, URI> configMap = configurationRepository.getConfigMap(configSpec);
+        Map<String, URI> configMap = configurationRepository.getConfigMap(environment, type, version, pool);
         if (configMap == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
@@ -56,8 +52,7 @@ public class ConfigurationResource
             @PathParam("version") String version,
             @PathParam("path") String path)
     {
-        ConfigSpec configSpec = new ConfigSpec(environment, type, version, pool);
-        InputSupplier<? extends InputStream> configFile = configurationRepository.getConfigFile(configSpec, path);
+        InputSupplier<? extends InputStream> configFile = configurationRepository.getConfigFile(environment, type, version, pool, path);
         if (configFile == null) {
             return Response.status(Status.NOT_FOUND).build();
         }

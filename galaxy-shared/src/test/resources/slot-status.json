@@ -4,7 +4,7 @@
     "name":"slot1",
     "self":"fake://apple",
     "binary":"food.fruit:apple:1.0",
-    "config":"@prod:apple:1.0",
+    "config":"@apple:1.0",
     "status":"STOPPED",
     "installPath": "/apple"
 }

@@ -13,7 +13,6 @@
  */
 package com.proofpoint.galaxy.shared;
 
-import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -25,34 +24,32 @@ public class TestConfigSpec
     @Test
     public void fullConfigSpec()
     {
-        ConfigSpec spec = ConfigSpec.valueOf("@environment:component:pool:version");
-        Assert.assertEquals(spec.getEnvironment(), "environment");
+        ConfigSpec spec = ConfigSpec.valueOf("@component:pool:version");
         Assert.assertEquals(spec.getComponent(), "component");
         Assert.assertEquals(spec.getPool(), "pool");
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
-        Assert.assertEquals(spec, new ConfigSpec("environment", "component", "version", "pool"));
-        Assert.assertEquals(spec.toString(), "@environment:component:pool:version");
+        Assert.assertEquals(spec, new ConfigSpec("component", "version", "pool"));
+        Assert.assertEquals(spec.toString(), "@component:pool:version");
     }
 
     @Test
     public void simpleSpec()
     {
-        ConfigSpec spec = ConfigSpec.valueOf("@environment:component:version");
-        Assert.assertEquals(spec.getEnvironment(), "environment");
+        ConfigSpec spec = ConfigSpec.valueOf("@component:version");
         Assert.assertEquals(spec.getComponent(), "component");
         Assert.assertNull(spec.getPool());
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
-        Assert.assertEquals(spec, new ConfigSpec("environment", "component", "version"));
-        Assert.assertEquals(spec.toString(), "@environment:component:version");
+        Assert.assertEquals(spec, new ConfigSpec("component", "version"));
+        Assert.assertEquals(spec.toString(), "@component:version");
     }
 
     @Test
     public void testEquivalence()
     {
         EquivalenceTester.check(
-                asList(ConfigSpec.valueOf("@env:component:version"), new ConfigSpec("env", "component", "version"), new ConfigSpec("env", "component", "version", null)),
-                asList(ConfigSpec.valueOf("@env:component:pool:version"), new ConfigSpec("env", "component", "version", "pool")));
+                asList(ConfigSpec.valueOf("@component:version"), new ConfigSpec("component", "version"), new ConfigSpec("component", "version", null)),
+                asList(ConfigSpec.valueOf("@component:pool:version"), new ConfigSpec("component", "version", "pool")));
     }
 }

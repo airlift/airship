@@ -1,4 +1,4 @@
 {
     "binary": "food.fruit:apple:1.0",
-    "config": "@prod:apple:1.0"
+    "config": "@apple:1.0"
 }

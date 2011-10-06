@@ -13,6 +13,7 @@ import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
+import com.proofpoint.node.NodeInfo;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -33,7 +34,8 @@ public class DiscoverDiscovery
     private static final Logger log = Logger.get(DiscoverDiscovery.class);
     private static final int DEFAULT_DISCOVERY_PORT = new HttpServerConfig().getHttpPort();
 
-    private final ConfigurationRepository configurationRepository;
+    private final String environment;
+    private final GitConfigurationRepository configurationRepository;
     private final JsonCodec<List<SlotStatusRepresentation>> codec;
     private final AsyncHttpClient client;
     private final String coordinatorSlotsUrl;
@@ -42,10 +44,12 @@ public class DiscoverDiscovery
     private ScheduledFuture<?> discoverTask;
 
     @Inject
-    public DiscoverDiscovery(ConfigurationRepositoryConfig config,
-            ConfigurationRepository configurationRepository,
+    public DiscoverDiscovery(NodeInfo nodeInfo,
+            ConfigurationRepositoryConfig config,
+            GitConfigurationRepository configurationRepository,
             JsonCodec<List<SlotStatusRepresentation>> codec)
     {
+        environment = nodeInfo.getEnvironment();
         this.configurationRepository = configurationRepository;
         this.codec = codec;
         this.coordinatorSlotsUrl = config.getCoordinatorBaseURI().resolve("/v1/slot/").toString();
@@ -156,7 +160,7 @@ public class DiscoverDiscovery
     {
         InputStream input = null;
         try {
-            InputSupplier<? extends InputStream> configFile = configurationRepository.getConfigFile(configSpec, "etc/config.properties");
+            InputSupplier<? extends InputStream> configFile = configurationRepository.getConfigFile(environment, configSpec.getComponent(), configSpec.getVersion(), configSpec.getPool(), "etc/config.properties");
             input = configFile.getInput();
 
             // load the http server port from the config file

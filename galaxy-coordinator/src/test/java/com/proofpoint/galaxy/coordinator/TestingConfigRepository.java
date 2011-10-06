@@ -25,7 +25,7 @@ public class TestingConfigRepository extends SimpleConfigRepository
 
     public TestingConfigRepository(File targetRepo)
     {
-        super(targetRepo.toURI());
+        super("prod", targetRepo.toURI());
         this.targetRepo = targetRepo;
     }
 

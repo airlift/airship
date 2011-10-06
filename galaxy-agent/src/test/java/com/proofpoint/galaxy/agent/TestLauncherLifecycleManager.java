@@ -55,7 +55,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
                 new AgentConfig()
                         .setSlotsDir(slotDir.getAbsolutePath())
                         .setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)),
-                new NodeInfo("test"),
+                new NodeInfo("prod"),
                 new DiscoveryClientConfig().setDiscoveryServiceURI(URI.create("fake://discovery")));
 
         appleDeployment = createDeploymentDir(APPLE_ASSIGNMENT);
