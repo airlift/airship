@@ -1,7 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
@@ -24,16 +23,13 @@ import java.util.List;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
-import static java.lang.Math.max;
 
 @Path("/v1/admin/")
 public class AdminResource
 {
     private final Coordinator coordinator;
     private final Provisioner provisioner;
-    public static final int MIN_PREFIX_SIZE = 4;
 
     @Inject
     public AdminResource(Coordinator coordinator, Provisioner provisioner)

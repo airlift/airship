@@ -31,6 +31,8 @@ public class SlotStatus
     private final URI self;
     private final Assignment assignment;
     private final SlotLifecycleState state;
+    private final String statusMessage;
+
     private final String installPath;
 
     public SlotStatus(UUID id, String name, URI self, SlotLifecycleState state, Assignment assignment, String installPath)
@@ -49,9 +51,25 @@ public class SlotStatus
         this.assignment = assignment;
         this.state = state;
         this.installPath = installPath;
+        this.statusMessage = null;
     }
 
-    public SlotStatus(SlotStatus status, SlotLifecycleState state)
+    public SlotStatus(SlotStatus status, SlotLifecycleState state, Assignment assignment)
+    {
+        Preconditions.checkNotNull(status, "status is null");
+        Preconditions.checkNotNull(state, "state is null");
+        Preconditions.checkNotNull(assignment, "assignment is null");
+
+        this.id = status.id;
+        this.name = status.name;
+        this.self = status.self;
+        this.assignment = assignment;
+        this.state = state;
+        this.installPath = status.getInstallPath();
+        this.statusMessage = null;
+    }
+
+    private SlotStatus(SlotStatus status, SlotLifecycleState state, String statusMessage)
     {
         Preconditions.checkNotNull(status, "status is null");
         Preconditions.checkNotNull(state, "state is null");
@@ -68,25 +86,7 @@ public class SlotStatus
             this.installPath = null;
         }
         this.state = state;
-    }
-    
-    public SlotStatus(SlotStatus status, SlotLifecycleState state, Assignment assignment)
-    {
-        this(status, state, assignment, status.getInstallPath());
-    }
-
-    public SlotStatus(SlotStatus status, SlotLifecycleState state, Assignment assignment, String installPath)
-    {
-        Preconditions.checkNotNull(status, "status is null");
-        Preconditions.checkNotNull(state, "state is null");
-        Preconditions.checkNotNull(assignment, "assignment is null");
-
-        this.id = status.id;
-        this.name = status.name;
-        this.self = status.self;
-        this.assignment = assignment;
-        this.state = state;
-        this.installPath = installPath;
+        this.statusMessage = statusMessage;
     }
 
     public UUID getId()
@@ -112,6 +112,19 @@ public class SlotStatus
     public SlotLifecycleState getState()
     {
         return state;
+    }
+
+    public SlotStatus updateState(SlotLifecycleState state) {
+        return updateState(state, null);
+    }
+
+    public SlotStatus updateState(SlotLifecycleState state, String statusMessage) {
+        return new SlotStatus(this, state, statusMessage);
+    }
+
+    public String getStatusMessage()
+    {
+        return statusMessage;
     }
 
     public String getInstallPath()

@@ -14,7 +14,6 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.collect.ImmutableMultiset;
-import com.proofpoint.galaxy.shared.ExtraAssertions;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -145,7 +144,7 @@ public class TestSlotResource
         Response response = resource.terminateSlot(slotStatus.getName());
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
-        SlotStatus expectedStatus = new SlotStatus(slotStatus, TERMINATED);
+        SlotStatus expectedStatus = slotStatus.updateState(TERMINATED);
         Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 

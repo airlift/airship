@@ -52,7 +52,7 @@ public class MockRemoteSlot implements RemoteSlot
     public SlotStatus terminate()
     {
         if (slotStatus.getState() == STOPPED) {
-            slotStatus = new SlotStatus(slotStatus, TERMINATED);
+            slotStatus = slotStatus.updateState(TERMINATED);
         }
         return slotStatus;
     }
@@ -63,7 +63,7 @@ public class MockRemoteSlot implements RemoteSlot
         if (slotStatus.getAssignment() == null) {
             throw new IllegalStateException("Slot can not be started because the slot is not assigned");
         }
-        slotStatus = new SlotStatus(slotStatus, RUNNING);
+        slotStatus = slotStatus.updateState(RUNNING);
         return slotStatus;
     }
 
@@ -73,7 +73,7 @@ public class MockRemoteSlot implements RemoteSlot
         if (slotStatus.getAssignment() == null) {
             throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
         }
-        slotStatus = new SlotStatus(slotStatus, RUNNING);
+        slotStatus = slotStatus.updateState(RUNNING);
         return slotStatus;
     }
 
@@ -83,7 +83,7 @@ public class MockRemoteSlot implements RemoteSlot
         if (slotStatus.getAssignment() == null) {
             throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
         }
-        slotStatus = new SlotStatus(slotStatus, STOPPED);
+        slotStatus = slotStatus.updateState(STOPPED);
         return slotStatus;
     }
 }

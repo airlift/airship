@@ -31,7 +31,6 @@ import com.proofpoint.json.JsonModule;
 import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
@@ -76,7 +75,6 @@ public class TestCoordinatorServer
     private int prefixSize;
     private Coordinator coordinator;
 
-    private final JsonCodec<AgentStatusRepresentation> agentStatusRepresentationCodec = jsonCodec(AgentStatusRepresentation.class);
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
     private String agentId;
@@ -250,13 +248,13 @@ public class TestCoordinatorServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        apple1Status = new SlotStatus(apple1Status, TERMINATED);
-        apple2Status = new SlotStatus(apple2Status, TERMINATED);
+        apple1Status = apple1Status.updateState(TERMINATED);
+        apple2Status = apple2Status.updateState(TERMINATED);
         SlotStatus bananaStatus = coordinator.getAgentStatus(agentId).getSlotStatus("banana");
 
         List<SlotStatusRepresentation> expected = ImmutableList.of(
                 SlotStatusRepresentation.from(apple1Status, prefixSize),
-                SlotStatusRepresentation.from(new SlotStatus(apple2Status, TERMINATED), prefixSize));
+                SlotStatusRepresentation.from(apple2Status.updateState(TERMINATED), prefixSize));
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
 

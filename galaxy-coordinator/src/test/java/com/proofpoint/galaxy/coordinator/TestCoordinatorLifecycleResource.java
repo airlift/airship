@@ -179,7 +179,7 @@ public class TestCoordinatorLifecycleResource
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (String slotName : slotNames) {
             SlotStatus slotStatus = agentStatus.getSlotStatus(slotName);
-            builder.add(SlotStatusRepresentation.from(new SlotStatus(slotStatus, state), prefixSize));
+            builder.add(SlotStatusRepresentation.from(slotStatus.updateState(state), prefixSize));
             assertEquals(slotStatus.getAssignment(), APPLE_ASSIGNMENT);
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());

@@ -23,6 +23,7 @@ public class TestSlotStatusRepresentation
             AssignmentHelper.APPLE_ASSIGNMENT.getBinary().toString(),
             AssignmentHelper.APPLE_ASSIGNMENT.getConfig().toString(),
             STOPPED.toString(),
+            null,
             "/apple");
 
     @Test

@@ -147,7 +147,7 @@ public class TestCoordinatorAssignmentResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (SlotStatus slotStatus : slots) {
-            builder.add(SlotStatusRepresentation.from(new SlotStatus(slotStatus, state), prefixSize));
+            builder.add(SlotStatusRepresentation.from(slotStatus.updateState(state), prefixSize));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

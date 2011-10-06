@@ -120,7 +120,7 @@ public class HttpRemoteAgent implements RemoteAgent
         // error talking to agent -- mark agent offline
         state = OFFLINE;
         for (HttpRemoteSlot remoteSlot : slots.values()) {
-            remoteSlot.updateStatus(new SlotStatus(remoteSlot.status(), SlotLifecycleState.UNKNOWN));
+            remoteSlot.updateStatus(remoteSlot.status().updateState(SlotLifecycleState.UNKNOWN));
         }
     }
 

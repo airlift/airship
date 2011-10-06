@@ -93,7 +93,7 @@ public class TestAssignmentResource
 
         SlotStatusRepresentation actualEntity = (SlotStatusRepresentation) response.getEntity();
 
-        SlotStatus expectedStatus = new SlotStatus(slotStatus, STOPPED, BANANA_ASSIGNMENT, actualEntity.getInstallPath());
+        SlotStatus expectedStatus = new SlotStatus(slotStatus, STOPPED, BANANA_ASSIGNMENT);
 
         Assert.assertEquals(actualEntity, SlotStatusRepresentation.from(expectedStatus));
 

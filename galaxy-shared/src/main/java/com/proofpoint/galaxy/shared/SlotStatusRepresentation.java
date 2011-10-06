@@ -34,6 +34,7 @@ public class SlotStatusRepresentation
     private final String binary;
     private final String config;
     private final String status;
+    private final String statusMessage;
     private final String installPath;
 
     private final static int MAX_ID_SIZE = UUID.randomUUID().toString().length();
@@ -75,6 +76,7 @@ public class SlotStatusRepresentation
                     slotStatus.getAssignment().getBinary().toString(),
                     slotStatus.getAssignment().getConfig().toString(),
                     slotStatus.getState().toString(),
+                    slotStatus.getStatusMessage(),
                     slotStatus.getInstallPath()
             );
         }
@@ -86,6 +88,7 @@ public class SlotStatusRepresentation
                     null,
                     null,
                     slotStatus.getState().toString(),
+                    slotStatus.getStatusMessage(),
                     slotStatus.getInstallPath());
         }
     }
@@ -98,6 +101,7 @@ public class SlotStatusRepresentation
             @JsonProperty("binary") String binary,
             @JsonProperty("config") String config,
             @JsonProperty("status") String status,
+            @JsonProperty("statusMessage") String statusMessage,
             @JsonProperty("installPath") String installPath)
     {
         this.id = id;
@@ -107,6 +111,7 @@ public class SlotStatusRepresentation
         this.binary = binary;
         this.config = config;
         this.status = status;
+        this.statusMessage = statusMessage;
         this.installPath = installPath;
     }
 
@@ -161,6 +166,12 @@ public class SlotStatusRepresentation
     }
 
     @JsonProperty
+    public String getStatusMessage()
+    {
+        return statusMessage;
+    }
+
+    @JsonProperty
     public String getInstallPath()
     {
         return installPath;
@@ -209,6 +220,9 @@ public class SlotStatusRepresentation
         if (status != null ? !status.equals(that.status) : that.status != null) {
             return false;
         }
+        if (statusMessage != null ? !statusMessage.equals(that.statusMessage) : that.statusMessage != null) {
+            return false;
+        }
         if (installPath != null ? !installPath.equals(that.installPath) : that.installPath != null) {
             return false;
         }
@@ -225,6 +239,7 @@ public class SlotStatusRepresentation
         result = 31 * result + (binary != null ? binary.hashCode() : 0);
         result = 31 * result + (config != null ? config.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (statusMessage != null ? statusMessage.hashCode() : 0);
         result = 31 * result + (self != null ? self.hashCode() : 0);
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
         return result;
@@ -242,6 +257,7 @@ public class SlotStatusRepresentation
         sb.append(", binary='").append(binary).append('\'');
         sb.append(", config='").append(config).append('\'');
         sb.append(", status='").append(status).append('\'');
+        sb.append(", statusMessage='").append(statusMessage).append('\'');
         sb.append(", installPath='").append(installPath).append('\'');
         sb.append('}');
         return sb.toString();

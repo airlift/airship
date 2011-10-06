@@ -122,7 +122,7 @@ public class TestLifecycleResource
     private void assertOkResponse(Response response, SlotLifecycleState state)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(new SlotStatus(slot.status(), state)));
+        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(slot.status().updateState(state)));
         Assert.assertEquals(slot.status().getAssignment(), APPLE_ASSIGNMENT);
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }

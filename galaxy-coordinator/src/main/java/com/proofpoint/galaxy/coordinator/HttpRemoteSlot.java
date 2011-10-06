@@ -74,7 +74,7 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(new SlotStatus(slotStatus.get(), SlotLifecycleState.UNKNOWN));
+            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
             throw Throwables.propagate(e);
         }
     }
@@ -96,7 +96,7 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(new SlotStatus(slotStatus.get(), SlotLifecycleState.UNKNOWN));
+            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
             throw Throwables.propagate(e);
         }
     }
@@ -125,7 +125,7 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(new SlotStatus(slotStatus.get(), SlotLifecycleState.UNKNOWN));
+            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
             throw Throwables.propagate(e);
         }
     }
@@ -148,7 +148,7 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(new SlotStatus(slotStatus.get(), SlotLifecycleState.UNKNOWN));
+            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
             throw Throwables.propagate(e);
         }
     }
@@ -171,7 +171,7 @@ public class HttpRemoteSlot implements RemoteSlot
             return slotStatus.get();
         }
         catch (Exception e) {
-            slotStatus.set(new SlotStatus(slotStatus.get(), SlotLifecycleState.UNKNOWN));
+            slotStatus.set(slotStatus.get().updateState(SlotLifecycleState.UNKNOWN, e.getMessage()));
             throw Throwables.propagate(e);
         }
     }

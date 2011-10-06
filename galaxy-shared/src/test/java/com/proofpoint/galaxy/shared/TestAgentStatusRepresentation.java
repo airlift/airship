@@ -47,6 +47,7 @@ public class TestAgentStatusRepresentation
                             APPLE_ASSIGNMENT.getBinary().toString(),
                             APPLE_ASSIGNMENT.getConfig().toString(),
                             STOPPED.toString(),
+                            null,
                             "/apple"),
                     new SlotStatusRepresentation(UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             null,
@@ -55,6 +56,7 @@ public class TestAgentStatusRepresentation
                             BANANA_ASSIGNMENT.getBinary().toString(),
                             BANANA_ASSIGNMENT.getConfig().toString(),
                             STOPPED.toString(),
+                            null,
                             "/banana"))
     );
 
