@@ -33,7 +33,7 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentKeypair(null)
                 .setAwsAgentSecurityGroup(null)
                 .setAwsAgentDefaultInstanceType(null)
-                .setAwsAgentDefaultPort(64001)
+                .setAwsAgentDefaultPort(64002)
         );
     }
 

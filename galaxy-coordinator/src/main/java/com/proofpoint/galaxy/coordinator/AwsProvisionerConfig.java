@@ -13,7 +13,7 @@ public class AwsProvisionerConfig
     private String awsAgentKeypair;
     private String awsAgentSecurityGroup;
     private String awsAgentDefaultInstanceType;
-    private int awsAgentDefaultPort = 64001;
+    private int awsAgentDefaultPort = 64002;
 
     @Config("coordinator.aws.access-key")
     @ConfigDescription("AWS access key for provisioning agents")
