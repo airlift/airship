@@ -5,6 +5,7 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
+import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.json.JsonCodec;
@@ -13,6 +14,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.UUID;
@@ -51,7 +54,20 @@ public class TestProvisionAgent
         AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
         NodeInfo nodeInfo = createTestNodeInfo();
         HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), nodeInfo);
-        Provisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, coordinatorConfig, awsProvisionerConfig);
+        BinaryRepository repository = new BinaryRepository() {
+            @Override
+            public URI getBinaryUri(BinarySpec binarySpec)
+            {
+                try {
+                    return new URI("file", null, "host", 9999, "/" + binarySpec.toString(), null, null);
+                }
+                catch (URISyntaxException e) {
+                    throw new AssertionError(e);
+                }
+            }
+        };
+
+        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, new BinaryUrlResolver(repository, httpServerInfo), coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 3;
 //        List<Ec2Location> locations = awsProvisioner.provisionAgents(agentCount, null, null);

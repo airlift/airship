@@ -9,10 +9,13 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.Tag;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
@@ -40,9 +43,15 @@ public class AwsProvisioner implements Provisioner
     private final String awsAgentKeypair;
     private final String awsAgentSecurityGroup;
     private final String awsAgentDefaultInstanceType;
+    private final BinaryUrlResolver urlResolver;
 
     @Inject
-    public AwsProvisioner(AmazonEC2 ec2Client, NodeInfo nodeInfo, HttpServerInfo httpServerInfo, CoordinatorConfig coordinatorConfig, AwsProvisionerConfig awsProvisionerConfig)
+    public AwsProvisioner(AmazonEC2 ec2Client,
+            NodeInfo nodeInfo,
+            HttpServerInfo httpServerInfo,
+            BinaryUrlResolver urlResolver,
+            CoordinatorConfig coordinatorConfig,
+            AwsProvisionerConfig awsProvisionerConfig)
     {
         this.ec2Client = checkNotNull(ec2Client, "ec2Client is null");
 
@@ -60,6 +69,8 @@ public class AwsProvisioner implements Provisioner
         awsAgentKeypair = awsProvisionerConfig.getAwsAgentKeypair();
         awsAgentSecurityGroup = awsProvisionerConfig.getAwsAgentSecurityGroup();
         awsAgentDefaultInstanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
+
+        this.urlResolver = checkNotNull(urlResolver, "urlResolver is null");
     }
 
     @Override
@@ -159,7 +170,8 @@ public class AwsProvisioner implements Provisioner
         return encodeBase64(getRawUserData());
     }
 
-    private String getRawUserData()
+    @VisibleForTesting
+    String getRawUserData()
     {
         String boundary = "===============884613ba9e744d0c851955611107553e==";
         String boundaryLine = "--" + boundary;
@@ -168,12 +180,16 @@ public class AwsProvisioner implements Provisioner
         String contentTypeUrl = "Content-Type: text/x-include-url; charset=\"us-ascii\"";
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
+
+        URI partHandler = urlResolver.resolve(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler"));
+        URI installScript = urlResolver.resolve(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "rb", "install"));
+
         String[] lines = {
                 "Content-Type: multipart/mixed; boundary=\"" + boundary + "\"", mimeVersion,
                 "", boundaryLine,
 
                 contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-part-handler.py"), "",
-                "http://s3.amazonaws.com/proofpoint-s3/galaxy-part-handler.py",
+                partHandler.toString(),
                 "", boundaryLine,
 
                 contentTypeText, mimeVersion, encoding, format(attachmentFormat, "galaxy-agent.properties"), "",
@@ -183,7 +199,7 @@ public class AwsProvisioner implements Provisioner
                 "", boundaryLine,
 
                 contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-install.rb"), "",
-                "http://s3.amazonaws.com/proofpoint-s3/galaxy-install.rb",
+                installScript.toString(),
                 "", boundaryLine,
         };
         return Joiner.on('\n').join(lines);
