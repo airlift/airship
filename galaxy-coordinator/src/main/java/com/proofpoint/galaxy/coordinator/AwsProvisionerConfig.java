@@ -13,6 +13,7 @@ public class AwsProvisionerConfig
     private String awsAgentKeypair;
     private String awsAgentSecurityGroup;
     private String awsAgentDefaultInstanceType;
+    private int awsAgentDefaultPort = 64001;
 
     @Config("coordinator.aws.access-key")
     @ConfigDescription("AWS access key for provisioning agents")
@@ -96,5 +97,19 @@ public class AwsProvisionerConfig
     public String getAwsAgentDefaultInstanceType()
     {
         return awsAgentDefaultInstanceType;
+    }
+
+    @Config("coordinator.aws.agent.default-port")
+    @ConfigDescription("AWS default port for provisioned agents")
+    public AwsProvisionerConfig setAwsAgentDefaultPort(int awsAgentDefaultPort)
+    {
+        this.awsAgentDefaultPort = awsAgentDefaultPort;
+        return this;
+    }
+
+    @NotNull
+    public int getAwsAgentDefaultPort()
+    {
+        return awsAgentDefaultPort;
     }
 }

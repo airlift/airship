@@ -42,6 +42,7 @@ public class AwsProvisioner implements Provisioner
     private final String awsAgentKeypair;
     private final String awsAgentSecurityGroup;
     private final String awsAgentDefaultInstanceType;
+    private final int awsAgentDefaultPort;
     private final BinaryUrlResolver urlResolver;
 
     @Inject
@@ -68,6 +69,7 @@ public class AwsProvisioner implements Provisioner
         awsAgentKeypair = awsProvisionerConfig.getAwsAgentKeypair();
         awsAgentSecurityGroup = awsProvisionerConfig.getAwsAgentSecurityGroup();
         awsAgentDefaultInstanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
+        awsAgentDefaultPort = awsProvisionerConfig.getAwsAgentDefaultPort();
 
         this.urlResolver = checkNotNull(urlResolver, "urlResolver is null");
     }
@@ -86,7 +88,7 @@ public class AwsProvisioner implements Provisioner
                     String zone = instance.getPlacement().getAvailabilityZone();
                     String region = zone.substring(0, zone.length() - 1);
 
-                    int port = 65000;
+                    int port = awsAgentDefaultPort;
                     try {
                         port = Integer.parseInt(tags.get("galaxy:port"));
                     }
@@ -143,6 +145,7 @@ public class AwsProvisioner implements Provisioner
                 .add(new Tag("Name", format("%s-agent", environment)))
                 .add(new Tag("galaxy:role", "agent"))
                 .add(new Tag("galaxy:environment", environment))
+                .add(new Tag("galaxy:port", String.valueOf(awsAgentDefaultPort)))
                 .build();
         createInstanceTagsWithRetry(instanceIds, tags);
 

@@ -33,6 +33,7 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentKeypair(null)
                 .setAwsAgentSecurityGroup(null)
                 .setAwsAgentDefaultInstanceType(null)
+                .setAwsAgentDefaultPort(64001)
         );
     }
 
@@ -46,6 +47,7 @@ public class TestAwsProvisionerConfig
                 .put("coordinator.aws.agent.keypair", "keypair")
                 .put("coordinator.aws.agent.security-group", "default")
                 .put("coordinator.aws.agent.default-instance-type", "t1.micro")
+                .put("coordinator.aws.agent.default-port", "99")
                 .build();
 
         AwsProvisionerConfig expected = new AwsProvisionerConfig()
@@ -54,7 +56,8 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentAmi("ami-0123abcd")
                 .setAwsAgentKeypair("keypair")
                 .setAwsAgentSecurityGroup("default")
-                .setAwsAgentDefaultInstanceType("t1.micro");
+                .setAwsAgentDefaultInstanceType("t1.micro")
+                .setAwsAgentDefaultPort(99);
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }
