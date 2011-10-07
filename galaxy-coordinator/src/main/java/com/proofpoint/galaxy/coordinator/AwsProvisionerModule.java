@@ -31,7 +31,7 @@ public class AwsProvisionerModule
         binder.disableCircularProxies();
         binder.requireExplicitBindings();
 
-        binder.bind(Provisioner.class).to(LocalProvisioner.class).in(Scopes.SINGLETON);
+        binder.bind(Provisioner.class).to(AwsProvisioner.class).in(Scopes.SINGLETON);
         ConfigurationModule.bindConfig(binder).to(AwsProvisionerConfig.class);
     }
 
