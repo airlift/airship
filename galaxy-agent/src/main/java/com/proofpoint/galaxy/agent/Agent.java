@@ -21,7 +21,6 @@ import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 
 import java.io.File;
@@ -62,7 +61,7 @@ public class Agent
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
 
-        this.agentId = config.getAgentId();
+        this.agentId = nodeInfo.getInstanceId();
         this.config = config;
         this.httpServerInfo = httpServerInfo;
         location = nodeInfo.getLocation();

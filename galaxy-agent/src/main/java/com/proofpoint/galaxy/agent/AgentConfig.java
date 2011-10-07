@@ -28,7 +28,6 @@ public class AgentConfig
     private Duration launcherStopTimeout = new Duration(10, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);
-    private String agentId;
     private String instanceType;
 
     @NotNull
@@ -97,19 +96,6 @@ public class AgentConfig
         Preconditions.checkArgument(lockWait.toMillis() > 0, "ttl must be > 0");
 
         this.maxLockWait = lockWait;
-        return this;
-    }
-
-    @NotNull
-    public String getAgentId()
-    {
-        return agentId;
-    }
-
-    @Config("agent.id")
-    public AgentConfig setAgentId(String agentId)
-    {
-        this.agentId = agentId;
         return this;
     }
 
