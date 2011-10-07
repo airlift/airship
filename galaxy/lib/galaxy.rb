@@ -471,7 +471,7 @@ NOTES
       option_parser.parse!(args)
 
       puts options.map { |k, v| "#{k}=#{v}" }.join("\n") if options[:debug]
-      puts filter.map { |k, v| v.map { |v1| "#{k}=#{URI.escape(v1)}" }.join('\n') }.join('\n')
+      puts filter.map { |k, v| v.map { |v1| "#{k}=#{URI.escape(v1)}" }.join('\n') }.join('\n') if options[:debug]
 
       if args.length == 0 then
         puts option_parser
