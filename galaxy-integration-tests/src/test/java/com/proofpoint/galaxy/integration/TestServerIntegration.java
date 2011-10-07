@@ -94,6 +94,7 @@ public class TestServerIntegration
 
     private File binaryRepoDir;
     private File configRepoDir;
+    private File localBinaryRepoDir;
     private BinaryRepository binaryRepository;
     private ConfigRepository configRepository;
 
@@ -114,11 +115,14 @@ public class TestServerIntegration
             throw e;
         }
 
+        localBinaryRepoDir = createTempDir("localBinaryRepoDir");
+
         Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
                 .put("node.environment", "prod")
                 .put("galaxy.version", "123")
                 .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
                 .put("coordinator.config-repo", configRepoDir.toURI().toString())
+                .put("coordinator.binary-repo.local", localBinaryRepoDir.toString())
                 .put("coordinator.status.expiration", "100d")
                 .put("coordinator.aws.access-key", "my-access-key")
                 .put("coordinator.aws.secret-key", "my-secret-key")
@@ -227,6 +231,9 @@ public class TestServerIntegration
         }
         if (configRepoDir != null) {
             deleteRecursively(configRepoDir);
+        }
+        if (localBinaryRepoDir != null) {
+            deleteRecursively(localBinaryRepoDir);
         }
     }
 
