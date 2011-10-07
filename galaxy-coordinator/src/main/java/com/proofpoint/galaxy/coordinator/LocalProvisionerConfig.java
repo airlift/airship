@@ -1,19 +1,24 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.proofpoint.configuration.Config;
+
+import java.util.List;
 
 public class LocalProvisionerConfig
 {
-    private String localAgentUri;
+    private List<String> localAgentUri = ImmutableList.of();
 
-    public String getLocalAgentUri()
+    public List<String> getLocalAgentUris()
     {
         return localAgentUri;
     }
 
     @Config("coordinator.agent-uri")
-    public void setLocalAgentUri(String localAgentUri)
+    public LocalProvisionerConfig setLocalAgentUris(String localAgentUris)
     {
-        this.localAgentUri = localAgentUri;
+        this.localAgentUri = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(localAgentUris));
+        return this;
     }
 }

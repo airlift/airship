@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import javax.inject.Inject;
@@ -19,12 +20,13 @@ public class LocalProvisioner implements Provisioner
     @Inject
     public LocalProvisioner(LocalProvisionerConfig config)
     {
-        this(config.getLocalAgentUri());
+        this(config.getLocalAgentUris());
     }
 
-    public LocalProvisioner(String localAgentUri)
+    public LocalProvisioner(List<String> localAgentUris)
     {
-        if (localAgentUri != null) {
+        Preconditions.checkNotNull(localAgentUris, "localAgentUri is null");
+        for (String localAgentUri : localAgentUris) {
             addAgent(new Ec2Location("region", "zone", "local", "agent", URI.create(localAgentUri)));
         }
     }
