@@ -12,7 +12,6 @@ import com.amazonaws.services.ec2.model.Tag;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.BinarySpec;
@@ -83,13 +82,13 @@ public class AwsProvisioner implements Provisioner
         for (Reservation reservation : reservations) {
             for (Instance instance : reservation.getInstances()) {
                 Map<String, String> tags = toMap(instance.getTags());
-                if ("agent".equals(tags.get("role")) && environment.equals(tags.get("environment"))) {
+                if ("agent".equals(tags.get("galaxy:role")) && environment.equals(tags.get("galaxy:environment"))) {
                     String zone = instance.getPlacement().getAvailabilityZone();
                     String region = zone.substring(0, zone.length() - 1);
 
                     int port = 65000;
                     try {
-                        port = Integer.parseInt(tags.get("galaxy-port"));
+                        port = Integer.parseInt(tags.get("galaxy:port"));
                     }
                     catch (Exception e) {
                     }
@@ -142,8 +141,8 @@ public class AwsProvisioner implements Provisioner
 
         List<Tag> tags = ImmutableList.<Tag>builder()
                 .add(new Tag("Name", format("%s-agent", environment)))
-                .add(new Tag("role", "agent"))
-                .add(new Tag("environment", environment))
+                .add(new Tag("galaxy:role", "agent"))
+                .add(new Tag("galaxy:environment", environment))
                 .build();
         createInstanceTagsWithRetry(instanceIds, tags);
 
