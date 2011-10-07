@@ -210,10 +210,14 @@ public class AwsProvisioner implements Provisioner
                 partHandler.toString(),
                 "", boundaryLine,
 
-                contentTypeText, mimeVersion, encoding, format(attachmentFormat, "galaxy-agent.properties"), "",
+                contentTypeText, mimeVersion, encoding, format(attachmentFormat, "installer.properties"), "",
                 format("galaxy.version=%s", galaxyVersion),
-                format("agent.coordinator-uri=%s", coordinatorUri),
-                format("node.environment=%s", environment),
+                format("environment=%s", environment),
+                "artifacts=galaxy-agent",
+                "", boundaryLine,
+
+                contentTypeText, mimeVersion, encoding, format(attachmentFormat, "galaxy-agent.properties"), "",
+                format("http-server.http.port=%s", awsAgentDefaultPort),
                 "", boundaryLine,
 
                 contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-install.rb"), "",
