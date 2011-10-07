@@ -38,6 +38,7 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
@@ -283,7 +284,7 @@ public class Coordinator
 
     public List<SlotStatus> setState(final SlotLifecycleState state, Predicate<SlotStatus> filter)
     {
-        Preconditions.checkArgument(EnumSet.of(RUNNING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);
+        Preconditions.checkArgument(EnumSet.of(RUNNING, RESTARTING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);
 
         return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>()
         {
@@ -294,6 +295,9 @@ public class Coordinator
                 switch (state) {
                     case RUNNING:
                         slotStatus = slot.start();
+                        break;
+                    case RESTARTING:
+                        slotStatus = slot.restart();
                         break;
                     case STOPPED:
                         slotStatus = slot.stop();

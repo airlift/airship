@@ -23,6 +23,7 @@ public enum SlotLifecycleState
 {
     STOPPED("s"),
     RUNNING("r"),
+    RESTARTING(null),
     TERMINATED(null),
     UNKNOWN("u");
 

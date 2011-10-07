@@ -73,7 +73,7 @@ def start(options)
 
   options[:daemon] = true
 
-  pid = 'process'
+  pid = (Time.now.to_f * 1000000).to_i
 
   pid_file.save(pid)
 

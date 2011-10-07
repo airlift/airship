@@ -13,8 +13,10 @@
  */
 package com.proofpoint.galaxy.integration;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.ning.http.client.AsyncHttpClient;
@@ -65,11 +67,13 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
+import static com.proofpoint.testing.Assertions.assertNotEquals;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -313,6 +317,12 @@ public class TestServerIntegration
     public void testRestart()
             throws Exception
     {
+        appleSlot1.start();
+        assertEquals(appleSlot1.status().getState(), RUNNING);
+
+        File pidFile = newFile(appleSlot1.status().getInstallPath(), "..", "deployment", "launcher.pid").getCanonicalFile();
+        String pidBeforeRestart = Files.readFirstLine(pidFile, Charsets.UTF_8);
+
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
                 .setBody("restarting")
                 .execute()
@@ -329,6 +339,9 @@ public class TestServerIntegration
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
         assertEquals(bananaSlot.status().getState(), STOPPED);
+
+        String pidAfterRestart = Files.readFirstLine(pidFile, Charsets.UTF_8);
+        assertNotEquals(pidAfterRestart, pidBeforeRestart);
     }
 
     @Test

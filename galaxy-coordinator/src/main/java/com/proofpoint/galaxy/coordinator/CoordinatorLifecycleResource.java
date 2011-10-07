@@ -32,7 +32,6 @@ import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
 import static java.lang.Math.max;
 
@@ -60,7 +59,7 @@ public class CoordinatorLifecycleResource
             state = SlotLifecycleState.RUNNING;
         }
         else if ("restarting" .equals(newState)) {
-            state = SlotLifecycleState.RUNNING;
+            state = SlotLifecycleState.RESTARTING;
         }
         else if ("stopped" .equals(newState)) {
             state = SlotLifecycleState.STOPPED;
