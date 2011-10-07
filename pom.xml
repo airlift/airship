@@ -39,6 +39,7 @@
         <module>galaxy-standalone</module>
         <module>galaxy-configuration-repository</module>
         <module>galaxy</module>
+        <module>galaxy-ec2</module>
     </modules>
 
     <build>
