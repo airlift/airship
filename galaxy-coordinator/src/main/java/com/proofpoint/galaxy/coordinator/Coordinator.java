@@ -182,7 +182,8 @@ public class Coordinator
         Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap);
 
         List<SlotStatus> slots = newArrayList();
-        List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), filterAgentsBy(filter)));
+        List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), Predicates.and(filterAgentsBy(filter), filterAgentsWithAssignment(assignment))));
+
         // randomize agents so all processes don't end up on the same node
         // todo sort agents by number of process already installed on them
         Collections.shuffle(agents);
@@ -332,6 +333,23 @@ public class Coordinator
             public SlotStatus apply(RemoteSlot slot)
             {
                 return slot.status();
+            }
+        };
+    }
+
+    private Predicate<RemoteAgent> filterAgentsWithAssignment(final Assignment assignment)
+    {
+        return new Predicate<RemoteAgent>()
+        {
+            @Override
+            public boolean apply(RemoteAgent agent)
+            {
+                for (RemoteSlot slot : agent.getSlots()) {
+                    if (assignment.equalsIgnoreVersion(slot.status().getAssignment())) {
+                        return false;
+                    }
+                }
+                return true;
             }
         };
     }

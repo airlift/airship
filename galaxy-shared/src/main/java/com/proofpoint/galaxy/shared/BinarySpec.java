@@ -93,6 +93,31 @@ public class BinarySpec
         return version;
     }
 
+    public boolean equalsIgnoreVersion(BinarySpec that)
+    {
+        if (this == that) {
+            return true;
+        }
+        if (that == null) {
+            return false;
+        }
+
+        if (!artifactId.equals(that.artifactId)) {
+            return false;
+        }
+        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) {
+            return false;
+        }
+        if (!groupId.equals(that.groupId)) {
+            return false;
+        }
+        if (!packaging.equals(that.packaging)) {
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     public boolean equals(Object o)
     {

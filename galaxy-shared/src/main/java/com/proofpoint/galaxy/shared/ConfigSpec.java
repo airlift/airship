@@ -70,6 +70,25 @@ public class ConfigSpec
         return version;
     }
 
+    public boolean equalsIgnoreVersion(ConfigSpec that)
+    {
+        if (this == that) {
+            return true;
+        }
+        if (that == null) {
+            return false;
+        }
+
+        if (!component.equals(that.component)) {
+            return false;
+        }
+        if (pool != null ? !pool.equals(that.pool) : that.pool != null) {
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     public boolean equals(Object o)
     {

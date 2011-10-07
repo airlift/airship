@@ -34,7 +34,7 @@ public class CoordinatorMain
                 new MBeanModule(),
                 new JmxModule(),
                 new CoordinatorMainModule(),
-                new AwsProvisionerModule());
+                new LocalProvisionerModule());
 
         app.strictConfig().initialize();
     }

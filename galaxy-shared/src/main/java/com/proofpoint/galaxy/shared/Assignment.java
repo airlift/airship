@@ -51,6 +51,25 @@ public class Assignment
         return config;
     }
 
+    public boolean equalsIgnoreVersion(Assignment that)
+    {
+        if (this == that) {
+            return true;
+        }
+        if (that == null) {
+            return false;
+        }
+
+        if (!binary.equalsIgnoreVersion(that.binary)) {
+            return false;
+        }
+        if (!config.equalsIgnoreVersion(that.config)) {
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     public boolean equals(Object o)
     {
