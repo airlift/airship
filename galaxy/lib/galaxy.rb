@@ -320,6 +320,8 @@ module Galaxy
       uri += 'v1/admin/agent'
       uri += sub_path unless sub_path.nil?
 
+      query = '&pretty' unless options[:debug].nil?
+
       # encode body as json if necessary
       body = value
       headers = {}
@@ -341,12 +343,17 @@ module Galaxy
 
       # execute request
       response = HTTPClient.new.request(method, uri, query, body, headers)
+      response_body = response.body if response.respond_to?(:body)
+      response_body = response_body.content if response_body.respond_to?(:content)
+      # log response if in debug mode
+      if options[:debug]
+        puts
+        puts response
+        puts response_body
+      end
 
       # check response code
       if response.status / 100 != 2 then
-        if options[:debug]
-          puts response
-        end
         raise CommandError.new(:command_error, response.reason || "Unknown error executing command")
       end
 
@@ -354,11 +361,6 @@ module Galaxy
       response = response.body if response.respond_to?(:body)
       response = response.content if response.respond_to?(:content)
       agents_json = JSON.parse(response)
-
-      # log response if in debug mode
-      if options[:debug]
-        puts agents_json
-      end
 
       # convert parsed json into slot objects
       agents = agents_json.map do |agent_json|
