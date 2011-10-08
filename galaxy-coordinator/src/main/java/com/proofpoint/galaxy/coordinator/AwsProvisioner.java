@@ -97,7 +97,7 @@ public class AwsProvisioner implements Provisioner
 
                     String portTag = tags.get("galaxy:port");
                     if (portTag == null) {
-                        if (invalidInstances.add(portTag)) {
+                        if (invalidInstances.add(instance.getInstanceId())) {
                             log.error("Instance %s does not have a galaxy:port tag", instance.getInstanceId());
                         }
                         continue;
@@ -108,7 +108,7 @@ public class AwsProvisioner implements Provisioner
                         port = Integer.parseInt(portTag);
                     }
                     catch (Exception e) {
-                        if (invalidInstances.add(portTag)) {
+                        if (invalidInstances.add(instance.getInstanceId())) {
                             log.error("Instance %s galaxy:port tag is not a number", instance.getInstanceId());
                         }
                         continue;
