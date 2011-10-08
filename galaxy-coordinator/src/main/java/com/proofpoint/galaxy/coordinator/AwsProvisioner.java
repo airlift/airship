@@ -4,6 +4,7 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.InstanceState;
 import com.amazonaws.services.ec2.model.Placement;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
@@ -83,6 +84,10 @@ public class AwsProvisioner implements Provisioner
 
         for (Reservation reservation : reservations) {
             for (Instance instance : reservation.getInstances()) {
+                // skip terminated instances
+                if ("terminated".equalsIgnoreCase(instance.getState().getName())) {
+                    continue;
+                }
                 Map<String, String> tags = toMap(instance.getTags());
                 if ("agent".equals(tags.get("galaxy:role")) && environment.equals(tags.get("galaxy:environment"))) {
                     String zone = instance.getPlacement().getAvailabilityZone();
