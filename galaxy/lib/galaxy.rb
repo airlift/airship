@@ -32,9 +32,14 @@ module Galaxy
       @status = status
       @status_message = status_message
       @path = path
-      uri = URI.parse(url)
-      @host = uri.host
-      @ip = IPSocket::getaddress(host)
+
+      unless url.nil?
+        @host = URI.parse(url).host unless url.nil?
+        @ip = IPSocket::getaddress(host)
+      end
+
+      @host ||= "unknown"
+      @ip ||= "unknown"
     end
 
     def columns(colors = false)
@@ -64,9 +69,15 @@ module Galaxy
       @url = url
       @status = status
       @path = path
-      uri = URI.parse(url)
-      @host = uri.host
-      @ip = IPSocket::getaddress(host)
+
+      unless url.nil?
+        @host = URI.parse(url).host unless url.nil?
+        @ip = IPSocket::getaddress(host)
+      end
+
+      @host ||= "unknown"
+      @ip ||= "unknown"
+
       @location = location
       @instance_type = instance_type
     end
