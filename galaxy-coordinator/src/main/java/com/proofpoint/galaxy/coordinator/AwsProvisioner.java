@@ -4,7 +4,6 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.InstanceState;
 import com.amazonaws.services.ec2.model.Placement;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
@@ -20,12 +19,14 @@ import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
@@ -45,6 +46,7 @@ public class AwsProvisioner implements Provisioner
     private final String awsAgentDefaultInstanceType;
     private final int awsAgentDefaultPort;
     private final BinaryUrlResolver urlResolver;
+    private final Set<String> invalidInstances = new ConcurrentHashSet<String>();
 
     @Inject
     public AwsProvisioner(AmazonEC2 ec2Client,
@@ -93,11 +95,23 @@ public class AwsProvisioner implements Provisioner
                     String zone = instance.getPlacement().getAvailabilityZone();
                     String region = zone.substring(0, zone.length() - 1);
 
-                    int port = awsAgentDefaultPort;
+                    String portTag = tags.get("galaxy:port");
+                    if (portTag == null) {
+                        if (invalidInstances.add(portTag)) {
+                            log.error("Instance %s does not have a galaxy:port tag", instance.getInstanceId());
+                        }
+                        continue;
+                    }
+
+                    int port;
                     try {
-                        port = Integer.parseInt(tags.get("galaxy:port"));
+                        port = Integer.parseInt(portTag);
                     }
                     catch (Exception e) {
+                        if (invalidInstances.add(portTag)) {
+                            log.error("Instance %s galaxy:port tag is not a number", instance.getInstanceId());
+                        }
+                        continue;
                     }
 
                     URI uri;
@@ -108,6 +122,7 @@ public class AwsProvisioner implements Provisioner
                         throw new AssertionError(e);
                     }
                     locations.add(new Ec2Location(region, zone, instance.getInstanceId(), instance.getInstanceType(), uri));
+                    invalidInstances.remove(instance.getInstanceId());
                 }
             }
         }
