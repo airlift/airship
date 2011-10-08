@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.PROVISIONING;
 
 public class HttpRemoteAgent implements RemoteAgent
 {
@@ -119,9 +120,11 @@ public class HttpRemoteAgent implements RemoteAgent
         }
 
         // error talking to agent -- mark agent offline
-        state = OFFLINE;
-        for (HttpRemoteSlot remoteSlot : slots.values()) {
-            remoteSlot.updateStatus(remoteSlot.status().updateState(SlotLifecycleState.UNKNOWN));
+        if (state != PROVISIONING) {
+            state = OFFLINE;
+            for (HttpRemoteSlot remoteSlot : slots.values()) {
+                remoteSlot.updateStatus(remoteSlot.status().updateState(SlotLifecycleState.UNKNOWN));
+            }
         }
     }
 
