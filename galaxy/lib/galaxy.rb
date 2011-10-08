@@ -5,6 +5,7 @@ require 'json'
 require 'galaxy/version'
 require 'galaxy/colorize'
 require 'galaxy/shell'
+require 'galaxy/table'
 
 module Galaxy
   GALAXY_VERSION = "0.1"
@@ -523,41 +524,16 @@ NOTES
           slots = result.sort_by { |slot| [slot.ip, slot.binary || '', slot.config || '', slot.uuid] }
           puts '' if options[:debug]
 
-          names = ['uuid', 'ip', 'status', 'binary', 'config', '']
-          if STDOUT.tty?
-            format = slots.map { |slot| slot.columns }.
-                           map { |cols| cols.map(&:size) }.
-                           transpose.
-                           map(&:max).
-                           map { |size| "%-#{size}s" }
-            format[-1] = "%s"
-            format = format.join('  ')
-
-            puts Colorize::colorize(format % names, :bright, :cyan)
-          else
-            format = names.map { "%s" }.join("\t")
-          end
-
-          slots.each { |slot| puts format % slot.columns(STDOUT.tty?) }
+          table = Table.new(['uuid', 'ip', 'status', 'binary', 'config', ''].map { |h| Colorize::colorize(h, :bright, :cyan) })
+          slots.each { |slot| table << slot.columns(STDOUT.tty?) }
+          puts table.render(STDOUT.tty?)
         else
           agents = result.sort_by { |agent| [agent.ip, agent.agent_id] }
           puts '' if options[:debug]
 
-          names = ['id', 'ip', 'status', 'type', 'location']
-          if STDOUT.tty?
-            format = agents.map { |agent| agent.columns }.
-                           map { |cols| cols.map(&:size) }.
-                           transpose.
-                           map(&:max).
-                           map { |size| "%-#{size}s" }.
-                           join('  ')
-
-            puts Colorize::colorize(format % names, :bright, :cyan)
-          else
-            format = names.map { "%s" }.join("\t")
-          end
-
-          agents.each { |agent| puts format % agent.columns(STDOUT.tty?) }
+          table = Table.new(['id', 'ip', 'status', 'type', 'location'].map { |h| Colorize::colorize(h, :bright, :cyan) })
+          agents.each { |agent| table << agent.columns(STDOUT.tty?) }
+          puts table.render(STDOUT.tty?)
         end
 
 

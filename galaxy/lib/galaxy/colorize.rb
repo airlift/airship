@@ -16,4 +16,8 @@ module Colorize
 
     return "#{color_string}#{string}#{ANSIColors::COLORS[:normal]}"
   end
+
+  def self.strip_colors(string)
+    string.gsub(/\e\[\d+m/, '')
+  end
 end
