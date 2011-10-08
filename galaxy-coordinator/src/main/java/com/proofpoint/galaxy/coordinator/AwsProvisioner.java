@@ -161,7 +161,7 @@ public class AwsProvisioner implements Provisioner
         }
 
         List<Tag> tags = ImmutableList.<Tag>builder()
-                .add(new Tag("Name", format("%s-agent", environment)))
+                .add(new Tag("Name", format("galaxy-%s-agent", environment)))
                 .add(new Tag("galaxy:role", "agent"))
                 .add(new Tag("galaxy:environment", environment))
                 .add(new Tag("galaxy:port", String.valueOf(awsAgentDefaultPort)))
