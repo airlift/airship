@@ -15,38 +15,49 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Objects;
+import com.google.common.base.Joiner;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 
-import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * EC2 Galaxy location: {@code /ec2/region/zone/instance/slot}
+ * Provisioned Instance
  */
 @Immutable
-public class Ec2Location
+public class Instance
 {
-    private final String region;
-    private final String availabilityZone;
     private final String instanceId;
     private final String instanceType;
+    private final String region;
+    private final String availabilityZone;
+    private String location;
     private final URI uri;
 
-    public Ec2Location(String region, String availabilityZone, String instanceId, String instanceType)
+    public Instance(String region, String availabilityZone, String instanceId, String instanceType)
     {
         this(region, availabilityZone, instanceId, instanceType, null);
     }
 
-    public Ec2Location(String region, String availabilityZone, String instanceId, String instanceType, URI uri)
+    public Instance(String region, String availabilityZone, String instanceId, String instanceType, URI uri)
     {
         this.uri = uri;
         this.region = checkNotNull(region, "region is null");
         this.availabilityZone = checkNotNull(availabilityZone, "availabilityZone is null");
         this.instanceId = checkNotNull(instanceId, "instanceId is null");
         this.instanceType = checkNotNull(instanceType, "instanceType is null");
+        location = Joiner.on('/').join("ec2", region, availabilityZone, instanceId, "agent");
+    }
+
+    public String getInstanceId()
+    {
+        return instanceId;
+    }
+
+    public String getInstanceType()
+    {
+        return instanceType;
     }
 
     public String getRegion()
@@ -59,14 +70,9 @@ public class Ec2Location
         return availabilityZone;
     }
 
-    public String getInstanceId()
+    public String getLocation()
     {
-        return instanceId;
-    }
-
-    public String getInstanceType()
-    {
-        return instanceType;
+        return location;
     }
 
     public URI getUri()
@@ -80,19 +86,23 @@ public class Ec2Location
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Ec2Location)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Ec2Location x = (Ec2Location) o;
-        return equal(region, x.region) &&
-                equal(availabilityZone, x.availabilityZone) &&
-                equal(instanceId, x.instanceId);
+
+        Instance instance = (Instance) o;
+
+        if (!instanceId.equals(instance.instanceId)) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(region, availabilityZone, instanceId);
+        return instanceId.hashCode();
     }
 
     @Override
@@ -104,6 +114,7 @@ public class Ec2Location
         sb.append(", availabilityZone='").append(availabilityZone).append('\'');
         sb.append(", instanceId='").append(instanceId).append('\'');
         sb.append(", instanceType='").append(instanceType).append('\'');
+        sb.append(", location='").append(location).append('\'');
         sb.append(", uri=").append(uri);
         sb.append('}');
         return sb.toString();

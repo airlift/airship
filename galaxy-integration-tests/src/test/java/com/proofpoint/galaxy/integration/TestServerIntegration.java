@@ -32,7 +32,7 @@ import com.proofpoint.galaxy.coordinator.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
-import com.proofpoint.galaxy.coordinator.Ec2Location;
+import com.proofpoint.galaxy.coordinator.Instance;
 import com.proofpoint.galaxy.coordinator.LocalProvisioner;
 import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
 import com.proofpoint.galaxy.coordinator.Provisioner;
@@ -103,7 +103,7 @@ public class TestServerIntegration
     private ConfigRepository configRepository;
 
     private int prefixSize;
-    private Ec2Location agentLocation;
+    private Instance agentInstance;
     private LocalProvisioner provisioner;
 
     @BeforeClass
@@ -202,8 +202,8 @@ public class TestServerIntegration
                 binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
                 configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig()))).getName());
 
-        agentLocation = new Ec2Location("region", "zone", agent.getAgentId(), "test.type", agentServer.getBaseUrl());
-        provisioner.addAgent(agentLocation);
+        agentInstance = new Instance("region", "zone", agent.getAgentId(), "test.type", agentServer.getBaseUrl());
+        provisioner.addAgent(agentInstance);
         coordinator.updateAllAgentsStatus();
 
         prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(

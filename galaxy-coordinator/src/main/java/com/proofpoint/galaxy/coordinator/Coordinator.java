@@ -143,10 +143,10 @@ public class Coordinator
 
     public void updateAllAgentsStatus()
     {
-        for (Ec2Location ec2Location : this.provisioner.listAgents()) {
-            RemoteAgent existing = agents.putIfAbsent(ec2Location.getInstanceId(), remoteAgentFactory.createRemoteAgent(ec2Location.getInstanceId(), ec2Location.getInstanceType(), ec2Location.getUri()));
+        for (Instance instance : this.provisioner.listAgents()) {
+            RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgentFactory.createRemoteAgent(instance.getInstanceId(), instance.getInstanceType(), instance.getUri()));
             if (existing != null) {
-                existing.setUri(ec2Location.getUri());
+                existing.setUri(instance.getUri());
             }
         }
 
@@ -170,21 +170,21 @@ public class Coordinator
     public List<AgentStatus> addAgents(int count, String instanceType, String availabilityZone)
             throws Exception
     {
-        List<Ec2Location> locations = provisioner.provisionAgents(count, instanceType, availabilityZone);
+        List<Instance> instances = provisioner.provisionAgents(count, instanceType, availabilityZone);
 
         List<AgentStatus> agents = newArrayList();
-        for (Ec2Location location : locations) {
-            String instanceId = location.getInstanceId();
+        for (Instance instance : instances) {
+            String instanceId = instance.getInstanceId();
 
             AgentStatus agentStatus = new AgentStatus(
                     instanceId,
                     AgentLifecycleState.PROVISIONING,
                     null,
-                    location.toString(),
-                    instanceType,
+                    instance.getLocation(),
+                    instance.getInstanceType(),
                     ImmutableList.<SlotStatus>of());
 
-            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instanceId, instanceType, null);
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instanceId, instance.getInstanceType(), null);
             this.agents.put(instanceId, remoteAgent);
 
             agents.add(agentStatus);

@@ -7,12 +7,11 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalProvisioner implements Provisioner
 {
-    private final Map<String, Ec2Location> instances = new ConcurrentHashMap<String, Ec2Location>();
+    private final Map<String, Instance> instances = new ConcurrentHashMap<String, Instance>();
 
     public LocalProvisioner()
     {
@@ -28,13 +27,13 @@ public class LocalProvisioner implements Provisioner
     {
         Preconditions.checkNotNull(localAgentUris, "localAgentUri is null");
         for (String localAgentUri : localAgentUris) {
-            addAgent(new Ec2Location("region", "zone", "local", "unknown", URI.create(localAgentUri)));
+            addAgent(new Instance("region", "zone", "local", "unknown", URI.create(localAgentUri)));
         }
-        addAgent(new Ec2Location("region", "zone", "bad", "unknown"));
+        addAgent(new Instance("region", "zone", "bad", "unknown"));
 
     }
 
-    public void addAgent(Ec2Location location)
+    public void addAgent(Instance location)
     {
         instances.put(location.getInstanceId(), location);
     }
@@ -45,13 +44,13 @@ public class LocalProvisioner implements Provisioner
     }
 
     @Override
-    public List<Ec2Location> listAgents()
+    public List<Instance> listAgents()
     {
         return ImmutableList.copyOf(instances.values());
     }
 
     @Override
-    public List<Ec2Location> provisionAgents(int agentCount, String instanceType, String availabilityZone)
+    public List<Instance> provisionAgents(int agentCount, String instanceType, String availabilityZone)
             throws Exception
     {
         throw new UnsupportedOperationException("Agent provisioning not supported in local mode");

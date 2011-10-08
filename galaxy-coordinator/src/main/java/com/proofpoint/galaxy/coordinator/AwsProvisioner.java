@@ -3,7 +3,6 @@ package com.proofpoint.galaxy.coordinator;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
-import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Placement;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
@@ -78,14 +77,14 @@ public class AwsProvisioner implements Provisioner
     }
 
     @Override
-    public List<Ec2Location> listAgents()
+    public List<Instance> listAgents()
     {
         DescribeInstancesResult describeInstancesResult = ec2Client.describeInstances();
         List<Reservation> reservations = describeInstancesResult.getReservations();
-        List<Ec2Location> locations = newArrayList();
+        List<Instance> instances = newArrayList();
 
         for (Reservation reservation : reservations) {
-            for (Instance instance : reservation.getInstances()) {
+            for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
                 // skip terminated instances
                 if ("terminated".equalsIgnoreCase(instance.getState().getName())) {
                     continue;
@@ -121,16 +120,16 @@ public class AwsProvisioner implements Provisioner
                     catch (URISyntaxException e) {
                         throw new AssertionError(e);
                     }
-                    locations.add(new Ec2Location(region, zone, instance.getInstanceId(), instance.getInstanceType(), uri));
+                    instances.add(new Instance(region, zone, instance.getInstanceId(), instance.getInstanceType(), uri));
                     invalidInstances.remove(instance.getInstanceId());
                 }
             }
         }
-        return locations;
+        return instances;
     }
 
     @Override
-    public List<Ec2Location> provisionAgents(int agentCount, String instanceType, String availabilityZone)
+    public List<Instance> provisionAgents(int agentCount, String instanceType, String availabilityZone)
             throws Exception
     {
         if (instanceType == null) {
@@ -151,13 +150,13 @@ public class AwsProvisioner implements Provisioner
         RunInstancesResult result = ec2Client.runInstances(request);
         log.debug("launched instances: %s", result);
 
-        List<Ec2Location> locations = newArrayList();
+        List<Instance> instances = newArrayList();
         List<String> instanceIds = newArrayList();
 
-        for (Instance instance : result.getReservation().getInstances()) {
+        for (com.amazonaws.services.ec2.model.Instance instance : result.getReservation().getInstances()) {
             String zone = instance.getPlacement().getAvailabilityZone();
             String region = zone.substring(0, zone.length() - 1);
-            locations.add(new Ec2Location(region, zone, instance.getInstanceId(), "agent"));
+            instances.add(new Instance(region, zone, instance.getInstanceId(), "agent"));
             instanceIds.add(instance.getInstanceId());
         }
 
@@ -169,7 +168,7 @@ public class AwsProvisioner implements Provisioner
                 .build();
         createInstanceTagsWithRetry(instanceIds, tags);
 
-        return locations;
+        return instances;
     }
 
     private void createInstanceTagsWithRetry(List<String> instanceIds, List<Tag> tags)
