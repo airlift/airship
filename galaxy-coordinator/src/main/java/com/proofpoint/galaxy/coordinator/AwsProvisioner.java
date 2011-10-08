@@ -153,7 +153,7 @@ public class AwsProvisioner implements Provisioner
         for (com.amazonaws.services.ec2.model.Instance instance : result.getReservation().getInstances()) {
             String zone = instance.getPlacement().getAvailabilityZone();
             String region = zone.substring(0, zone.length() - 1);
-            instances.add(new Instance(region, zone, instance.getInstanceId(), "agent"));
+            instances.add(new Instance(region, zone, instance.getInstanceId(), instance.getInstanceType()));
             instanceIds.add(instance.getInstanceId());
         }
 
