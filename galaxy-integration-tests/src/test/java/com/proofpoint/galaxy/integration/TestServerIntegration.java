@@ -46,7 +46,6 @@ import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.json.JsonModule;
-import com.proofpoint.node.NodeInfo;
 import com.proofpoint.node.NodeModule;
 import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
@@ -195,7 +194,7 @@ public class TestServerIntegration
                 binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
                 configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig()))).getName());
 
-        agentLocation = new Ec2Location("region", "zone", agent.getAgentId(), "agent", agentServer.getBaseUrl());
+        agentLocation = new Ec2Location("region", "zone", agent.getAgentId(), "test.type", agentServer.getBaseUrl());
         provisioner.addAgent(agentLocation);
         coordinator.updateAllAgentsStatus();
 

@@ -18,7 +18,6 @@ import com.proofpoint.configuration.testing.ConfigAssertions;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.Test;
 
-import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +32,6 @@ public class TestAgentConfig
                 .setLauncherStopTimeout(new Duration(10, TimeUnit.SECONDS))
                 .setTarTimeout(new Duration(1, TimeUnit.MINUTES))
                 .setMaxLockWait(new Duration(1, TimeUnit.SECONDS))
-                .setInstanceType(null)
         );
     }
 
@@ -46,7 +44,6 @@ public class TestAgentConfig
                 .put("agent.launcher-stop-timeout", "50m")
                 .put("agent.tar-timeout", "10m")
                 .put("agent.max-lock-wait", "1m")
-                .put("agent.instance-type", "instance.type")
                 .build();
 
         AgentConfig expected = new AgentConfig()
@@ -54,8 +51,7 @@ public class TestAgentConfig
                 .setLauncherTimeout(new Duration(5, TimeUnit.MINUTES))
                 .setLauncherStopTimeout(new Duration(50, TimeUnit.MINUTES))
                 .setTarTimeout(new Duration(10, TimeUnit.MINUTES))
-                .setMaxLockWait(new Duration(1, TimeUnit.MINUTES))
-                .setInstanceType("instance.type");
+                .setMaxLockWait(new Duration(1, TimeUnit.MINUTES));
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }

@@ -15,14 +15,10 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
-import java.util.List;
 
 import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -36,21 +32,21 @@ public class Ec2Location
     private final String region;
     private final String availabilityZone;
     private final String instanceId;
-    private final String slot;
+    private final String instanceType;
     private final URI uri;
 
-    public Ec2Location(String region, String availabilityZone, String instanceId, String slot)
+    public Ec2Location(String region, String availabilityZone, String instanceId, String instanceType)
     {
-        this(region, availabilityZone, instanceId, slot, null);
+        this(region, availabilityZone, instanceId, instanceType, null);
     }
 
-    public Ec2Location(String region, String availabilityZone, String instanceId, String slot, URI uri)
+    public Ec2Location(String region, String availabilityZone, String instanceId, String instanceType, URI uri)
     {
         this.uri = uri;
         this.region = checkNotNull(region, "region is null");
         this.availabilityZone = checkNotNull(availabilityZone, "availabilityZone is null");
         this.instanceId = checkNotNull(instanceId, "instanceId is null");
-        this.slot = checkNotNull(slot, "slot is null");
+        this.instanceType = checkNotNull(instanceType, "instanceType is null");
     }
 
     public String getRegion()
@@ -68,9 +64,9 @@ public class Ec2Location
         return instanceId;
     }
 
-    public String getSlot()
+    public String getInstanceType()
     {
-        return slot;
+        return instanceType;
     }
 
     public URI getUri()
@@ -90,43 +86,26 @@ public class Ec2Location
         Ec2Location x = (Ec2Location) o;
         return equal(region, x.region) &&
                 equal(availabilityZone, x.availabilityZone) &&
-                equal(instanceId, x.instanceId) &&
-                equal(slot, x.slot);
+                equal(instanceId, x.instanceId);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(region, availabilityZone, instanceId, slot);
+        return Objects.hashCode(region, availabilityZone, instanceId);
     }
 
     @Override
     public String toString()
     {
-        return Joiner.on('/').join("ec2", region, availabilityZone, instanceId, slot);
-    }
-
-    /**
-     * Parse an EC2 location string into an {@link Ec2Location}.
-     *
-     * @param location the location string
-     * @return the parsed location
-     * @throws IllegalArgumentException if the location string is invalid
-     */
-    public static Ec2Location valueOf(String location)
-            throws IllegalArgumentException
-    {
-        if (!location.startsWith("/")) {
-            throw new IllegalArgumentException("location must start with a slash");
-        }
-        location = location.substring(1);
-        List<String> parts = ImmutableList.copyOf(Splitter.on('/').split(location).iterator());
-        if (!parts.get(0).equals("ec2")) {
-            throw new IllegalArgumentException("not an EC2 location");
-        }
-        if (parts.size() != 5) {
-            throw new IllegalArgumentException("wrong number of parts");
-        }
-        return new Ec2Location(parts.get(1), parts.get(2), parts.get(3), parts.get(4));
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Ec2Location");
+        sb.append("{region='").append(region).append('\'');
+        sb.append(", availabilityZone='").append(availabilityZone).append('\'');
+        sb.append(", instanceId='").append(instanceId).append('\'');
+        sb.append(", instanceType='").append(instanceType).append('\'');
+        sb.append(", uri=").append(uri);
+        sb.append('}');
+        return sb.toString();
     }
 }

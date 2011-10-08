@@ -1,14 +1,12 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Ticker;
-
 import java.net.URI;
 
 public class MockRemoteAgentFactory implements RemoteAgentFactory
 {
     @Override
-    public RemoteAgent createRemoteAgent(String agentId, URI uri)
+    public RemoteAgent createRemoteAgent(String agentId, String instanceType, URI uri)
     {
-        return new MockRemoteAgent(agentId, uri);
+        return new MockRemoteAgent(agentId, instanceType, uri);
     }
 }

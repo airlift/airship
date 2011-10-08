@@ -26,11 +26,13 @@ public class MockRemoteAgent implements RemoteAgent
 {
     private final ConcurrentMap<UUID, MockRemoteSlot> slots = new ConcurrentHashMap<UUID, MockRemoteSlot>();
     private final String agentId;
+    private final String instanceType;
     private AgentLifecycleState state;
     private URI uri;
 
-    public MockRemoteAgent(String agentId, URI uri)
+    public MockRemoteAgent(String agentId, String instanceType, URI uri)
     {
+        this.instanceType = instanceType;
         this.agentId = checkNotNull(agentId, "agentId is null");
         this.uri = uri;
         this.uri = URI.create("fake://agent/" + agentId);

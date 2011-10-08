@@ -45,13 +45,14 @@ public class HttpRemoteAgent implements RemoteAgent
     private String instanceType;
 
     public HttpRemoteAgent(String agentId,
-            URI uri,
+            String instanceType, URI uri,
             AsyncHttpClient httpClient,
             JsonCodec<InstallationRepresentation> installationCodec,
             JsonCodec<AgentStatusRepresentation> agentStatusCodec,
             JsonCodec<SlotStatusRepresentation> slotStatusCodec)
     {
         this.agentId = agentId;
+        this.instanceType = instanceType;
         this.uri = uri;
         this.httpClient = httpClient;
         this.installationCodec = installationCodec;
@@ -145,7 +146,6 @@ public class HttpRemoteAgent implements RemoteAgent
         state = status.getState();
         uri = status.getUri();
         location = status.getLocation();
-        instanceType = status.getInstanceType();
     }
 
     @Override

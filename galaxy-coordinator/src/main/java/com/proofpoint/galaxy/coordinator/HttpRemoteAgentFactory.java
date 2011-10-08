@@ -28,8 +28,8 @@ public class HttpRemoteAgentFactory implements RemoteAgentFactory
     }
 
     @Override
-    public RemoteAgent createRemoteAgent(String agentId, URI uri)
+    public RemoteAgent createRemoteAgent(String agentId, String instanceType, URI uri)
     {
-        return new HttpRemoteAgent(agentId, uri, httpClient, installationCodec, agentStatusCodec, slotStatusCodec);
+        return new HttpRemoteAgent(agentId, instanceType, uri, httpClient, installationCodec, agentStatusCodec, slotStatusCodec);
     }
 }

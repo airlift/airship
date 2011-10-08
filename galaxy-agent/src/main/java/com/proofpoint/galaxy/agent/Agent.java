@@ -46,7 +46,6 @@ public class Agent
     private final File slotsDir;
     private final HttpServerInfo httpServerInfo;
     private final String location;
-    private final String instanceType;
 
     @Inject
     public Agent(AgentConfig config,
@@ -65,7 +64,6 @@ public class Agent
         this.config = config;
         this.httpServerInfo = httpServerInfo;
         location = nodeInfo.getLocation();
-        instanceType = config.getInstanceType();
 
         this.deploymentManagerFactory = deploymentManagerFactory;
         this.lifecycleManager = lifecycleManager;
@@ -112,7 +110,7 @@ public class Agent
             SlotStatus slotStatus = slot.status();
             builder.add(slotStatus);
         }
-        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, httpServerInfo.getHttpUri(), location, instanceType, builder.build());
+        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, httpServerInfo.getHttpUri(), location, null, builder.build());
         return agentStatus;
     }
 

@@ -27,7 +27,7 @@ public class LocalProvisioner implements Provisioner
     {
         Preconditions.checkNotNull(localAgentUris, "localAgentUri is null");
         for (String localAgentUri : localAgentUris) {
-            addAgent(new Ec2Location("region", "zone", "local", "agent", URI.create(localAgentUri)));
+            addAgent(new Ec2Location("region", "zone", "local", "unknown", URI.create(localAgentUri)));
         }
     }
 

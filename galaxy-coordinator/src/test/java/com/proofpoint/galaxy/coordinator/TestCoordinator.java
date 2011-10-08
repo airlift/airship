@@ -68,7 +68,7 @@ public class TestCoordinator extends TestCase
         URI agentUri = URI.create("fake://agent/" + agentId);
 
         // provision the agent
-        provisioner.addAgent(new Ec2Location("region", "zone", agentId, "agent", agentUri));
+        provisioner.addAgent(new Ec2Location("region", "zone", agentId, "test.type", agentUri));
 
         // coordinator won't see it until it update is called
         assertTrue(coordinator.getAllAgentStatus().isEmpty());

@@ -102,7 +102,7 @@ public class AwsProvisioner implements Provisioner
                     catch (URISyntaxException e) {
                         throw new AssertionError(e);
                     }
-                    locations.add(new Ec2Location(region, zone, instance.getInstanceId(), "agent", uri));
+                    locations.add(new Ec2Location(region, zone, instance.getInstanceId(), instance.getInstanceType(), uri));
                 }
             }
         }

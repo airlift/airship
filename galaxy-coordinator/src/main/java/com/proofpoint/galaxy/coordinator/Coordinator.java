@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -9,6 +10,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.MapMaker;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.Installation;
@@ -92,10 +94,6 @@ public class Coordinator
 
         agents = new MapMaker().makeMap();
 
-        for (Ec2Location ec2Location : this.provisioner.listAgents()) {
-            agents.put(ec2Location.getInstanceId(), remoteAgentFactory.createRemoteAgent(ec2Location.getInstanceId(), ec2Location.getUri()));
-        }
-
         timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
 
         updateAllAgentsStatus();
@@ -145,7 +143,7 @@ public class Coordinator
     public void updateAllAgentsStatus()
     {
         for (Ec2Location ec2Location : this.provisioner.listAgents()) {
-            RemoteAgent existing = agents.putIfAbsent(ec2Location.getInstanceId(), remoteAgentFactory.createRemoteAgent(ec2Location.getInstanceId(), ec2Location.getUri()));
+            RemoteAgent existing = agents.putIfAbsent(ec2Location.getInstanceId(), remoteAgentFactory.createRemoteAgent(ec2Location.getInstanceId(), ec2Location.getInstanceType(), ec2Location.getUri()));
             if (existing != null) {
                 existing.setUri(ec2Location.getUri());
             }
@@ -156,15 +154,41 @@ public class Coordinator
         }
     }
 
+    @VisibleForTesting
     public void setAgentStatus(AgentStatus status)
     {
 
         RemoteAgent remoteAgent = agents.get(status.getAgentId());
         if (remoteAgent == null) {
-            remoteAgent = remoteAgentFactory.createRemoteAgent(status.getAgentId(), status.getUri());
+            remoteAgent = remoteAgentFactory.createRemoteAgent(status.getAgentId(), status.getInstanceType(), status.getUri());
             agents.put(status.getAgentId(), remoteAgent);
         }
         remoteAgent.setStatus(status);
+    }
+
+    public List<AgentStatus> addAgents(int count, String instanceType, String availabilityZone)
+            throws Exception
+    {
+        List<Ec2Location> locations = provisioner.provisionAgents(count, instanceType, availabilityZone);
+
+        List<AgentStatus> agents = newArrayList();
+        for (Ec2Location location : locations) {
+            String instanceId = location.getInstanceId();
+
+            AgentStatus agentStatus = new AgentStatus(
+                    instanceId,
+                    AgentLifecycleState.PROVISIONING,
+                    null,
+                    location.toString(),
+                    instanceType,
+                    ImmutableList.<SlotStatus>of());
+
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instanceId, instanceType, null);
+            this.agents.put(instanceId, remoteAgent);
+
+            agents.add(agentStatus);
+        }
+        return agents;
     }
 
     public boolean removeAgent(String agentId)

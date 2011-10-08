@@ -1,10 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -18,24 +15,20 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
 import java.util.List;
 
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
 
 @Path("/v1/admin/")
 public class AdminResource
 {
     private final Coordinator coordinator;
-    private final Provisioner provisioner;
 
     @Inject
-    public AdminResource(Coordinator coordinator, Provisioner provisioner)
+    public AdminResource(Coordinator coordinator)
     {
         this.coordinator = coordinator;
-        this.provisioner = provisioner;
     }
 
     @GET
@@ -56,20 +49,7 @@ public class AdminResource
             @Context UriInfo uriInfo)
             throws Exception
     {
-        List<Ec2Location> locations = provisioner.provisionAgents(count, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
-
-        List<AgentStatus> agents = newArrayList();
-        for (Ec2Location location : locations) {
-            AgentStatus agentStatus = new AgentStatus(
-                    location.getInstanceId(),
-                    AgentLifecycleState.PROVISIONING,
-                    URI.create("http://localhost"),
-                    location.toString(),
-                    provisioning.getInstanceType(),
-                    ImmutableList.<SlotStatus>of());
-            coordinator.setAgentStatus(agentStatus);
-            agents.add(agentStatus);
-        }
+        List<AgentStatus> agents = coordinator.addAgents(count, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
 
         return Response.ok(transform(agents, fromAgentStatus())).build();
     }
