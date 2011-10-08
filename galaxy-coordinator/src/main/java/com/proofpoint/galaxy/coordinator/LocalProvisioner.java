@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalProvisioner implements Provisioner
@@ -29,6 +30,8 @@ public class LocalProvisioner implements Provisioner
         for (String localAgentUri : localAgentUris) {
             addAgent(new Ec2Location("region", "zone", "local", "unknown", URI.create(localAgentUri)));
         }
+        addAgent(new Ec2Location("region", "zone", "bad", "unknown"));
+
     }
 
     public void addAgent(Ec2Location location)
