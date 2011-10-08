@@ -113,12 +113,9 @@ public class AwsProvisioner implements Provisioner
                         continue;
                     }
 
-                    URI uri;
-                    try {
-                        uri = new URI("http", null, instance.getPrivateIpAddress(), port, null, null, null);
-                    }
-                    catch (URISyntaxException e) {
-                        throw new AssertionError(e);
+                    URI uri = null;
+                    if (instance.getPrivateIpAddress() != null) {
+                        uri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
                     }
                     instances.add(new Instance(region, zone, instance.getInstanceId(), instance.getInstanceType(), uri));
                     invalidInstances.remove(instance.getInstanceId());
