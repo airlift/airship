@@ -17,6 +17,7 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
@@ -46,10 +47,12 @@ public class CoordinatorMainModule
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 
+        binder.bind(ServiceInventoryResource.class).in(Scopes.SINGLETON);
 
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(InstallationRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(AgentStatusRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);
+        JsonCodecBinder.jsonCodecBinder(binder).bindListJsonCodec(ServiceDescriptor.class);
 
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);
     }
