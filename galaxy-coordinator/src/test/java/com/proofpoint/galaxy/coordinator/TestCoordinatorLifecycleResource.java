@@ -63,11 +63,12 @@ public class TestCoordinatorLifecycleResource
         NodeInfo nodeInfo = new NodeInfo("testing");
         BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), nodeInfo));
 
-        coordinator = new Coordinator(new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
+        coordinator = new Coordinator(nodeInfo,
+                new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
                 new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(nodeInfo, new CoordinatorConfig(), null),
+                new LocalConfigRepository(new CoordinatorConfig(), null),
                 new LocalProvisioner());
         resource = new CoordinatorLifecycleResource(coordinator);
 

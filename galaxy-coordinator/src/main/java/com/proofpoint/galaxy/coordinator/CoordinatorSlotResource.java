@@ -15,16 +15,13 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
-import com.proofpoint.galaxy.shared.BinarySpec;
-import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.http.server.HttpServerInfo;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -37,16 +34,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
 import static java.lang.Math.max;
 import static java.lang.Math.min;

@@ -5,9 +5,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.node.NodeInfo;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.UriBuilder;
@@ -22,14 +22,12 @@ import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 
 public class LocalConfigRepository implements ConfigRepository
 {
-    private final String environment;
     private final File localRepo;
     private final URI baseUri;
 
     @Inject
-    public LocalConfigRepository(NodeInfo nodeInfo, CoordinatorConfig coordinatorConfig, HttpServerInfo httpServerInfo)
+    public LocalConfigRepository(CoordinatorConfig coordinatorConfig, HttpServerInfo httpServerInfo)
     {
-        environment = nodeInfo.getEnvironment();
         if (coordinatorConfig.getLocalConfigRepo() != null) {
             localRepo = new File(coordinatorConfig.getLocalConfigRepo());
             if (httpServerInfo.getHttpsUri() != null) {
@@ -46,7 +44,7 @@ public class LocalConfigRepository implements ConfigRepository
     }
 
     @Override
-    public Map<String, URI> getConfigMap(ConfigSpec configSpec)
+    public Map<String, URI> getConfigMap(String environment, ConfigSpec configSpec)
     {
         if (localRepo == null) {
             return null;
@@ -70,7 +68,7 @@ public class LocalConfigRepository implements ConfigRepository
         return builder.build();
     }
 
-    public InputSupplier<FileInputStream> getConfigFile(ConfigSpec configSpec, String path)
+    public InputSupplier<FileInputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
     {
         if (localRepo == null) {
             return null;

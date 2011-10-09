@@ -19,7 +19,7 @@ import com.proofpoint.galaxy.configuration.GitConfigurationRepositoryConfig;
 import com.proofpoint.galaxy.coordinator.AdminResource;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
 import com.proofpoint.galaxy.coordinator.BinaryResource;
-import com.proofpoint.galaxy.coordinator.ConfigRepository;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorAssignmentResource;
 import com.proofpoint.galaxy.coordinator.CoordinatorConfig;

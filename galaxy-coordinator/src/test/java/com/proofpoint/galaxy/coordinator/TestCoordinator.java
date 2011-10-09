@@ -7,6 +7,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
+import com.proofpoint.node.testing.TestingNodeModule;
 import com.proofpoint.units.Duration;
 import junit.framework.TestCase;
 
@@ -31,10 +32,11 @@ public class TestCoordinator extends TestCase
         BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), new NodeInfo("testing")));
 
         provisioner = new LocalProvisioner();
-        coordinator = new Coordinator(new MockRemoteAgentFactory(),
+        coordinator = new Coordinator("prod",
+                new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new NodeInfo("test"), new CoordinatorConfig(), null),
+                new LocalConfigRepository(new CoordinatorConfig(), null),
                 provisioner,
                 statusExpiration
         );

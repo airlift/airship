@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.node.NodeInfo;
@@ -50,10 +51,10 @@ public class SimpleConfigRepository implements ConfigRepository
     }
 
     @Override
-    public Map<String, URI> getConfigMap(ConfigSpec configSpec)
+    public Map<String, URI> getConfigMap(String environment, ConfigSpec configSpec)
     {
         StringBuilder uriBuilder = new StringBuilder();
-        uriBuilder.append(environment).append('/');
+        uriBuilder.append(this.environment).append('/');
         uriBuilder.append(configSpec.getComponent()).append('/');
         if (configSpec.getPool() != null) {
             uriBuilder.append(configSpec.getPool()).append('/');

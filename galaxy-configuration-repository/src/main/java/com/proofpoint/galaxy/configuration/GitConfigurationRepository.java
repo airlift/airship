@@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.proofpoint.galaxy.shared.ConfigRepository;
+import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.FileUtils;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
@@ -27,7 +29,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public class GitConfigurationRepository
+public class GitConfigurationRepository implements ConfigRepository
 {
     private static final Logger log = Logger.get(GitConfigurationRepository.class);
     private final URI blobUri;
@@ -75,6 +77,12 @@ public class GitConfigurationRepository
         if (executorService != null) {
             executorService.shutdownNow();
         }
+    }
+
+    @Override
+    public Map<String, URI> getConfigMap(String environment, ConfigSpec configSpec)
+    {
+        return getConfigMap(environment, configSpec.getComponent(), configSpec.getVersion(), configSpec.getPool());
     }
 
     public Map<String, URI> getConfigMap(String environment, String type, String version, String pool)

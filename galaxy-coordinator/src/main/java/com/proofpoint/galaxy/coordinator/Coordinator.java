@@ -13,10 +13,12 @@ import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 
 import javax.annotation.PostConstruct;
@@ -48,6 +50,7 @@ public class Coordinator
 {
     private final ConcurrentMap<String, RemoteAgent> agents;
 
+    private final String environment;
     private final BinaryUrlResolver binaryUrlResolver;
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
@@ -57,14 +60,16 @@ public class Coordinator
     private final RemoteAgentFactory remoteAgentFactory;
 
     @Inject
-    public Coordinator(CoordinatorConfig config,
-            final RemoteAgentFactory remoteAgentFactory,
+    public Coordinator(NodeInfo nodeInfo,
+            CoordinatorConfig config,
+            RemoteAgentFactory remoteAgentFactory,
             BinaryUrlResolver binaryUrlResolver,
             ConfigRepository configRepository,
             LocalConfigRepository localConfigRepository,
             Provisioner provisioner)
     {
-        this(remoteAgentFactory,
+        this(nodeInfo.getEnvironment(),
+                remoteAgentFactory,
                 binaryUrlResolver,
                 configRepository,
                 localConfigRepository,
@@ -72,13 +77,15 @@ public class Coordinator
         );
     }
 
-    public Coordinator(final RemoteAgentFactory remoteAgentFactory,
+    public Coordinator(String environment,
+            RemoteAgentFactory remoteAgentFactory,
             BinaryUrlResolver binaryUrlResolver,
             ConfigRepository configRepository,
             LocalConfigRepository localConfigRepository,
             Provisioner provisioner,
             Duration statusExpiration)
     {
+        Preconditions.checkNotNull(environment, "environment is null");
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(binaryUrlResolver, "binaryUrlResolver is null");
@@ -86,6 +93,7 @@ public class Coordinator
         Preconditions.checkNotNull(provisioner, "provisioner is null");
         Preconditions.checkNotNull(statusExpiration, "statusExpiration is null");
 
+        this.environment = environment;
         this.remoteAgentFactory = remoteAgentFactory;
         this.binaryUrlResolver = binaryUrlResolver;
         this.configRepository = configRepository;
@@ -199,9 +207,9 @@ public class Coordinator
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
-        Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
+        Map<String,URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());
         if (configMap == null) {
-            configMap = configRepository.getConfigMap(assignment.getConfig());
+            configMap = configRepository.getConfigMap(environment, assignment.getConfig());
         }
 
         Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap);
@@ -249,9 +257,9 @@ public class Coordinator
         }
         Assignment assignment = newAssignments.iterator().next();
 
-        Map<String,URI> configMap = localConfigRepository.getConfigMap(assignment.getConfig());
+        Map<String,URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());
         if (configMap == null) {
-            configMap = configRepository.getConfigMap(assignment.getConfig());
+            configMap = configRepository.getConfigMap(environment, assignment.getConfig());
         }
 
         final Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap);

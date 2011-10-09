@@ -18,6 +18,7 @@ import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.json.JsonCodecBinder;

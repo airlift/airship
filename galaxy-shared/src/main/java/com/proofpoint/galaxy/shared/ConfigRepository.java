@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.shared;
 
 import com.proofpoint.galaxy.shared.ConfigSpec;
 
@@ -7,5 +7,5 @@ import java.util.Map;
 
 public interface ConfigRepository
 {
-    Map<String, URI> getConfigMap(ConfigSpec configSpec);
+    Map<String, URI> getConfigMap(String environment, ConfigSpec configSpec);
 }

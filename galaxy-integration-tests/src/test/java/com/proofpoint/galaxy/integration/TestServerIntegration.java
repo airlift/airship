@@ -28,7 +28,7 @@ import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.Slot;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
-import com.proofpoint.galaxy.coordinator.ConfigRepository;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
@@ -194,13 +194,13 @@ public class TestServerIntegration
 
         appleSlot1 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
                 binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig()))).getName());
+                configRepository.getConfigMap("prod", APPLE_ASSIGNMENT.getConfig()))).getName());
         appleSlot2 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
                 binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap(APPLE_ASSIGNMENT.getConfig()))).getName());
+                configRepository.getConfigMap("prod", APPLE_ASSIGNMENT.getConfig()))).getName());
         bananaSlot = agent.getSlot(agent.install(new Installation(BANANA_ASSIGNMENT,
                 binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap(BANANA_ASSIGNMENT.getConfig()))).getName());
+                configRepository.getConfigMap("prod", BANANA_ASSIGNMENT.getConfig()))).getName());
 
         agentInstance = new Instance("region", "zone", agent.getAgentId(), "test.type", agentServer.getBaseUrl());
         provisioner.addAgent(agentInstance);

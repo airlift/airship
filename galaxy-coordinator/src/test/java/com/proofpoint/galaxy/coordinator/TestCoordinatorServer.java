@@ -26,6 +26,7 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.jaxrs.JaxrsModule;
