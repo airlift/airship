@@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Lists;
+import com.google.common.io.CharStreams;
+import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.ConfigRepository;
@@ -13,6 +15,7 @@ import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.node.NodeInfo;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -53,13 +56,7 @@ public class SimpleConfigRepository implements ConfigRepository
     @Override
     public Map<String, URI> getConfigMap(String environment, ConfigSpec configSpec)
     {
-        StringBuilder uriBuilder = new StringBuilder();
-        uriBuilder.append(this.environment).append('/');
-        uriBuilder.append(configSpec.getComponent()).append('/');
-        if (configSpec.getPool() != null) {
-            uriBuilder.append(configSpec.getPool()).append('/');
-        }
-        uriBuilder.append(configSpec.getVersion()).append('/');
+        StringBuilder uriBuilder = toBaseUri(configSpec);
 
         List<URI> checkedUris = Lists.newArrayList();
         Map<String, String> configMap = null;
@@ -87,5 +84,40 @@ public class SimpleConfigRepository implements ConfigRepository
             builder.put(entry.getKey(), goodUri.resolve(entry.getValue()));
         }
         return builder.build();
+    }
+
+    @Override
+    public InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
+    {
+        StringBuilder uriBuilder = toBaseUri(configSpec);
+
+        for (URI configRepositoryBase : configRepositoryBases) {
+            try {
+                URI configBaseUri = configRepositoryBase.resolve(uriBuilder.toString());
+                URI uri = configRepositoryBase.resolve(configBaseUri.resolve(path));
+
+                InputSupplier<InputStream> inputSupplier = Resources.newInputStreamSupplier(uri.toURL());
+
+                // attempt to read the first line of the file to make sure it is a valid location
+                CharStreams.readFirstLine(CharStreams.newReaderSupplier(inputSupplier, Charsets.UTF_8));
+
+                return inputSupplier;
+            }
+            catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    private StringBuilder toBaseUri(ConfigSpec configSpec)
+    {
+        StringBuilder uriBuilder = new StringBuilder();
+        uriBuilder.append(this.environment).append('/');
+        uriBuilder.append(configSpec.getComponent()).append('/');
+        if (configSpec.getPool() != null) {
+            uriBuilder.append(configSpec.getPool()).append('/');
+        }
+        uriBuilder.append(configSpec.getVersion()).append('/');
+        return uriBuilder;
     }
 }

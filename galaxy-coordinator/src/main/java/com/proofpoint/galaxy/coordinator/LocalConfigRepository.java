@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;

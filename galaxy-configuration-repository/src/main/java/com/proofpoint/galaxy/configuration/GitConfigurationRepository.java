@@ -19,6 +19,7 @@ import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -122,6 +123,12 @@ public class GitConfigurationRepository implements ConfigRepository
         }
 
         return builder.build();
+    }
+
+    @Override
+    public InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
+    {
+        return getConfigFile(environment, configSpec.getComponent(), configSpec.getVersion(), configSpec.getPool(), path);
     }
 
     public InputSupplier<FileInputStream> getConfigFile(String environment, String type, String version, String pool, String path)
