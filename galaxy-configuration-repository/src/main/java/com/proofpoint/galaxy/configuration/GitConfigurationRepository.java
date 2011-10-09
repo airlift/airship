@@ -116,7 +116,7 @@ public class GitConfigurationRepository implements ConfigRepository
             String path = basePath + file.getName();
             if (file.isDirectory()) {
                 builder.addAll(getConfigMap(path + "/", file));
-            } else {
+            } else if (!file.getName().startsWith("galaxy-")) {
                 builder.add(path);
             }
         }
