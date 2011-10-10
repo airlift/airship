@@ -51,7 +51,8 @@ public class TestCoordinatorSlotResource
                 urlResolver,
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
-                new LocalProvisioner());
+                new LocalProvisioner(),
+                new MockServiceInventory());
         resource = new CoordinatorSlotResource(coordinator,
                 MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,

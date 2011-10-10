@@ -204,7 +204,7 @@ public class TestServerIntegration
 
         agentInstance = new Instance("region", "zone", agent.getAgentId(), "test.type", agentServer.getBaseUrl());
         provisioner.addAgent(agentInstance);
-        coordinator.updateAllAgentsStatus();
+        coordinator.updateAllAgents();
 
         prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
                 appleSlot1.getId().toString(),

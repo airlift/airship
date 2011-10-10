@@ -39,6 +39,8 @@ public class AgentMainModule
         binder.bind(DeploymentManagerFactory.class).to(DirectoryDeploymentManagerFactory.class).in(Scopes.SINGLETON);
         binder.bind(LifecycleManager.class).to(LauncherLifecycleManager.class).in(Scopes.SINGLETON);
 
+        binder.bind(ServiceInventoryResource.class).in(Scopes.SINGLETON);
+
         ConfigurationModule.bindConfig(binder).to(AgentConfig.class);
     }
 }

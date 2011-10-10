@@ -7,7 +7,6 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
-import com.proofpoint.node.testing.TestingNodeModule;
 import com.proofpoint.units.Duration;
 import junit.framework.TestCase;
 
@@ -29,15 +28,17 @@ public class TestCoordinator extends TestCase
     public void setUp()
             throws Exception
     {
-        BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), new NodeInfo("testing")));
+        NodeInfo nodeInfo = new NodeInfo("testing");
+        BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), nodeInfo));
 
         provisioner = new LocalProvisioner();
-        coordinator = new Coordinator("prod",
+        coordinator = new Coordinator(nodeInfo.getEnvironment(),
                 new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
                 provisioner,
+                new MockServiceInventory(),
                 statusExpiration
         );
 
@@ -76,7 +77,7 @@ public class TestCoordinator extends TestCase
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
         // announce the new agent and verify
-        coordinator.updateAllAgentsStatus();
+        coordinator.updateAllAgents();
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
         assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
 

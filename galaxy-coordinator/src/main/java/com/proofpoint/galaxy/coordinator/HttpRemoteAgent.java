@@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
+import com.proofpoint.discovery.client.ServiceDescriptor;
+import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
@@ -36,8 +38,10 @@ public class HttpRemoteAgent implements RemoteAgent
     private final JsonCodec<InstallationRepresentation> installationCodec;
     private final JsonCodec<AgentStatusRepresentation> agentStatusCodec;
     private final JsonCodec<SlotStatusRepresentation> slotStatusCodec;
+    private final JsonCodec<ServiceDescriptorsRepresentation> serviceDescriptorsCodec;
     private final ConcurrentMap<UUID, HttpRemoteSlot> slots;
 
+    private final String environment;
     private final String agentId;
     private final AsyncHttpClient httpClient;
     private AgentLifecycleState state;
@@ -45,13 +49,17 @@ public class HttpRemoteAgent implements RemoteAgent
     private String location;
     private String instanceType;
 
-    public HttpRemoteAgent(String agentId,
-            String instanceType, URI uri,
+    public HttpRemoteAgent(String environment,
+            String agentId,
+            String instanceType,
+            URI uri,
             AsyncHttpClient httpClient,
             JsonCodec<InstallationRepresentation> installationCodec,
             JsonCodec<AgentStatusRepresentation> agentStatusCodec,
-            JsonCodec<SlotStatusRepresentation> slotStatusCodec)
+            JsonCodec<SlotStatusRepresentation> slotStatusCodec,
+            JsonCodec<ServiceDescriptorsRepresentation> serviceDescriptorsCodec)
     {
+        this.environment = environment;
         this.agentId = agentId;
         this.instanceType = instanceType;
         this.uri = uri;
@@ -59,6 +67,7 @@ public class HttpRemoteAgent implements RemoteAgent
         this.installationCodec = installationCodec;
         this.agentStatusCodec = agentStatusCodec;
         this.slotStatusCodec = slotStatusCodec;
+        this.serviceDescriptorsCodec = serviceDescriptorsCodec;
 
         slots = new ConcurrentHashMap<UUID, HttpRemoteSlot>();
         state = OFFLINE;
@@ -92,6 +101,22 @@ public class HttpRemoteAgent implements RemoteAgent
     public List<? extends RemoteSlot> getSlots()
     {
         return ImmutableList.copyOf(slots.values());
+    }
+
+    @Override
+    public void setServiceInventory(List<ServiceDescriptor> serviceInventory)
+    {
+        Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
+        try {
+            httpClient.preparePut(uri + "/v1/serviceInventory")
+                    .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .setBody(serviceDescriptorsCodec.toJson(new ServiceDescriptorsRepresentation(environment, serviceInventory)))
+                    .execute()
+                    .get();
+        }
+        catch (Exception ignored) {
+            // best effort only
+        }
     }
 
     @Override

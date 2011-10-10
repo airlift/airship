@@ -10,6 +10,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.MapMaker;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
@@ -54,10 +55,11 @@ public class Coordinator
     private final BinaryUrlResolver binaryUrlResolver;
     private final ConfigRepository configRepository;
     private final LocalConfigRepository localConfigRepository;
-    private ScheduledExecutorService timerService;
+    private final ScheduledExecutorService timerService;
     private final Duration statusExpiration;
     private final Provisioner provisioner;
     private final RemoteAgentFactory remoteAgentFactory;
+    private final ServiceInventory serviceInventory;
 
     @Inject
     public Coordinator(NodeInfo nodeInfo,
@@ -66,14 +68,17 @@ public class Coordinator
             BinaryUrlResolver binaryUrlResolver,
             ConfigRepository configRepository,
             LocalConfigRepository localConfigRepository,
-            Provisioner provisioner)
+            Provisioner provisioner,
+            ServiceInventory serviceInventory)
     {
         this(nodeInfo.getEnvironment(),
                 remoteAgentFactory,
                 binaryUrlResolver,
                 configRepository,
                 localConfigRepository,
-                provisioner, checkNotNull(config, "config is null").getStatusExpiration()
+                provisioner,
+                serviceInventory,
+                checkNotNull(config, "config is null").getStatusExpiration()
         );
     }
 
@@ -83,6 +88,7 @@ public class Coordinator
             ConfigRepository configRepository,
             LocalConfigRepository localConfigRepository,
             Provisioner provisioner,
+            ServiceInventory serviceInventory,
             Duration statusExpiration)
     {
         Preconditions.checkNotNull(environment, "environment is null");
@@ -91,6 +97,7 @@ public class Coordinator
         Preconditions.checkNotNull(binaryUrlResolver, "binaryUrlResolver is null");
         Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
         Preconditions.checkNotNull(provisioner, "provisioner is null");
+        Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
         Preconditions.checkNotNull(statusExpiration, "statusExpiration is null");
 
         this.environment = environment;
@@ -99,13 +106,14 @@ public class Coordinator
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
         this.provisioner = provisioner;
+        this.serviceInventory = serviceInventory;
         this.statusExpiration = statusExpiration;
 
         agents = new MapMaker().makeMap();
 
         timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
 
-        updateAllAgentsStatus();
+        updateAllAgents();
     }
 
     @PostConstruct
@@ -115,7 +123,7 @@ public class Coordinator
             @Override
             public void run()
             {
-                updateAllAgentsStatus();
+                updateAllAgents();
             }
         }, 0, (long) statusExpiration.toMillis(), TimeUnit.MILLISECONDS);
     }
@@ -149,7 +157,7 @@ public class Coordinator
         return agent.status();
     }
 
-    public void updateAllAgentsStatus()
+    public void updateAllAgents()
     {
         for (Instance instance : this.provisioner.listAgents()) {
             RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgentFactory.createRemoteAgent(instance.getInstanceId(), instance.getInstanceType(), instance.getUri()));
@@ -158,8 +166,10 @@ public class Coordinator
             }
         }
 
+        List<ServiceDescriptor> serviceDescriptors = serviceInventory.getServiceInventory(getAllSlotStatus());
         for (RemoteAgent remoteAgent : agents.values()) {
             remoteAgent.updateStatus();
+            remoteAgent.setServiceInventory(serviceDescriptors);
         }
     }
 

@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
@@ -93,6 +94,11 @@ public class MockRemoteAgent implements RemoteAgent
         slots.keySet().retainAll(updatedSlots);
 
         uri = status.getUri();
+    }
+
+    @Override
+    public void setServiceInventory(List<ServiceDescriptor> serviceInventory)
+    {
     }
 
     @Override

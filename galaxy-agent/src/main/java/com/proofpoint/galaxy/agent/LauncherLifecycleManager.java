@@ -8,19 +8,18 @@ import com.google.common.io.Files;
 import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.proofpoint.discovery.client.DiscoveryClientConfig;
 import com.proofpoint.discovery.client.ServiceSelectorConfig;
 import com.proofpoint.galaxy.shared.Command;
 import com.proofpoint.galaxy.shared.CommandFailedException;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -30,24 +29,26 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 public class LauncherLifecycleManager implements LifecycleManager
 {
+    private static final Logger log = Logger.get(LauncherLifecycleManager.class);
+
     private final Executor executor;
     private final Duration launcherTimeout;
     private final Duration stopTimeout;
     private final NodeInfo nodeInfo;
-    private final URI discoveryServiceURI;
+    private final HttpServerInfo httpServerInfo;
 
     @Inject
-    public LauncherLifecycleManager(AgentConfig config, NodeInfo nodeInfo, DiscoveryClientConfig discoveryClientConfig)
+    public LauncherLifecycleManager(AgentConfig config, NodeInfo nodeInfo, HttpServerInfo httpServerInfo)
     {
         Preconditions.checkNotNull(config, "config is null");
         Preconditions.checkNotNull(nodeInfo, "nodeInfo is null");
-        Preconditions.checkNotNull(discoveryClientConfig, "discoveryClientConfig is null");
+        Preconditions.checkNotNull(httpServerInfo, "httpServerInfo is null");
 
         launcherTimeout = config.getLauncherTimeout();
         stopTimeout = config.getLauncherStopTimeout();
 
         this.nodeInfo = nodeInfo;
-        this.discoveryServiceURI = discoveryClientConfig.getDiscoveryServiceURI();
+        this.httpServerInfo = httpServerInfo;
 
         executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("launcher-command-%s").build());
     }
@@ -71,7 +72,6 @@ public class LauncherLifecycleManager implements LifecycleManager
         }
     }
 
-    private static final Logger log = Logger.get(LauncherLifecycleManager.class);
     @Override
     public SlotLifecycleState start(Deployment deployment)
     {
@@ -141,6 +141,13 @@ public class LauncherLifecycleManager implements LifecycleManager
         // add ip only if explicitly set on the agent
         if (InetAddresses.coerceToInteger(nodeInfo.getBindIp()) != 0) {
             map.put("node.ip", nodeInfo.getBindIp().getHostAddress());
+        }
+
+        // add service inventory uri
+        if (httpServerInfo.getHttpsUri() != null) {
+            map.put("service-inventory.uri", httpServerInfo.getHttpsUri().resolve("/v1/serviceInventory").toString());
+        } else if (httpServerInfo.getHttpUri() != null) {
+            map.put("service-inventory.uri", httpServerInfo.getHttpUri().resolve("/v1/serviceInventory").toString());
         }
 
         File nodeConfig = new File(deployment.getDeploymentDir(), "etc/node.properties");

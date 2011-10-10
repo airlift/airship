@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -25,4 +26,6 @@ public interface RemoteAgent
     void updateStatus();
 
     void setStatus(AgentStatus status);
+
+    void setServiceInventory(List<ServiceDescriptor> serviceInventory);
 }

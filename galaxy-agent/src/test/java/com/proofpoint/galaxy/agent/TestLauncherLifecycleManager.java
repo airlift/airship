@@ -15,9 +15,10 @@ package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.proofpoint.discovery.client.DiscoveryClientConfig;
 import com.proofpoint.galaxy.shared.ArchiveHelper;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.http.server.HttpServerConfig;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
@@ -26,7 +27,6 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -51,12 +51,13 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
     {
         tempDir = Files.createTempDir().getCanonicalFile();
         slotDir = new File(tempDir, "slots");
+        NodeInfo nodeInfo = new NodeInfo("prod");
         manager = new LauncherLifecycleManager(
                 new AgentConfig()
                         .setSlotsDir(slotDir.getAbsolutePath())
                         .setLauncherTimeout(new Duration(5, TimeUnit.SECONDS)),
-                new NodeInfo("prod"),
-                new DiscoveryClientConfig().setDiscoveryServiceURI(URI.create("fake://discovery")));
+                nodeInfo,
+                new HttpServerInfo(new HttpServerConfig(), nodeInfo));
 
         appleDeployment = createDeploymentDir(APPLE_ASSIGNMENT);
         bananaDeployment = createDeploymentDir(BANANA_ASSIGNMENT);

@@ -11,42 +11,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.agent;
 
-import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
-import com.proofpoint.node.NodeInfo;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Path("/v1/serviceInventory")
 public class ServiceInventoryResource
 {
-    private final Coordinator coordinator;
-    private final ServiceInventory serviceInventory;
-    private final String environment;
-
-    @Inject
-    public ServiceInventoryResource(Coordinator coordinator, ServiceInventory serviceInventory, NodeInfo nodeInfo)
-    {
-        Preconditions.checkNotNull(coordinator, "coordinator is null");
-        Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
-        Preconditions.checkNotNull(nodeInfo, "nodeInfo is null");
-
-        this.coordinator = coordinator;
-        this.serviceInventory = serviceInventory;
-        this.environment = nodeInfo.getEnvironment();
-    }
+    private final AtomicReference<ServiceDescriptorsRepresentation> descriptor = new AtomicReference<ServiceDescriptorsRepresentation>();
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getServiceInventory()
     {
-        return Response.ok(new ServiceDescriptorsRepresentation(environment, serviceInventory.getServiceInventory(coordinator.getAllSlotStatus()))).build();
+        ServiceDescriptorsRepresentation descriptor = this.descriptor.get();
+        if (descriptor == null) {
+            return Response.status(Status.NO_CONTENT).build();
+        }
+        return Response.ok(descriptor).build();
     }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setServiceInventory(ServiceDescriptorsRepresentation descriptor)
+    {
+        this.descriptor.set(descriptor);
+        return Response.ok().build();
+    }
+
 }

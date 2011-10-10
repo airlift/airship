@@ -69,7 +69,8 @@ public class TestCoordinatorLifecycleResource
                 urlResolver,
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
-                new LocalProvisioner());
+                new LocalProvisioner(),
+                new MockServiceInventory());
         resource = new CoordinatorLifecycleResource(coordinator);
 
         SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
