@@ -16,6 +16,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
@@ -86,17 +87,11 @@ public class Instance
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof Instance)) {
             return false;
         }
-
-        Instance instance = (Instance) o;
-
-        if (!instanceId.equals(instance.instanceId)) {
-            return false;
-        }
-
-        return true;
+        Instance x = (Instance) o;
+        return Objects.equal(instanceId, x.instanceId);
     }
 
     @Override
@@ -108,15 +103,13 @@ public class Instance
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("Ec2Location");
-        sb.append("{region='").append(region).append('\'');
-        sb.append(", availabilityZone='").append(availabilityZone).append('\'');
-        sb.append(", instanceId='").append(instanceId).append('\'');
-        sb.append(", instanceType='").append(instanceType).append('\'');
-        sb.append(", location='").append(location).append('\'');
-        sb.append(", uri=").append(uri);
-        sb.append('}');
-        return sb.toString();
+        return Objects.toStringHelper(this)
+                .add("instanceId", instanceId)
+                .add("instanceType", instanceType)
+                .add("region", region)
+                .add("availabilityZone", availabilityZone)
+                .add("location", location)
+                .add("uri", uri)
+                .toString();
     }
 }
