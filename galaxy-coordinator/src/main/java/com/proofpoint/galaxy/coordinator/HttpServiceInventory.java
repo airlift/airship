@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.inject.Inject;
@@ -29,6 +30,9 @@ import com.proofpoint.node.NodeInfo;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 public class HttpServiceInventory implements ServiceInventory
 {
@@ -61,14 +65,25 @@ public class HttpServiceInventory implements ServiceInventory
             for (ServiceDescriptor serviceDescriptor : serviceDescriptors) {
                 newDescriptors.add(new ServiceDescriptor(null,
                         slotStatus.getId().toString(),
-                        slotStatus.getSelf().getHost(),
                         serviceDescriptor.getType(),
                         config.getPool(),
                         slotStatus.getLocation(),
-                        serviceDescriptor.getProperties()));
+                        interpolateProperties(serviceDescriptor.getProperties(), slotStatus)));
             }
         }
         return newDescriptors.build();
+    }
+
+    private Map<String, String> interpolateProperties(Map<String, String> properties, SlotStatus slotStatus)
+    {
+        ImmutableMap.Builder<String,String> builder = ImmutableMap.builder();
+        for (Entry<String, String> entry : properties.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            value = value.replaceAll(Pattern.quote("${galaxy.host}"), slotStatus.getSelf().getHost());
+            builder.put(key, value);
+        }
+        return builder.build();
     }
 
     private List<ServiceDescriptor> getServiceInventory(SlotStatus slotStatus)
