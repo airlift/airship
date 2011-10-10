@@ -140,6 +140,9 @@ public class GitConfigurationRepository implements ConfigRepository
         File file = newFile(localRepository, environment, type, pool, version, path);
         if (!file.canRead()) {
             file = newFile(newFile(localRepository, environment, "defaults"), path);
+            if (!file.canRead()) {
+                return null;
+            }
         }
         return Files.newInputStreamSupplier(file);
     }

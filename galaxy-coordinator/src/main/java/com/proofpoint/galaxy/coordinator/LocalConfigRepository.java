@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +76,10 @@ public class LocalConfigRepository implements ConfigRepository
 
         File file = newFile(localRepo, environment, configSpec.getComponent(), configSpec.getPool(), configSpec.getVersion(), path);
         if (!file.canRead()) {
-            return null;
+            file = newFile(newFile(localRepo, environment, "defaults"), path);
+            if (!file.canRead()) {
+                return null;
+            }
         }
         return Files.newInputStreamSupplier(file);
     }
