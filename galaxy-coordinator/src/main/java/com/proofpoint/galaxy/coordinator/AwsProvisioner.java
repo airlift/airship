@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.model.BlockDeviceMapping;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Placement;
@@ -133,6 +134,13 @@ public class AwsProvisioner implements Provisioner
             instanceType = awsAgentDefaultInstanceType;
         }
 
+        List<BlockDeviceMapping> blockDeviceMappings = ImmutableList.<BlockDeviceMapping>builder()
+                .add(new BlockDeviceMapping().withVirtualName("ephemeral0").withDeviceName("/dev/sdb"))
+                .add(new BlockDeviceMapping().withVirtualName("ephemeral1").withDeviceName("/dev/sdc"))
+                .add(new BlockDeviceMapping().withVirtualName("ephemeral2").withDeviceName("/dev/sdd"))
+                .add(new BlockDeviceMapping().withVirtualName("ephemeral3").withDeviceName("/dev/sde"))
+                .build();
+
         RunInstancesRequest request = new RunInstancesRequest()
                 .withImageId(awsAgentAmi)
                 .withKeyName(awsAgentKeypair)
@@ -140,6 +148,7 @@ public class AwsProvisioner implements Provisioner
                 .withInstanceType(instanceType)
                 .withPlacement(new Placement(availabilityZone))
                 .withUserData(getUserData())
+                .withBlockDeviceMappings(blockDeviceMappings)
                 .withMinCount(agentCount)
                 .withMaxCount(agentCount);
 
