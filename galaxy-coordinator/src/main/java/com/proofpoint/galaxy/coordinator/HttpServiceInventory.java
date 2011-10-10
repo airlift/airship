@@ -61,6 +61,7 @@ public class HttpServiceInventory implements ServiceInventory
             for (ServiceDescriptor serviceDescriptor : serviceDescriptors) {
                 newDescriptors.add(new ServiceDescriptor(null,
                         slotStatus.getId().toString(),
+                        slotStatus.getSelf().getHost(),
                         serviceDescriptor.getType(),
                         config.getPool(),
                         slotStatus.getLocation(),
