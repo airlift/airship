@@ -17,6 +17,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -69,17 +70,20 @@ public class TestProvisionAgent
 
         AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, new BinaryUrlResolver(repository, httpServerInfo), coordinatorConfig, awsProvisionerConfig);
 
-        int agentCount = 3;
-//        List<Ec2Location> locations = awsProvisioner.provisionAgents(agentCount, null, null);
-//        assertEquals(locations.size(), agentCount);
+        int agentCount = 2;
+        List<Instance> provisioned = provisioner.provisionAgents(agentCount, null, null);
+        assertEquals(provisioned.size(), agentCount);
+        System.err.println("provisioned instances: " + provisioned);
 
-        System.out.println("provisioned instances: " + provisioner.listAgents());
+        List<Instance> running = provisioner.listAgents();
+        assertEquals(running.size(), agentCount);
+        System.err.println("running agents: " + running);
     }
 
     private static NodeInfo createTestNodeInfo()
     {
         String nodeId = UUID.randomUUID().toString();
-        return new NodeInfo("production", "general", nodeId, getTestIp(), "/test/" + nodeId);
+        return new NodeInfo("test", "foo", nodeId, getTestIp(), "/test/" + nodeId);
     }
 
     private static InetAddress getTestIp()
