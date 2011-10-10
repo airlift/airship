@@ -18,14 +18,14 @@ import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import javax.inject.Inject;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
@@ -45,7 +45,7 @@ public class AwsProvisioner implements Provisioner
     private final String awsAgentDefaultInstanceType;
     private final int awsAgentDefaultPort;
     private final BinaryUrlResolver urlResolver;
-    private final Set<String> invalidInstances = new ConcurrentHashSet<String>();
+    private final Set<String> invalidInstances = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     @Inject
     public AwsProvisioner(AmazonEC2 ec2Client,

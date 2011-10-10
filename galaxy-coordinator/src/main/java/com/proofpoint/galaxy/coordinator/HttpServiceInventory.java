@@ -26,19 +26,25 @@ import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
+import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 public class HttpServiceInventory implements ServiceInventory
 {
+    private static final Logger log = Logger.get(HttpServiceInventory.class);
     private final ConfigRepository configRepository;
     private final String environment;
     private final JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec;
+    private final Set<ConfigSpec> invalidServiceInventory = Collections.newSetFromMap(new ConcurrentHashMap<ConfigSpec, Boolean>());
 
     @Inject
     public HttpServiceInventory(ConfigRepository configRepository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec, NodeInfo nodeInfo)
@@ -92,14 +98,24 @@ public class HttpServiceInventory implements ServiceInventory
         if (assignment == null) {
             return null;
         }
+
         ConfigSpec config = assignment.getConfig();
-        try {
-            InputSupplier<? extends InputStream> configFile = configRepository.getConfigFile(environment, config, "galaxy-service-inventory.json");
-            String json = CharStreams.toString(CharStreams.newReaderSupplier(configFile, Charsets.UTF_8));
-            return descriptorsJsonCodec.fromJson(json);
-        }
-        catch (Exception e) {
+        InputSupplier<? extends InputStream> configFile = configRepository.getConfigFile(environment, config, "galaxy-service-inventory.json");
+        if (configFile == null) {
             return null;
         }
+
+        try {
+            String json = CharStreams.toString(CharStreams.newReaderSupplier(configFile, Charsets.UTF_8));
+            List<ServiceDescriptor> descriptors = descriptorsJsonCodec.fromJson(json);
+            invalidServiceInventory.remove(config);
+            return descriptors;
+        }
+        catch (Exception e) {
+            if (invalidServiceInventory.add(config)) {
+                log.error(e, "Unable to read service inventory for %s" + config);
+            }
+        }
+        return null;
     }
 }

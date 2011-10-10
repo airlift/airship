@@ -18,6 +18,7 @@ import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.json.JsonCodec;
+import com.proofpoint.log.Logger;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -28,13 +29,17 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.PROVISIONING;
 
 public class HttpRemoteAgent implements RemoteAgent
 {
+    private static final Logger log = Logger.get(HttpRemoteAgent.class);
+
     private final JsonCodec<InstallationRepresentation> installationCodec;
     private final JsonCodec<AgentStatusRepresentation> agentStatusCodec;
     private final JsonCodec<SlotStatusRepresentation> slotStatusCodec;
@@ -48,6 +53,7 @@ public class HttpRemoteAgent implements RemoteAgent
     private URI uri;
     private String location;
     private String instanceType;
+    private final AtomicBoolean serviceInventoryUp = new AtomicBoolean(true);
 
     public HttpRemoteAgent(String environment,
             String agentId,
@@ -106,16 +112,25 @@ public class HttpRemoteAgent implements RemoteAgent
     @Override
     public void setServiceInventory(List<ServiceDescriptor> serviceInventory)
     {
-        Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
-        try {
-            httpClient.preparePut(uri + "/v1/serviceInventory")
-                    .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                    .setBody(serviceDescriptorsCodec.toJson(new ServiceDescriptorsRepresentation(environment, serviceInventory)))
-                    .execute()
-                    .get();
-        }
-        catch (Exception ignored) {
-            // best effort only
+        if (state == ONLINE) {
+            Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
+            try {
+                httpClient.preparePut(uri + "/v1/serviceInventory")
+                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .setBody(serviceDescriptorsCodec.toJson(new ServiceDescriptorsRepresentation(environment, serviceInventory)))
+                        .execute()
+                        .get();
+
+                if (serviceInventoryUp.compareAndSet(false, true)) {
+                    log.info("Service inventory put succeeded for agent at %s", uri);
+                }
+            }
+            catch (Exception e) {
+                if (serviceInventoryUp.compareAndSet(true, false) && !log.isDebugEnabled()) {
+                    log.error("Unable to post service inventory to agent at %s: %s", uri, e.getMessage());
+                }
+                log.debug(e, "Unable to post service inventory to agent at %s: %s", uri, e.getMessage());
+            }
         }
     }
 
