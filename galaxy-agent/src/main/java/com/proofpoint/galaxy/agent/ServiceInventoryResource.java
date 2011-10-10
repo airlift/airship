@@ -13,8 +13,13 @@
  */
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.collect.ImmutableList;
+import com.proofpoint.discovery.client.DiscoveryException;
+import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
+import com.proofpoint.node.NodeInfo;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -25,19 +30,26 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.lang.String.format;
+
 @Path("/v1/serviceInventory")
 public class ServiceInventoryResource
 {
+    private final String environment;
     private final AtomicReference<ServiceDescriptorsRepresentation> descriptor = new AtomicReference<ServiceDescriptorsRepresentation>();
+
+    @Inject
+    public ServiceInventoryResource(NodeInfo nodeInfo)
+    {
+        environment = nodeInfo.getEnvironment();
+        descriptor.set(new ServiceDescriptorsRepresentation(environment, ImmutableList.<ServiceDescriptor>of()));
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getServiceInventory()
     {
         ServiceDescriptorsRepresentation descriptor = this.descriptor.get();
-        if (descriptor == null) {
-            return Response.status(Status.NO_CONTENT).build();
-        }
         return Response.ok(descriptor).build();
     }
 
@@ -45,6 +57,9 @@ public class ServiceInventoryResource
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setServiceInventory(ServiceDescriptorsRepresentation descriptor)
     {
+        if (!environment.equals(descriptor.getEnvironment())) {
+            return Response.status(Status.BAD_REQUEST).entity(format("Expected environment to be %s, but was %s", environment, descriptor.getEnvironment())).build();
+        }
         this.descriptor.set(descriptor);
         return Response.ok().build();
     }
