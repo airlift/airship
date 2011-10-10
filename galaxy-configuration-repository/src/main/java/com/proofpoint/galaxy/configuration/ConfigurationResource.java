@@ -20,13 +20,11 @@ import java.util.Map;
 public class ConfigurationResource
 {
     private final GitConfigurationRepository configurationRepository;
-    private final DiscoverDiscovery discoverDiscovery;
 
     @Inject
-    public ConfigurationResource(GitConfigurationRepository configRepository, DiscoverDiscovery discoverDiscovery)
+    public ConfigurationResource(GitConfigurationRepository configRepository)
     {
         this.configurationRepository = configRepository;
-        this.discoverDiscovery = discoverDiscovery;
     }
 
     @GET
@@ -56,21 +54,6 @@ public class ConfigurationResource
         if (configFile == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
-
-        // add discovery url to config.properties
-        if (path.equals("etc/config.properties")) {
-            StringBuilder additionalConfig = new StringBuilder();
-            additionalConfig.append("#\n");
-            additionalConfig.append("# Automatically provided by Galaxy Configuration Repository\n");
-            List<URI> discoveryServers = discoverDiscovery.getDiscoveryServers();
-            if (!discoveryServers.isEmpty()) {
-                additionalConfig.append("discovery.uri=").append(Joiner.on(",").join(discoveryServers)).append("\n");
-            }
-            additionalConfig.append("\n");
-
-            configFile = ByteStreams.join(configFile, ByteStreams.newInputStreamSupplier(additionalConfig.toString().getBytes(Charsets.UTF_8)));
-        }
-
         return Response.ok(new InputSupplierStreamingOutput(configFile)).build();
     }
 }

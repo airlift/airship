@@ -33,7 +33,6 @@ public class ConfigurationMainModule
         binder.bind(GitConfigurationRepository.class).in(Scopes.SINGLETON);
         bindConfig(binder).to(GitConfigurationRepositoryConfig.class);
 
-        binder.bind(DiscoverDiscovery.class).in(Scopes.SINGLETON);
         bindConfig(binder).to(ConfigurationRepositoryConfig.class);
         jsonCodecBinder(binder).bindListJsonCodec(SlotStatusRepresentation.class);
     }
