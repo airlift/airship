@@ -56,7 +56,8 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
             throws IOException
     {
         tempDir = Files.createTempDir().getCanonicalFile();
-        manager = new DirectoryDeploymentManager(new AgentConfig(), "slot", tempDir);
+        final AgentConfig config = new AgentConfig();
+        manager = new DirectoryDeploymentManager("slot", tempDir, "location/test", config.getTarTimeout());
     }
 
     @AfterMethod
@@ -74,7 +75,8 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         Deployment appleDeployment = manager.install(appleInstallation);
 
         // replace the deployment manager with a new one, which will cause the persistent data to reload
-        manager = new DirectoryDeploymentManager(new AgentConfig(), appleDeployment.getSlotName(), tempDir);
+        final AgentConfig config = new AgentConfig();
+        manager = new DirectoryDeploymentManager(appleDeployment.getSlotName(), tempDir, appleDeployment.getLocation(), config.getTarTimeout());
 
         // active deployment should still be apple
         assertEquals(manager.getDeployment(), appleDeployment);

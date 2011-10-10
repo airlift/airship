@@ -43,26 +43,26 @@ public class TestSlotStatus
 
         equivalenceTester()
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, TERMINATED, null, applePath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, TERMINATED, null, applePath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath))
                 .addEquivalentGroup(
-                        new SlotStatus(bananaId, appleSlotName, appleSelf, TERMINATED, null, applePath),
-                        new SlotStatus(bananaId, appleSlotName, appleSelf, TERMINATED, null, applePath))
+                        new SlotStatus(bananaId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath),
+                        new SlotStatus(bananaId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath))
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, APPLE_ASSIGNMENT, applePath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, APPLE_ASSIGNMENT, applePath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, APPLE_ASSIGNMENT, applePath),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, APPLE_ASSIGNMENT, applePath))
                 .addEquivalentGroup(
-                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, RUNNING, APPLE_ASSIGNMENT, bananaPath),
-                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, RUNNING, APPLE_ASSIGNMENT, bananaPath))
+                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, "location", RUNNING, APPLE_ASSIGNMENT, bananaPath),
+                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, "location", RUNNING, APPLE_ASSIGNMENT, bananaPath))
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, BANANA_ASSIGNMENT, bananaPath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, RUNNING, BANANA_ASSIGNMENT, bananaPath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, BANANA_ASSIGNMENT, bananaPath),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, BANANA_ASSIGNMENT, bananaPath))
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, STOPPED, APPLE_ASSIGNMENT, applePath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, STOPPED, APPLE_ASSIGNMENT, applePath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", STOPPED, APPLE_ASSIGNMENT, applePath),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", STOPPED, APPLE_ASSIGNMENT, applePath))
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, UNKNOWN, APPLE_ASSIGNMENT, applePath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, UNKNOWN, APPLE_ASSIGNMENT, applePath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", UNKNOWN, APPLE_ASSIGNMENT, applePath),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", UNKNOWN, APPLE_ASSIGNMENT, applePath))
                 .check();
     }
 

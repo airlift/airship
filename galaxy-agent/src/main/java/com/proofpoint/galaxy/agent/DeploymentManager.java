@@ -23,6 +23,8 @@ public interface DeploymentManager
 
     UUID getSlotId();
 
+    String getLocation();
+
     Deployment install(Installation installation);
 
     Deployment getDeployment();

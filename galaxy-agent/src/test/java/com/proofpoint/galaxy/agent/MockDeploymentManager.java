@@ -14,7 +14,6 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.Installation;
 
 import java.io.File;
@@ -23,12 +22,14 @@ import java.util.UUID;
 public class MockDeploymentManager implements DeploymentManager
 {
     private final String slotName;
+    private final String location;
     private final UUID slotId = UUID.randomUUID();
     private Deployment deployment;
 
     public MockDeploymentManager(String slotName)
     {
         this.slotName = slotName;
+        this.location = "location/" + this.slotName;
     }
 
     @Override
@@ -44,13 +45,19 @@ public class MockDeploymentManager implements DeploymentManager
         Preconditions.checkState(deployment == null, "slot has an active deployment");
 
         String deploymentId = "deployment";
-        deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), new File(deploymentId), new File("data"), installation.getAssignment());
+        deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), location, new File(deploymentId), new File("data"), installation.getAssignment());
         return deployment;
     }
 
     public UUID getSlotId()
     {
         return slotId;
+    }
+
+    @Override
+    public String getLocation()
+    {
+        return location;
     }
 
     @Override

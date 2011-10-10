@@ -71,9 +71,15 @@ public class TestCoordinatorAssignmentResource
                 new LocalProvisioner());
         resource = new CoordinatorAssignmentResource(coordinator);
 
-        SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(), "apple1", URI.create("fake://appleServer1/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT, "/apple1");
-        SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(), "apple2", URI.create("fake://appleServer2/v1/agent/slot/apple1"), STOPPED, APPLE_ASSIGNMENT, "/apple2");
-        SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(), "banana", URI.create("fake://bananaServer/v1/agent/slot/banana"), STOPPED, BANANA_ASSIGNMENT, "/banana");
+        SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(), "apple1", URI.create("fake://appleServer1/v1/agent/slot/apple1"), "location", STOPPED, APPLE_ASSIGNMENT,
+                "/apple1"
+        );
+        SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(), "apple2", URI.create("fake://appleServer2/v1/agent/slot/apple1"), "location", STOPPED, APPLE_ASSIGNMENT,
+                "/apple2"
+        );
+        SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(), "banana", URI.create("fake://bananaServer/v1/agent/slot/banana"), "location", STOPPED, BANANA_ASSIGNMENT,
+                "/banana"
+        );
 
         agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,

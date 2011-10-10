@@ -62,8 +62,8 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlots()
     {
-        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"), STOPPED, APPLE_ASSIGNMENT, "/slot1");
-        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"), STOPPED, APPLE_ASSIGNMENT, "/slot2");
+        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot1");
+        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot2");
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2));
         coordinator.setAgentStatus(agentStatus);
 
@@ -79,8 +79,8 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlotsWithFilter()
     {
-        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"), STOPPED, APPLE_ASSIGNMENT, "/slot1");
-        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"), STOPPED, APPLE_ASSIGNMENT, "/slot2");
+        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot1");
+        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot2");
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2));
         coordinator.setAgentStatus(agentStatus);
 

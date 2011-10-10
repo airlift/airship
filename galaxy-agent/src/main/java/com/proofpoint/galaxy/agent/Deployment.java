@@ -26,11 +26,12 @@ public class Deployment
     private final String slotName;
     private final String deploymentId;
     private final UUID nodeId;
+    private final String location;
     private final File deploymentDir;
     private final File dataDir;
     private final Assignment assignment;
 
-    public Deployment(String deploymentId, String slotName, UUID nodeId, File deploymentDir, File dataDir, Assignment assignment)
+    public Deployment(String deploymentId, String slotName, UUID nodeId, String location, File deploymentDir, File dataDir, Assignment assignment)
     {
         Preconditions.checkNotNull(deploymentId, "deploymentId is null");
         Preconditions.checkNotNull(slotName, "slotName is null");
@@ -42,6 +43,7 @@ public class Deployment
         this.slotName = slotName;
         this.deploymentId = deploymentId;
         this.nodeId = nodeId;
+        this.location = location;
         this.deploymentDir = deploymentDir;
         this.dataDir = dataDir;
         this.assignment = assignment;
@@ -60,6 +62,11 @@ public class Deployment
     public UUID getNodeId()
     {
         return nodeId;
+    }
+
+    public String getLocation()
+    {
+        return location;
     }
 
     public File getDeploymentDir()
@@ -105,11 +112,12 @@ public class Deployment
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("Deployment");
         sb.append("{deploymentId='").append(deploymentId).append('\'');
         sb.append(", slotName='").append(slotName).append('\'');
         sb.append(", nodeId=").append(nodeId);
+        sb.append(", location=").append(location);
         sb.append(", deploymentDir=").append(deploymentDir);
         sb.append(", dataDir=").append(dataDir);
         sb.append(", assignment=").append(assignment);

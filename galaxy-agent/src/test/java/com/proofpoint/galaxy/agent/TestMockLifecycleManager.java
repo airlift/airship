@@ -28,7 +28,7 @@ public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
             throws Exception
     {
         manager = new MockLifecycleManager();
-        appleDeployment = new Deployment("apple", "slot", UUID.randomUUID(), new File("apple"), new File("apple-data"), APPLE_ASSIGNMENT);
-        bananaDeployment = new Deployment("banana", "slot", UUID.randomUUID(), new File("banana"), new File("banana-data"), BANANA_ASSIGNMENT);
+        appleDeployment = new Deployment("apple", "slot", UUID.randomUUID(), "location/apple", new File("apple"), new File("apple-data"), APPLE_ASSIGNMENT);
+        bananaDeployment = new Deployment("banana", "slot", UUID.randomUUID(), "location/banana", new File("banana"), new File("banana-data"), BANANA_ASSIGNMENT);
     }
 }

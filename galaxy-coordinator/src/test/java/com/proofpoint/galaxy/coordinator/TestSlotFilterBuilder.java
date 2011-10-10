@@ -17,7 +17,6 @@ import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.StatePredicate;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public class TestSlotFilterBuilder
     private final SlotStatus status = new SlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
             "slotName",
             URI.create("fake://localhost"),
-            UNKNOWN,
+            "location", UNKNOWN,
             APPLE_ASSIGNMENT,
             "/slotName");
 
@@ -144,7 +143,7 @@ public class TestSlotFilterBuilder
         SlotStatus status = new SlotStatus(UUID.randomUUID(),
                 "slotName",
                 URI.create("fake://localhost"),
-                UNKNOWN,
+                "location", UNKNOWN,
                 new Assignment(BinarySpec.valueOf("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT"), APPLE_ASSIGNMENT.getConfig()),
                 "/slotName");
         RemoteSlot slot = new HttpRemoteSlot(status, new AsyncHttpClient());

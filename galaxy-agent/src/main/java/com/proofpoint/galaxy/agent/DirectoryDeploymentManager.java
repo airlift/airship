@@ -31,18 +31,19 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
     private final UUID slotId;
     private final String slotName;
+    private final String location;
     private final Duration tarTimeout;
-    private final File baseDir;
 
+    private final File baseDir;
     private final File deploymentFile;
     private Deployment deployment;
 
-    public DirectoryDeploymentManager(AgentConfig config, String slotName, File baseDir)
+    public DirectoryDeploymentManager(String slotName, File baseDir, String location, Duration tarTimeout)
     {
-        Preconditions.checkNotNull(config, "config is null");
         Preconditions.checkNotNull(slotName, "slotName is null");
         this.slotName = slotName;
-        this.tarTimeout = config.getTarTimeout();
+        this.location = location;
+        this.tarTimeout = tarTimeout;
 
         Preconditions.checkNotNull(baseDir, "baseDir is null");
         baseDir.mkdirs();
@@ -116,6 +117,11 @@ public class DirectoryDeploymentManager implements DeploymentManager
         return slotId;
     }
 
+    public String getLocation()
+    {
+        return location;
+    }
+
     @Override
     public Deployment install(Installation installation)
     {
@@ -128,7 +134,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
         File dataDir = getDataDir();
 
-        Deployment deployment = new Deployment("deployment", slotName, UUID.randomUUID(), deploymentDir, dataDir, assignment);
+        Deployment deployment = new Deployment("deployment", slotName, UUID.randomUUID(), location, deploymentDir, dataDir, assignment);
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary
@@ -185,7 +191,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
                 Files.move(binaryRootDir, deploymentDir);
             }
             catch (IOException e) {
-                throw new RuntimeException("Unable to deployment to final location", e);
+                throw new RuntimeException("Unable to move deployment to final location", e);
             }
         }
         finally {
@@ -234,7 +240,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
     {
         String json = Files.toString(deploymentFile, UTF_8);
         DeploymentRepresentation data = jsonCodec.fromJson(json);
-        Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()), getDataDir());
+        Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()), getDataDir(), location);
         return deployment;
     }
 

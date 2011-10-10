@@ -31,6 +31,7 @@ public class SlotStatusRepresentation
     private final String shortId;
     private final String name;
     private final URI self;
+    private final String location;
     private final String binary;
     private final String config;
     private final String status;
@@ -73,6 +74,7 @@ public class SlotStatusRepresentation
                     slotStatus.getId().toString().substring(0, shortIdPrefixSize),
                     slotStatus.getName(),
                     slotStatus.getSelf(),
+                    slotStatus.getLocation(),
                     slotStatus.getAssignment().getBinary().toString(),
                     slotStatus.getAssignment().getConfig().toString(),
                     slotStatus.getState().toString(),
@@ -85,6 +87,7 @@ public class SlotStatusRepresentation
                     slotStatus.getId().toString().substring(0, shortIdPrefixSize),
                     slotStatus.getName(),
                     slotStatus.getSelf(),
+                    slotStatus.getLocation(),
                     null,
                     null,
                     slotStatus.getState().toString(),
@@ -98,6 +101,7 @@ public class SlotStatusRepresentation
             @JsonProperty("shortId") String shortId,
             @JsonProperty("name") String name,
             @JsonProperty("self") URI self,
+            @JsonProperty("location") String location,
             @JsonProperty("binary") String binary,
             @JsonProperty("config") String config,
             @JsonProperty("status") String status,
@@ -108,6 +112,7 @@ public class SlotStatusRepresentation
         this.shortId = shortId;
         this.name = name;
         this.self = self;
+        this.location = location;
         this.binary = binary;
         this.config = config;
         this.status = status;
@@ -141,6 +146,13 @@ public class SlotStatusRepresentation
     public URI getSelf()
     {
         return self;
+    }
+
+    @JsonProperty
+    @NotNull(message = "is missing")
+    public String getLocation()
+    {
+        return location;
     }
 
     @JsonProperty
@@ -180,10 +192,10 @@ public class SlotStatusRepresentation
     public SlotStatus toSlotStatus()
     {
         if (binary != null) {
-            return new SlotStatus(id, name, self, SlotLifecycleState.valueOf(status), new Assignment(binary, config), installPath);
+            return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), new Assignment(binary, config), installPath);
         }
         else {
-            return new SlotStatus(id, name, self, SlotLifecycleState.valueOf(status), null, installPath);
+            return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), null, installPath);
         }
     }
 
@@ -217,6 +229,9 @@ public class SlotStatusRepresentation
         if (self != null ? !self.equals(that.self) : that.self != null) {
             return false;
         }
+        if (location != null ? !location.equals(that.location) : that.location != null) {
+            return false;
+        }
         if (status != null ? !status.equals(that.status) : that.status != null) {
             return false;
         }
@@ -241,6 +256,7 @@ public class SlotStatusRepresentation
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (statusMessage != null ? statusMessage.hashCode() : 0);
         result = 31 * result + (self != null ? self.hashCode() : 0);
+        result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
         return result;
     }
@@ -254,6 +270,7 @@ public class SlotStatusRepresentation
         sb.append(", name='").append(name).append('\'');
         sb.append(", shortId='").append(shortId).append('\'');
         sb.append(", self=").append(self);
+        sb.append(", location=").append(location);
         sb.append(", binary='").append(binary).append('\'');
         sb.append(", config='").append(config).append('\'');
         sb.append(", status='").append(status).append('\'');

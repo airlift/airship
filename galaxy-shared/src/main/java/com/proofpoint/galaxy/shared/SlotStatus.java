@@ -29,17 +29,19 @@ public class SlotStatus
     private final UUID id;
     private final String name;
     private final URI self;
+    private final String location;
     private final Assignment assignment;
     private final SlotLifecycleState state;
     private final String statusMessage;
 
     private final String installPath;
 
-    public SlotStatus(UUID id, String name, URI self, SlotLifecycleState state, Assignment assignment, String installPath)
+    public SlotStatus(UUID id, String name, URI self, String location, SlotLifecycleState state, Assignment assignment, String installPath)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(self, "self is null");
+        Preconditions.checkNotNull(location, "location is null");
         Preconditions.checkNotNull(state, "state is null");
         if (state != TERMINATED && state != UNKNOWN) {
             Preconditions.checkNotNull(assignment, "assignment is null");
@@ -48,6 +50,7 @@ public class SlotStatus
         this.id = id;
         this.name = name;
         this.self = self;
+        this.location = location;
         this.assignment = assignment;
         this.state = state;
         this.installPath = installPath;
@@ -63,6 +66,7 @@ public class SlotStatus
         this.id = status.id;
         this.name = status.name;
         this.self = status.self;
+        this.location = status.location;
         this.assignment = assignment;
         this.state = state;
         this.installPath = status.getInstallPath();
@@ -77,6 +81,7 @@ public class SlotStatus
         this.id = status.id;
         this.name = status.name;
         this.self = status.self;
+        this.location = status.location;
         if (state != TERMINATED) {
             this.assignment = status.assignment;
             this.installPath = status.installPath;
@@ -102,6 +107,11 @@ public class SlotStatus
     public URI getSelf()
     {
         return self;
+    }
+
+    public String getLocation()
+    {
+        return location;
     }
 
     public Assignment getAssignment()
@@ -156,6 +166,9 @@ public class SlotStatus
         if (!name.equals(that.name)) {
             return false;
         }
+        if (!location.equals(that.location)) {
+            return false;
+        }
         if (!self.equals(that.self)) {
             return false;
         }
@@ -172,6 +185,7 @@ public class SlotStatus
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + self.hashCode();
+        result = 31 * result + location.hashCode();
         result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
         result = 31 * result + state.hashCode();
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
@@ -185,6 +199,7 @@ public class SlotStatus
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", self=" + self +
+                ", location=" + location +
                 ", assignment=" + assignment +
                 ", state=" + state +
                 ", installPath='" + installPath + '\'' +

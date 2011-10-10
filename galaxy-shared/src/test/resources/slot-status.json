@@ -3,6 +3,7 @@
     "shortId": "aaaaa",
     "name":"slot1",
     "self":"fake://apple",
+    "location":"location/apple",
     "binary":"food.fruit:apple:1.0",
     "config":"@apple:1.0",
     "status":"STOPPED",

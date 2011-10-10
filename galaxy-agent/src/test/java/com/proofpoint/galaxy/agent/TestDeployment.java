@@ -30,42 +30,43 @@ public class TestDeployment
     @Test
     public void testConstructor()
     {
-        Deployment deployment = new Deployment("one", "slot", UUID.randomUUID(), new File("one"), new File("data"), APPLE_ASSIGNMENT);
+        Deployment deployment = new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT);
 
         assertEquals(deployment.getDeploymentId(), "one");
         assertEquals(deployment.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(deployment.getDeploymentDir(), new File("one"));
+        assertEquals(deployment.getLocation(), "location");
     }
 
     @Test
     public void testNullConstructorArgs()
     {
         try {
-            new Deployment("one", null, UUID.randomUUID(), new File("one"), new File("data"), APPLE_ASSIGNMENT);
+            new Deployment("one", null, UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment(null, "slot", UUID.randomUUID(), new File("one"), new File("data"), APPLE_ASSIGNMENT);
+            new Deployment(null, "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("one", "slot", UUID.randomUUID(), null, new File("data"), APPLE_ASSIGNMENT);
+            new Deployment("one", "slot", UUID.randomUUID(), "location", null, new File("data"), APPLE_ASSIGNMENT);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("one", "slot", UUID.randomUUID(), new File("one"), null, APPLE_ASSIGNMENT);
+            new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), null, APPLE_ASSIGNMENT);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("one", "slot", UUID.randomUUID(), new File("one"), new File("data"), null);
+            new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), null);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
@@ -78,16 +79,16 @@ public class TestDeployment
         // identity is only based on deploymentId
         EquivalenceTester.check(
                 asList(
-                        new Deployment("one", "slot", UUID.randomUUID(), new File("one"), new File("data"), APPLE_ASSIGNMENT),
-                        new Deployment("one", "slot", UUID.randomUUID(), new File("other"), new File("data"), APPLE_ASSIGNMENT),
-                        new Deployment("one", "slot", UUID.randomUUID(), new File("one"), new File("theta"), APPLE_ASSIGNMENT),
-                        new Deployment("one", "slot", UUID.randomUUID(), new File("one"), new File("data"), BANANA_ASSIGNMENT)
+                        new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT),
+                        new Deployment("one", "slot", UUID.randomUUID(), "location", new File("other"), new File("data"), APPLE_ASSIGNMENT),
+                        new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), new File("theta"), APPLE_ASSIGNMENT),
+                        new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), BANANA_ASSIGNMENT)
                 ),
                 asList(
-                        new Deployment("two", "slot", UUID.randomUUID(), new File("one"), new File("data"), APPLE_ASSIGNMENT),
-                        new Deployment("two", "slot", UUID.randomUUID(), new File("other"), new File("data"), APPLE_ASSIGNMENT),
-                        new Deployment("two", "slot", UUID.randomUUID(), new File("one"), new File("theta"), APPLE_ASSIGNMENT),
-                        new Deployment("two", "slot", UUID.randomUUID(), new File("one"),new File("data"),  BANANA_ASSIGNMENT)
+                        new Deployment("two", "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT),
+                        new Deployment("two", "slot", UUID.randomUUID(), "location", new File("other"), new File("data"), APPLE_ASSIGNMENT),
+                        new Deployment("two", "slot", UUID.randomUUID(), "location", new File("one"), new File("theta"), APPLE_ASSIGNMENT),
+                        new Deployment("two", "slot", UUID.randomUUID(), "location", new File("one"),new File("data"),  BANANA_ASSIGNMENT)
                 )
         );
     }

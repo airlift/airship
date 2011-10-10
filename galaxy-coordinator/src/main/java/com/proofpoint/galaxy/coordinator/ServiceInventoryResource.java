@@ -74,7 +74,7 @@ public class ServiceInventoryResource
                         slotStatus.getId().toString(),
                         serviceDescriptor.getType(),
                         config.getPool(),
-                        null /*todo*/,
+                        slotStatus.getLocation(),
                         serviceDescriptor.getProperties()));
             }
         }

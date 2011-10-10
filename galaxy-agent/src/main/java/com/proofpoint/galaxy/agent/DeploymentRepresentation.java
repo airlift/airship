@@ -71,9 +71,9 @@ public class DeploymentRepresentation
         return assignment;
     }
 
-    public Deployment toDeployment(File deploymentDir, File dataDir)
+    public Deployment toDeployment(File deploymentDir, File dataDir, String location)
     {
-        return new Deployment(deploymentId, slotName, nodeId, deploymentDir, dataDir, assignment.toAssignment());
+        return new Deployment(deploymentId, slotName, nodeId, location, deploymentDir, dataDir, assignment.toAssignment());
     }
 
     @Override
@@ -104,7 +104,7 @@ public class DeploymentRepresentation
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("Deployment");
         sb.append("{slotName='").append(slotName).append('\'');
         sb.append(", deploymentId='").append(deploymentId).append('\'');
