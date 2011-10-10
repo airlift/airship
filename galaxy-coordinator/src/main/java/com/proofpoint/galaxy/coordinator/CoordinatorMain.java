@@ -18,24 +18,33 @@ import com.proofpoint.json.JsonModule;
 import com.proofpoint.http.server.HttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.jmx.JmxModule;
+import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeModule;
 import org.weakref.jmx.guice.MBeanModule;
 
 public class CoordinatorMain
 {
+    private static final Logger log = Logger.get(CoordinatorMain.class);
+
     public static void main(String[] args)
             throws Exception
     {
-        Bootstrap app = new Bootstrap(
-                new NodeModule(),
-                new HttpServerModule(),
-                new JsonModule(),
-                new JaxrsModule(),
-                new MBeanModule(),
-                new JmxModule(),
-                new CoordinatorMainModule(),
-                new AwsProvisionerModule());
+        try {
+            Bootstrap app = new Bootstrap(
+                    new NodeModule(),
+                    new HttpServerModule(),
+                    new JsonModule(),
+                    new JaxrsModule(),
+                    new MBeanModule(),
+                    new JmxModule(),
+                    new CoordinatorMainModule(),
+                    new AwsProvisionerModule());
 
-        app.strictConfig().initialize();
+            app.strictConfig().initialize();
+        }
+        catch (Throwable e) {
+            log.error(e, "Startup failed");
+            System.exit(1);
+        }
     }
 }

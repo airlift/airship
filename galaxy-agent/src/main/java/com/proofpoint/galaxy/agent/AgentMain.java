@@ -19,24 +19,33 @@ import com.proofpoint.json.JsonModule;
 import com.proofpoint.http.server.HttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.jmx.JmxModule;
+import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeModule;
 import org.weakref.jmx.guice.MBeanModule;
 
 public class AgentMain
 {
+    private static final Logger log = Logger.get(AgentMain.class);
+
     public static void main(String[] args)
             throws Exception
     {
-        Bootstrap app = new Bootstrap(
-                new DiscoveryModule(),
-                new NodeModule(),
-                new HttpServerModule(),
-                new JsonModule(),
-                new JaxrsModule(),
-                new MBeanModule(),
-                new JmxModule(),
-                new AgentMainModule());
+        try {
+            Bootstrap app = new Bootstrap(
+                    new DiscoveryModule(),
+                    new NodeModule(),
+                    new HttpServerModule(),
+                    new JsonModule(),
+                    new JaxrsModule(),
+                    new MBeanModule(),
+                    new JmxModule(),
+                    new AgentMainModule());
 
-        app.strictConfig().initialize();
+            app.strictConfig().initialize();
+        }
+        catch (Exception e) {
+            log.error(e, "Startup failed");
+            System.exit(1);
+        }
     }
 }
