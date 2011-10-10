@@ -80,12 +80,14 @@ public class TestDeployment
         EquivalenceTester.check(
                 asList(
                         new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT),
+                        new Deployment("one", "slot", UUID.randomUUID(), "locationB", new File("one"), new File("data"), APPLE_ASSIGNMENT),
                         new Deployment("one", "slot", UUID.randomUUID(), "location", new File("other"), new File("data"), APPLE_ASSIGNMENT),
                         new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), new File("theta"), APPLE_ASSIGNMENT),
                         new Deployment("one", "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), BANANA_ASSIGNMENT)
                 ),
                 asList(
                         new Deployment("two", "slot", UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT),
+                        new Deployment("two", "slot", UUID.randomUUID(), "locationB", new File("one"), new File("data"), APPLE_ASSIGNMENT),
                         new Deployment("two", "slot", UUID.randomUUID(), "location", new File("other"), new File("data"), APPLE_ASSIGNMENT),
                         new Deployment("two", "slot", UUID.randomUUID(), "location", new File("one"), new File("theta"), APPLE_ASSIGNMENT),
                         new Deployment("two", "slot", UUID.randomUUID(), "location", new File("one"),new File("data"),  BANANA_ASSIGNMENT)
