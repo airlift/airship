@@ -22,6 +22,9 @@ import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeModule;
 import org.weakref.jmx.guice.MBeanModule;
 
+import static com.proofpoint.galaxy.coordinator.ConditionalModule.installIfPropertyEquals;
+
+
 public class CoordinatorMain
 {
     private static final Logger log = Logger.get(CoordinatorMain.class);
@@ -38,7 +41,8 @@ public class CoordinatorMain
                     new MBeanModule(),
                     new JmxModule(),
                     new CoordinatorMainModule(),
-                    new AwsProvisionerModule());
+                    installIfPropertyEquals(new LocalProvisionerModule(), "coordinator.provisioner", "local"),
+                    installIfPropertyEquals(new AwsProvisionerModule(), "coordinator.provisioner", "aws"));
 
             app.strictConfig().initialize();
         }
