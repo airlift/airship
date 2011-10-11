@@ -143,6 +143,9 @@
                                                  "Fn::Join": ["=", ["coordinator.binary-repo", { "Ref": "BinaryRepoURI" }]]
                                              },
                                              {
+                                                 "Fn::Join": ["=", ["coordinator.provisioner", "aws"]]
+                                             },
+                                             {
                                                  "Fn::Join": ["=", ["coordinator.aws.access-key", {"Ref" : "CoordinatorAccessKey"} ]]
                                              },
                                              {
