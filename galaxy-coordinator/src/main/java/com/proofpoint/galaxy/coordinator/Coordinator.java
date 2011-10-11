@@ -215,6 +215,20 @@ public class Coordinator
         return agents.remove(agentId) != null;
     }
 
+    public boolean terminateAgent(String agentId)
+    {
+        RemoteAgent agent = agents.remove(agentId);
+        if (agent == null) {
+            return false;
+        }
+        if (!agent.getSlots().isEmpty()) {
+            agents.putIfAbsent(agentId, agent);
+            throw new IllegalStateException("Cannot terminate agent that has slots: " + agentId);
+        }
+        provisioner.terminateAgents(ImmutableList.of(agentId));
+        return true;
+    }
+
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
         Map<String,URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());

@@ -8,4 +8,6 @@ public interface Provisioner
 
     List<Instance> provisionAgents(int agentCount, String instanceType, String availabilityZone)
             throws Exception;
+
+    void terminateAgents(List<String> instanceIds);
 }

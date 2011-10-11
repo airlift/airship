@@ -55,4 +55,10 @@ public class LocalProvisioner implements Provisioner
     {
         throw new UnsupportedOperationException("Agent provisioning not supported in local mode");
     }
+
+    @Override
+    public void terminateAgents(List<String> instanceIds)
+    {
+        throw new UnsupportedOperationException("Agent termination not supported in local mode");
+    }
 }

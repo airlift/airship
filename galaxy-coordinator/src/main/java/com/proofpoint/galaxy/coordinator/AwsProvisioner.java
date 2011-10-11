@@ -9,6 +9,7 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.Tag;
+import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -175,6 +176,12 @@ public class AwsProvisioner implements Provisioner
         createInstanceTagsWithRetry(instanceIds, tags);
 
         return instances;
+    }
+
+    @Override
+    public void terminateAgents(List<String> instanceIds)
+    {
+        ec2Client.terminateInstances(new TerminateInstancesRequest(instanceIds));
     }
 
     private void createInstanceTagsWithRetry(List<String> instanceIds, List<Tag> tags)

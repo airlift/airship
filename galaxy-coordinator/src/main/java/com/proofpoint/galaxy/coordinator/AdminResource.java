@@ -56,9 +56,9 @@ public class AdminResource
 
     @DELETE
     @Path("/agent/{agentId: [a-z0-9-]+}")
-    public Response deleteAgent(String agentId, @Context UriInfo uriInfo)
+    public Response terminateAgent(String agentId, @Context UriInfo uriInfo)
     {
-        if (coordinator.removeAgent(agentId)) {
+        if (coordinator.terminateAgent(agentId)) {
             return Response.ok().build();
         }
         return Response.status(Status.NOT_FOUND).build();

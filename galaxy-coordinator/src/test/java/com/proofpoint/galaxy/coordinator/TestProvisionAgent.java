@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.experimental.testing.ValidationAssertions.assertValidates;
 import static org.testng.Assert.assertEquals;
 
@@ -78,6 +79,12 @@ public class TestProvisionAgent
         List<Instance> running = provisioner.listAgents();
         assertEquals(running.size(), agentCount);
         System.err.println("running agents: " + running);
+
+        List<String> instanceIds = newArrayList();
+        for (Instance instance : provisioned) {
+            instanceIds.add(instance.getInstanceId());
+        }
+        provisioner.terminateAgents(instanceIds);
     }
 
     private static NodeInfo createTestNodeInfo()
