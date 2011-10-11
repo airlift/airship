@@ -21,9 +21,11 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptor;
+import com.proofpoint.discovery.client.ServiceState;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
@@ -74,6 +76,7 @@ public class HttpServiceInventory implements ServiceInventory
                         serviceDescriptor.getType(),
                         config.getPool(),
                         slotStatus.getLocation(),
+                        slotStatus.getState() == SlotLifecycleState.RUNNING ? ServiceState.RUNNING : ServiceState.STOPPED,
                         interpolateProperties(serviceDescriptor.getProperties(), slotStatus)));
             }
         }
