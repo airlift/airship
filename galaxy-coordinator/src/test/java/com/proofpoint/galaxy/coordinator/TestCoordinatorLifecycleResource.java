@@ -70,6 +70,7 @@ public class TestCoordinatorLifecycleResource
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
                 new LocalProvisioner(),
+                new InMemoryStateManager(),
                 new MockServiceInventory());
         resource = new CoordinatorLifecycleResource(coordinator);
 

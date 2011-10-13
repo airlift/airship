@@ -69,6 +69,7 @@ public class TestCoordinatorAssignmentResource
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
                 new LocalProvisioner(),
+                new InMemoryStateManager(),
                 new MockServiceInventory());
         resource = new CoordinatorAssignmentResource(coordinator);
 

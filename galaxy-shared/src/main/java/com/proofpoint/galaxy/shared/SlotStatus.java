@@ -40,7 +40,6 @@ public class SlotStatus
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
-        Preconditions.checkNotNull(self, "self is null");
         Preconditions.checkNotNull(location, "location is null");
         Preconditions.checkNotNull(state, "state is null");
         if (state != TERMINATED && state != UNKNOWN) {
@@ -130,6 +129,10 @@ public class SlotStatus
 
     public SlotStatus updateState(SlotLifecycleState state, String statusMessage) {
         return new SlotStatus(this, state, statusMessage);
+    }
+
+    public SlotStatus clearStatusMessage() {
+        return new SlotStatus(this, state, (String) null);
     }
 
     public String getStatusMessage()

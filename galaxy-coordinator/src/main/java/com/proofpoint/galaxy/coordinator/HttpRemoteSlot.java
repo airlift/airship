@@ -50,7 +50,7 @@ public class HttpRemoteSlot implements RemoteSlot
     @Override
     public void updateStatus(SlotStatus slotStatus)
     {
-        Preconditions.checkArgument(slotStatus.getId() != this.slotStatus.get().getId(),
+        Preconditions.checkArgument(slotStatus.getId().equals(this.slotStatus.get().getId()),
                 String.format("Agent returned status for slot %s, but the status for slot %s was expected", slotStatus.getId(), this.slotStatus.get().getId()));
         this.slotStatus.set(slotStatus);
     }

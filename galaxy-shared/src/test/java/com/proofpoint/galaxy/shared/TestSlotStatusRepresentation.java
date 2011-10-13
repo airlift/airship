@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static org.testng.Assert.assertEquals;
 
 public class TestSlotStatusRepresentation
@@ -25,7 +26,10 @@ public class TestSlotStatusRepresentation
             AssignmentHelper.APPLE_ASSIGNMENT.getConfig().toString(),
             STOPPED.toString(),
             null,
-            "/apple");
+            "/apple",
+            "Xfood.fruit:apple:1.0",
+            "@Xapple:1.0",
+            UNKNOWN.toString());
 
     @Test
     public void testJsonRoundTrip()

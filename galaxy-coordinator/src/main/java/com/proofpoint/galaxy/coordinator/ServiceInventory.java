@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface ServiceInventory
 {
-    List<ServiceDescriptor> getServiceInventory(List<SlotStatus> allSlotStatus);
+    List<ServiceDescriptor> getServiceInventory(Iterable<SlotStatus> allSlotStatus);
 }

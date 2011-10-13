@@ -13,15 +13,17 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
-import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -42,30 +44,20 @@ import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
 import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 @Path("/v1/slot")
 public class CoordinatorSlotResource
 {
     private final Coordinator coordinator;
-    private final BinaryRepository binaryRepository;
-    private final ConfigRepository configRepository;
-    private final LocalConfigRepository localConfigRepository;
 
     public static final int MIN_PREFIX_SIZE = 4;
 
     @Inject
-    public CoordinatorSlotResource(Coordinator coordinator, BinaryRepository binaryRepository, ConfigRepository configRepository, LocalConfigRepository localConfigRepository)
+    public CoordinatorSlotResource(Coordinator coordinator)
     {
         Preconditions.checkNotNull(coordinator, "coordinator must not be null");
-        Preconditions.checkNotNull(configRepository, "repository is null");
-        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
-        Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
 
         this.coordinator = coordinator;
-        this.binaryRepository = binaryRepository;
-        this.configRepository = configRepository;
-        this.localConfigRepository = localConfigRepository;
     }
 
     @GET
@@ -81,9 +73,69 @@ public class CoordinatorSlotResource
 
         Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, false, uuids);
 
-        List<SlotStatus> result = coordinator.getAllSlotsStatus(slotFilter);
+        Iterable<SlotStatusWithExpectedState> result = coordinator.getAllSlotStatusWithExpectedState(slotFilter);
 
-        return Response.ok(transform(result, fromSlotStatusWithShortIdPrefixSize(prefixSize))).build();
+        return Response.ok(Iterables.transform(result, toSlotRepresentation(prefixSize))).build();
+    }
+
+    public static Function<SlotStatusWithExpectedState, SlotStatusRepresentation> toSlotRepresentation(final int size)
+    {
+        return new Function<SlotStatusWithExpectedState, SlotStatusRepresentation>()
+        {
+            public SlotStatusRepresentation apply(SlotStatusWithExpectedState status)
+            {
+                return from(status, size);
+            }
+        };
+    }
+
+    public static SlotStatusRepresentation from(SlotStatusWithExpectedState slotStatusWithExpectedState, int shortIdPrefixSize)
+    {
+        SlotStatus slotStatus = slotStatusWithExpectedState.getSlotStatus();
+        ExpectedSlotStatus expectedSlotStatus = slotStatusWithExpectedState.getExpectedSlotStatus();
+
+        String expectedBinary = null;
+        String expectedConfig = null;
+        String expectedStatus = null;
+        if (expectedSlotStatus != null) {
+            expectedBinary = expectedSlotStatus.getBinary();
+            expectedConfig = expectedSlotStatus.getConfig();
+            expectedStatus = expectedSlotStatus.getStatus() == null ? null : expectedSlotStatus.getStatus().toString();
+        }
+
+        if (slotStatus.getAssignment() != null) {
+            return new SlotStatusRepresentation(slotStatus.getId(),
+                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
+                    slotStatus.getName(),
+                    slotStatus.getSelf(),
+                    slotStatus.getLocation(),
+                    slotStatus.getAssignment().getBinary().toString(),
+                    slotStatus.getAssignment().getConfig().toString(),
+                    slotStatus.getState().toString(),
+                    slotStatus.getStatusMessage(),
+                    slotStatus.getInstallPath(),
+                    expectedBinary,
+                    expectedConfig,
+                    expectedStatus
+            );
+        }
+        else {
+            return new SlotStatusRepresentation(slotStatus.getId(),
+                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
+                    slotStatus.getName(),
+                    slotStatus.getSelf(),
+                    slotStatus.getLocation(),
+                    null,
+                    null,
+                    slotStatus.getState().toString(),
+                    slotStatus.getStatusMessage(),
+                    slotStatus.getInstallPath(),
+                    expectedBinary,
+                    expectedConfig,
+                    expectedStatus
+            );
+
+        }
     }
 
     @POST

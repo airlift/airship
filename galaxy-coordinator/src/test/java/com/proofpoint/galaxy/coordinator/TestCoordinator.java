@@ -38,6 +38,7 @@ public class TestCoordinator extends TestCase
                 MOCK_CONFIG_REPO,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
                 provisioner,
+                new InMemoryStateManager(),
                 new MockServiceInventory(),
                 statusExpiration
         );

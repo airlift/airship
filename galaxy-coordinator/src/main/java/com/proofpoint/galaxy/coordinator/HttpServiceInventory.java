@@ -61,10 +61,15 @@ public class HttpServiceInventory implements ServiceInventory
     }
 
     @Override
-    public ImmutableList<ServiceDescriptor> getServiceInventory(List<SlotStatus> allSlotStatus)
+    public ImmutableList<ServiceDescriptor> getServiceInventory(Iterable<SlotStatus> allSlotStatus)
     {
         ImmutableList.Builder<ServiceDescriptor> newDescriptors = ImmutableList.builder();
         for (SlotStatus slotStatus : allSlotStatus) {
+            // if the self reference is null, the slot is totally offline so skip for now
+            if (slotStatus.getSelf() == null) {
+                continue;
+            }
+
             List<ServiceDescriptor> serviceDescriptors = getServiceInventory(slotStatus);
             if (serviceDescriptors == null) {
                 continue;

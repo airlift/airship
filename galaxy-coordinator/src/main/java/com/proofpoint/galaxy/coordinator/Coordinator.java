@@ -1,13 +1,20 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptor;
@@ -19,6 +26,7 @@ import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 
@@ -30,6 +38,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,6 +58,7 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 
 public class Coordinator
 {
+    private static final Logger log = Logger.get(Coordinator.class);
     private final ConcurrentMap<String, RemoteAgent> agents;
 
     private final String environment;
@@ -60,6 +70,7 @@ public class Coordinator
     private final Provisioner provisioner;
     private final RemoteAgentFactory remoteAgentFactory;
     private final ServiceInventory serviceInventory;
+    private final StateManager stateManager;
 
     @Inject
     public Coordinator(NodeInfo nodeInfo,
@@ -69,7 +80,7 @@ public class Coordinator
             ConfigRepository configRepository,
             LocalConfigRepository localConfigRepository,
             Provisioner provisioner,
-            ServiceInventory serviceInventory)
+            StateManager stateManager, ServiceInventory serviceInventory)
     {
         this(nodeInfo.getEnvironment(),
                 remoteAgentFactory,
@@ -77,6 +88,7 @@ public class Coordinator
                 configRepository,
                 localConfigRepository,
                 provisioner,
+                stateManager,
                 serviceInventory,
                 checkNotNull(config, "config is null").getStatusExpiration()
         );
@@ -88,6 +100,7 @@ public class Coordinator
             ConfigRepository configRepository,
             LocalConfigRepository localConfigRepository,
             Provisioner provisioner,
+            StateManager stateManager,
             ServiceInventory serviceInventory,
             Duration statusExpiration)
     {
@@ -97,6 +110,7 @@ public class Coordinator
         Preconditions.checkNotNull(binaryUrlResolver, "binaryUrlResolver is null");
         Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
         Preconditions.checkNotNull(provisioner, "provisioner is null");
+        Preconditions.checkNotNull(stateManager, "stateManager is null");
         Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
         Preconditions.checkNotNull(statusExpiration, "statusExpiration is null");
 
@@ -106,6 +120,7 @@ public class Coordinator
         this.configRepository = configRepository;
         this.localConfigRepository = localConfigRepository;
         this.provisioner = provisioner;
+        this.stateManager = stateManager;
         this.serviceInventory = serviceInventory;
         this.statusExpiration = statusExpiration;
 
@@ -123,7 +138,12 @@ public class Coordinator
             @Override
             public void run()
             {
-                updateAllAgents();
+                try {
+                    updateAllAgents();
+                }
+                catch (Throwable e) {
+                    log.error(e, "Unexpected exception updating agents");
+                }
             }
         }, 0, (long) statusExpiration.toMillis(), TimeUnit.MILLISECONDS);
     }
@@ -166,7 +186,7 @@ public class Coordinator
             }
         }
 
-        List<ServiceDescriptor> serviceDescriptors = serviceInventory.getServiceInventory(getAllSlotStatus());
+        List<ServiceDescriptor> serviceDescriptors = serviceInventory.getServiceInventory(transform(getAllSlots(), getSlotStatus()));
         for (RemoteAgent remoteAgent : agents.values()) {
             remoteAgent.updateStatus();
             remoteAgent.setServiceInventory(serviceDescriptors);
@@ -203,6 +223,7 @@ public class Coordinator
                     ImmutableList.<SlotStatus>of());
 
             RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instanceId, instance.getInstanceType(), null);
+            remoteAgent.setStatus(agentStatus);
             this.agents.put(instanceId, remoteAgent);
 
             agents.add(agentStatus);
@@ -249,7 +270,9 @@ public class Coordinator
                 break;
             }
             if (agent.status().getState() == ONLINE) {
-                slots.add(agent.install(installation));
+                SlotStatus slotStatus = agent.install(installation);
+                stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
+                slots.add(slotStatus);
             }
         }
         return ImmutableList.copyOf(slots);
@@ -293,7 +316,9 @@ public class Coordinator
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
-                return slot.assign(installation);
+                SlotStatus slotStatus = slot.assign(installation);
+                stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
+                return slotStatus;
             }
         }));
     }
@@ -307,6 +332,9 @@ public class Coordinator
             for (RemoteSlot slot : agent.getSlots()) {
                 if (filter.apply(slot.status())) {
                     SlotStatus slotStatus = agent.terminateSlot(slot.getId());
+                    if (slotStatus.getState() == TERMINATED) {
+                        stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(),TERMINATED, null));
+                    }
                     builder.add(slotStatus);
                 }
             }
@@ -323,18 +351,25 @@ public class Coordinator
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
-                SlotStatus slotStatus = null;
+                SlotStatus slotStatus;
+                SlotLifecycleState expectedState;
                 switch (state) {
                     case RUNNING:
                         slotStatus = slot.start();
+                        expectedState = RUNNING;
                         break;
                     case RESTARTING:
                         slotStatus = slot.restart();
+                        expectedState = RUNNING;
                         break;
                     case STOPPED:
                         slotStatus = slot.stop();
+                        expectedState = STOPPED;
                         break;
+                    default:
+                        throw new IllegalArgumentException("Unexpected state transition " + state);
                 }
+                stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), expectedState, slotStatus.getAssignment()));
                 return slotStatus;
             }
         }));
@@ -347,7 +382,60 @@ public class Coordinator
 
     public List<SlotStatus> getAllSlotsStatus(Predicate<SlotStatus> slotFilter)
     {
-        return ImmutableList.copyOf(filter(transform(getAllSlots(), getSlotStatus()), slotFilter));
+        ImmutableMap<UUID,ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
+        ImmutableMap<UUID,SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());
+
+        ArrayList<SlotStatus> stats = newArrayList();
+        for (UUID uuid : Sets.union(actualStates.keySet(), expectedStates.keySet())) {
+            SlotStatus actualState = actualStates.get(uuid);
+            ExpectedSlotStatus expectedState = expectedStates.get(uuid);
+            if (actualState == null) {
+                actualState = new SlotStatus(uuid, "unknown", null, "unknown", UNKNOWN, expectedState.getAssignment(), null);
+            }
+            if (slotFilter.apply(actualState)) {
+                stats.add(actualState);
+            }
+        }
+        return ImmutableList.copyOf(stats);
+    }
+
+    public Iterable<SlotStatusWithExpectedState> getAllSlotStatusWithExpectedState(Predicate<SlotStatus> slotFilter)
+    {
+        ImmutableMap<UUID,ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
+        ImmutableMap<UUID,SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());
+
+        ArrayList<SlotStatusWithExpectedState> stats = newArrayList();
+        for (UUID uuid : Sets.union(actualStates.keySet(), expectedStates.keySet())) {
+            SlotStatus actualState = actualStates.get(uuid);
+            ExpectedSlotStatus expectedState = expectedStates.get(uuid);
+            if (actualState == null) {
+                actualState = new SlotStatus(uuid, "unknown", null, "unknown", UNKNOWN, expectedState.getAssignment(), null);
+                actualState = actualState.updateState(UNKNOWN, "Slot is missing; Expected slot to be " + expectedState.getStatus());
+            } else if (expectedState == null) {
+                actualState = actualState.updateState(actualState.getState(), "Unexpected slot");
+            } else {
+                List<String> messages = newArrayList();
+                if (!Objects.equal(actualState.getState(), expectedState.getStatus())) {
+                    messages.add("Expected state to be " + expectedState.getStatus());
+                }
+                if (!Objects.equal(actualState.getAssignment(), expectedState.getAssignment())) {
+                    Assignment assignment = expectedState.getAssignment();
+                    if (assignment != null) {
+                        messages.add("Expected assignment to be " + assignment.getBinary() + " " + assignment.getConfig());
+                    } else {
+                        messages.add("Expected no assignment");
+                    }
+                }
+                if (!messages.isEmpty()) {
+                    actualState = actualState.updateState(actualState.getState(), Joiner.on("; ").join(messages));
+                }
+            }
+            if (slotFilter.apply(actualState)) {
+                stats.add(new SlotStatusWithExpectedState(actualState, expectedState));
+            }
+        }
+
+        return stats;
     }
 
     private Predicate<RemoteSlot> filterSlotsBy(final Predicate<SlotStatus> filter)

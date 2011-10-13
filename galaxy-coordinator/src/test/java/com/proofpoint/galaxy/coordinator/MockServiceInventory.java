@@ -17,12 +17,12 @@ public class MockServiceInventory implements ServiceInventory
     }
 
     @Override
-    public List<ServiceDescriptor> getServiceInventory(List<SlotStatus> allSlotStatus)
+    public List<ServiceDescriptor> getServiceInventory(Iterable<SlotStatus> allSlotStatus)
     {
         return serviceInventory;
     }
 
-    public void setServiceInventory(List<ServiceDescriptor> serviceInventory)
+    public void setServiceInventory(Iterable<ServiceDescriptor> serviceInventory)
     {
         Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
         this.serviceInventory = ImmutableList.copyOf(serviceInventory);

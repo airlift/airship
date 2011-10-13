@@ -79,6 +79,7 @@ public class TestCoordinatorServer
     private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
     private String agentId;
+    private InMemoryStateManager stateManager;
 
     @BeforeClass
     public void startServer()
@@ -100,7 +101,14 @@ public class TestCoordinatorServer
                 new TestingNodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
-                new LocalProvisionerModule(),
+                Modules.override(new LocalProvisionerModule()).with(new Module()
+                {
+                    @Override
+                    public void configure(Binder binder)
+                    {
+                        binder.bind(StateManager.class).to(InMemoryStateManager.class);
+                    }
+                }),
                 Modules.override(new CoordinatorMainModule()).with(new Module()
                 {
                     public void configure(Binder binder)
@@ -114,6 +122,7 @@ public class TestCoordinatorServer
 
         server = injector.getInstance(TestingHttpServer.class);
         coordinator = injector.getInstance(Coordinator.class);
+        stateManager = (InMemoryStateManager) injector.getInstance(StateManager.class);
 
         server.start();
         client = new AsyncHttpClient();
@@ -157,6 +166,8 @@ public class TestCoordinatorServer
         prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(transform(
                 transform(asList(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus), uuidGetter()),
                 toStringFunction())));
+
+        stateManager.clearAll();
     }
 
     @AfterClass

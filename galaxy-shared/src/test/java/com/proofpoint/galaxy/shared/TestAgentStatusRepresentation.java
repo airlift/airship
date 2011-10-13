@@ -49,7 +49,10 @@ public class TestAgentStatusRepresentation
                             APPLE_ASSIGNMENT.getConfig().toString(),
                             STOPPED.toString(),
                             null,
-                            "/apple"),
+                            "/apple",
+                            null,
+                            null,
+                            null),
                     new SlotStatusRepresentation(UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             null,
                             "slot2",
@@ -59,7 +62,10 @@ public class TestAgentStatusRepresentation
                             BANANA_ASSIGNMENT.getConfig().toString(),
                             STOPPED.toString(),
                             null,
-                            "/banana"))
+                            "/banana",
+                            null,
+                            null,
+                            null))
     );
 
     @Test
