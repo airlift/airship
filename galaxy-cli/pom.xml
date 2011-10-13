@@ -3,9 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>galaxy</artifactId>
+    <artifactId>galaxy-cli</artifactId>
     <packaging>pom</packaging>
-    <name>galaxy</name>
+    <name>galaxy-cli</name>
     <description>Galaxy command line interface</description>
 
     <version>0.7-SNAPSHOT</version>

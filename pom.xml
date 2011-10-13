@@ -38,7 +38,7 @@
         <module>galaxy-integration-tests</module>
         <module>galaxy-standalone</module>
         <module>galaxy-configuration-repository</module>
-        <module>galaxy</module>
+        <module>galaxy-cli</module>
         <module>galaxy-ec2</module>
     </modules>
 
