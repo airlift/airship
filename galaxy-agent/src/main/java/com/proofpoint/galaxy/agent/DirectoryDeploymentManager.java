@@ -134,7 +134,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
         File dataDir = getDataDir();
 
-        Deployment deployment = new Deployment("deployment", slotName, UUID.randomUUID(), location, deploymentDir, dataDir, assignment);
+        Deployment deployment = new Deployment("deployment", slotName, slotId, location, deploymentDir, dataDir, assignment);
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary
