@@ -14,6 +14,7 @@ public class AwsProvisionerConfig
     private String awsAgentSecurityGroup;
     private String awsAgentDefaultInstanceType;
     private int awsAgentDefaultPort = 64002;
+    private String awsEndpoint;
 
     @Config("coordinator.aws.access-key")
     @ConfigDescription("AWS access key for provisioning agents")
@@ -111,5 +112,18 @@ public class AwsProvisionerConfig
     public int getAwsAgentDefaultPort()
     {
         return awsAgentDefaultPort;
+    }
+
+    @Config("coordinator.aws.endpoint")
+    @ConfigDescription("Override AWS endpoint for talking to ec2")
+    public AwsProvisionerConfig setAwsEndpoint(String awsEndpoint)
+    {
+        this.awsEndpoint = awsEndpoint;
+        return this;
+    }
+
+    public String getAwsEndpoint()
+    {
+        return awsEndpoint;
     }
 }

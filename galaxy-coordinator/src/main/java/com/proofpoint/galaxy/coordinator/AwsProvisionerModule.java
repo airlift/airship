@@ -36,14 +36,16 @@ public class AwsProvisionerModule
     }
 
     @Provides
-    public AmazonEC2 provideAmazonEC2(AWSCredentials awsCredentials)
+    public AmazonEC2 provideAmazonEC2(AwsProvisionerConfig provisionerConfig)
     {
-        return new AmazonEC2Client(awsCredentials);
-    }
+        AWSCredentials awsCredentials = new BasicAWSCredentials(provisionerConfig.getAwsAccessKey(), provisionerConfig.getAwsSecretKey());
+        AmazonEC2Client client = new AmazonEC2Client(awsCredentials);
 
-    @Provides
-    public AWSCredentials provideAwsCredentials(AwsProvisionerConfig provisionerConfig)
-    {
-        return new BasicAWSCredentials(provisionerConfig.getAwsAccessKey(), provisionerConfig.getAwsSecretKey());
+        //Use the config to override the default endpoint in the ec2 client.
+        if(provisionerConfig.getAwsEndpoint() != null) {
+            client.setEndpoint(provisionerConfig.getAwsEndpoint());
+        }
+
+        return client;
     }
 }
