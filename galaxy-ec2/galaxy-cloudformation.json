@@ -30,11 +30,11 @@
         },
         "BinaryRepoURI": {
             "Type": "String",
-            "Default": "https://oss.sonatype.org/content/repositories/releases/,https://oss.sonatype.org/content/repositories/snapshots,http://10.242.211.107:8000/nexus/content/repositories/proofpoint-dev,http://10.242.211.107:8000/nexus/content/repositories/proofpoint-eng-snapshots"
+            "Default": "https://oss.sonatype.org/content/repositories/releases/,https://oss.sonatype.org/content/repositories/snapshots"
         },
         "ConfigGitRepoURI": {
             "Type": "String",
-            "Default": "git://10.242.211.107/config.git"
+            "Default": "git://github.com/dain/galaxy-example-config.git"
         },
         "GalaxyVersion": {
             "Type": "String",
@@ -109,7 +109,13 @@
                                              "Content-Transfer-Encoding: 7bit",
                                              "Content-Disposition: attachment; filename=\"galaxy-part-handler.py\"",
                                              "",
-                                             "http://s3.amazonaws.com/proofpoint-s3/galaxy-part-handler.py",
+                                             {
+                                                 "Fn::Join": ["/", [
+                                                     "http://s3.amazonaws.com/galaxy-cloud-formation",
+                                                     { "Ref": "GalaxyVersion" },
+                                                     "galaxy-part-handler.py"
+                                                 ]]
+                                             },
                                              "",
                                              "--===============4809107299230207060==",
                                              "Content-Type: text/plain; charset=\"us-ascii\"",
@@ -180,7 +186,13 @@
                                              "Content-Transfer-Encoding: 7bit",
                                              "Content-Disposition: attachment; filename=\"galaxy-install.rb\"",
                                              "",
-                                             "http://s3.amazonaws.com/proofpoint-s3/galaxy-install.rb",
+                                             {
+                                                 "Fn::Join": ["/", [
+                                                     "http://s3.amazonaws.com/galaxy-cloud-formation",
+                                                     { "Ref": "GalaxyVersion" },
+                                                     "galaxy-install.rb"
+                                                 ]]
+                                             },
                                              "",
                                              "--===============4809107299230207060=="
                                      ]
