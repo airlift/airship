@@ -160,6 +160,10 @@ public class TestServer
         expected.put("self", urlFor(slotStatus));
         expected.put("location", slotStatus.getLocation());
         expected.put("installPath", slotStatus.getInstallPath());
+        // agent does not return expected status
+        expected.remove("expectedBinary");
+        expected.remove("expectedConfig");
+        expected.remove("expectedStatus");
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
         assertEquals(actual, expected);

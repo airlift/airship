@@ -34,27 +34,13 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
     private File tempDir;
     private InstallationHelper installationHelper;
 
-    @BeforeClass
-    public void createRepository()
+    @BeforeMethod
+    public void setUp()
             throws Exception
     {
         installationHelper = new InstallationHelper();
         appleInstallation = installationHelper.getAppleInstallation();
         bananaInstallation = installationHelper.getBananaInstallation();
-    }
-
-    @AfterClass
-    public void removeRepository()
-    {
-        if (installationHelper != null) {
-            installationHelper.destroy();
-        }
-    }
-
-    @BeforeMethod
-    public void setUp()
-            throws IOException
-    {
         tempDir = Files.createTempDir().getCanonicalFile();
         final AgentConfig config = new AgentConfig();
         manager = new DirectoryDeploymentManager("slot", tempDir, "location/test", config.getTarTimeout());
@@ -66,6 +52,10 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         if (tempDir != null) {
             deleteRecursively(tempDir);
         }
+        if (installationHelper != null) {
+            installationHelper.destroy();
+        }
+
     }
 
     @Test
