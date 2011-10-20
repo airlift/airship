@@ -25,6 +25,7 @@ public class TestSlotStatusRepresentation
             AssignmentHelper.APPLE_ASSIGNMENT.getBinary().toString(),
             AssignmentHelper.APPLE_ASSIGNMENT.getConfig().toString(),
             STOPPED.toString(),
+            "abc",
             null,
             "/apple",
             "Xfood.fruit:apple:1.0",

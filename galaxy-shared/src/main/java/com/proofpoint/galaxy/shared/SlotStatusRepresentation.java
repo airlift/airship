@@ -27,6 +27,8 @@ import java.util.UUID;
 @JsonAutoDetect(JsonMethod.NONE)
 public class SlotStatusRepresentation
 {
+    public static final String GALAXY_SLOT_VERSION_HEADER = "x-galaxy-slot-version";
+
     private final UUID id;
     private final String shortId;
     private final String name;
@@ -35,6 +37,7 @@ public class SlotStatusRepresentation
     private final String binary;
     private final String config;
     private final String status;
+    private final String version;
     private final String statusMessage;
     private final String installPath;
     private final String expectedBinary;
@@ -81,6 +84,7 @@ public class SlotStatusRepresentation
                     slotStatus.getAssignment().getBinary().toString(),
                     slotStatus.getAssignment().getConfig().toString(),
                     slotStatus.getState().toString(),
+                    slotStatus.getVersion(),
                     slotStatus.getStatusMessage(),
                     slotStatus.getInstallPath(),
                     null,
@@ -97,6 +101,7 @@ public class SlotStatusRepresentation
                     null,
                     null,
                     slotStatus.getState().toString(),
+                    slotStatus.getVersion(),
                     slotStatus.getStatusMessage(),
                     slotStatus.getInstallPath(),
                     null,
@@ -116,6 +121,7 @@ public class SlotStatusRepresentation
             @JsonProperty("binary") String binary,
             @JsonProperty("config") String config,
             @JsonProperty("status") String status,
+            @JsonProperty("version") String version,
             @JsonProperty("statusMessage") String statusMessage,
             @JsonProperty("installPath") String installPath,
             @JsonProperty("expectedBinary") String expectedBinary,
@@ -130,6 +136,7 @@ public class SlotStatusRepresentation
         this.binary = binary;
         this.config = config;
         this.status = status;
+        this.version = version;
         this.statusMessage = statusMessage;
         this.installPath = installPath;
         this.expectedBinary = expectedBinary;
@@ -192,6 +199,12 @@ public class SlotStatusRepresentation
     public String getStatus()
     {
         return status;
+    }
+
+    @JsonProperty
+    public String getVersion()
+    {
+        return version;
     }
 
     @JsonProperty
@@ -270,6 +283,9 @@ public class SlotStatusRepresentation
         if (status != null ? !status.equals(that.status) : that.status != null) {
             return false;
         }
+        if (version != null ? !version.equals(that.version) : that.version != null) {
+            return false;
+        }
         if (installPath != null ? !installPath.equals(that.installPath) : that.installPath != null) {
             return false;
         }
@@ -295,6 +311,7 @@ public class SlotStatusRepresentation
         result = 31 * result + (binary != null ? binary.hashCode() : 0);
         result = 31 * result + (config != null ? config.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (version != null ? version.hashCode() : 0);
         result = 31 * result + (self != null ? self.hashCode() : 0);
         result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
@@ -317,6 +334,7 @@ public class SlotStatusRepresentation
         sb.append(", binary='").append(binary).append('\'');
         sb.append(", config='").append(config).append('\'');
         sb.append(", status='").append(status).append('\'');
+        sb.append(", version='").append(version).append('\'');
         sb.append(", statusMessage='").append(statusMessage).append('\'');
         sb.append(", installPath='").append(installPath).append('\'');
         sb.append(", expectedBinary='").append(expectedBinary).append('\'');

@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
@@ -74,6 +75,7 @@ public class TestSlotResource
         Response response = resource.getSlotStatus(slotStatus.getName(), MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(slotStatus));
+        Assert.assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), slotStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -127,6 +129,7 @@ public class TestSlotResource
 
         SlotStatus expectedStatus = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
         Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
+        Assert.assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -141,11 +144,12 @@ public class TestSlotResource
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
 
-        Response response = resource.terminateSlot(slotStatus.getName());
+        Response response = resource.terminateSlot(null, slotStatus.getName());
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
         SlotStatus expectedStatus = slotStatus.updateState(TERMINATED);
         Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
+        Assert.assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertNull(agent.getSlot(slotStatus.getName()));
@@ -154,7 +158,7 @@ public class TestSlotResource
     @Test
     public void testTerminateUnknownSlot()
     {
-        Response response = resource.terminateSlot("unknown");
+        Response response = resource.terminateSlot(null, "unknown");
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
         assertNull(response.getEntity());
     }
@@ -162,6 +166,6 @@ public class TestSlotResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testRemoveSlotNullId()
     {
-        resource.terminateSlot(null);
+        resource.terminateSlot(null, null);
     }
 }

@@ -13,11 +13,16 @@
  */
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.google.common.io.ByteStreams;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
+import java.security.MessageDigest;
 import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
@@ -32,6 +37,7 @@ public class SlotStatus
     private final String location;
     private final Assignment assignment;
     private final SlotLifecycleState state;
+    private final String version;
     private final String statusMessage;
 
     private final String installPath;
@@ -52,6 +58,7 @@ public class SlotStatus
         this.location = location;
         this.assignment = assignment;
         this.state = state;
+        this.version = createVersion(id, state, assignment);
         this.installPath = installPath;
         this.statusMessage = null;
     }
@@ -68,6 +75,7 @@ public class SlotStatus
         this.location = status.location;
         this.assignment = assignment;
         this.state = state;
+        this.version = createVersion(id, state, assignment);
         this.installPath = status.getInstallPath();
         this.statusMessage = null;
     }
@@ -90,6 +98,7 @@ public class SlotStatus
             this.installPath = null;
         }
         this.state = state;
+        this.version = createVersion(id, state, assignment);
         this.statusMessage = statusMessage;
     }
 
@@ -123,15 +132,23 @@ public class SlotStatus
         return state;
     }
 
-    public SlotStatus updateState(SlotLifecycleState state) {
+    public String getVersion()
+    {
+        return version;
+    }
+
+    public SlotStatus updateState(SlotLifecycleState state)
+    {
         return updateState(state, null);
     }
 
-    public SlotStatus updateState(SlotLifecycleState state, String statusMessage) {
+    public SlotStatus updateState(SlotLifecycleState state, String statusMessage)
+    {
         return new SlotStatus(this, state, statusMessage);
     }
 
-    public SlotStatus clearStatusMessage() {
+    public SlotStatus clearStatusMessage()
+    {
         return new SlotStatus(this, state, (String) null);
     }
 
@@ -178,6 +195,9 @@ public class SlotStatus
         if (state != that.state) {
             return false;
         }
+        if (!version.equals(that.version)) {
+            return false;
+        }
 
         return true;
     }
@@ -191,6 +211,7 @@ public class SlotStatus
         result = 31 * result + location.hashCode();
         result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
         result = 31 * result + state.hashCode();
+        result = 31 * result + version.hashCode();
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
         return result;
     }
@@ -205,6 +226,7 @@ public class SlotStatus
                 ", location=" + location +
                 ", assignment=" + assignment +
                 ", state=" + state +
+                ", version=" + version +
                 ", installPath='" + installPath + '\'' +
                 '}';
     }
@@ -220,4 +242,28 @@ public class SlotStatus
         };
     }
 
+    public static String createVersion(UUID id, SlotLifecycleState state, Assignment assignment)
+    {
+        try {
+            String data = Joiner.on("||").useForNull("--NULL--").join(id, state, assignment);
+            byte[] digest = ByteStreams.getDigest(ByteStreams.newInputStreamSupplier(data.getBytes(Charsets.UTF_8)), MessageDigest.getInstance("MD5"));
+            return toHex(digest);
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    private static final char[] HEX = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    public static String toHex(byte[] data) {
+        char[] chars = new char[data.length * 2];
+
+        int charIndex = 0;
+        for (byte b : data) {
+            chars[charIndex++] = HEX[(0xF0 & b) >>> 4];
+            chars[charIndex++] = HEX[(0x0F & b)];
+        }
+        return new String(chars);
+    }
 }

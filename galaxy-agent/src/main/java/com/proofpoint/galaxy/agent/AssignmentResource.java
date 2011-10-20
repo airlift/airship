@@ -20,7 +20,7 @@ import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -29,6 +29,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
+import static com.proofpoint.galaxy.agent.VersionsUtil.checkSlotVersion;
 
 @Path("/v1/agent/slot/{slotName: [a-z0-9_.-]+}/assignment")
 public class AssignmentResource
@@ -46,10 +49,12 @@ public class AssignmentResource
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response assign(@PathParam("slotName") String slotName, InstallationRepresentation installation, @Context UriInfo uriInfo)
+    public Response assign(@HeaderParam(GALAXY_SLOT_VERSION_HEADER) String slotVersion, @PathParam("slotName") String slotName, InstallationRepresentation installation, @Context UriInfo uriInfo)
     {
         Preconditions.checkNotNull(slotName, "slotName must not be null");
         Preconditions.checkNotNull(installation, "installation must not be null");
+
+        checkSlotVersion(slotVersion, agent, slotName);
 
         Slot slot = agent.getSlot(slotName);
         if (slot == null) {

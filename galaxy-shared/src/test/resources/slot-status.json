@@ -7,6 +7,7 @@
     "binary":"food.fruit:apple:1.0",
     "config":"@apple:1.0",
     "status":"STOPPED",
+    "version":"abc",
     "installPath": "/apple",
     "expectedBinary":"Xfood.fruit:apple:1.0",
     "expectedConfig":"@Xapple:1.0",
