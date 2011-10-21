@@ -60,7 +60,7 @@ public class Agent
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
 
-        this.agentId = nodeInfo.getInstanceId();
+        this.agentId = nodeInfo.getNodeId();
         this.config = config;
         this.httpServerInfo = httpServerInfo;
         location = nodeInfo.getLocation();
@@ -124,6 +124,7 @@ public class Agent
 
     public SlotStatus install(Installation installation)
     {
+        // todo name selection is not thread safe
         // create slot
         String slotName = getNextSlotName(installation.getAssignment().getConfig().getComponent());
         URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
