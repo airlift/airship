@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.proofpoint.galaxy.shared.ArchiveHelper;
 import com.proofpoint.galaxy.shared.Assignment;
@@ -77,7 +78,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         Files.copy(newInputStreamSupplier(getResource(ArchiveHelper.class, "launcher")), launcher);
         launcher.setExecutable(true, true);
 
-        return new Deployment(name, "slot", UUID.randomUUID(), "location", deploymentDir, dataDir, assignment);
+        return new Deployment(name, "slot", UUID.randomUUID(), "location", deploymentDir, dataDir, assignment, ImmutableMap.<String, Integer>of("memory", 512));
     }
 
     @AfterMethod

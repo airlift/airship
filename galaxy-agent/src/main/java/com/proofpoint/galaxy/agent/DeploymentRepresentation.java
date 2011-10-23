@@ -14,11 +14,13 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.io.File;
+import java.util.Map;
 import java.util.UUID;
 
 public class DeploymentRepresentation
@@ -27,14 +29,24 @@ public class DeploymentRepresentation
     private final String deploymentId;
     private final UUID nodeId;
     private final AssignmentRepresentation assignment;
+    private final Map<String, Integer> resources;
 
     public static DeploymentRepresentation from(Deployment deployment)
     {
-        return new DeploymentRepresentation(deployment.getDeploymentId(), deployment.getSlotName(), deployment.getNodeId(), AssignmentRepresentation.from(deployment.getAssignment()));
+        return new DeploymentRepresentation(deployment.getDeploymentId(),
+                deployment.getSlotName(),
+                deployment.getNodeId(),
+                AssignmentRepresentation.from(deployment.getAssignment()),
+                deployment.getResources());
     }
 
     @JsonCreator
-    public DeploymentRepresentation(@JsonProperty("deploymentId") String deploymentId, @JsonProperty("slotName") String slotName, @JsonProperty("nodeId") UUID nodeId, @JsonProperty("assignment") AssignmentRepresentation assignment)
+    public DeploymentRepresentation(
+            @JsonProperty("deploymentId") String deploymentId,
+            @JsonProperty("slotName") String slotName,
+            @JsonProperty("nodeId") UUID nodeId,
+            @JsonProperty("assignment") AssignmentRepresentation assignment,
+            @JsonProperty("resources") Map<String, Integer> resources)
     {
         Preconditions.checkNotNull(deploymentId, "deploymentId is null");
         Preconditions.checkNotNull(slotName, "slotName is null");
@@ -45,6 +57,11 @@ public class DeploymentRepresentation
         this.slotName = slotName;
         this.nodeId = nodeId;
         this.assignment = assignment;
+        if (resources == null) {
+            this.resources = ImmutableMap.of();
+        } else {
+            this.resources = ImmutableMap.copyOf(resources);
+        }
     }
 
     @JsonProperty
@@ -71,9 +88,15 @@ public class DeploymentRepresentation
         return assignment;
     }
 
+    @JsonProperty
+    public Map<String, Integer> getResources()
+    {
+        return resources;
+    }
+
     public Deployment toDeployment(File deploymentDir, File dataDir, String location)
     {
-        return new Deployment(deploymentId, slotName, nodeId, location, deploymentDir, dataDir, assignment.toAssignment());
+        return new Deployment(deploymentId, slotName, nodeId, location, deploymentDir, dataDir, assignment.toAssignment(), resources);
     }
 
     @Override
@@ -110,6 +133,7 @@ public class DeploymentRepresentation
         sb.append(", deploymentId='").append(deploymentId).append('\'');
         sb.append(", nodeId=").append(nodeId);
         sb.append(", assignment=").append(assignment);
+        sb.append(", resources=").append(resources);
         sb.append('}');
         return sb.toString();
     }

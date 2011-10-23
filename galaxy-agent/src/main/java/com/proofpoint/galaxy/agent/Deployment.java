@@ -14,10 +14,12 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.Assignment;
 
 import javax.annotation.concurrent.Immutable;
 import java.io.File;
+import java.util.Map;
 import java.util.UUID;
 
 @Immutable
@@ -30,8 +32,9 @@ public class Deployment
     private final File deploymentDir;
     private final File dataDir;
     private final Assignment assignment;
+    private final Map<String, Integer> resources;
 
-    public Deployment(String deploymentId, String slotName, UUID nodeId, String location, File deploymentDir, File dataDir, Assignment assignment)
+    public Deployment(String deploymentId, String slotName, UUID nodeId, String location, File deploymentDir, File dataDir, Assignment assignment, Map<String, Integer> resources)
     {
         Preconditions.checkNotNull(deploymentId, "deploymentId is null");
         Preconditions.checkNotNull(slotName, "slotName is null");
@@ -39,6 +42,7 @@ public class Deployment
         Preconditions.checkNotNull(deploymentDir, "deploymentDir is null");
         Preconditions.checkNotNull(dataDir, "dataDir is null");
         Preconditions.checkNotNull(assignment, "assignment is null");
+        Preconditions.checkNotNull(resources, "resources is null");
 
         this.slotName = slotName;
         this.deploymentId = deploymentId;
@@ -47,6 +51,7 @@ public class Deployment
         this.deploymentDir = deploymentDir;
         this.dataDir = dataDir;
         this.assignment = assignment;
+        this.resources = ImmutableMap.copyOf(resources);
     }
 
     public String getDeploymentId()
@@ -82,6 +87,11 @@ public class Deployment
     public Assignment getAssignment()
     {
         return assignment;
+    }
+
+    public Map<String, Integer> getResources()
+    {
+        return resources;
     }
 
     @Override
@@ -121,6 +131,7 @@ public class Deployment
         sb.append(", deploymentDir=").append(deploymentDir);
         sb.append(", dataDir=").append(dataDir);
         sb.append(", assignment=").append(assignment);
+        sb.append(", resources=").append(resources);
         sb.append('}');
         return sb.toString();
     }

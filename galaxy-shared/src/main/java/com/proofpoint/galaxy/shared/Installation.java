@@ -26,16 +26,19 @@ public class Installation
     private final Assignment assignment;
     private final URI binaryFile;
     private final Map<String, URI> configFiles;
+    private final Map<String, Integer> resources;
 
-    public Installation(Assignment assignment, URI binaryFile, Map<String, URI> configFiles)
+    public Installation(Assignment assignment, URI binaryFile, Map<String, URI> configFiles, Map<String, Integer> resources)
     {
         Preconditions.checkNotNull(assignment, "assignment is null");
         Preconditions.checkNotNull(binaryFile, "binaryFile is null");
         Preconditions.checkNotNull(configFiles, "configFiles is null");
+        Preconditions.checkNotNull(resources, "resources is null");
 
         this.assignment = assignment;
         this.binaryFile = binaryFile;
         this.configFiles = ImmutableMap.copyOf(configFiles);
+        this.resources = ImmutableMap.copyOf(resources);
     }
 
     public Assignment getAssignment()
@@ -51,6 +54,11 @@ public class Installation
     public Map<String, URI> getConfigFiles()
     {
         return configFiles;
+    }
+
+    public Map<String, Integer> getResources()
+    {
+        return resources;
     }
 
     @Override
@@ -86,6 +94,7 @@ public class Installation
         sb.append("{assignment=").append(assignment);
         sb.append(", binaryFile=").append(binaryFile);
         sb.append(", configFiles=").append(configFiles);
+        sb.append(", resources=").append(resources);
         sb.append('}');
         return sb.toString();
     }

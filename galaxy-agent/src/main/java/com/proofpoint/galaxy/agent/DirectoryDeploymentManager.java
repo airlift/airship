@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.proofpoint.json.JsonCodec;
@@ -134,7 +135,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
         File dataDir = getDataDir();
 
-        Deployment deployment = new Deployment("deployment", slotName, slotId, location, deploymentDir, dataDir, assignment);
+        Deployment deployment = new Deployment("deployment", slotName, slotId, location, deploymentDir, dataDir, assignment, installation.getResources());
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary

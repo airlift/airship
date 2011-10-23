@@ -35,8 +35,8 @@ public class TestInstallationRepresentation
             ImmutableMap.<String,String>builder()
                     .put("etc/config.properties", "fetch://config.properties")
                     .put("readme.txt", "fetch://readme.txt")
-                    .build()
-
+                    .build(),
+            ImmutableMap.of("memory", 512)
     );
 
     @Test

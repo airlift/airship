@@ -18,11 +18,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.security.MessageDigest;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
@@ -42,7 +44,9 @@ public class SlotStatus
 
     private final String installPath;
 
-    public SlotStatus(UUID id, String name, URI self, String location, SlotLifecycleState state, Assignment assignment, String installPath)
+    private final Map<String, Integer> resources;
+
+    public SlotStatus(UUID id, String name, URI self, String location, SlotLifecycleState state, Assignment assignment, String installPath, Map<String, Integer> resources)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
@@ -51,6 +55,7 @@ public class SlotStatus
         if (state != TERMINATED && state != UNKNOWN) {
             Preconditions.checkNotNull(assignment, "assignment is null");
         }
+        Preconditions.checkNotNull(resources, "resources is null");
 
         this.id = id;
         this.name = name;
@@ -61,6 +66,7 @@ public class SlotStatus
         this.version = createVersion(id, state, assignment);
         this.installPath = installPath;
         this.statusMessage = null;
+        this.resources = ImmutableMap.copyOf(resources);
     }
 
     public SlotStatus(SlotStatus status, SlotLifecycleState state, Assignment assignment)
@@ -78,6 +84,7 @@ public class SlotStatus
         this.version = createVersion(id, state, assignment);
         this.installPath = status.getInstallPath();
         this.statusMessage = null;
+        this.resources = status.resources;
     }
 
     private SlotStatus(SlotStatus status, SlotLifecycleState state, String statusMessage)
@@ -92,10 +99,12 @@ public class SlotStatus
         if (state != TERMINATED) {
             this.assignment = status.assignment;
             this.installPath = status.installPath;
+            this.resources = status.resources;
         }
         else {
             this.assignment = null;
             this.installPath = null;
+            this.resources = ImmutableMap.of();
         }
         this.state = state;
         this.version = createVersion(id, state, assignment);
@@ -162,6 +171,11 @@ public class SlotStatus
         return installPath;
     }
 
+    public Map<String, Integer> getResources()
+    {
+        return resources;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -198,6 +212,9 @@ public class SlotStatus
         if (!version.equals(that.version)) {
             return false;
         }
+        if (!resources.equals(that.resources)) {
+            return false;
+        }
 
         return true;
     }
@@ -213,6 +230,7 @@ public class SlotStatus
         result = 31 * result + state.hashCode();
         result = 31 * result + version.hashCode();
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
+        result = 31 * result + resources.hashCode();
         return result;
     }
 
@@ -228,6 +246,7 @@ public class SlotStatus
                 ", state=" + state +
                 ", version=" + version +
                 ", installPath='" + installPath + '\'' +
+                ", resources='" + resources + '\'' +
                 '}';
     }
 

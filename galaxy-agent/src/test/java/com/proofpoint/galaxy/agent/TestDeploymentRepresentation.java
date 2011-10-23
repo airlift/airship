@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
@@ -33,7 +34,8 @@ public class TestDeploymentRepresentation
             "deployment1",
             "slot",
             UUID.fromString("12345678-1234-1234-1234-123456789012"),
-            AssignmentRepresentation.from(APPLE_ASSIGNMENT));
+            AssignmentRepresentation.from(APPLE_ASSIGNMENT),
+            ImmutableMap.<String, Integer>of("memory", 512));
 
     @Test
     public void testJsonRoundTrip()
@@ -55,5 +57,6 @@ public class TestDeploymentRepresentation
         assertEquals(actual.getNodeId(), expected.getNodeId());
         assertEquals(actual.getSlotName(), expected.getSlotName());
         assertEquals(actual.getDeploymentId(), expected.getDeploymentId());
+        assertEquals(actual.getResources(), expected.getResources());
     }
 }

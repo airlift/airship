@@ -1,7 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Predicate;
-import com.ning.http.client.AsyncHttpClient;
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.SlotUuidPredicate;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.BinarySpec;
@@ -36,7 +36,8 @@ public class TestSlotFilterBuilder
             URI.create("fake://localhost"),
             "location", UNKNOWN,
             APPLE_ASSIGNMENT,
-            "/slotName");
+            "/slotName",
+            ImmutableMap.<String, Integer>of());
 
 
     private Predicate<SlotStatus> buildFilter(String key, String value, List<UUID> uuids)
@@ -145,7 +146,8 @@ public class TestSlotFilterBuilder
                 URI.create("fake://localhost"),
                 "location", UNKNOWN,
                 new Assignment(BinarySpec.valueOf("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT"), APPLE_ASSIGNMENT.getConfig()),
-                "/slotName");
+                "/slotName",
+                ImmutableMap.<String, Integer>of());
 
         assertTrue(new BinarySpecPredicate("*:*:*:*:*").apply(status));
         assertTrue(buildFilter("binary", "*:*:*:*:*").apply(status));

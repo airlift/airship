@@ -63,11 +63,13 @@ public class TestRemoteSlot
 {
     private static final Installation APPLE_INSTALLATION = new Installation(APPLE_ASSIGNMENT,
             URI.create("fake://localhost/apple.tar.gz"),
-            ImmutableMap.of("config", URI.create("fake://localhost/apple.config")));
+            ImmutableMap.of("config", URI.create("fake://localhost/apple.config")),
+            ImmutableMap.of("memory", 512));
 
     private static final Installation BANANA_INSTALLATION = new Installation(BANANA_ASSIGNMENT,
             URI.create("fake://localhost/banana.tar.gz"),
-            ImmutableMap.of("config", URI.create("fake://localhost/banana.config")));
+            ImmutableMap.of("config", URI.create("fake://localhost/banana.config")),
+            ImmutableMap.of("cpu", 1));
 
     private AsyncHttpClient client;
     private TestingHttpServer server;
@@ -176,7 +178,7 @@ public class TestRemoteSlot
         SlotStatus actual = remoteSlot.terminate();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), slot.status().getLocation(), TERMINATED, null, null);
+        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), slot.status().getLocation(), TERMINATED, null, null, ImmutableMap.<String, Integer>of());
         assertEquals(actual, expected);
     }
 

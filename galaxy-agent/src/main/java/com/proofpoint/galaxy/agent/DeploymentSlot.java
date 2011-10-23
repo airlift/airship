@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
@@ -73,7 +74,14 @@ public class DeploymentSlot implements Slot
         Preconditions.checkState(deployment != null, "No deployment for slot %s", name);
 
         SlotLifecycleState state = lifecycleManager.status(deployment);
-        SlotStatus slotStatus = new SlotStatus(id, name, self, location, state, deployment.getAssignment(), deployment.getDataDir().getAbsolutePath());
+        SlotStatus slotStatus = new SlotStatus(id,
+                name,
+                self,
+                location,
+                state,
+                deployment.getAssignment(),
+                deployment.getDataDir().getAbsolutePath(),
+                deployment.getResources());
         lastSlotStatus.set(slotStatus);
     }
 
@@ -107,7 +115,7 @@ public class DeploymentSlot implements Slot
             lifecycleManager.updateNodeConfig(deployment);
 
             // set initial status
-            lastSlotStatus.set(new SlotStatus(id, name, self, location, STOPPED, installation.getAssignment(), deployment.getDataDir().getAbsolutePath()));
+            lastSlotStatus.set(new SlotStatus(id, name, self, location, STOPPED, installation.getAssignment(), deployment.getDataDir().getAbsolutePath(), deployment.getResources()));
         }
         catch (Exception e) {
             terminate();
@@ -157,17 +165,18 @@ public class DeploymentSlot implements Slot
             }
 
             // deploy new server
-            deploymentManager.install(installation);
+            Deployment deployment = deploymentManager.install(installation);
 
             // create node config file
-            lifecycleManager.updateNodeConfig(deploymentManager.getDeployment());
+            lifecycleManager.updateNodeConfig(deployment);
 
             SlotStatus slotStatus = new SlotStatus(id,
                     name,
                     self,
                     location, STOPPED,
                     installation.getAssignment(),
-                    deploymentManager.getDeployment().getDataDir().getAbsolutePath());
+                    deployment.getDataDir().getAbsolutePath(),
+                    deployment.getResources());
             lastSlotStatus.set(slotStatus);
             return slotStatus;
         }
@@ -192,7 +201,7 @@ public class DeploymentSlot implements Slot
                 deploymentManager.terminate();
                 terminated = true;
             }
-            SlotStatus slotStatus = new SlotStatus(id, name, self, location, TERMINATED, null, null);
+            SlotStatus slotStatus = new SlotStatus(id, name, self, location, TERMINATED, null, null, ImmutableMap.<String, Integer>of());
             lastSlotStatus.set(slotStatus);
             return slotStatus;
         }
@@ -221,16 +230,23 @@ public class DeploymentSlot implements Slot
         }
         try {
             if (terminated) {
-                return new SlotStatus(id, name, self, location, TERMINATED, null, null);
+                return new SlotStatus(id, name, self, location, TERMINATED, null, null, ImmutableMap.<String, Integer>of());
             }
 
             Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
-                return new SlotStatus(id, name, self, location, SlotLifecycleState.UNKNOWN, null, null);
+                return new SlotStatus(id, name, self, location, SlotLifecycleState.UNKNOWN, null, null, ImmutableMap.<String, Integer>of());
             }
 
             SlotLifecycleState state = lifecycleManager.status(activeDeployment);
-            SlotStatus slotStatus = new SlotStatus(id, name, self, location, state, activeDeployment.getAssignment(), activeDeployment.getDataDir().getAbsolutePath());
+            SlotStatus slotStatus = new SlotStatus(id,
+                    name,
+                    self,
+                    location,
+                    state,
+                    activeDeployment.getAssignment(),
+                    activeDeployment.getDataDir().getAbsolutePath(),
+                    activeDeployment.getResources());
             lastSlotStatus.set(slotStatus);
             return slotStatus;
         }
@@ -253,7 +269,14 @@ public class DeploymentSlot implements Slot
 
             SlotLifecycleState state = lifecycleManager.start(activeDeployment);
 
-            SlotStatus slotStatus = new SlotStatus(id, name, self, location, state, activeDeployment.getAssignment(), activeDeployment.getDataDir().getAbsolutePath());
+            SlotStatus slotStatus = new SlotStatus(id,
+                    name,
+                    self,
+                    location,
+                    state,
+                    activeDeployment.getAssignment(),
+                    activeDeployment.getDataDir().getAbsolutePath(),
+                    activeDeployment.getResources());
             lastSlotStatus.set(slotStatus);
 
             return slotStatus;
@@ -277,7 +300,14 @@ public class DeploymentSlot implements Slot
 
             SlotLifecycleState state = lifecycleManager.restart(activeDeployment);
 
-            SlotStatus slotStatus = new SlotStatus(id, name, self, location, state, activeDeployment.getAssignment(), activeDeployment.getDataDir().getAbsolutePath());
+            SlotStatus slotStatus = new SlotStatus(id,
+                    name,
+                    self,
+                    location,
+                    state,
+                    activeDeployment.getAssignment(),
+                    activeDeployment.getDataDir().getAbsolutePath(),
+                    activeDeployment.getResources());
             lastSlotStatus.set(slotStatus);
 
             return slotStatus;
@@ -301,7 +331,14 @@ public class DeploymentSlot implements Slot
 
             SlotLifecycleState state = lifecycleManager.stop(activeDeployment);
 
-            SlotStatus slotStatus = new SlotStatus(id, name, self, location, state, activeDeployment.getAssignment(), activeDeployment.getDataDir().getAbsolutePath());
+            SlotStatus slotStatus = new SlotStatus(id,
+                    name,
+                    self,
+                    location,
+                    state,
+                    activeDeployment.getAssignment(),
+                    activeDeployment.getDataDir().getAbsolutePath(),
+                    activeDeployment.getResources());
             lastSlotStatus.set(slotStatus);
 
             return slotStatus;

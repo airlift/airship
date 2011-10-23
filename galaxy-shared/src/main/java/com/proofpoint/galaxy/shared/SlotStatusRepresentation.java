@@ -22,6 +22,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
 @JsonAutoDetect(JsonMethod.NONE)
@@ -40,6 +41,7 @@ public class SlotStatusRepresentation
     private final String version;
     private final String statusMessage;
     private final String installPath;
+    private final Map<String, Integer> resources;
     private final String expectedBinary;
     private final String expectedConfig;
     private final String expectedStatus;
@@ -75,41 +77,29 @@ public class SlotStatusRepresentation
 
     public static SlotStatusRepresentation from(SlotStatus slotStatus, int shortIdPrefixSize)
     {
+        String binary = null;
+        String config = null;
         if (slotStatus.getAssignment() != null) {
-            return new SlotStatusRepresentation(slotStatus.getId(),
-                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
-                    slotStatus.getName(),
-                    slotStatus.getSelf(),
-                    slotStatus.getLocation(),
-                    slotStatus.getAssignment().getBinary().toString(),
-                    slotStatus.getAssignment().getConfig().toString(),
-                    slotStatus.getState().toString(),
-                    slotStatus.getVersion(),
-                    slotStatus.getStatusMessage(),
-                    slotStatus.getInstallPath(),
-                    null,
-                    null,
-                    null
-            );
+            binary = slotStatus.getAssignment().getBinary().toString();
+            config = slotStatus.getAssignment().getConfig().toString();
         }
-        else {
-            return new SlotStatusRepresentation(slotStatus.getId(),
-                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
-                    slotStatus.getName(),
-                    slotStatus.getSelf(),
-                    slotStatus.getLocation(),
-                    null,
-                    null,
-                    slotStatus.getState().toString(),
-                    slotStatus.getVersion(),
-                    slotStatus.getStatusMessage(),
-                    slotStatus.getInstallPath(),
-                    null,
-                    null,
-                    null
-            );
 
-        }
+        return new SlotStatusRepresentation(slotStatus.getId(),
+                slotStatus.getId().toString().substring(0, shortIdPrefixSize),
+                slotStatus.getName(),
+                slotStatus.getSelf(),
+                slotStatus.getLocation(),
+                binary,
+                config,
+                slotStatus.getState().toString(),
+                slotStatus.getVersion(),
+                slotStatus.getStatusMessage(),
+                slotStatus.getInstallPath(),
+                slotStatus.getResources(),
+                null,
+                null,
+                null
+        );
     }
 
     @JsonCreator
@@ -124,6 +114,7 @@ public class SlotStatusRepresentation
             @JsonProperty("version") String version,
             @JsonProperty("statusMessage") String statusMessage,
             @JsonProperty("installPath") String installPath,
+            @JsonProperty("resources") Map<String, Integer> resources,
             @JsonProperty("expectedBinary") String expectedBinary,
             @JsonProperty("expectedConfig") String expectedConfig,
             @JsonProperty("expectedStatus") String expectedStatus)
@@ -139,6 +130,7 @@ public class SlotStatusRepresentation
         this.version = version;
         this.statusMessage = statusMessage;
         this.installPath = installPath;
+        this.resources = resources;
         this.expectedBinary = expectedBinary;
         this.expectedConfig = expectedConfig;
         this.expectedStatus = expectedStatus;
@@ -220,6 +212,12 @@ public class SlotStatusRepresentation
     }
 
     @JsonProperty
+    public Map<String, Integer> getResources()
+    {
+        return resources;
+    }
+
+    @JsonProperty
     public String getExpectedBinary()
     {
         return expectedBinary;
@@ -240,10 +238,10 @@ public class SlotStatusRepresentation
     public SlotStatus toSlotStatus()
     {
         if (binary != null) {
-            return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), new Assignment(binary, config), installPath);
+            return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), new Assignment(binary, config), installPath, resources);
         }
         else {
-            return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), null, installPath);
+            return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), null, installPath, resources);
         }
     }
 
@@ -289,6 +287,9 @@ public class SlotStatusRepresentation
         if (installPath != null ? !installPath.equals(that.installPath) : that.installPath != null) {
             return false;
         }
+        if (resources != null ? !resources.equals(that.resources) : that.resources != null) {
+            return false;
+        }
         if (expectedBinary != null ? !expectedBinary.equals(that.expectedBinary) : that.expectedBinary != null) {
             return false;
         }
@@ -315,6 +316,7 @@ public class SlotStatusRepresentation
         result = 31 * result + (self != null ? self.hashCode() : 0);
         result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
+        result = 31 * result + (resources != null ? resources.hashCode() : 0);
         result = 31 * result + (expectedBinary != null ? expectedBinary.hashCode() : 0);
         result = 31 * result + (expectedConfig != null ? expectedConfig.hashCode() : 0);
         result = 31 * result + (expectedStatus != null ? expectedStatus.hashCode() : 0);
@@ -337,6 +339,7 @@ public class SlotStatusRepresentation
         sb.append(", version='").append(version).append('\'');
         sb.append(", statusMessage='").append(statusMessage).append('\'');
         sb.append(", installPath='").append(installPath).append('\'');
+        sb.append(", resources='").append(resources).append('\'');
         sb.append(", expectedBinary='").append(expectedBinary).append('\'');
         sb.append(", expectedConfig='").append(expectedConfig).append('\'');
         sb.append(", expectedStatus='").append(expectedStatus).append('\'');

@@ -13,6 +13,7 @@
  */
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.collect.ImmutableMap;
 import org.testng.annotations.Test;
 
 import java.net.URI;
@@ -43,26 +44,26 @@ public class TestSlotStatus
 
         equivalenceTester()
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        new SlotStatus(bananaId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath),
-                        new SlotStatus(bananaId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath))
+                        new SlotStatus(bananaId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()),
+                        new SlotStatus(bananaId, appleSlotName, appleSelf, "location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, APPLE_ASSIGNMENT, applePath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, APPLE_ASSIGNMENT, applePath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, "location", RUNNING, APPLE_ASSIGNMENT, bananaPath),
-                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, "location", RUNNING, APPLE_ASSIGNMENT, bananaPath))
+                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, "location", RUNNING, APPLE_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()),
+                        new SlotStatus(bananaId, bananaSlotName, bananaSelf, "location", RUNNING, APPLE_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, BANANA_ASSIGNMENT, bananaPath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, BANANA_ASSIGNMENT, bananaPath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, BANANA_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", RUNNING, BANANA_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", STOPPED, APPLE_ASSIGNMENT, applePath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", STOPPED, APPLE_ASSIGNMENT, applePath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", STOPPED, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", STOPPED, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", UNKNOWN, APPLE_ASSIGNMENT, applePath),
-                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", UNKNOWN, APPLE_ASSIGNMENT, applePath))
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", UNKNOWN, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
+                        new SlotStatus(appleId, appleSlotName, appleSelf, "location", UNKNOWN, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
                 .check();
     }
 

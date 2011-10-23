@@ -201,6 +201,7 @@ public class TestServer
         expected.get(0).put("self", urlFor(appleSlotStatus));
         expected.get(0).put("location", appleSlotStatus.getLocation());
         expected.get(0).put("installPath", appleSlotStatus.getInstallPath());
+        expected.get(0).put("resources", ImmutableMap.<String,Integer>of("memory", 512));
         expected.get(1).put("id", bananaSlotStatus.getId().toString());
         expected.get(1).put("shortId", bananaSlotStatus.getId().toString());
         expected.get(1).put("name", bananaSlotStatus.getName());
@@ -208,6 +209,7 @@ public class TestServer
         expected.get(1).put("self", urlFor(bananaSlotStatus));
         expected.get(1).put("location", bananaSlotStatus.getLocation());
         expected.get(1).put("installPath", bananaSlotStatus.getInstallPath());
+        expected.get(1).put("resources", ImmutableMap.<String,Integer>of("cpu", 1));
 
         List<Map<String, Object>> actual = listCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -229,7 +231,7 @@ public class TestServer
         assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/agent/slot/").resolve(slot.getName()).toString());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        Map<String, String> expected = ImmutableMap.<String, String>builder()
+        Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slot.getId().toString())
                 .put("shortId", slot.getId().toString())
                 .put("name", slot.getName())
@@ -240,6 +242,7 @@ public class TestServer
                 .put("status", STOPPED.toString())
                 .put("version", slot.status().getVersion())
                 .put("installPath", slot.status().getInstallPath())
+                .put("resources", ImmutableMap.<String,Integer>of("memory", 512))
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -260,7 +263,7 @@ public class TestServer
 
         assertNull(agent.getSlot(slotStatus.getName()));
 
-        Map<String, String> expected = ImmutableMap.<String, String>builder()
+        Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
@@ -268,6 +271,7 @@ public class TestServer
                 .put("location", slotStatus.getLocation())
                 .put("status", TERMINATED.toString())
                 .put("version", SlotStatus.createVersion(slotStatus.getId(), TERMINATED, null))
+                .put("resources", ImmutableMap.<String,Integer>of())
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -316,7 +320,7 @@ public class TestServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        Map<String, String> expected = ImmutableMap.<String, String>builder()
+        Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
@@ -327,6 +331,7 @@ public class TestServer
                 .put("status", STOPPED.toString())
                 .put("version", slotStatus.getVersion())
                 .put("installPath", slotStatus.getInstallPath())
+                .put("resources", ImmutableMap.<String,Integer>of("memory", 512))
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -347,7 +352,7 @@ public class TestServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        Map<String, String> expected = ImmutableMap.<String, String>builder()
+        Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
@@ -358,6 +363,7 @@ public class TestServer
                 .put("status", RUNNING.toString())
                 .put("version", SlotStatus.createVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
                 .put("installPath", slotStatus.getInstallPath())
+                .put("resources", ImmutableMap.<String,Integer>of("memory", 512))
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -379,7 +385,7 @@ public class TestServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        Map<String, String> expected = ImmutableMap.<String, String>builder()
+        Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
@@ -390,6 +396,7 @@ public class TestServer
                 .put("status", STOPPED.toString())
                 .put("version", slotStatus.getVersion())
                 .put("installPath", slotStatus.getInstallPath())
+                .put("resources", ImmutableMap.<String,Integer>of("memory", 512))
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());
@@ -410,7 +417,7 @@ public class TestServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        Map<String, String> expected = ImmutableMap.<String, String>builder()
+        Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
@@ -421,6 +428,7 @@ public class TestServer
                 .put("status", RUNNING.toString())
                 .put("version", SlotStatus.createVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
                 .put("installPath", slotStatus.getInstallPath())
+                .put("resources", ImmutableMap.<String,Integer>of("memory", 512))
                 .build();
 
         Map<String, Object> actual = mapCodec.fromJson(response.getResponseBody());

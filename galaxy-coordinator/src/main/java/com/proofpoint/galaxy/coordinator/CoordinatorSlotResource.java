@@ -103,41 +103,29 @@ public class CoordinatorSlotResource
             expectedStatus = expectedSlotStatus.getStatus() == null ? null : expectedSlotStatus.getStatus().toString();
         }
 
+        String binary = null;
+        String config = null;
         if (slotStatus.getAssignment() != null) {
-            return new SlotStatusRepresentation(slotStatus.getId(),
-                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
-                    slotStatus.getName(),
-                    slotStatus.getSelf(),
-                    slotStatus.getLocation(),
-                    slotStatus.getAssignment().getBinary().toString(),
-                    slotStatus.getAssignment().getConfig().toString(),
-                    slotStatus.getState().toString(),
-                    slotStatus.getVersion(),
-                    slotStatus.getStatusMessage(),
-                    slotStatus.getInstallPath(),
-                    expectedBinary,
-                    expectedConfig,
-                    expectedStatus
-            );
+            binary = slotStatus.getAssignment().getBinary().toString();
+            config = slotStatus.getAssignment().getConfig().toString();
         }
-        else {
-            return new SlotStatusRepresentation(slotStatus.getId(),
-                    slotStatus.getId().toString().substring(0, shortIdPrefixSize),
-                    slotStatus.getName(),
-                    slotStatus.getSelf(),
-                    slotStatus.getLocation(),
-                    null,
-                    null,
-                    slotStatus.getState().toString(),
-                    slotStatus.getVersion(),
-                    slotStatus.getStatusMessage(),
-                    slotStatus.getInstallPath(),
-                    expectedBinary,
-                    expectedConfig,
-                    expectedStatus
-            );
 
-        }
+        return new SlotStatusRepresentation(slotStatus.getId(),
+                slotStatus.getId().toString().substring(0, shortIdPrefixSize),
+                slotStatus.getName(),
+                slotStatus.getSelf(),
+                slotStatus.getLocation(),
+                binary,
+                config,
+                slotStatus.getState().toString(),
+                slotStatus.getVersion(),
+                slotStatus.getStatusMessage(),
+                slotStatus.getInstallPath(),
+                slotStatus.getResources(),
+                expectedBinary,
+                expectedConfig,
+                expectedStatus
+        );
     }
 
     @POST

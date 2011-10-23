@@ -15,6 +15,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
@@ -73,15 +74,30 @@ public class TestCoordinatorAssignmentResource
                 new MockServiceInventory());
         resource = new CoordinatorAssignmentResource(coordinator);
 
-        SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(), "apple1", URI.create("fake://appleServer1/v1/agent/slot/apple1"), "location", STOPPED, APPLE_ASSIGNMENT,
-                "/apple1"
-        );
-        SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(), "apple2", URI.create("fake://appleServer2/v1/agent/slot/apple1"), "location", STOPPED, APPLE_ASSIGNMENT,
-                "/apple2"
-        );
-        SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(), "banana", URI.create("fake://bananaServer/v1/agent/slot/banana"), "location", STOPPED, BANANA_ASSIGNMENT,
-                "/banana"
-        );
+        SlotStatus appleSlotStatus1 = new SlotStatus(UUID.randomUUID(),
+                "apple1",
+                URI.create("fake://appleServer1/v1/agent/slot/apple1"),
+                "location",
+                STOPPED,
+                APPLE_ASSIGNMENT,
+                "/apple1",
+                ImmutableMap.<String, Integer>of());
+        SlotStatus appleSlotStatus2 = new SlotStatus(UUID.randomUUID(),
+                "apple2",
+                URI.create("fake://appleServer2/v1/agent/slot/apple1"),
+                "location",
+                STOPPED,
+                APPLE_ASSIGNMENT,
+                "/apple2",
+                ImmutableMap.<String, Integer>of());
+        SlotStatus bananaSlotStatus = new SlotStatus(UUID.randomUUID(),
+                "banana",
+                URI.create("fake://bananaServer/v1/agent/slot/banana"),
+                "location",
+                STOPPED,
+                BANANA_ASSIGNMENT,
+                "/banana",
+                ImmutableMap.<String, Integer>of());
 
         agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,

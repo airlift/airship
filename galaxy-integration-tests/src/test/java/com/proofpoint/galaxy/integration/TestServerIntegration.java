@@ -195,13 +195,16 @@ public class TestServerIntegration
 
         appleSlot1 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
                 binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap("prod", APPLE_ASSIGNMENT.getConfig()))).getName());
+                configRepository.getConfigMap("prod", APPLE_ASSIGNMENT.getConfig()),
+                ImmutableMap.of("memory", 512))).getName());
         appleSlot2 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
                 binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap("prod", APPLE_ASSIGNMENT.getConfig()))).getName());
+                configRepository.getConfigMap("prod", APPLE_ASSIGNMENT.getConfig()),
+                ImmutableMap.of("memory", 512))).getName());
         bananaSlot = agent.getSlot(agent.install(new Installation(BANANA_ASSIGNMENT,
                 binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap("prod", BANANA_ASSIGNMENT.getConfig()))).getName());
+                configRepository.getConfigMap("prod", BANANA_ASSIGNMENT.getConfig()),
+                ImmutableMap.of("memory", 512))).getName());
 
         agentInstance = new Instance("region", "zone", agent.getAgentId(), "test.type", agentServer.getBaseUrl());
         provisioner.addAgent(agentInstance);

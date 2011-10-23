@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
@@ -61,8 +62,8 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlots()
     {
-        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot1");
-        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot2");
+        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot1", ImmutableMap.<String, Integer>of());
+        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot2", ImmutableMap.<String, Integer>of());
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2));
         coordinator.setAgentStatus(agentStatus);
 
@@ -78,8 +79,8 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlotsWithFilter()
     {
-        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot1");
-        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot2");
+        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot1", ImmutableMap.<String, Integer>of());
+        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot2", ImmutableMap.<String, Integer>of());
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2));
         coordinator.setAgentStatus(agentStatus);
 

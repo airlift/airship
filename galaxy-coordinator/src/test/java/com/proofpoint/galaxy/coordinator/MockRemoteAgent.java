@@ -3,6 +3,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
@@ -106,7 +107,7 @@ public class MockRemoteAgent implements RemoteAgent
         Preconditions.checkState(state != OFFLINE, "agent is offline");
 
         UUID slotId = UUID.randomUUID();
-        SlotStatus slotStatus = new SlotStatus(slotId, "", uri.resolve("slot/" + slotId), "location", SlotLifecycleState.STOPPED, installation.getAssignment(), "/" + slotId);
+        SlotStatus slotStatus = new SlotStatus(slotId, "", uri.resolve("slot/" + slotId), "location", SlotLifecycleState.STOPPED, installation.getAssignment(), "/" + slotId, ImmutableMap.<String, Integer>of());
         slots.put(slotId, slotStatus);
 
         return slotStatus;

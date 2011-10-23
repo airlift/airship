@@ -15,6 +15,7 @@ package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.proofpoint.json.JsonCodec;
 import org.testng.annotations.Test;
@@ -51,6 +52,7 @@ public class TestAgentStatusRepresentation
                             "abc",
                             null,
                             "/apple",
+                            ImmutableMap.<String, Integer>of(),
                             null,
                             null,
                             null),
@@ -65,6 +67,7 @@ public class TestAgentStatusRepresentation
                             "abc",
                             null,
                             "/banana",
+                            ImmutableMap.<String, Integer>of(),
                             null,
                             null,
                             null))

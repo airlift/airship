@@ -31,6 +31,7 @@ public class InstallationRepresentation
     private final AssignmentRepresentation assignment;
     private final String binaryFile;
     private final Map<String,String> configFiles;
+    private final Map<String,Integer> resources;
 
     public static InstallationRepresentation from(Installation installation)
     {
@@ -43,17 +44,20 @@ public class InstallationRepresentation
         return new InstallationRepresentation(
                 AssignmentRepresentation.from(assignment),
                 installation.getBinaryFile().toString(),
-                builder.build());
+                builder.build(),
+                installation.getResources());
     }
 
     @JsonCreator
     public InstallationRepresentation(@JsonProperty("assignment") AssignmentRepresentation assignmentRepresentation,
             @JsonProperty("binaryFile") String binaryFile,
-            @JsonProperty("configFiles") Map<String, String> configFiles)
+            @JsonProperty("configFiles") Map<String, String> configFiles,
+            @JsonProperty("resources") Map<String,Integer> resources)
     {
         this.assignment = assignmentRepresentation;
         this.binaryFile = binaryFile;
         this.configFiles = configFiles;
+        this.resources = resources;
     }
 
     @JsonProperty
@@ -77,13 +81,19 @@ public class InstallationRepresentation
         return configFiles;
     }
 
+    @JsonProperty
+    public Map<String, Integer> getResources()
+    {
+        return resources;
+    }
+
     public Installation toInstallation()
     {
         Builder<String, URI> builder = ImmutableMap.builder();
         for (Entry<String, String> entry : configFiles.entrySet()) {
             builder.put(entry.getKey(), URI.create(entry.getValue()));
         }
-        Installation installation = new Installation(assignment.toAssignment(), URI.create(binaryFile), builder.build());
+        Installation installation = new Installation(assignment.toAssignment(), URI.create(binaryFile), builder.build(), resources);
         return installation;
     }
 
@@ -120,6 +130,7 @@ public class InstallationRepresentation
         sb.append("{assignment=").append(assignment);
         sb.append(", binaryFile='").append(binaryFile).append('\'');
         sb.append(", configFiles=").append(configFiles);
+        sb.append(", resources=").append(resources);
         sb.append('}');
         return sb.toString();
     }
