@@ -70,7 +70,8 @@ public class TestAgentStatusRepresentation
                             ImmutableMap.<String, Integer>of(),
                             null,
                             null,
-                            null))
+                            null)),
+            ImmutableMap.of("cpu", 8, "memory", 1024)
     );
 
     @Test
@@ -89,5 +90,13 @@ public class TestAgentStatusRepresentation
         AgentStatusRepresentation actual = codec.fromJson(json);
 
         assertEquals(actual, expected);
+        assertEquals(actual.getAgentId(), expected.getAgentId());
+        assertEquals(actual.getSelf(), expected.getSelf());
+        assertEquals(actual.getState(), expected.getState());
+        assertEquals(actual.getInstanceType(), expected.getInstanceType());
+        assertEquals(actual.getResources(), expected.getResources());
+        assertEquals(actual.getLocation(), expected.getLocation());
+        assertEquals(actual.getLocation(), expected.getLocation());
+        assertEquals(actual.getSlots(), expected.getSlots());
     }
 }

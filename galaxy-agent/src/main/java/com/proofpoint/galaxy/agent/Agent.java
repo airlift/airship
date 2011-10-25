@@ -16,6 +16,8 @@ package com.proofpoint.galaxy.agent;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Closeables;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
@@ -24,8 +26,13 @@ import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
@@ -46,6 +53,7 @@ public class Agent
     private final File slotsDir;
     private final HttpServerInfo httpServerInfo;
     private final String location;
+    private final Map<String, Integer> resources;
 
     @Inject
     public Agent(AgentConfig config,
@@ -69,7 +77,7 @@ public class Agent
         this.lifecycleManager = lifecycleManager;
 
         slots = new ConcurrentHashMap<String, Slot>();
-        
+
         slotsDir = new File(this.config.getSlotsDir());
         if (!slotsDir.isDirectory()) {
             slotsDir.mkdirs();
@@ -90,17 +98,55 @@ public class Agent
             String slotName = deploymentManager.getSlotName();
             if (deploymentManager.getDeployment() == null) {
                 // todo bad slot
-            } else {
+            }
+            else {
                 URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
                 Slot slot = new DeploymentSlot(slotUri, deploymentManager, lifecycleManager, config.getMaxLockWait());
                 slots.put(slotName, slot);
             }
         }
+
+        //
+        // Load resources file
+        //
+        Map<String, Integer> resources = ImmutableMap.of();
+        if (config.getResourcesFile() != null) {
+            File resourcesFile = new File(this.config.getResourcesFile());
+            if (resourcesFile.canRead()) {
+                ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
+                Properties properties = new Properties();
+                FileInputStream in = null;
+                try {
+                    in = new FileInputStream(resourcesFile);
+                    properties.load(in);
+                    for (Entry<Object, Object> entry : properties.entrySet()) {
+                        builder.put((String) entry.getKey(), Integer.valueOf((String) entry.getValue()));
+                    }
+                }
+                catch (IOException ignored) {
+                }
+                finally {
+                    Closeables.closeQuietly(in);
+                }
+                resources = builder.build();
+            }
+        }
+        this.resources = resources;
+    }
+
+    public Map<String, Integer> getResources()
+    {
+        return resources;
     }
 
     public String getAgentId()
     {
         return agentId;
+    }
+
+    public String getLocation()
+    {
+        return location;
     }
 
     public AgentStatus getAgentStatus()
@@ -110,7 +156,7 @@ public class Agent
             SlotStatus slotStatus = slot.status();
             builder.add(slotStatus);
         }
-        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, httpServerInfo.getHttpUri(), location, null, builder.build());
+        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, httpServerInfo.getHttpUri(), location, null, builder.build(), resources);
         return agentStatus;
     }
 

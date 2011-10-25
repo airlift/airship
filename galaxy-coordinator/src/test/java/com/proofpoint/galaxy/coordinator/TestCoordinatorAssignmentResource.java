@@ -105,7 +105,8 @@ public class TestCoordinatorAssignmentResource
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
-                ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+                ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus),
+                ImmutableMap.of("cpu", 8, "memory", 1024));
 
         prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
                 appleSlotStatus1.getId().toString(), appleSlotStatus2.getId().toString(), bananaSlotStatus.getId().toString())));

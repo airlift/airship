@@ -41,7 +41,7 @@ public class AgentResource
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllSlotsStatus(@Context UriInfo uriInfo)
+    public Response getAllSlotsStatus()
     {
         AgentStatus agentStatus = agent.getAgentStatus();
         AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus);

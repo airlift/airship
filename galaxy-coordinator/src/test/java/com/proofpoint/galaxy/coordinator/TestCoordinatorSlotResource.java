@@ -64,7 +64,7 @@ public class TestCoordinatorSlotResource
     {
         SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://localhost/v1/agent/slot/slot1"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot1", ImmutableMap.<String, Integer>of());
         SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://localhost/v1/agent/slot/slot2"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot2", ImmutableMap.<String, Integer>of());
-        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2));
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2), ImmutableMap.<String, Integer>of());
         coordinator.setAgentStatus(agentStatus);
 
         int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString())));
@@ -81,7 +81,7 @@ public class TestCoordinatorSlotResource
     {
         SlotStatus slot1 = new SlotStatus(UUID.randomUUID(), "slot1", URI.create("fake://foo/v1/agent/slot/slot1"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot1", ImmutableMap.<String, Integer>of());
         SlotStatus slot2 = new SlotStatus(UUID.randomUUID(), "slot2", URI.create("fake://bar/v1/agent/slot/slot2"), "location", STOPPED, APPLE_ASSIGNMENT, "/slot2", ImmutableMap.<String, Integer>of());
-        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2));
+        AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(), ONLINE, URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(slot1, slot2), ImmutableMap.<String, Integer>of());
         coordinator.setAgentStatus(agentStatus);
 
         int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString())));
@@ -130,7 +130,8 @@ public class TestCoordinatorSlotResource
                     URI.create("fake://appleServer1/"),
                     "unknown/location",
                     "instance.type",
-                    ImmutableList.<SlotStatus>of()));
+                    ImmutableList.<SlotStatus>of(),
+                    ImmutableMap.of("cpu", 8, "memory", 1024)));
         }
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");

@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
@@ -25,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,6 +53,7 @@ public class HttpRemoteAgent implements RemoteAgent
     private final AsyncHttpClient httpClient;
     private AgentLifecycleState state;
     private URI uri;
+    private Map<String,Integer> resources = ImmutableMap.of();
     private String location;
     private String instanceType;
     private final AtomicBoolean serviceInventoryUp = new AtomicBoolean(true);
@@ -82,7 +85,7 @@ public class HttpRemoteAgent implements RemoteAgent
     @Override
     public AgentStatus status()
     {
-        return new AgentStatus(agentId, state, uri, location, instanceType, ImmutableList.copyOf(slots.values()));
+        return new AgentStatus(agentId, state, uri, location, instanceType, ImmutableList.copyOf(slots.values()), resources);
     }
 
     @Override
@@ -183,6 +186,12 @@ public class HttpRemoteAgent implements RemoteAgent
 
         state = status.getState();
         uri = status.getUri();
+        if (status.getResources() != null) {
+            resources = ImmutableMap.copyOf(status.getResources());
+        }
+        else {
+            resources = ImmutableMap.of();
+        }
         location = status.getLocation();
     }
 

@@ -14,6 +14,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +30,7 @@ public class MockRemoteAgent implements RemoteAgent
     private final String agentId;
     private AgentLifecycleState state;
     private URI uri;
+    private Map<String,Integer> resources = ImmutableMap.of();
 
     public MockRemoteAgent(String agentId, URI uri)
     {
@@ -41,7 +43,7 @@ public class MockRemoteAgent implements RemoteAgent
     @Override
     public AgentStatus status()
     {
-        return new AgentStatus(agentId, state, uri, "unknown/location", "instance.type", ImmutableList.copyOf(slots.values()));
+        return new AgentStatus(agentId, state, uri, "unknown/location", "instance.type", ImmutableList.copyOf(slots.values()), resources);
     }
 
     @Override
@@ -88,6 +90,12 @@ public class MockRemoteAgent implements RemoteAgent
 
         state = status.getState();
         uri = status.getUri();
+        if (status.getResources() != null) {
+            resources = ImmutableMap.copyOf(status.getResources());
+        }
+        else {
+            resources = ImmutableMap.of();
+        }
     }
 
     public void setSlotStatus(SlotStatus slotStatus)
@@ -107,7 +115,7 @@ public class MockRemoteAgent implements RemoteAgent
         Preconditions.checkState(state != OFFLINE, "agent is offline");
 
         UUID slotId = UUID.randomUUID();
-        SlotStatus slotStatus = new SlotStatus(slotId, "", uri.resolve("slot/" + slotId), "location", SlotLifecycleState.STOPPED, installation.getAssignment(), "/" + slotId, ImmutableMap.<String, Integer>of());
+        SlotStatus slotStatus = new SlotStatus(slotId, "", uri.resolve("slot/" + slotId), "location", SlotLifecycleState.STOPPED, installation.getAssignment(), "/" + slotId, installation.getResources());
         slots.put(slotId, slotStatus);
 
         return slotStatus;

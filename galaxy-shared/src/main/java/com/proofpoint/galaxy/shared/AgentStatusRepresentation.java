@@ -3,6 +3,7 @@ package com.proofpoint.galaxy.shared;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.collect.ImmutableMap;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
@@ -11,6 +12,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation
@@ -21,6 +23,7 @@ public class AgentStatusRepresentation
     private final AgentLifecycleState state;
     private final String location;
     private final String instanceType;
+    private final Map<String, Integer> resources;
 
     public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatus()
     {
@@ -44,7 +47,8 @@ public class AgentStatusRepresentation
                 status.getUri(),
                 status.getLocation(),
                 status.getInstanceType(),
-                builder.build());
+                builder.build(),
+                status.getResources());
     }
 
     @JsonCreator
@@ -53,7 +57,9 @@ public class AgentStatusRepresentation
             @JsonProperty("state") AgentLifecycleState state,
             @JsonProperty("self") URI self,
             @JsonProperty("location") String location,
-            @JsonProperty("instanceType") String instanceType, @JsonProperty("slots") List<SlotStatusRepresentation> slots)
+            @JsonProperty("instanceType") String instanceType,
+            @JsonProperty("slots") List<SlotStatusRepresentation> slots,
+            @JsonProperty("resources") Map<String, Integer> resources)
     {
         this.agentId = agentId;
         this.slots = slots;
@@ -61,6 +67,12 @@ public class AgentStatusRepresentation
         this.state = state;
         this.location = location;
         this.instanceType = instanceType;
+        if (resources != null) {
+            this.resources = ImmutableMap.copyOf(resources);
+        }
+        else {
+            this.resources = ImmutableMap.of();
+        }
     }
 
     @JsonProperty
@@ -102,13 +114,19 @@ public class AgentStatusRepresentation
         return instanceType;
     }
 
+    @JsonProperty
+    public Map<String, Integer> getResources()
+    {
+        return resources;
+    }
+
     public AgentStatus toAgentStatus()
     {
         Builder<SlotStatus> builder = ImmutableList.builder();
         for (SlotStatusRepresentation slot : slots) {
             builder.add(slot.toSlotStatus());
         }
-        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, self, location, instanceType, builder.build());
+        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, self, location, instanceType, builder.build(), resources);
     }
 
     @Override
@@ -146,6 +164,7 @@ public class AgentStatusRepresentation
         sb.append(", location=").append(location);
         sb.append(", instanceType=").append(instanceType);
         sb.append(", slots=").append(slots);
+        sb.append(", resources=").append(resources);
         sb.append('}');
         return sb.toString();
     }

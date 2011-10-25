@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -57,7 +58,13 @@ public class TestCoordinator extends TestCase
         String agentId = UUID.randomUUID().toString();
         URI agentUri = URI.create("fake://agent/" + agentId);
 
-        AgentStatus status = new AgentStatus(agentId, AgentLifecycleState.ONLINE, agentUri, "unknown/location", "instance.type", ImmutableList.<SlotStatus>of());
+        AgentStatus status = new AgentStatus(agentId,
+                AgentLifecycleState.ONLINE,
+                agentUri,
+                "unknown/location",
+                "instance.type",
+                ImmutableList.<SlotStatus>of(),
+                ImmutableMap.of("cpu", 8, "memory", 1024));
         coordinator.setAgentStatus(status);
 
         assertEquals(coordinator.getAllAgentStatus(), ImmutableList.of(status));

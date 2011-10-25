@@ -162,7 +162,11 @@ public class TestCoordinatorServer
         agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
-                URI.create("fake://foo/"), "unknown/location", "instance.type", ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus));
+                URI.create("fake://foo/"),
+                "unknown/location",
+                "instance.type",
+                ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus),
+                ImmutableMap.of("cpu", 8, "memory", 1024));
 
         coordinator.setAgentStatus(agentStatus);
 

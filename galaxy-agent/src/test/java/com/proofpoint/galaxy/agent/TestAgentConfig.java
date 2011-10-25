@@ -28,6 +28,7 @@ public class TestAgentConfig
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(AgentConfig.class)
                 .setSlotsDir("slots")
+                .setResourcesFile("slots/resources.properties")
                 .setLauncherTimeout(new Duration(1, TimeUnit.SECONDS))
                 .setLauncherStopTimeout(new Duration(10, TimeUnit.SECONDS))
                 .setTarTimeout(new Duration(1, TimeUnit.MINUTES))
@@ -40,6 +41,7 @@ public class TestAgentConfig
     {
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
                 .put("agent.slots-dir", "slots-dir")
+                .put("agent.resources-file", "resources-file")
                 .put("agent.launcher-timeout", "5m")
                 .put("agent.launcher-stop-timeout", "50m")
                 .put("agent.tar-timeout", "10m")
@@ -48,6 +50,7 @@ public class TestAgentConfig
 
         AgentConfig expected = new AgentConfig()
                 .setSlotsDir("slots-dir")
+                .setResourcesFile("resources-file")
                 .setLauncherTimeout(new Duration(5, TimeUnit.MINUTES))
                 .setLauncherStopTimeout(new Duration(50, TimeUnit.MINUTES))
                 .setTarTimeout(new Duration(10, TimeUnit.MINUTES))

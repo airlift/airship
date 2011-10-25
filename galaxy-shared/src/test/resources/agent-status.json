@@ -1,22 +1,37 @@
 {
     "agentId":"44444444-4444-4444-4444-444444444444",
+    "state":"ONLINE",
+    "instanceType":"instance.type",
+    "location":"unknown/location",
     "slots":[
         {
             "id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "name":"slot1",
             "self":"fake://apple",
+            "location":"location/apple",
+            "installPath":"/apple",
             "binary":"food.fruit:apple:1.0",
             "config":"@apple:1.0",
-            "status":"STOPPED"
+            "status":"STOPPED",
+            "resources":{},
+            "version":"abc"
         },
         {
             "id":"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
             "name":"slot2",
             "self":"fake://banana",
+            "location":"location/banana",
+            "installPath":"/banana",
             "binary":"food.fruit:banana:2.0-SNAPSHOT",
             "config":"@banana:2.0-SNAPSHOT",
-            "status":"STOPPED"
+            "status":"STOPPED",
+            "resources":{},
+            "version":"abc"
         }
     ],
+    "resources":{
+        "cpu":8,
+        "memory":1024
+    },
     "self":"fake://agent"
 }

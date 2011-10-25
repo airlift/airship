@@ -226,7 +226,8 @@ public class Coordinator
                     null,
                     instance.getLocation(),
                     instance.getInstanceType(),
-                    ImmutableList.<SlotStatus>of());
+                    ImmutableList.<SlotStatus>of(),
+                    ImmutableMap.<String, Integer>of());
 
             RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instanceId, instance.getInstanceType(), null);
             remoteAgent.setStatus(agentStatus);
