@@ -1,7 +1,9 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -9,34 +11,45 @@ import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
-import junit.framework.TestCase;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
-public class TestCoordinator extends TestCase
+public class TestCoordinator
 {
 
     private Coordinator coordinator;
     private Duration statusExpiration = new Duration(500, TimeUnit.MILLISECONDS);
     private LocalProvisioner provisioner;
+    private TestingConfigRepository configRepository;
 
-    @Override
+    @BeforeMethod
     public void setUp()
             throws Exception
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
         BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), nodeInfo));
 
+        configRepository = new TestingConfigRepository();
+
         provisioner = new LocalProvisioner();
         coordinator = new Coordinator(nodeInfo.getEnvironment(),
                 new MockRemoteAgentFactory(),
                 urlResolver,
-                MOCK_CONFIG_REPO,
+                configRepository,
                 new LocalConfigRepository(new CoordinatorConfig(), null),
                 provisioner,
                 new InMemoryStateManager(),
@@ -46,12 +59,21 @@ public class TestCoordinator extends TestCase
 
     }
 
+    @AfterMethod
+    public void tearDown()
+            throws Exception
+    {
+        configRepository.destroy();
+    }
+
+    @Test
     public void testNoAgents()
             throws Exception
     {
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
     }
 
+    @Test
     public void testOneAgent()
             throws Exception
     {
@@ -72,6 +94,7 @@ public class TestCoordinator extends TestCase
         assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
     }
 
+    @Test
     public void testAgentProvision()
             throws Exception
     {
@@ -94,5 +117,67 @@ public class TestCoordinator extends TestCase
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
         // slot is online because MOCK slot is fake.... a real slot would transition to offline
         assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
+    }
+
+    @Test
+    public void testInstallWithinResourceLimit()
+    {
+        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+                ONLINE,
+                URI.create("fake://appleServer1/"),
+                "unknown/location",
+                "instance.type",
+                ImmutableList.<SlotStatus>of(),
+                ImmutableMap.of("cpu", 1, "memory", 512)));
+
+        List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
+
+        assertEquals(slots.size(), 1);
+        for (SlotStatus slot : slots) {
+            assertAppleSlot(slot);
+        }
+    }
+
+    @Test
+    public void testInstallNotEnoughResources()
+    {
+        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+                ONLINE,
+                URI.create("fake://appleServer1/"),
+                "unknown/location",
+                "instance.type",
+                ImmutableList.<SlotStatus>of(),
+                ImmutableMap.<String, Integer>of()));
+
+        List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
+        assertEquals(slots.size(), 0);
+    }
+
+    @Test
+    public void testInstallResourcesConsumed()
+    {
+        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+                ONLINE,
+                URI.create("fake://appleServer1/"),
+                "unknown/location",
+                "instance.type",
+                ImmutableList.<SlotStatus>of(),
+                ImmutableMap.of("cpu", 1, "memory", 512)));
+
+        // install an apple server
+        List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
+        assertEquals(slots.size(), 1);
+        assertAppleSlot(Iterables.get(slots, 0));
+
+        // try to install a banana server which will fail
+        slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, BANANA_ASSIGNMENT);
+        assertEquals(slots.size(), 0);
+    }
+
+    private void assertAppleSlot(SlotStatus slot)
+    {
+        assertEquals(slot.getAssignment(), APPLE_ASSIGNMENT);
+        assertEquals(slot.getState(), STOPPED);
+        assertEquals(slot.getResources(), ImmutableMap.of("cpu", 1, "memory", 512));
     }
 }

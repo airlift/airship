@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -278,24 +279,59 @@ public class Coordinator
             if (slots.size() >= limit) {
                 break;
             }
-            if (agent.status().getState() == ONLINE) {
-                SlotStatus slotStatus = agent.install(installation);
-                stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
-                slots.add(slotStatus);
+
+            // verify agent state
+            AgentStatus status = agent.status();
+            if (status.getState() != ONLINE) {
+                continue;
             }
+
+            // verify that required resources are available
+            Map<String, Integer> availableResources = getAvailableResources(status);
+            if (!resourcesAreAvailable(availableResources, installation.getResources())) {
+                continue;
+            }
+
+            // install
+            SlotStatus slotStatus = agent.install(installation);
+            stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
+            slots.add(slotStatus);
         }
         return ImmutableList.copyOf(slots);
     }
+
+    private boolean resourcesAreAvailable(Map<String, Integer> availableResources, Map<String, Integer> requiredResources)
+    {
+        for (Entry<String, Integer> entry : requiredResources.entrySet()) {
+            int available = Objects.firstNonNull(availableResources.get(entry.getKey()), 0);
+            if (available < entry.getValue()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static Map<String, Integer> getAvailableResources(AgentStatus agentStatus)
+    {
+        Map<String,Integer> availableResources = new TreeMap<String, Integer>(agentStatus.getResources());
+        for (SlotStatus slotStatus : agentStatus.getSlotStatuses()) {
+            for (Entry<String, Integer> entry : slotStatus.getResources().entrySet()) {
+                int value = Objects.firstNonNull(availableResources.get(entry.getKey()), 0);
+                availableResources.put(entry.getKey(), value - entry.getValue());
+            }
+        }
+        return availableResources;
+    }
+
 
     private Map<String, Integer> readResources(Assignment assignment)
     {
         ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
 
         InputSupplier<? extends InputStream> resourcesFile = configRepository.getConfigFile(environment, assignment.getConfig(), "galaxy-resources.properties");
-        Properties resources = null;
         if (resourcesFile != null) {
-            resources = new Properties();
             try {
+                Properties resources = new Properties();
                 resources.load(resourcesFile.getInput());
                 for (Entry<Object, Object> entry : resources.entrySet()) {
                     builder.put((String) entry.getKey(), Integer.valueOf((String)entry.getValue()));
@@ -306,7 +342,6 @@ public class Coordinator
         }
         return builder.build();
     }
-
 
     public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions)
     {

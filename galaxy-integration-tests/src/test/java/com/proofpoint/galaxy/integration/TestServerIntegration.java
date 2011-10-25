@@ -28,7 +28,6 @@ import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.Slot;
 import com.proofpoint.galaxy.coordinator.BinaryRepository;
-import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
@@ -40,6 +39,7 @@ import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
 import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
@@ -58,8 +58,12 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
@@ -105,6 +109,11 @@ public class TestServerIntegration
     private int prefixSize;
     private Instance agentInstance;
     private LocalProvisioner provisioner;
+
+    public static Map<String,Integer> AGENT_RESOURCES = ImmutableMap.<String,Integer>builder()
+            .put("cpu", 8)
+            .put("memory", 1024)
+            .build();
 
     @BeforeClass
     public void startServer()
@@ -155,10 +164,14 @@ public class TestServerIntegration
         client = new AsyncHttpClient();
 
         tempDir = createTempDir("agent");
+        File resourcesFile = new File(tempDir, "slots/galaxy-resources.properties");
+        writeResources(AGENT_RESOURCES, resourcesFile);
+
         Map<String, String> agentProperties = ImmutableMap.<String, String>builder()
                 .put("agent.id", UUID.randomUUID().toString())
                 .put("agent.coordinator-uri", coordinatorServer.getBaseUrl().toString())
-                .put("agent.slots-dir", tempDir.getAbsolutePath())
+                .put("agent.slots-dir", new File(tempDir, "slots").getAbsolutePath())
+                .put("agent.resources-file", resourcesFile.getAbsolutePath())
                 .put("discovery.uri", "fake://server")
                 .build();
 
@@ -174,6 +187,23 @@ public class TestServerIntegration
         agent = agentInjector.getInstance(Agent.class);
         agentServer.start();
         client = new AsyncHttpClient();
+    }
+
+    public static void writeResources(Map<String, Integer> resources, File resourcesFile)
+            throws IOException
+    {
+        Properties properties = new Properties();
+        for (Entry<String, Integer> entry : resources.entrySet()) {
+            properties.setProperty(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        resourcesFile.getParentFile().mkdirs();
+        FileOutputStream out = new FileOutputStream(resourcesFile);
+        try {
+            properties.store(out, "");
+        }
+        finally {
+            out.close();
+        }
     }
 
     @BeforeMethod
@@ -258,7 +288,8 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -282,7 +313,8 @@ public class TestServerIntegration
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -307,7 +339,8 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -336,7 +369,8 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -366,7 +400,8 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize), SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);

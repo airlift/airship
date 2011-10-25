@@ -72,6 +72,20 @@ public class TestingConfigRepository extends SimpleConfigRepository
         // jvm.config
         new File(dir, "jvm.config").createNewFile();
 
+        // config.properties
+        if ("apple".equals(name)) {
+            Files.write(
+                    "memory=512\n" +
+                            "cpu=1",
+                    new File(dir, "galaxy-resources.properties"), UTF_8);
+        } else {
+            Files.write(
+                    "memory=1024\n" +
+                            "cpu=2",
+                    new File(dir, "galaxy-resources.properties"), UTF_8);
+        }
+
+
         // config-map.json
         Map<String, String> configMap = ImmutableMap.<String, String>builder()
                 .put("etc/" + name + ".txt", name + ".txt")
