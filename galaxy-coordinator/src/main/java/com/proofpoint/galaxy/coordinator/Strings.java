@@ -18,7 +18,9 @@ public class Strings
     public static int shortestUniquePrefix(Collection<String> strings)
     {
         Preconditions.checkNotNull(strings, "strings is null");
-        Preconditions.checkArgument(!strings.isEmpty(), "strings is empty");
+        if (strings.isEmpty()) {
+            return 0;
+        }
 
         SortedSet<String> sorted = Sets.newTreeSet(strings);
         if (sorted.size() != strings.size()) {
