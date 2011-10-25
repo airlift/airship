@@ -55,6 +55,7 @@ public class CoordinatorMainModule
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(AgentStatusRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(ServiceDescriptorsRepresentation.class);
+        JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(ExpectedSlotStatus.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindListJsonCodec(ServiceDescriptor.class);
 
         ConfigurationModule.bindConfig(binder).to(CoordinatorConfig.class);

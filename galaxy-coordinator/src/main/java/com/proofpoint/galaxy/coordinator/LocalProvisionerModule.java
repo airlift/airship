@@ -17,7 +17,6 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.json.JsonCodecBinder;
 
 import static com.proofpoint.json.JsonCodecBinder.jsonCodecBinder;
 
@@ -32,7 +31,5 @@ public class LocalProvisionerModule
         binder.bind(Provisioner.class).to(LocalProvisioner.class).in(Scopes.SINGLETON);
         binder.bind(StateManager.class).to(FileStateManager.class).in(Scopes.SINGLETON);
         ConfigurationModule.bindConfig(binder).to(LocalProvisionerConfig.class);
-
-        jsonCodecBinder(binder).bindJsonCodec(ExpectedSlotStatus.class);
     }
 }
