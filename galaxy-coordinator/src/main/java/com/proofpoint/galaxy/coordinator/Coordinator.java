@@ -130,7 +130,8 @@ public class Coordinator
     }
 
     @PostConstruct
-    public void start() {
+    public void start()
+    {
         timerService.scheduleWithFixedDelay(new Runnable()
         {
             @Override
@@ -179,7 +180,8 @@ public class Coordinator
     public void updateAllAgents()
     {
         for (Instance instance : this.provisioner.listAgents()) {
-            RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgentFactory.createRemoteAgent(instance.getInstanceId(), instance.getInstanceType(), instance.getUri()));
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance.getInstanceId(), instance.getInstanceType(), instance.getUri());
+            RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgent);
             if (existing != null) {
                 existing.setUri(instance.getUri());
             }
@@ -252,7 +254,7 @@ public class Coordinator
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
-        Map<String,URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());
+        Map<String, URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());
         if (configMap == null) {
             configMap = configRepository.getConfigMap(environment, assignment.getConfig());
         }
@@ -304,7 +306,7 @@ public class Coordinator
         }
         Assignment assignment = newAssignments.iterator().next();
 
-        Map<String,URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());
+        Map<String, URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());
         if (configMap == null) {
             configMap = configRepository.getConfigMap(environment, assignment.getConfig());
         }
@@ -400,8 +402,8 @@ public class Coordinator
 
     public List<SlotStatus> getAllSlotsStatus(Predicate<SlotStatus> slotFilter)
     {
-        ImmutableMap<UUID,ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
-        ImmutableMap<UUID,SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());
+        ImmutableMap<UUID, ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
+        ImmutableMap<UUID, SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());
 
         ArrayList<SlotStatus> stats = newArrayList();
         for (UUID uuid : Sets.union(actualStates.keySet(), expectedStates.keySet())) {
@@ -419,8 +421,8 @@ public class Coordinator
 
     public Iterable<SlotStatusWithExpectedState> getAllSlotStatusWithExpectedState(Predicate<SlotStatus> slotFilter)
     {
-        ImmutableMap<UUID,ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
-        ImmutableMap<UUID,SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());
+        ImmutableMap<UUID, ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
+        ImmutableMap<UUID, SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());
 
         ArrayList<SlotStatusWithExpectedState> stats = newArrayList();
         for (UUID uuid : Sets.union(actualStates.keySet(), expectedStates.keySet())) {
@@ -433,9 +435,11 @@ public class Coordinator
                 }
                 actualState = new SlotStatus(uuid, "unknown", null, "unknown", UNKNOWN, expectedState.getAssignment(), null);
                 actualState = actualState.updateState(UNKNOWN, "Slot is missing; Expected slot to be " + expectedState.getStatus());
-            } else if (expectedState == null) {
+            }
+            else if (expectedState == null) {
                 actualState = actualState.updateState(actualState.getState(), "Unexpected slot");
-            } else {
+            }
+            else {
                 List<String> messages = newArrayList();
                 if (!Objects.equal(actualState.getState(), expectedState.getStatus())) {
                     messages.add("Expected state to be " + expectedState.getStatus());
@@ -444,7 +448,8 @@ public class Coordinator
                     Assignment assignment = expectedState.getAssignment();
                     if (assignment != null) {
                         messages.add("Expected assignment to be " + assignment.getBinary() + " " + assignment.getConfig());
-                    } else {
+                    }
+                    else {
                         messages.add("Expected no assignment");
                     }
                 }
