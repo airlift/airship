@@ -13,7 +13,6 @@
  */
 package com.proofpoint.galaxy.agent;
 
-import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -27,7 +26,6 @@ import org.testng.annotations.Test;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 import java.io.File;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
@@ -40,7 +38,6 @@ import static org.testng.Assert.fail;
 
 public class TestLifecycleResource
 {
-    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/agent/slot/lifecycle");
     private LifecycleResource resource;
     private Slot slot;
 
@@ -71,27 +68,27 @@ public class TestLifecycleResource
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.start => running
-        assertOkResponse(resource.setState(null, slot.getName(), "running", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(null, slot.getName(), "running"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.start => running
-        assertOkResponse(resource.setState(null, slot.getName(), "running", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(null, slot.getName(), "running"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.stop => stopped
-        assertOkResponse(resource.setState(null, slot.getName(), "stopped", uriInfo), STOPPED);
+        assertOkResponse(resource.setState(null, slot.getName(), "stopped"), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.stop => stopped
-        assertOkResponse(resource.setState(null, slot.getName(), "stopped", uriInfo), STOPPED);
+        assertOkResponse(resource.setState(null, slot.getName(), "stopped"), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.restart => running
-        assertOkResponse(resource.setState(null, slot.getName(), "restarting", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(null, slot.getName(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.restart => running
-        assertOkResponse(resource.setState(null, slot.getName(), "restarting", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(null, slot.getName(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
     }
 
@@ -102,41 +99,41 @@ public class TestLifecycleResource
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.start => running
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "running", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "running"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.start => running
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "running", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "running"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.stop => stopped
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "stopped", uriInfo), STOPPED);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "stopped"), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.stop => stopped
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "stopped", uriInfo), STOPPED);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "stopped"), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.restart => running
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "restarting", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.restart => running
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "restarting", uriInfo), RUNNING);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
     }
 
     @Test
     public void testSetStateUnknown()
     {
-        Response response = resource.setState(null, "unknown", "start", uriInfo);
+        Response response = resource.setState(null, "unknown", "start");
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void testSetStateUnknownState()
     {
-        Response response = resource.setState(null, slot.getName(), "unknown", uriInfo);
+        Response response = resource.setState(null, slot.getName(), "unknown");
         assertEquals(response.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertNull(response.getEntity());
     }
@@ -144,13 +141,13 @@ public class TestLifecycleResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetStateNullSlotName()
     {
-        resource.setState(null, null, "start", uriInfo);
+        resource.setState(null, null, "start");
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetStateNullState()
     {
-        resource.setState(null, slot.getName(), null, uriInfo);
+        resource.setState(null, slot.getName(), null);
     }
 
     @Test
@@ -158,7 +155,7 @@ public class TestLifecycleResource
     {
         SlotStatus slotStatus = slot.status();
         try {
-            resource.setState("invalid-version", slot.getName(), "running", uriInfo);
+            resource.setState("invalid-version", slot.getName(), "running");
             fail("Expected WebApplicationException");
         }
         catch (WebApplicationException e) {
