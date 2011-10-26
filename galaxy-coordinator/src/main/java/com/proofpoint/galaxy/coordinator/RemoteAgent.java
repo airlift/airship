@@ -17,8 +17,6 @@ public interface RemoteAgent
 
     SlotStatus install(Installation installation);
 
-    SlotStatus terminateSlot(UUID slotId);
-
     AgentStatus status();
 
     List<? extends RemoteSlot> getSlots();

@@ -13,10 +13,12 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 public class MockRemoteSlot implements RemoteSlot
 {
     private SlotStatus slotStatus;
+    private final MockRemoteAgent mockRemoteAgent;
 
-    public MockRemoteSlot(SlotStatus slotStatus)
+    public MockRemoteSlot(SlotStatus slotStatus, MockRemoteAgent mockRemoteAgent)
     {
         this.slotStatus = slotStatus;
+        this.mockRemoteAgent = mockRemoteAgent;
     }
 
     @Override
@@ -33,18 +35,11 @@ public class MockRemoteSlot implements RemoteSlot
     }
 
     @Override
-    public void updateStatus(SlotStatus slotStatus)
-    {
-        Preconditions.checkNotNull(slotStatus, "slotStatus is null");
-        Preconditions.checkArgument(slotStatus.getId().equals(this.slotStatus.getId()));
-        this.slotStatus = slotStatus;
-    }
-
-    @Override
     public SlotStatus assign(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
         slotStatus = new SlotStatus(slotStatus, STOPPED, installation.getAssignment());
+        mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
 
@@ -54,6 +49,7 @@ public class MockRemoteSlot implements RemoteSlot
         if (slotStatus.getState() == STOPPED) {
             slotStatus = slotStatus.updateState(TERMINATED);
         }
+        mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
 
@@ -64,6 +60,7 @@ public class MockRemoteSlot implements RemoteSlot
             throw new IllegalStateException("Slot can not be started because the slot is not assigned");
         }
         slotStatus = slotStatus.updateState(RUNNING);
+        mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
 
@@ -74,6 +71,7 @@ public class MockRemoteSlot implements RemoteSlot
             throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
         }
         slotStatus = slotStatus.updateState(RUNNING);
+        mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
 
@@ -84,6 +82,7 @@ public class MockRemoteSlot implements RemoteSlot
             throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
         }
         slotStatus = slotStatus.updateState(STOPPED);
+        mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
 }

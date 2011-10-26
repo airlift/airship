@@ -134,6 +134,7 @@ public class TestServerIntegration
                 .put("coordinator.aws.agent.keypair", "keypair")
                 .put("coordinator.aws.agent.security-group", "default")
                 .put("coordinator.aws.agent.default-instance-type", "t1.micro")
+                .put("coordinator.expected-state.dir", createTempDir("expected-state").getAbsolutePath())
                 .build();
 
         Injector coordinatorInjector = Guice.createInjector(new TestingHttpServerModule(),
@@ -245,7 +246,6 @@ public class TestServerIntegration
     public void testStart()
             throws Exception
     {
-        coordinator.getAllAgents();
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
                 .setBody("running")
                 .execute()
@@ -318,6 +318,7 @@ public class TestServerIntegration
             throws Exception
     {
         appleSlot1.start();
+        coordinator.updateAllAgents();
         assertEquals(appleSlot1.status().getState(), RUNNING);
 
         File pidFile = newFile(appleSlot1.status().getInstallPath(), "..", "deployment", "launcher.pid").getCanonicalFile();
@@ -351,6 +352,7 @@ public class TestServerIntegration
         appleSlot1.start();
         appleSlot2.start();
         bananaSlot.start();
+        coordinator.updateAllAgents();
 
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
                 .setBody("stopped")

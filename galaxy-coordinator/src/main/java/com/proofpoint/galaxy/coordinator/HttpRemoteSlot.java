@@ -1,22 +1,23 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import com.proofpoint.json.JsonCodec;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
+import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 
 public class HttpRemoteSlot implements RemoteSlot
@@ -25,41 +26,51 @@ public class HttpRemoteSlot implements RemoteSlot
     private static final JsonCodec<InstallationRepresentation> installationCodec = jsonCodec(InstallationRepresentation.class);
     private static final JsonCodec<SlotStatusRepresentation> slotStatusCodec = jsonCodec(SlotStatusRepresentation.class);
 
-    private final UUID id;
-    private final AtomicReference<SlotStatus> slotStatus = new AtomicReference<SlotStatus>();
+    private SlotStatus slotStatus;
     private final AsyncHttpClient httpClient;
+    private final HttpRemoteAgent agent;
 
     public HttpRemoteSlot(SlotStatus slotStatus, AsyncHttpClient httpClient)
     {
-        this(slotStatus.getId(), slotStatus, httpClient);
+        this(slotStatus, httpClient, null);
     }
 
-    public HttpRemoteSlot(UUID id, SlotStatus slotStatus, AsyncHttpClient httpClient)
+    public HttpRemoteSlot(SlotStatus slotStatus, AsyncHttpClient httpClient, HttpRemoteAgent agent)
     {
-        this.id = id;
-        this.slotStatus.set(slotStatus);
+        Preconditions.checkNotNull(slotStatus, "slotStatus is null");
+        Preconditions.checkNotNull(httpClient, "httpClient is null");
+
+        this.slotStatus = slotStatus;
         this.httpClient = httpClient;
+        this.agent = agent;
     }
 
     @Override
     public UUID getId()
     {
-        return id;
+        return slotStatus.getId();
     }
 
     @Override
-    public void updateStatus(SlotStatus slotStatus)
+    public SlotStatus status()
     {
-        Preconditions.checkArgument(slotStatus.getId().equals(this.slotStatus.get().getId()),
-                String.format("Agent returned status for slot %s, but the status for slot %s was expected", slotStatus.getId(), this.slotStatus.get().getId()));
-        this.slotStatus.set(slotStatus);
+        return slotStatus;
+    }
+
+    private void updateStatus(SlotStatus slotStatus)
+    {
+        Preconditions.checkArgument(slotStatus.getId().equals(this.slotStatus.getId()),
+                String.format("Agent returned status for slot %s, but the status for slot %s was expected", slotStatus.getId(), this.slotStatus.getId()));
+        this.slotStatus = slotStatus;
+        if (agent != null) {
+            agent.setSlotStatus(slotStatus);
+        }
     }
 
     private SlotStatus setErrorStatus(SlotLifecycleState status, String statusMessage)
     {
-        SlotStatus currentStatus = slotStatus.get();
-        slotStatus.set(currentStatus.updateState(status));
-        return currentStatus.updateState(status, statusMessage);
+        slotStatus = slotStatus.updateState(status);
+        return slotStatus.updateState(status, statusMessage);
     }
 
     @Override
@@ -67,9 +78,10 @@ public class HttpRemoteSlot implements RemoteSlot
     {
         try {
             String json = installationCodec.toJson(InstallationRepresentation.from(installation));
-            Response response = httpClient.preparePut(slotStatus.get().getSelf() + "/assignment")
+            Response response = httpClient.preparePut(slotStatus.getSelf() + "/assignment")
                     .setBody(json)
                     .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .execute()
                     .get();
 
@@ -79,7 +91,7 @@ public class HttpRemoteSlot implements RemoteSlot
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
             updateStatus(slotStatusRepresentation.toSlotStatus());
-            return slotStatus.get();
+            return slotStatus;
         }
         catch (Exception e) {
             log.error(e);
@@ -91,7 +103,8 @@ public class HttpRemoteSlot implements RemoteSlot
     public SlotStatus terminate()
     {
         try {
-            Response response = httpClient.prepareDelete(slotStatus.get().getSelf().toString())
+            Response response = httpClient.prepareDelete(slotStatus.getSelf().toString())
+                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .execute()
                     .get();
 
@@ -101,7 +114,7 @@ public class HttpRemoteSlot implements RemoteSlot
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
             updateStatus(slotStatusRepresentation.toSlotStatus());
-            return slotStatus.get();
+            return slotStatus;
         }
         catch (Exception e) {
             log.error(e);
@@ -110,17 +123,12 @@ public class HttpRemoteSlot implements RemoteSlot
     }
 
     @Override
-    public SlotStatus status()
-    {
-        return slotStatus.get();
-    }
-
-    @Override
     public SlotStatus start()
     {
         try {
-            Response response = httpClient.preparePut(slotStatus.get().getSelf() + "/lifecycle")
+            Response response = httpClient.preparePut(slotStatus.getSelf() + "/lifecycle")
                     .setBody("running")
+                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .execute()
                     .get();
 
@@ -130,7 +138,7 @@ public class HttpRemoteSlot implements RemoteSlot
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
             updateStatus(slotStatusRepresentation.toSlotStatus());
-            return slotStatus.get();
+            return slotStatus;
         }
         catch (Exception e) {
             log.error(e);
@@ -142,8 +150,9 @@ public class HttpRemoteSlot implements RemoteSlot
     public SlotStatus restart()
     {
         try {
-            Response response = httpClient.preparePut(slotStatus.get().getSelf() + "/lifecycle")
+            Response response = httpClient.preparePut(slotStatus.getSelf() + "/lifecycle")
                     .setBody("restarting")
+                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .execute()
                     .get();
 
@@ -153,7 +162,7 @@ public class HttpRemoteSlot implements RemoteSlot
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
             updateStatus(slotStatusRepresentation.toSlotStatus());
-            return slotStatus.get();
+            return slotStatus;
         }
         catch (Exception e) {
             log.error(e);
@@ -165,8 +174,9 @@ public class HttpRemoteSlot implements RemoteSlot
     public SlotStatus stop()
     {
         try {
-            Response response = httpClient.preparePut(slotStatus.get().getSelf() + "/lifecycle")
+            Response response = httpClient.preparePut(slotStatus.getSelf() + "/lifecycle")
                     .setBody("stopped")
+                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .execute()
                     .get();
 
@@ -176,7 +186,7 @@ public class HttpRemoteSlot implements RemoteSlot
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
             updateStatus(slotStatusRepresentation.toSlotStatus());
-            return slotStatus.get();
+            return slotStatus;
         }
         catch (Exception e) {
             log.error(e);

@@ -333,7 +333,7 @@ public class Coordinator
         for (RemoteAgent agent : agents.values()) {
             for (RemoteSlot slot : agent.getSlots()) {
                 if (filter.apply(slot.status())) {
-                    SlotStatus slotStatus = agent.terminateSlot(slot.getId());
+                    SlotStatus slotStatus = slot.terminate();
                     if (slotStatus.getState() == TERMINATED) {
                         stateManager.deleteExpectedState(slotStatus.getId());
                     }

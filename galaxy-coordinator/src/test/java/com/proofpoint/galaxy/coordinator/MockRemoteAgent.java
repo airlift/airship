@@ -21,19 +21,16 @@ import java.util.concurrent.ConcurrentMap;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 
 public class MockRemoteAgent implements RemoteAgent
 {
-    private final ConcurrentMap<UUID, MockRemoteSlot> slots = new ConcurrentHashMap<UUID, MockRemoteSlot>();
+    private final ConcurrentMap<UUID, SlotStatus> slots = new ConcurrentHashMap<UUID, SlotStatus>();
     private final String agentId;
-    private final String instanceType;
     private AgentLifecycleState state;
     private URI uri;
 
-    public MockRemoteAgent(String agentId, String instanceType, URI uri)
+    public MockRemoteAgent(String agentId, URI uri)
     {
-        this.instanceType = instanceType;
         this.agentId = checkNotNull(agentId, "agentId is null");
         this.uri = uri;
         this.uri = URI.create("fake://agent/" + agentId);
@@ -43,13 +40,7 @@ public class MockRemoteAgent implements RemoteAgent
     @Override
     public AgentStatus status()
     {
-        return new AgentStatus(agentId, state, uri, "unknown/location", "instance.type", ImmutableList.copyOf(Iterables.transform(slots.values(), new Function<MockRemoteSlot, SlotStatus>()
-        {
-            public SlotStatus apply(MockRemoteSlot slot)
-            {
-                return slot.status();
-            }
-        })));
+        return new AgentStatus(agentId, state, uri, "unknown/location", "instance.type", ImmutableList.copyOf(slots.values()));
     }
 
     @Override
@@ -67,7 +58,14 @@ public class MockRemoteAgent implements RemoteAgent
     @Override
     public List<? extends RemoteSlot> getSlots()
     {
-        return ImmutableList.copyOf(slots.values());
+        return ImmutableList.copyOf(Iterables.transform(slots.values(), new Function<SlotStatus, MockRemoteSlot>()
+        {
+            @Override
+            public MockRemoteSlot apply(SlotStatus slotStatus)
+            {
+                return new MockRemoteSlot(slotStatus, MockRemoteAgent.this);
+            }
+        }));
     }
 
     @Override
@@ -80,20 +78,20 @@ public class MockRemoteAgent implements RemoteAgent
     {
         Set<UUID> updatedSlots = newHashSet();
         for (SlotStatus slotStatus : status.getSlotStatuses()) {
-            MockRemoteSlot remoteSlot = slots.get(slotStatus.getId());
-            if (remoteSlot != null) {
-                remoteSlot.updateStatus(slotStatus);
-            }
-            else {
-                slots.put(slotStatus.getId(), new MockRemoteSlot(slotStatus));
-            }
             updatedSlots.add(slotStatus.getId());
+            slots.put(slotStatus.getId(), slotStatus);
         }
 
         // remove all slots that were not updated
         slots.keySet().retainAll(updatedSlots);
 
+        state = status.getState();
         uri = status.getUri();
+    }
+
+    public void setSlotStatus(SlotStatus slotStatus)
+    {
+        slots.put(slotStatus.getId(), slotStatus);
     }
 
     @Override
@@ -109,22 +107,8 @@ public class MockRemoteAgent implements RemoteAgent
 
         UUID slotId = UUID.randomUUID();
         SlotStatus slotStatus = new SlotStatus(slotId, "", uri.resolve("slot/" + slotId), "location", SlotLifecycleState.STOPPED, installation.getAssignment(), "/" + slotId);
-        MockRemoteSlot slot = new MockRemoteSlot(slotStatus);
-        slots.put(slotId, slot);
+        slots.put(slotId, slotStatus);
 
         return slotStatus;
-    }
-
-    @Override
-    public SlotStatus terminateSlot(UUID slotId)
-    {
-        Preconditions.checkNotNull(slotId, "slotId is null");
-
-        MockRemoteSlot slot = slots.get(slotId);
-        SlotStatus status = slot.terminate();
-        if (status.getState() == TERMINATED) {
-            slots.remove(slotId);
-        }
-        return status;
     }
 }

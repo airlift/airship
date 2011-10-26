@@ -75,7 +75,6 @@ public class TestRemoteSlot
     private Agent agent;
 
     private File tempDir;
-    private RemoteSlot remoteSlot;
     private Slot slot;
 
     @BeforeClass
@@ -123,7 +122,6 @@ public class TestRemoteSlot
         assertTrue(agent.getAllSlots().isEmpty());
 
         slot = agent.getSlot(agent.install(APPLE_INSTALLATION).getName());
-        remoteSlot = new HttpRemoteSlot(slot.status(), new AsyncHttpClient());
     }
 
     @AfterClass
@@ -140,13 +138,13 @@ public class TestRemoteSlot
         if (tempDir != null) {
             deleteRecursively(tempDir);
         }
-        remoteSlot = null;
     }
 
     @Test
     public void testGetSlotStatus()
             throws Exception
     {
+        RemoteSlot remoteSlot = new HttpRemoteSlot(slot.status(), new AsyncHttpClient());
         assertEquals(remoteSlot.status(), slot.status());
     }
 
@@ -158,6 +156,7 @@ public class TestRemoteSlot
         assertEquals(slot.status(), new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT));
 
         // test
+        RemoteSlot remoteSlot = new HttpRemoteSlot(slot.status(), new AsyncHttpClient());
         SlotStatus actual = remoteSlot.assign(BANANA_INSTALLATION);
 
         // verify
@@ -173,6 +172,7 @@ public class TestRemoteSlot
         assertEquals(slot.assign(APPLE_INSTALLATION).getAssignment(), APPLE_ASSIGNMENT);
 
         // test
+        RemoteSlot remoteSlot = new HttpRemoteSlot(slot.status(), new AsyncHttpClient());
         SlotStatus actual = remoteSlot.terminate();
 
         // verify
@@ -188,6 +188,7 @@ public class TestRemoteSlot
         assertEquals(slot.assign(APPLE_INSTALLATION).getState(), STOPPED);
 
         // test
+        RemoteSlot remoteSlot = new HttpRemoteSlot(slot.status(), new AsyncHttpClient());
         SlotStatus actual = remoteSlot.start();
 
         // verify
@@ -204,6 +205,7 @@ public class TestRemoteSlot
         assertEquals(slot.start().getState(), RUNNING);
 
         // test
+        RemoteSlot remoteSlot = new HttpRemoteSlot(slot.status(), new AsyncHttpClient());
         SlotStatus actual = remoteSlot.stop();
 
         // verify
@@ -219,6 +221,7 @@ public class TestRemoteSlot
         assertEquals(slot.assign(APPLE_INSTALLATION).getState(), STOPPED);
 
         // test
+        RemoteSlot remoteSlot = new HttpRemoteSlot(slot.status(), new AsyncHttpClient());
         SlotStatus actual = remoteSlot.restart();
 
         // verify
