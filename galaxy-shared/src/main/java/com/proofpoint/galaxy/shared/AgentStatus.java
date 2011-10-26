@@ -10,6 +10,8 @@ import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.UUID;
 
 @Immutable
 public class AgentStatus
@@ -17,7 +19,7 @@ public class AgentStatus
     private final String agentId;
     private final AgentLifecycleState state;
     private final URI uri;
-    private final Map<String, SlotStatus> slots;
+    private final Map<UUID, SlotStatus> slots;
     private final String location;
     private final String instanceType;
     private final Map<String, Integer> resources;
@@ -33,13 +35,7 @@ public class AgentStatus
         this.agentId = agentId;
         this.location = location;
         this.instanceType = instanceType;
-        this.slots = Maps.uniqueIndex(slots, new Function<SlotStatus, String>()
-        {
-            public String apply(SlotStatus slotStatus)
-            {
-                return slotStatus.getName();
-            }
-        });
+        this.slots = Maps.uniqueIndex(slots, SlotStatus.uuidGetter());
         this.resources = ImmutableMap.copyOf(resources);
     }
 
@@ -68,9 +64,9 @@ public class AgentStatus
         return instanceType;
     }
 
-    public SlotStatus getSlotStatus(String slotName)
+    public SlotStatus getSlotStatus(UUID slotId)
     {
-        return slots.get(slotName);
+        return slots.get(slotId);
     }
 
     public List<SlotStatus> getSlotStatuses()
@@ -116,7 +112,7 @@ public class AgentStatus
         sb.append("{agentId=").append(agentId);
         sb.append(", state=").append(state);
         sb.append(", uri=").append(uri);
-        sb.append(", slots=").append(slots);
+        sb.append(", slots=").append(slots.values());
         sb.append(", resources=").append(resources);
         sb.append('}');
         return sb.toString();
