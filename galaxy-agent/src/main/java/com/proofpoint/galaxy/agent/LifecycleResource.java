@@ -27,6 +27,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static com.proofpoint.galaxy.agent.VersionsUtil.checkSlotVersion;
+import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
 
 @Path("/v1/agent/slot/{slotName: [a-z0-9_.-]+}/lifecycle")
@@ -51,7 +52,7 @@ public class LifecycleResource
         Preconditions.checkNotNull(slotName, "slotName must not be null");
         Preconditions.checkNotNull(newState, "newState must not be null");
 
-        checkSlotVersion(slotVersion, agent, slotName);
+        checkSlotVersion(slotName, slotVersion, agent, null);
 
         Slot slot = agent.getSlot(slotName);
         if (slot == null) {
@@ -71,6 +72,9 @@ public class LifecycleResource
         else {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        return Response.ok(SlotStatusRepresentation.from(status)).build();
+        return Response.ok(SlotStatusRepresentation.from(status))
+                .header(GALAXY_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
+                .header(GALAXY_SLOT_VERSION_HEADER, status.getVersion())
+                .build();
     }
 }

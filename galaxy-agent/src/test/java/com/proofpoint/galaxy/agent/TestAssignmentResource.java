@@ -17,24 +17,23 @@ import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 import java.io.File;
 
+import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
@@ -43,7 +42,6 @@ public class TestAssignmentResource
 {
     private AssignmentResource resource;
     private Agent agent;
-    private final UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/agent/slot/assignment");
     private static final Assignment APPLE_V2 = new Assignment("food.fruit:apple:2.0", "@apple:2.0");
     private static final InstallationRepresentation UPGRADE = new InstallationRepresentation(AssignmentRepresentation.from(APPLE_V2),
             "fetch://binary.tar.gz",
@@ -69,21 +67,26 @@ public class TestAssignmentResource
     @Test
     public void testAssignUnknown()
     {
-        Response response = resource.assign(null, "unknown", UPGRADE, uriInfo);
-        assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
+        try {
+            resource.assign(null, null, "unknown", UPGRADE);
+            fail("Expected WebApplicationException");
+        }
+        catch (WebApplicationException e) {
+            assertEquals(e.getResponse().getStatus(), Status.NOT_FOUND.getStatusCode());
+        }
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void testAssignNullId()
     {
-        resource.assign(null, null, UPGRADE, uriInfo);
+        resource.assign(null, null, null, UPGRADE);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void testAssignNullAssignment()
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
-        resource.assign(null, slotStatus.getName(), null, uriInfo);
+        resource.assign(null, null, slotStatus.getName(), null);
     }
 
     @Test
@@ -91,7 +94,25 @@ public class TestAssignmentResource
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
         try {
-            resource.assign("bad-version", slotStatus.getName(), UPGRADE, uriInfo);
+            resource.assign("bad-version", "bad-version", slotStatus.getName(), UPGRADE);
+            fail("Expected WebApplicationException");
+        }
+        catch (WebApplicationException e) {
+            assertEquals(e.getResponse().getStatus(), Status.CONFLICT.getStatusCode());
+            SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) e.getResponse().getEntity();
+            assertEquals(actualStatus, SlotStatusRepresentation.from(slotStatus));
+        }
+        try {
+            resource.assign("bad-version", null, slotStatus.getName(), UPGRADE);
+            fail("Expected WebApplicationException");
+        }
+        catch (WebApplicationException e) {
+            assertEquals(e.getResponse().getStatus(), Status.CONFLICT.getStatusCode());
+            SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) e.getResponse().getEntity();
+            assertEquals(actualStatus, SlotStatusRepresentation.from(slotStatus));
+        }
+        try {
+            resource.assign(null, "bad-version", slotStatus.getName(), UPGRADE);
             fail("Expected WebApplicationException");
         }
         catch (WebApplicationException e) {
@@ -102,31 +123,44 @@ public class TestAssignmentResource
     }
 
     @Test
-    public void testAssignGoodVersion()
+    public void testAssign()
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
-        Response response = resource.assign(slotStatus.getVersion(), slotStatus.getName(), UPGRADE, uriInfo);
-        assertEquals(response.getStatus(), Status.OK.getStatusCode());
-        SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) response.getEntity();
-        SlotStatus expectedStatus = new SlotStatus(slotStatus, STOPPED, APPLE_V2);
-        assertEquals(actualStatus, SlotStatusRepresentation.from(expectedStatus));
+        assertUpgrade(slotStatus, agent.getAgentStatus().getVersion(), slotStatus.getVersion());
     }
 
     @Test
-    public void testReplaceAssignment()
+    public void testAssignNoAgentVersion()
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        assertUpgrade(slotStatus, null, slotStatus.getVersion());
+    }
 
-        Response response = resource.assign(null, slotStatus.getName(), UPGRADE, uriInfo);
+    @Test
+    public void testAssignNoSlotVersion()
+    {
+        SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        assertUpgrade(slotStatus, agent.getAgentStatus().getVersion(), null);
+    }
 
-        SlotStatusRepresentation actualEntity = (SlotStatusRepresentation) response.getEntity();
+    @Test
+    public void testAssignNoVersions()
+    {
+        SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        assertUpgrade(slotStatus, null, null);
+    }
 
+    private void assertUpgrade(SlotStatus slotStatus, String agentVersion, String slotVersion)
+    {
+        Response response = resource.assign(agentVersion, slotVersion, slotStatus.getName(), UPGRADE);
+        assertEquals(response.getStatus(), Status.OK.getStatusCode());
+
+        SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) response.getEntity();
         SlotStatus expectedStatus = new SlotStatus(slotStatus, STOPPED, APPLE_V2);
-
-        Assert.assertEquals(actualEntity, SlotStatusRepresentation.from(expectedStatus));
-
+        assertEquals(actualStatus, SlotStatusRepresentation.from(expectedStatus));
+        assertEquals(actualStatus.toSlotStatus(), expectedStatus);
+        assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
+        assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
-
-        assertEquals(actualEntity.toSlotStatus(), expectedStatus);
     }
 }

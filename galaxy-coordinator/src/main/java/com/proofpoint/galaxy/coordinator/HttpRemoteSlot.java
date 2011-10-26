@@ -1,6 +1,5 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
@@ -17,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 
@@ -30,15 +30,11 @@ public class HttpRemoteSlot implements RemoteSlot
     private final AsyncHttpClient httpClient;
     private final HttpRemoteAgent agent;
 
-    public HttpRemoteSlot(SlotStatus slotStatus, AsyncHttpClient httpClient)
-    {
-        this(slotStatus, httpClient, null);
-    }
-
     public HttpRemoteSlot(SlotStatus slotStatus, AsyncHttpClient httpClient, HttpRemoteAgent agent)
     {
         Preconditions.checkNotNull(slotStatus, "slotStatus is null");
         Preconditions.checkNotNull(httpClient, "httpClient is null");
+        Preconditions.checkNotNull(agent, "agent is null");
 
         this.slotStatus = slotStatus;
         this.httpClient = httpClient;
@@ -81,6 +77,7 @@ public class HttpRemoteSlot implements RemoteSlot
             Response response = httpClient.preparePut(slotStatus.getSelf() + "/assignment")
                     .setBody(json)
                     .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .setHeader(GALAXY_AGENT_VERSION_HEADER, agent.status().getVersion())
                     .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .execute()
                     .get();
@@ -104,6 +101,7 @@ public class HttpRemoteSlot implements RemoteSlot
     {
         try {
             Response response = httpClient.prepareDelete(slotStatus.getSelf().toString())
+                    .setHeader(GALAXY_AGENT_VERSION_HEADER, agent.status().getVersion())
                     .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .execute()
                     .get();

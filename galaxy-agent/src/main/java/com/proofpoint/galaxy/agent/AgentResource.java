@@ -21,10 +21,10 @@ import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+
+import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
 
 @Path("/v1/agent/")
 public class AgentResource
@@ -45,6 +45,8 @@ public class AgentResource
     {
         AgentStatus agentStatus = agent.getAgentStatus();
         AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus);
-        return Response.ok(agentStatusRepresentation).build();
+        return Response.ok(agentStatusRepresentation)
+                .header(GALAXY_AGENT_VERSION_HEADER, agentStatus.getVersion())
+                .build();
     }
 }

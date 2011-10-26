@@ -19,7 +19,6 @@ import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -28,10 +27,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
+import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
@@ -40,13 +41,14 @@ public class TestLifecycleResource
 {
     private LifecycleResource resource;
     private Slot slot;
+    private Agent agent;
 
     @BeforeMethod
     public void setup()
     {
         File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
-        Agent agent = new Agent(
+        agent = new Agent(
                 new AgentConfig().setSlotsDir(new File(tempDir, "slots").getAbsolutePath()),
                 new HttpServerInfo(new HttpServerConfig(), new NodeInfo("test")),
                 new NodeInfo("test"),
@@ -126,8 +128,13 @@ public class TestLifecycleResource
     @Test
     public void testSetStateUnknown()
     {
-        Response response = resource.setState(null, "unknown", "start");
-        assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
+        try {
+            resource.setState(null, "unknown", "start");
+            fail("Expected WebApplicationException");
+        }
+        catch (WebApplicationException e) {
+            assertEquals(e.getResponse().getStatus(), Status.NOT_FOUND.getStatusCode());
+        }
     }
 
     @Test
@@ -169,8 +176,11 @@ public class TestLifecycleResource
     private void assertOkResponse(Response response, SlotLifecycleState state)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        Assert.assertEquals(response.getEntity(), SlotStatusRepresentation.from(slot.status().updateState(state)));
-        Assert.assertEquals(slot.status().getAssignment(), APPLE_ASSIGNMENT);
+        SlotStatusRepresentation expectedStatus = SlotStatusRepresentation.from(slot.status().updateState(state));
+        assertEquals(response.getEntity(), expectedStatus);
+        assertEquals(slot.status().getAssignment(), APPLE_ASSIGNMENT);
+        assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
+        assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 }

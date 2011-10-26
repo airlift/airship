@@ -33,5 +33,6 @@
         "cpu":8,
         "memory":1024
     },
-    "self":"fake://agent"
+    "self":"fake://agent",
+    "version":"agent-version"
 }

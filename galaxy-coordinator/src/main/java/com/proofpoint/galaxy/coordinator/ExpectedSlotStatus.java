@@ -58,12 +58,18 @@ public class ExpectedSlotStatus
     @JsonProperty
     public String getBinary()
     {
+        if (assignment == null) {
+            return null;
+        }
         return assignment.getBinary().toString();
     }
 
     @JsonProperty
     public String getConfig()
     {
+        if (assignment == null) {
+            return null;
+        }
         return assignment.getConfig().toString();
     }
 

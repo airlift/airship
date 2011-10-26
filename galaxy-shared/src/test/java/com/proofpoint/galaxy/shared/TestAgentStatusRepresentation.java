@@ -71,7 +71,8 @@ public class TestAgentStatusRepresentation
                             null,
                             null,
                             null)),
-            ImmutableMap.of("cpu", 8, "memory", 1024)
+            ImmutableMap.of("cpu", 8, "memory", 1024),
+            "agent-version"
     );
 
     @Test
@@ -98,5 +99,6 @@ public class TestAgentStatusRepresentation
         assertEquals(actual.getLocation(), expected.getLocation());
         assertEquals(actual.getLocation(), expected.getLocation());
         assertEquals(actual.getSlots(), expected.getSlots());
+        assertEquals(actual.getVersion(), expected.getVersion());
     }
 }

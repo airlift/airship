@@ -13,17 +13,13 @@
  */
 package com.proofpoint.galaxy.shared;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.ByteStreams;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
-import java.security.MessageDigest;
 import java.util.Map;
 import java.util.UUID;
 
@@ -263,26 +259,7 @@ public class SlotStatus
 
     public static String createVersion(UUID id, SlotLifecycleState state, Assignment assignment)
     {
-        try {
-            String data = Joiner.on("||").useForNull("--NULL--").join(id, state, assignment);
-            byte[] digest = ByteStreams.getDigest(ByteStreams.newInputStreamSupplier(data.getBytes(Charsets.UTF_8)), MessageDigest.getInstance("MD5"));
-            return toHex(digest);
-        }
-        catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    private static final char[] HEX = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
-    public static String toHex(byte[] data) {
-        char[] chars = new char[data.length * 2];
-
-        int charIndex = 0;
-        for (byte b : data) {
-            chars[charIndex++] = HEX[(0xF0 & b) >>> 4];
-            chars[charIndex++] = HEX[(0x0F & b)];
-        }
-        return new String(chars);
+        String data = Joiner.on("||").useForNull("--NULL--").join(id, state, assignment);
+        return DigestUtils.md5Hex(data);
     }
 }

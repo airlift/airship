@@ -17,6 +17,8 @@ import java.util.Map;
 @JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation
 {
+    public static final String GALAXY_AGENT_VERSION_HEADER = "x-galaxy-agent-version";
+
     private final String agentId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
@@ -24,6 +26,7 @@ public class AgentStatusRepresentation
     private final String location;
     private final String instanceType;
     private final Map<String, Integer> resources;
+    private final String version;
 
     public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatus()
     {
@@ -48,7 +51,8 @@ public class AgentStatusRepresentation
                 status.getLocation(),
                 status.getInstanceType(),
                 builder.build(),
-                status.getResources());
+                status.getResources(),
+                status.getVersion());
     }
 
     @JsonCreator
@@ -59,7 +63,8 @@ public class AgentStatusRepresentation
             @JsonProperty("location") String location,
             @JsonProperty("instanceType") String instanceType,
             @JsonProperty("slots") List<SlotStatusRepresentation> slots,
-            @JsonProperty("resources") Map<String, Integer> resources)
+            @JsonProperty("resources") Map<String, Integer> resources,
+            @JsonProperty("version") String version)
     {
         this.agentId = agentId;
         this.slots = slots;
@@ -73,6 +78,7 @@ public class AgentStatusRepresentation
         else {
             this.resources = ImmutableMap.of();
         }
+        this.version = version;
     }
 
     @JsonProperty
@@ -120,6 +126,12 @@ public class AgentStatusRepresentation
         return resources;
     }
 
+    @JsonProperty
+    public String getVersion()
+    {
+        return version;
+    }
+
     public AgentStatus toAgentStatus()
     {
         Builder<SlotStatus> builder = ImmutableList.builder();
@@ -165,6 +177,7 @@ public class AgentStatusRepresentation
         sb.append(", instanceType=").append(instanceType);
         sb.append(", slots=").append(slots);
         sb.append(", resources=").append(resources);
+        sb.append(", version=").append(version);
         sb.append('}');
         return sb.toString();
     }
