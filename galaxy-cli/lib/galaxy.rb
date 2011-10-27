@@ -260,6 +260,44 @@ module Galaxy
 
     private
 
+    def self.execute_request(method, uri, query, body, options, is_json)
+      # encode body as json if necessary
+      headers = {}
+      if is_json
+        body = body.to_json
+        headers['Content-Type'] = 'application/json'
+      end
+
+      # log request in as a valid curl command if in debug mode
+      if options[:debug]
+        if body then
+          puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}?#{query}' -d '"
+          puts body
+          puts "'"
+        else
+          puts "curl -X#{method.to_s.upcase} '#{uri}?#{query}'"
+        end
+      end
+
+      # execute request
+      response = HTTPClient.new.request(method, uri, query, body, headers)
+      response_body = response.body if response.respond_to?(:body)
+      response_body = response_body.content if response_body.respond_to?(:content)
+
+      # log response if in debug mode
+      if options[:debug]
+        puts
+        puts response
+        puts response_body
+      end
+
+      # check response code
+      if response.status / 100 != 2 then
+        raise CommandError.new(:general_error, response.reason || "Unknown error executing command")
+      end
+      response_body
+    end
+
     def self.coordinator_request(filter, options, method, sub_path = nil, value = nil, is_json = false)
       # build the uri
       uri = options[:coordinator_url]
@@ -274,40 +312,8 @@ module Galaxy
       params["pretty"] <<= "true" unless options[:debug].nil?
       query = params.map { |k, v| v.map { |v1| "#{k}=#{URI.escape(v1)}" }.join('&') }.join('&')
 
-      # encode body as json if necessary
-      body = value
-      headers = {}
-      if is_json
-        body = value.to_json
-        headers['Content-Type'] = 'application/json'
-      end
-
-      # log request in as a valid curl command if in debug mode
-      if options[:debug]
-        if value then
-          puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}?#{query}' -d '"
-          puts body
-          puts "'"
-        else
-          puts "curl -X#{method.to_s.upcase} '#{uri}?#{query}'"
-        end
-      end
-
       # execute request
-      response = HTTPClient.new.request(method, uri, query, body, headers)
-      response_body = response.body if response.respond_to?(:body)
-      response_body = response_body.content if response_body.respond_to?(:content)
-      # log response if in debug mode
-      if options[:debug]
-        puts
-        puts response
-        puts response_body
-      end
-
-      # check response code
-      if response.status / 100 != 2 then
-        raise CommandError.new(:general_error, response.reason || "Unknown error executing command")
-      end
+      response_body = execute_request(method, uri, query, value, options, is_json)
 
       # parse response as json
       slots_json = JSON.parse(response_body)
@@ -334,45 +340,11 @@ module Galaxy
 
       query = '&pretty' unless options[:debug].nil?
 
-      # encode body as json if necessary
-      body = value
-      headers = {}
-      if is_json
-        body = value.to_json
-        headers['Content-Type'] = 'application/json'
-      end
-
-      # log request in as a valid curl command if in debug mode
-      if options[:debug]
-        if value then
-          puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}?#{query}' -d '"
-          puts body
-          puts "'"
-        else
-          puts "curl -X#{method.to_s.upcase} '#{uri}?#{query}'"
-        end
-      end
-
       # execute request
-      response = HTTPClient.new.request(method, uri, query, body, headers)
-      response_body = response.body if response.respond_to?(:body)
-      response_body = response_body.content if response_body.respond_to?(:content)
-      # log response if in debug mode
-      if options[:debug]
-        puts
-        puts response
-        puts response_body
-      end
-
-      # check response code
-      if response.status / 100 != 2 then
-        raise CommandError.new(:command_error, response.reason || "Unknown error executing command")
-      end
+      response_body = execute_request(method, uri, query, value, options, is_json)
 
       # parse response as json
-      response = response.body if response.respond_to?(:body)
-      response = response.content if response.respond_to?(:content)
-      agents_json = JSON.parse(response)
+      agents_json = JSON.parse(response_body)
 
       # convert parsed json into slot objects
       agents = agents_json.map do |agent_json|
