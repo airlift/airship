@@ -16,14 +16,20 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
+import com.google.inject.multibindings.Multibinder;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
+import com.proofpoint.galaxy.coordinator.auth.AuthFilter;
+import com.proofpoint.galaxy.coordinator.auth.SignatureVerifier;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.http.server.TheServlet;
 import com.proofpoint.json.JsonCodecBinder;
+
+import javax.servlet.Filter;
 
 public class CoordinatorMainModule
         implements Module
@@ -50,6 +56,9 @@ public class CoordinatorMainModule
 
         binder.bind(ServiceInventory.class).to(HttpServiceInventory.class).in(Scopes.SINGLETON);
         binder.bind(ServiceInventoryResource.class).in(Scopes.SINGLETON);
+
+        binder.bind(SignatureVerifier.class).in(Scopes.SINGLETON);
+        Multibinder.newSetBinder(binder, Filter.class, TheServlet.class).addBinding().to(AuthFilter.class).in(Scopes.SINGLETON);
 
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(InstallationRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(AgentStatusRepresentation.class);
