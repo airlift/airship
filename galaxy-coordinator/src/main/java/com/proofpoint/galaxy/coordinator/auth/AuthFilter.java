@@ -20,13 +20,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.Math.abs;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
-import static java.util.Collections.list;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
@@ -66,88 +67,92 @@ public class AuthFilter
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-        // parse authorization header
-        if (list(request.getHeaders("Authorization")).size() > 1) {
-            sendError(response, BAD_REQUEST, "Multiple Authorization headers");
-            return;
-        }
-        String authorization = request.getHeader("Authorization");
-        if (authorization == null) {
+        // get authorization headers
+        ArrayList<String> authorizations = Collections.list(request.getHeaders("Authorization"));
+        if (authorizations.isEmpty()) {
             sendError(response, BAD_REQUEST, "Missing Authorization header");
             return;
         }
-        List<String> authTokens = ImmutableList.copyOf(Splitter.on(' ').omitEmptyStrings().split(authorization));
-        if ((authTokens.size() != 2) || (!authTokens.get(0).equals("Galaxy"))) {
-            sendError(response, BAD_REQUEST, "Invalid Authorization header");
-            return;
-        }
-        List<String> authParts = ImmutableList.copyOf(Splitter.on(':').split(authTokens.get(1)));
-        if (authParts.size() != 2) {
-            sendError(response, BAD_REQUEST, "Invalid Authorization token");
+
+        // try each authorization header
+        for (String authorization : authorizations) {
+
+            // parse authorization header
+            List<String> authTokens = ImmutableList.copyOf(Splitter.on(' ').omitEmptyStrings().split(authorization));
+            if ((authTokens.size() != 2) || (!authTokens.get(0).equals("Galaxy"))) {
+                sendError(response, BAD_REQUEST, "Invalid Authorization header");
+                return;
+            }
+            List<String> authParts = ImmutableList.copyOf(Splitter.on(':').split(authTokens.get(1)));
+            if (authParts.size() != 2) {
+                sendError(response, BAD_REQUEST, "Invalid Authorization token");
+                return;
+            }
+
+            // parse authorization token
+            String hexFingerprint = authParts.get(0);
+            String base64Signature = authParts.get(1);
+            Fingerprint fingerprint;
+            try {
+                fingerprint = Fingerprint.valueOf(hexFingerprint);
+            }
+            catch (IllegalArgumentException e) {
+                sendError(response, BAD_REQUEST, "Invalid Authorization fingerprint");
+                return;
+            }
+            byte[] signature;
+            try {
+                signature = Base64.decodeBase64(base64Signature);
+            }
+            catch (Exception e) {
+                sendError(response, BAD_REQUEST, "Invalid Authorization signature encoding");
+                return;
+            }
+
+            // get unix timestamp from request time
+            long millis;
+            try {
+                millis = request.getDateHeader("Date");
+            }
+            catch (IllegalArgumentException e) {
+                sendError(response, BAD_REQUEST, "Invalid Date header");
+                return;
+            }
+            if (millis == -1) {
+                sendError(response, BAD_REQUEST, "Missing Date header");
+                return;
+            }
+            long serverTime = currentTimeMillis();
+            if (abs(serverTime - millis) > MAX_REQUEST_TIME_SKEW.toMillis()) {
+                sendError(response, BAD_REQUEST, format("Request time too skewed (server time: %s)", serverTime / 1000));
+                return;
+            }
+            long timestamp = millis / 1000;
+
+            // get method and uri with query parameters
+            String method = request.getMethod();
+            String uri = getRequestUri(request);
+
+            // wrap request to allow reading body
+            RequestWrapper requestWrapper = new RequestWrapper(request);
+            String bodyMd5 = md5Hex(requestWrapper.getRequestBody());
+
+            // compute signature payload
+            String stringToSign = Joiner.on('\n').join(timestamp, method, uri, bodyMd5);
+            byte[] bytesToSign = stringToSign.getBytes(Charsets.UTF_8);
+
+            // verify signature
+            AuthorizedKey authorizedKey = verifier.verify(fingerprint, signature, bytesToSign);
+            if (authorizedKey == null) {
+                continue;
+            }
+            request.setAttribute(AUTHORIZED_KEY_ATTRIBUTE, authorizedKey);
+
+            chain.doFilter(requestWrapper, response);
             return;
         }
 
-        // parse authorization token
-        String hexFingerprint = authParts.get(0);
-        String base64Signature = authParts.get(1);
-        Fingerprint fingerprint;
-        try {
-            fingerprint = Fingerprint.valueOf(hexFingerprint);
-        }
-        catch (IllegalArgumentException e) {
-            sendError(response, BAD_REQUEST, "Invalid Authorization fingerprint");
-            return;
-        }
-        byte[] signature;
-        try {
-            signature = Base64.decodeBase64(base64Signature);
-        }
-        catch (Exception e) {
-            sendError(response, BAD_REQUEST, "Invalid Authorization signature encoding");
-            return;
-        }
-
-        // get unix timestamp from request time
-        long millis;
-        try {
-            millis = request.getDateHeader("Date");
-        }
-        catch (IllegalArgumentException e) {
-            sendError(response, BAD_REQUEST, "Invalid Date header");
-            return;
-        }
-        if (millis == -1) {
-            sendError(response, BAD_REQUEST, "Missing Date header");
-            return;
-        }
-        long serverTime = currentTimeMillis();
-        if (abs(serverTime - millis) > MAX_REQUEST_TIME_SKEW.toMillis()) {
-            sendError(response, BAD_REQUEST, format("Request time too skewed (server time: %s)", serverTime / 1000));
-            return;
-        }
-        long timestamp = millis / 1000;
-
-        // get method and uri with query parameters
-        String method = request.getMethod();
-        String uri = getRequestUri(request);
-
-        // wrap request to allow reading body
-        RequestWrapper requestWrapper = new RequestWrapper(request);
-        String bodyMd5 = md5Hex(requestWrapper.getRequestBody());
-
-        // compute signature payload
-        String stringToSign = Joiner.on('\n').join(timestamp, method, uri, bodyMd5);
-        byte[] bytesToSign = stringToSign.getBytes(Charsets.UTF_8);
-
-        // verify signature
-        AuthorizedKey authorizedKey = verifier.verify(fingerprint, signature, bytesToSign);
-        if (authorizedKey == null) {
-            sendError(response, FORBIDDEN, "Signature verification failed");
-            return;
-        }
-        request.setAttribute(AUTHORIZED_KEY_ATTRIBUTE, authorizedKey);
-
-        chain.doFilter(requestWrapper, response);
+        sendError(response, FORBIDDEN, "Signature verification failed");
     }
 
     @Override
