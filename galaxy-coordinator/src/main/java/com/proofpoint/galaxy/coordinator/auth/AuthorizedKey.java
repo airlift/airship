@@ -20,4 +20,15 @@ public class AuthorizedKey
     {
         return publicKey;
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("AuthorizedKey");
+        sb.append("{userId='").append(userId).append('\'');
+        sb.append(", publicKey=").append(publicKey);
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -17,9 +17,11 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableMap;
 import com.proofpoint.configuration.testing.ConfigAssertions;
+import com.proofpoint.units.Duration;
 import org.testng.annotations.Test;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class TestAwsProvisionerConfig
 {
@@ -35,6 +37,9 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentSecurityGroup(null)
                 .setAwsAgentDefaultInstanceType(null)
                 .setAwsAgentDefaultPort(64002)
+                .setS3KeystoreBucket(null)
+                .setS3KeystorePath(null)
+                .setS3KeystoreRefreshInterval(new Duration(10, TimeUnit.SECONDS))
         );
     }
 
@@ -50,6 +55,9 @@ public class TestAwsProvisionerConfig
                 .put("coordinator.aws.agent.security-group", "default")
                 .put("coordinator.aws.agent.default-instance-type", "t1.micro")
                 .put("coordinator.aws.agent.default-port", "99")
+                .put("coordinator.aws.s3-keystore.bucket", "bucket")
+                .put("coordinator.aws.s3-keystore.path", "path")
+                .put("coordinator.aws.s3-keystore.refresh", "30s")
                 .build();
 
         AwsProvisionerConfig expected = new AwsProvisionerConfig()
@@ -60,7 +68,10 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentKeypair("keypair")
                 .setAwsAgentSecurityGroup("default")
                 .setAwsAgentDefaultInstanceType("t1.micro")
-                .setAwsAgentDefaultPort(99);
+                .setAwsAgentDefaultPort(99)
+                .setS3KeystoreBucket("bucket")
+                .setS3KeystorePath("path")
+                .setS3KeystoreRefreshInterval(new Duration(30, TimeUnit.SECONDS));
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }

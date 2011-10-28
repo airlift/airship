@@ -17,6 +17,8 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.google.inject.Binder;
@@ -24,6 +26,8 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.galaxy.coordinator.auth.AuthorizedKeyStore;
+import com.proofpoint.galaxy.coordinator.auth.S3AuthorizedKeyStore;
 
 import javax.inject.Singleton;
 
@@ -37,7 +41,15 @@ public class AwsProvisionerModule
 
         binder.bind(Provisioner.class).to(AwsProvisioner.class).in(Scopes.SINGLETON);
         binder.bind(StateManager.class).to(SimpleDbStateManager.class).in(Scopes.SINGLETON);
+        binder.bind(AuthorizedKeyStore.class).to(S3AuthorizedKeyStore.class).in(Scopes.SINGLETON);
         ConfigurationModule.bindConfig(binder).to(AwsProvisionerConfig.class);
+    }
+
+    @Provides
+    @Singleton
+    public AmazonS3 providesS3(AWSCredentials awsCredentials)
+    {
+        return new AmazonS3Client(awsCredentials);
     }
 
     @Provides
@@ -54,7 +66,7 @@ public class AwsProvisionerModule
         AmazonEC2Client client = new AmazonEC2Client(awsCredentials);
 
         //Use the config to override the default endpoint in the ec2 client.
-        if(provisionerConfig.getAwsEndpoint() != null) {
+        if (provisionerConfig.getAwsEndpoint() != null) {
             client.setEndpoint(provisionerConfig.getAwsEndpoint());
         }
 

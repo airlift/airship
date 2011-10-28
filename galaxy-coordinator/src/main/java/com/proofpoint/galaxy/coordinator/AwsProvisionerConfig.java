@@ -2,8 +2,10 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.proofpoint.configuration.Config;
 import com.proofpoint.configuration.ConfigDescription;
+import com.proofpoint.units.Duration;
 
 import javax.validation.constraints.NotNull;
+import java.util.concurrent.TimeUnit;
 
 public class AwsProvisionerConfig
 {
@@ -15,6 +17,9 @@ public class AwsProvisionerConfig
     private String awsAgentDefaultInstanceType;
     private int awsAgentDefaultPort = 64002;
     private String awsEndpoint;
+    private String s3KeystoreBucket;
+    private String s3KeystorePath;
+    private Duration s3KeystoreRefreshInterval = new Duration(10, TimeUnit.SECONDS);
 
     @Config("coordinator.aws.access-key")
     @ConfigDescription("AWS access key for provisioning agents")
@@ -125,5 +130,47 @@ public class AwsProvisionerConfig
     public String getAwsEndpoint()
     {
         return awsEndpoint;
+    }
+
+    @NotNull
+    public String getS3KeystoreBucket()
+    {
+        return s3KeystoreBucket;
+    }
+
+    @Config("coordinator.aws.s3-keystore.bucket")
+    @ConfigDescription("S3 bucket for keystore")
+    public AwsProvisionerConfig setS3KeystoreBucket(String s3KeystoreBucket)
+    {
+        this.s3KeystoreBucket = s3KeystoreBucket;
+        return this;
+    }
+
+    @NotNull
+    public String getS3KeystorePath()
+    {
+        return s3KeystorePath;
+    }
+
+    @Config("coordinator.aws.s3-keystore.path")
+    @ConfigDescription("S3 path for keystore")
+    public AwsProvisionerConfig setS3KeystorePath(String s3KeystorePath)
+    {
+        this.s3KeystorePath = s3KeystorePath;
+        return this;
+    }
+
+    @NotNull
+    public Duration getS3KeystoreRefreshInterval()
+    {
+        return s3KeystoreRefreshInterval;
+    }
+
+    @Config("coordinator.aws.s3-keystore.refresh")
+    @ConfigDescription("Refresh interval for S3 keystore")
+    public AwsProvisionerConfig setS3KeystoreRefreshInterval(Duration s3KeystoreRefreshInterval)
+    {
+        this.s3KeystoreRefreshInterval = s3KeystoreRefreshInterval;
+        return this;
     }
 }
