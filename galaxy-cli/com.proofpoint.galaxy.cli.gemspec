@@ -16,4 +16,5 @@ Gem::Specification.new do |s|
   s.executables << 'galaxy'
   s.add_dependency 'httpclient', '>=2.2.0'
   s.add_dependency 'json_pure', '>=1.5.1'
+  s.add_dependency 'sshkeyauth', '>=0.0.11'
 end

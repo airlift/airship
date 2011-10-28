@@ -2,6 +2,10 @@
 require 'optparse'
 require 'httpclient'
 require 'json'
+require 'uri'
+require 'base64'
+require 'digest/md5'
+require 'ssh/key/signer'
 require 'galaxy/version'
 require 'galaxy/colorize'
 require 'galaxy/shell'
@@ -15,6 +19,7 @@ module Galaxy
       :no_slots => 1,
       :unsupported => 3,
       :invalid_usage => 64,
+      :no_signing_identities => 80,
       :general_error => 99
   }
 
@@ -262,21 +267,48 @@ module Galaxy
 
     def self.execute_request(method, uri, query, body, options, is_json)
       # encode body as json if necessary
-      headers = {}
+      headers = []
       if is_json
         body = body.to_json
-        headers['Content-Type'] = 'application/json'
+        headers += [['Content-Type', 'application/json']]
+      end
+
+      # add date header
+      request_time = Time.now
+      headers += [['Date', request_time.gmtime.strftime('%a, %d %b %Y %H:%M:%S GMT')]]
+
+      # remove query string if empty
+      query = nil if query.to_s.empty?
+
+      # build signature string
+      timestamp = request_time.to_i
+      method = method.to_s.upcase
+      relative_uri = URI.parse(uri).path + ('?' + query if query).to_s
+      body_md5 = Digest::MD5.hexdigest(body.to_s)
+      string_to_sign = [timestamp, method, relative_uri, body_md5].join("\n")
+      puts "string_to_sign:\n#{string_to_sign}\n--" if options[:debug]
+
+      # generate signature headers
+      signer = SSH::Key::Signer.new
+      signatures = signer.sign(string_to_sign)
+      if signatures.empty?
+        raise CommandError.new(:no_signing_identities, "No identities in SSH agent (use ssh-add)")
+      end
+      signatures.each do |sig|
+        fingerprint = sig.identity.fingerprint.delete(':')
+        signature = Base64.strict_encode64(sig.signature)
+        headers += [['Authorization', "Galaxy #{fingerprint}:#{signature}"]]
       end
 
       # log request in as a valid curl command if in debug mode
       if options[:debug]
-        if body then
-          puts "curl -H 'Content-Type: application/json' -X#{method.to_s.upcase} '#{uri}?#{query}' -d '"
-          puts body
-          puts "'"
-        else
-          puts "curl -X#{method.to_s.upcase} '#{uri}?#{query}'"
-        end
+        debug_uri = uri + ('?' + query if query).to_s
+        print "curl"
+        headers.each { |k,v| print " -H '#{k}: #{v}'" }
+        print " -X #{method}"
+        print " -d '#{body}'" if body
+        puts " '#{debug_uri}'"
+        puts
       end
 
       # execute request
@@ -287,8 +319,8 @@ module Galaxy
       # log response if in debug mode
       if options[:debug]
         puts
-        puts response
-        puts response_body
+        puts "#{response.status} #{response.reason}"
+        puts "--\n#{response_body.rstrip}\n--"
       end
 
       # check response code
