@@ -8,11 +8,11 @@ import java.util.Map;
 public class InMemoryAuthorizedKeyStore
         implements AuthorizedKeyStore
 {
-    private final Map<byte[], AuthorizedKey> keys;
+    private final Map<Fingerprint, AuthorizedKey> keys;
 
     public InMemoryAuthorizedKeyStore(List<AuthorizedKey> keys)
     {
-        ImmutableMap.Builder<byte[], AuthorizedKey> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<Fingerprint, AuthorizedKey> builder = ImmutableMap.builder();
         for (AuthorizedKey key : keys) {
             builder.put(key.getPublicKey().getFingerprint(), key);
         }
@@ -20,7 +20,7 @@ public class InMemoryAuthorizedKeyStore
     }
 
     @Override
-    public AuthorizedKey get(byte[] fingerprint)
+    public AuthorizedKey get(Fingerprint fingerprint)
     {
         return keys.get(fingerprint);
     }

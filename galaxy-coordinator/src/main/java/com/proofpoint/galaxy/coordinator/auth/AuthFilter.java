@@ -1,12 +1,11 @@
 package com.proofpoint.galaxy.coordinator.auth;
 
-import ch.ethz.ssh2.crypto.Base64;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.proofpoint.units.Duration;
-import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;
 import javax.servlet.Filter;
@@ -30,7 +29,6 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.list;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static org.apache.commons.codec.binary.Hex.decodeHex;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 
 public class AuthFilter
@@ -92,23 +90,19 @@ public class AuthFilter
         // parse authorization token
         String hexFingerprint = authParts.get(0);
         String base64Signature = authParts.get(1);
-        byte[] fingerprint;
+        Fingerprint fingerprint;
         try {
-            fingerprint = decodeHex(hexFingerprint.toCharArray());
+            fingerprint = Fingerprint.valueOf(hexFingerprint);
         }
-        catch (DecoderException e) {
-            sendError(response, BAD_REQUEST, "Invalid Authorization fingerprint encoding");
-            return;
-        }
-        if (fingerprint.length != 16) {
-            sendError(response, BAD_REQUEST, "Invalid Authorization fingerprint length");
+        catch (IllegalArgumentException e) {
+            sendError(response, BAD_REQUEST, "Invalid Authorization fingerprint");
             return;
         }
         byte[] signature;
         try {
-            signature = Base64.decode(base64Signature.toCharArray());
+            signature = Base64.decodeBase64(base64Signature);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             sendError(response, BAD_REQUEST, "Invalid Authorization signature encoding");
             return;
         }

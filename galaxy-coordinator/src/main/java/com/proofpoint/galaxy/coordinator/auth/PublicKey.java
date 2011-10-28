@@ -27,9 +27,9 @@ public abstract class PublicKey
 
     public abstract boolean verifySignature(byte[] signature, byte[] message);
 
-    public byte[] getFingerprint()
+    public Fingerprint getFingerprint()
     {
-        return md5(key);
+        return new Fingerprint(md5(key));
     }
 
     @Override

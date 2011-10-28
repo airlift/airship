@@ -1,9 +1,6 @@
 package com.proofpoint.galaxy.coordinator.auth;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
@@ -18,10 +15,8 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.galaxy.coordinator.AwsProvisionerConfig;
-import com.proofpoint.log.Logging;
 import com.proofpoint.units.Duration;
 
-import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
@@ -47,7 +42,7 @@ public class S3AuthorizedKeyStore
     private final String bucketName;
     private final String path;
 
-    private final AtomicReference<Map<String, AuthorizedKey>> authorizedKeys = new AtomicReference<Map<String, AuthorizedKey>>(ImmutableMap.<String, AuthorizedKey>of());
+    private final AtomicReference<Map<Fingerprint, AuthorizedKey>> authorizedKeys = new AtomicReference<Map<Fingerprint, AuthorizedKey>>(ImmutableMap.<Fingerprint, AuthorizedKey>of());
     private Map<String, KeyFile> keyFiles = new TreeMap<String, KeyFile>();
 
     private final ScheduledExecutorService executor;
@@ -92,15 +87,15 @@ public class S3AuthorizedKeyStore
     }
 
     @Override
-    public AuthorizedKey get(byte[] fingerprint)
+    public AuthorizedKey get(Fingerprint fingerprint)
     {
-        return authorizedKeys.get().get(new String(fingerprint, Charsets.UTF_8));
+        return authorizedKeys.get().get(fingerprint);
     }
 
     @VisibleForTesting
-    synchronized ImmutableMap<String, AuthorizedKey> refreshKeys()
+    synchronized Map<Fingerprint, AuthorizedKey> refreshKeys()
     {
-        ImmutableMap.Builder<String, AuthorizedKey> newAuthorizedKeys = ImmutableMap.builder();
+        ImmutableMap.Builder<Fingerprint, AuthorizedKey> newAuthorizedKeys = ImmutableMap.builder();
         Map<String, KeyFile> newKeyFiles = new TreeMap<String, KeyFile>();
         for (S3ObjectSummary objectSummary : new S3ObjectListing(s3Client, new ListObjectsRequest(bucketName, path, null, "/", null))) {
             KeyFile keyFile = keyFiles.get(objectSummary.getKey());
@@ -137,7 +132,7 @@ public class S3AuthorizedKeyStore
             if (keyFile != null) {
                 newKeyFiles.put(keyFile.s3Key, keyFile);
                 for (AuthorizedKey authorizedKey : keyFile.authorizedKeys) {
-                    newAuthorizedKeys.put(new String(authorizedKey.getPublicKey().getFingerprint(), Charsets.UTF_8), authorizedKey);
+                    newAuthorizedKeys.put(authorizedKey.getPublicKey().getFingerprint(), authorizedKey);
                 }
             }
         }
@@ -202,7 +197,7 @@ public class S3AuthorizedKeyStore
             return Iterators.concat(Iterators.transform(objectListings, new Function<ObjectListing, Iterator<S3ObjectSummary>>()
             {
                 @Override
-                public Iterator<S3ObjectSummary> apply(@Nullable ObjectListing input)
+                public Iterator<S3ObjectSummary> apply(ObjectListing input)
                 {
                     return input.getObjectSummaries().iterator();
                 }

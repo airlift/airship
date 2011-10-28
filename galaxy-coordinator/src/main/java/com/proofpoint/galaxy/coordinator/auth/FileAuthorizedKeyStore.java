@@ -35,7 +35,7 @@ public class FileAuthorizedKeyStore
     }
 
     @Override
-    public AuthorizedKey get(byte[] fingerprint)
+    public AuthorizedKey get(Fingerprint fingerprint)
     {
         // TODO: only reload key files when they actually change
         try {

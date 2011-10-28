@@ -12,7 +12,7 @@ public class SignatureVerifier
         this.keyStore = keyStore;
     }
 
-    public AuthorizedKey verify(byte[] fingerprint, byte[] signature, byte[] message)
+    public AuthorizedKey verify(Fingerprint fingerprint, byte[] signature, byte[] message)
     {
         AuthorizedKey key = keyStore.get(fingerprint);
         if ((key != null) && (key.getPublicKey().verifySignature(signature, message))) {
