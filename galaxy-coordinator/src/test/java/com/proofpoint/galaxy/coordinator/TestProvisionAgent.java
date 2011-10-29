@@ -4,8 +4,12 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import com.google.common.io.InputSupplier;
 import com.proofpoint.galaxy.shared.BinarySpec;
+import com.proofpoint.galaxy.shared.ConfigRepository;
+import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.json.JsonCodec;
@@ -13,6 +17,7 @@ import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -56,7 +61,7 @@ public class TestProvisionAgent
         AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
         NodeInfo nodeInfo = createTestNodeInfo();
         HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), nodeInfo);
-        BinaryRepository repository = new BinaryRepository() {
+        BinaryRepository binaryRepository = new BinaryRepository() {
             @Override
             public URI getBinaryUri(BinarySpec binarySpec)
             {
@@ -69,7 +74,29 @@ public class TestProvisionAgent
             }
         };
 
-        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, new BinaryUrlResolver(repository, httpServerInfo), coordinatorConfig, awsProvisionerConfig);
+        ConfigRepository configRepository = new ConfigRepository()
+        {
+            @Override
+            public Map<String, URI> getConfigMap(String environment, ConfigSpec configSpec)
+            {
+                return ImmutableMap.of();
+            }
+
+            @Override
+            public URI getConfigResource(String environment, ConfigSpec configSpec, String path)
+            {
+                return null;
+            }
+
+            @Override
+            public InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
+            {
+                return null;
+            }
+        };
+
+        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, new BinaryUrlResolver(binaryRepository, httpServerInfo),
+                configRepository, coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 2;
         List<Instance> provisioned = provisioner.provisionAgents(agentCount, null, null);

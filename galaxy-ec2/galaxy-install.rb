@@ -262,6 +262,10 @@ install_manifest['artifacts'].split(',').each do |artifact_id|
 
   CONFIGURATORS[artifact_id].configure(deploy_path, parse("#{config_dir}/#{artifact_id}.properties"))
 
+  if artifact_id == 'galaxy-agent' && File.exists?("#{config_dir}/galaxy-agent-resources.properties")
+    FileUtils.copy("#{config_dir}/galaxy-agent-resources.properties", "#{deploy_path}/etc/resources.properties")
+  end
+
   puts "Launching #{deploy_path}/bin/launcher"
   system("#{deploy_path}/bin/launcher start")
 

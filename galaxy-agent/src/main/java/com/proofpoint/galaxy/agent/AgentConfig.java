@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class AgentConfig
 {
     private String slotsDir = "slots";
-    private String resourcesFile = "slots/resources.properties";
+    private String resourcesFile = "etc/resources.properties";
     private Duration launcherTimeout = new Duration(1, TimeUnit.SECONDS);
     private Duration launcherStopTimeout = new Duration(10, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
