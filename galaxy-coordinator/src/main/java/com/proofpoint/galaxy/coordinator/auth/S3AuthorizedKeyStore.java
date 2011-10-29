@@ -104,6 +104,10 @@ public class S3AuthorizedKeyStore
             if (keyFile == null || !keyFile.etag.equals(objectSummary.getETag())) {
                 try {
                     String userId = objectSummary.getKey().substring(path.length());
+                    if (userId.isEmpty()) {
+                        // sometimes s3 returns the directory as an object
+                        continue;
+                    }
                     if (userId.endsWith(".pub")) {
                         userId = userId.substring(0, userId.length() - ".pub".length());
                     }
