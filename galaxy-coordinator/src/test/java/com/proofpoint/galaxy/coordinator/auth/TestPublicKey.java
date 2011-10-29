@@ -98,6 +98,14 @@ public class TestPublicKey
         assertTrue(dsaPublicKey.verifySignature(signature, message));
     }
 
+    @Test
+    public void testDsaVerifyFromAgentWithEnvelope()
+            throws IOException
+    {
+        byte[] signature = loadBinaryResource("signature-envelope.dsa");
+        assertTrue(dsaPublicKey.verifySignature(signature, message));
+    }
+
     private byte[] generateRsaSignature(byte[] message)
             throws IOException
     {

@@ -25,7 +25,12 @@ public class DerWriter
 
     public DerWriter writeInteger(BigInteger data)
     {
-        return writeEntry(DerType.INTEGER, data.toByteArray());
+        return writeInteger(data.toByteArray());
+    }
+
+    public DerWriter writeInteger(byte[] data)
+    {
+        return writeEntry(DerType.INTEGER, data);
     }
 
     public byte[] toByteArray()

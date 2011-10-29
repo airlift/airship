@@ -1,7 +1,9 @@
 package com.proofpoint.galaxy.coordinator.auth;
 
+import com.google.common.base.Throwables;
 import com.proofpoint.galaxy.coordinator.auth.ssh.DerWriter;
 import com.proofpoint.galaxy.coordinator.auth.ssh.SshDsaPublicKey;
+import com.proofpoint.galaxy.coordinator.auth.ssh.SshKeyReader;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -45,18 +47,28 @@ public class DsaPublicKey
             throws IOException
     {
         if (signature.length != 40) {
+            // strip ssh envelope
+            SshKeyReader reader = new SshKeyReader(signature);
+            String signatureType = reader.readString();
+            if (!"ssh-dss".equals(signatureType)) {
+                throw new IllegalArgumentException("Signature is not a ssh-dss signature, but is " + signatureType + " signature");
+            }
+            signature = reader.readEntry();
+        }
+
+        if (signature.length != 40) {
             throw new IllegalArgumentException("Invalid ssh dsa signature");
         }
 
         // signature is two big endian unsigned 20-bit integers
-        BigInteger r = new BigInteger(1, Arrays.copyOf(signature, 20));
-        BigInteger s = new BigInteger(1, Arrays.copyOfRange(signature, 20, 40));
+        byte[] r = Arrays.copyOf(signature, 20);
+        byte[] s = Arrays.copyOfRange(signature, 20, 40);
 
         // encode the signature in Java's DER format
         return toJavaDsaSignature(r, s);
     }
 
-    private static byte[] toJavaDsaSignature(BigInteger r, BigInteger s)
+    private static byte[] toJavaDsaSignature(byte[] r, byte[] s)
             throws IOException
     {
         byte[] encodedNumbers = new DerWriter()
