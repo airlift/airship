@@ -50,7 +50,6 @@ public class TestCoordinator
                 new MockRemoteAgentFactory(),
                 urlResolver,
                 configRepository,
-                new LocalConfigRepository(new CoordinatorConfig(), null),
                 provisioner,
                 new InMemoryStateManager(),
                 new MockServiceInventory(),

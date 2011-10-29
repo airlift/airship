@@ -54,8 +54,6 @@ public class CoordinatorMainModule
         binder.bind(BinaryUrlResolver.class).in(Scopes.SINGLETON);
         binder.bind(ConfigRepository.class).to(SimpleConfigRepository.class).in(Scopes.SINGLETON);
 
-        binder.bind(LocalConfigRepository.class).in(Scopes.SINGLETON);
-
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 
         binder.bind(ServiceInventory.class).to(HttpServiceInventory.class).in(Scopes.SINGLETON);

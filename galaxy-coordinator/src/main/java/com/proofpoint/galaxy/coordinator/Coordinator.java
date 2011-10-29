@@ -68,7 +68,6 @@ public class Coordinator
     private final String environment;
     private final BinaryUrlResolver binaryUrlResolver;
     private final ConfigRepository configRepository;
-    private final LocalConfigRepository localConfigRepository;
     private final ScheduledExecutorService timerService;
     private final Duration statusExpiration;
     private final Provisioner provisioner;
@@ -82,7 +81,6 @@ public class Coordinator
             RemoteAgentFactory remoteAgentFactory,
             BinaryUrlResolver binaryUrlResolver,
             ConfigRepository configRepository,
-            LocalConfigRepository localConfigRepository,
             Provisioner provisioner,
             StateManager stateManager, ServiceInventory serviceInventory)
     {
@@ -90,7 +88,6 @@ public class Coordinator
                 remoteAgentFactory,
                 binaryUrlResolver,
                 configRepository,
-                localConfigRepository,
                 provisioner,
                 stateManager,
                 serviceInventory,
@@ -102,7 +99,6 @@ public class Coordinator
             RemoteAgentFactory remoteAgentFactory,
             BinaryUrlResolver binaryUrlResolver,
             ConfigRepository configRepository,
-            LocalConfigRepository localConfigRepository,
             Provisioner provisioner,
             StateManager stateManager,
             ServiceInventory serviceInventory,
@@ -112,7 +108,6 @@ public class Coordinator
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(binaryUrlResolver, "binaryUrlResolver is null");
-        Preconditions.checkNotNull(localConfigRepository, "localConfigRepository is null");
         Preconditions.checkNotNull(provisioner, "provisioner is null");
         Preconditions.checkNotNull(stateManager, "stateManager is null");
         Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
@@ -122,7 +117,6 @@ public class Coordinator
         this.remoteAgentFactory = remoteAgentFactory;
         this.binaryUrlResolver = binaryUrlResolver;
         this.configRepository = configRepository;
-        this.localConfigRepository = localConfigRepository;
         this.provisioner = provisioner;
         this.stateManager = stateManager;
         this.serviceInventory = serviceInventory;
@@ -261,10 +255,7 @@ public class Coordinator
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
-        Map<String, URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());
-        if (configMap == null) {
-            configMap = configRepository.getConfigMap(environment, assignment.getConfig());
-        }
+        Map<String, URI> configMap = configRepository.getConfigMap(environment, assignment.getConfig());
         Map<String, Integer> resources = readResources(assignment);
 
         Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap, resources);
@@ -368,10 +359,7 @@ public class Coordinator
         }
         Assignment assignment = newAssignments.iterator().next();
 
-        Map<String, URI> configMap = localConfigRepository.getConfigMap(environment, assignment.getConfig());
-        if (configMap == null) {
-            configMap = configRepository.getConfigMap(environment, assignment.getConfig());
-        }
+        Map<String, URI> configMap = configRepository.getConfigMap(environment, assignment.getConfig());
 
         final Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap, ImmutableMap.<String, Integer>of());
 

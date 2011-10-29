@@ -71,7 +71,6 @@ public class TestCoordinatorAssignmentResource
                 new MockRemoteAgentFactory(),
                 urlResolver,
                 MOCK_CONFIG_REPO,
-                new LocalConfigRepository(new CoordinatorConfig(), null),
                 new LocalProvisioner(),
                 new InMemoryStateManager(),
                 new MockServiceInventory());

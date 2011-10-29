@@ -3,7 +3,6 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
@@ -57,7 +56,6 @@ public class TestCoordinatorSlotResource
                 new MockRemoteAgentFactory(),
                 urlResolver,
                 configRepository,
-                new LocalConfigRepository(new CoordinatorConfig(), null),
                 new LocalProvisioner(),
                 new InMemoryStateManager(),
                 new MockServiceInventory());
