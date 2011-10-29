@@ -58,7 +58,7 @@ public class AdminResource
     @Path("/agent/{agentId: [a-z0-9-]+}")
     public Response terminateAgent(String agentId, @Context UriInfo uriInfo)
     {
-        if (coordinator.terminateAgent(agentId)) {
+        if (coordinator.terminateAgent(agentId) != null) {
             return Response.ok().build();
         }
         return Response.status(Status.NOT_FOUND).build();

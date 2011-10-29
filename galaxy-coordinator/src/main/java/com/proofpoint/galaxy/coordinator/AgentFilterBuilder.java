@@ -18,6 +18,11 @@ import java.util.regex.Pattern;
 
 public class AgentFilterBuilder
 {
+    public static AgentFilterBuilder builder()
+    {
+        return new AgentFilterBuilder();
+    }
+
     public static Predicate<AgentStatus> build(UriInfo uriInfo)
     {
         AgentFilterBuilder builder = new AgentFilterBuilder();

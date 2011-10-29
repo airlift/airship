@@ -236,7 +236,7 @@ public class TestServerIntegration
                 configRepository.getConfigMap("prod", BANANA_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
 
-        agentInstance = new Instance("region", "zone", agent.getAgentId(), "test.type", agentServer.getBaseUrl());
+        agentInstance = new Instance(agent.getAgentId(), "test.type", "location", agentServer.getBaseUrl());
         provisioner.addAgent(agentInstance);
         coordinator.updateAllAgents();
 

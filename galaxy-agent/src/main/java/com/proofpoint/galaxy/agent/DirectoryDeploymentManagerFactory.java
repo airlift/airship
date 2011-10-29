@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.proofpoint.node.NodeInfo;
@@ -19,10 +20,19 @@ public class DirectoryDeploymentManagerFactory implements DeploymentManagerFacto
     @Inject
     public DirectoryDeploymentManagerFactory(NodeInfo nodeInfo, AgentConfig config)
     {
-        location = nodeInfo.getLocation();
-        tarTimeout = config.getTarTimeout();
+        this(nodeInfo.getLocation(), config.getSlotsDir(), config.getTarTimeout());
+    }
 
-        this.slotDir = new File(config.getSlotsDir());
+    public DirectoryDeploymentManagerFactory(String location, String slotsDir, Duration tarTimeout)
+    {
+        Preconditions.checkNotNull(location, "location is null");
+        Preconditions.checkNotNull(slotsDir, "slotsDir is null");
+        Preconditions.checkNotNull(tarTimeout, "tarTimeout is null");
+
+        this.location = location;
+        this.tarTimeout = tarTimeout;
+
+        this.slotDir = new File(slotsDir);
 
         slotDir.mkdirs();
         if (!slotDir.isDirectory()) {

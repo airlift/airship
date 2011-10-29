@@ -1,11 +1,7 @@
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.BinarySpec;
-import com.proofpoint.galaxy.shared.ConfigSpec;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 

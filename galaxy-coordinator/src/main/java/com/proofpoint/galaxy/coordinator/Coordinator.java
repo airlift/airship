@@ -21,9 +21,11 @@ import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.ConfigRepository;
+import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
@@ -167,6 +169,15 @@ public class Coordinator
         return builder.build();
     }
 
+    public List<AgentStatus> getAgents(Predicate<AgentStatus> agentFilter)
+    {
+        ImmutableList.Builder<AgentStatus> builder = ImmutableList.builder();
+        for (RemoteAgent remoteAgent : filter(this.agents.values(), filterAgentsBy(agentFilter))) {
+            builder.add(remoteAgent.status());
+        }
+        return builder.build();
+    }
+
     public AgentStatus getAgentStatus(String agentId)
     {
         RemoteAgent agent = agents.get(agentId);
@@ -239,18 +250,18 @@ public class Coordinator
         return agents.remove(agentId) != null;
     }
 
-    public boolean terminateAgent(String agentId)
+    public AgentStatus terminateAgent(String agentId)
     {
         RemoteAgent agent = agents.remove(agentId);
         if (agent == null) {
-            return false;
+            return null;
         }
         if (!agent.getSlots().isEmpty()) {
             agents.putIfAbsent(agentId, agent);
             throw new IllegalStateException("Cannot terminate agent that has slots: " + agentId);
         }
         provisioner.terminateAgents(ImmutableList.of(agentId));
-        return true;
+        return agent.status().updateState(AgentLifecycleState.TERMINATED);
     }
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)

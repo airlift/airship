@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
-import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
@@ -41,7 +40,6 @@ public class AwsProvisioner implements Provisioner
 
     private final AmazonEC2 ec2Client;
     private final String environment;
-    private final URI coordinatorUri;
     private final String galaxyVersion;
     private final String awsAgentAmi;
     private final String awsAgentKeypair;
@@ -55,7 +53,6 @@ public class AwsProvisioner implements Provisioner
     @Inject
     public AwsProvisioner(AmazonEC2 ec2Client,
             NodeInfo nodeInfo,
-            HttpServerInfo httpServerInfo,
             BinaryUrlResolver urlResolver,
             ConfigRepository configRepository,
             CoordinatorConfig coordinatorConfig,
@@ -65,9 +62,6 @@ public class AwsProvisioner implements Provisioner
 
         checkNotNull(nodeInfo, "nodeInfo is null");
         this.environment = nodeInfo.getEnvironment();
-
-        checkNotNull(httpServerInfo, "httpServerInfo is null");
-        coordinatorUri = httpServerInfo.getHttpUri();
 
         checkNotNull(coordinatorConfig, "coordinatorConfig is null");
         galaxyVersion = coordinatorConfig.getGalaxyVersion();
@@ -99,9 +93,6 @@ public class AwsProvisioner implements Provisioner
                 }
                 Map<String, String> tags = toMap(instance.getTags());
                 if ("agent".equals(tags.get("galaxy:role")) && environment.equals(tags.get("galaxy:environment"))) {
-                    String zone = instance.getPlacement().getAvailabilityZone();
-                    String region = zone.substring(0, zone.length() - 1);
-
                     String portTag = tags.get("galaxy:port");
                     if (portTag == null) {
                         if (invalidInstances.add(instance.getInstanceId())) {
@@ -125,7 +116,7 @@ public class AwsProvisioner implements Provisioner
                     if (instance.getPrivateIpAddress() != null) {
                         uri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
                     }
-                    instances.add(new Instance(region, zone, instance.getInstanceId(), instance.getInstanceType(), uri));
+                    instances.add(toInstance(instance, uri));
                     invalidInstances.remove(instance.getInstanceId());
                 }
             }
@@ -167,9 +158,7 @@ public class AwsProvisioner implements Provisioner
         List<String> instanceIds = newArrayList();
 
         for (com.amazonaws.services.ec2.model.Instance instance : result.getReservation().getInstances()) {
-            String zone = instance.getPlacement().getAvailabilityZone();
-            String region = zone.substring(0, zone.length() - 1);
-            instances.add(new Instance(region, zone, instance.getInstanceId(), instance.getInstanceType()));
+            instances.add(toInstance(instance, null));
             instanceIds.add(instance.getInstanceId());
         }
 
@@ -263,6 +252,18 @@ public class AwsProvisioner implements Provisioner
             );
         }
         return Joiner.on('\n').join(lines.build());
+    }
+
+    private Instance toInstance(com.amazonaws.services.ec2.model.Instance instance, URI uri)
+    {
+        return new Instance(instance.getInstanceId(), instance.getInstanceType(), getLocation(instance), uri);
+    }
+
+    private static String getLocation(com.amazonaws.services.ec2.model.Instance instance)
+    {
+        String zone = instance.getPlacement().getAvailabilityZone();
+        String region = zone.substring(0, zone.length() - 1);
+        return Joiner.on('/').join("ec2", region, zone, instance.getInstanceId(), "agent");
     }
 
     private static String encodeBase64(String s)

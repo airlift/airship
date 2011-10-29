@@ -27,9 +27,9 @@ public class LocalProvisioner implements Provisioner
     {
         Preconditions.checkNotNull(localAgentUris, "localAgentUri is null");
         for (String localAgentUri : localAgentUris) {
-            addAgent(new Instance("region", "zone", "local", "unknown", URI.create(localAgentUri)));
+            addAgent(new Instance("local", "unknown", "loation", URI.create(localAgentUri)));
         }
-        addAgent(new Instance("region", "zone", "bad", "unknown"));
+        addAgent(new Instance("bad", "unknown", "location", null));
 
     }
 

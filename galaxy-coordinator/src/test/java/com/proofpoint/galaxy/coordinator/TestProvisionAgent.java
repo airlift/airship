@@ -95,7 +95,7 @@ public class TestProvisionAgent
             }
         };
 
-        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, httpServerInfo, new BinaryUrlResolver(binaryRepository, httpServerInfo),
+        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, new BinaryUrlResolver(binaryRepository, httpServerInfo),
                 configRepository, coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 2;

@@ -28,15 +28,19 @@ import static com.proofpoint.json.JsonCodec.mapJsonCodec;
 public class SimpleConfigRepository implements ConfigRepository
 {
     private static final JsonCodec<Map<String, String>> configCodec = mapJsonCodec(String.class, String.class);
-    private final List<URI> configRepositoryBases;
+    private final Iterable<URI> configRepositoryBases;
     private final String environment;
 
     public SimpleConfigRepository(String environment, URI configRepositoryBase, URI... configRepositoryBases)
     {
+        this(environment, ImmutableList.<URI>builder().add(configRepositoryBase).add(configRepositoryBases).build());
+    }
+
+    public SimpleConfigRepository(String environment, Iterable<URI> configRepositoryBases)
+    {
         this.environment = environment;
-        Preconditions.checkNotNull(configRepositoryBase, "configRepositoryBase is null");
         Preconditions.checkNotNull(configRepositoryBases, "configRepositoryBases is null");
-        this.configRepositoryBases = ImmutableList.<URI>builder().add(configRepositoryBase).add(configRepositoryBases).build();
+        this.configRepositoryBases = configRepositoryBases;
     }
 
     @Inject

@@ -2,7 +2,6 @@ package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.net.InetAddresses;
@@ -20,6 +19,8 @@ import com.proofpoint.units.Duration;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -34,23 +35,29 @@ public class LauncherLifecycleManager implements LifecycleManager
     private final Executor executor;
     private final Duration launcherTimeout;
     private final Duration stopTimeout;
-    private final NodeInfo nodeInfo;
-    private final HttpServerInfo httpServerInfo;
+    private final String environment;
+    private final InetAddress bindIp;
+    private final URI serviceInventoryUri;
 
     @Inject
     public LauncherLifecycleManager(AgentConfig config, NodeInfo nodeInfo, HttpServerInfo httpServerInfo)
     {
-        Preconditions.checkNotNull(config, "config is null");
-        Preconditions.checkNotNull(nodeInfo, "nodeInfo is null");
-        Preconditions.checkNotNull(httpServerInfo, "httpServerInfo is null");
+        this(nodeInfo.getEnvironment(), (httpServerInfo.getHttpsUri() != null ? httpServerInfo.getHttpsUri() : httpServerInfo.getHttpUri()), nodeInfo.getBindIp(), config.getLauncherTimeout(),
+                config.getLauncherStopTimeout()
+        );
+    }
 
-        launcherTimeout = config.getLauncherTimeout();
-        stopTimeout = config.getLauncherStopTimeout();
-
-        this.nodeInfo = nodeInfo;
-        this.httpServerInfo = httpServerInfo;
+    public LauncherLifecycleManager(String environment, URI baseUri, InetAddress bindIp, Duration launcherTimeout,
+            Duration launcherStopTimeout)
+    {
+        this.launcherTimeout = launcherTimeout;
+        stopTimeout = launcherStopTimeout;
 
         executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("launcher-command-%s").build());
+        this.environment = environment;
+        this.bindIp = bindIp;
+
+        serviceInventoryUri = baseUri.resolve("/v1/serviceInventory");
     }
 
     @Override
@@ -132,7 +139,7 @@ public class LauncherLifecycleManager implements LifecycleManager
     {
         ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
 
-        map.put("node.environment", nodeInfo.getEnvironment());
+        map.put("node.environment", environment);
         map.put("node.pool", getPool(deployment.getAssignment().getConfig()));
         map.put("node.id", deployment.getNodeId().toString());
         map.put("node.location", deployment.getLocation());
@@ -141,16 +148,12 @@ public class LauncherLifecycleManager implements LifecycleManager
         map.put("node.config-spec", deployment.getAssignment().getConfig().toString());
 
         // add ip only if explicitly set on the agent
-        if (InetAddresses.coerceToInteger(nodeInfo.getBindIp()) != 0) {
-            map.put("node.ip", nodeInfo.getBindIp().getHostAddress());
+        if (bindIp != null && InetAddresses.coerceToInteger(bindIp) != 0) {
+            map.put("node.ip", bindIp.getHostAddress());
         }
 
         // add service inventory uri
-        if (httpServerInfo.getHttpsUri() != null) {
-            map.put("service-inventory.uri", httpServerInfo.getHttpsUri().resolve("/v1/serviceInventory").toString());
-        } else if (httpServerInfo.getHttpUri() != null) {
-            map.put("service-inventory.uri", httpServerInfo.getHttpUri().resolve("/v1/serviceInventory").toString());
-        }
+        map.put("service-inventory.uri", serviceInventoryUri.toString());
 
         File nodeConfig = new File(deployment.getDeploymentDir(), "etc/node.properties");
         nodeConfig.getParentFile().mkdir();

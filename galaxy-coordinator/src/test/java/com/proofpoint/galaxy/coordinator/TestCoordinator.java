@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -101,7 +102,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://agent/" + agentId);
 
         // provision the agent
-        provisioner.addAgent(new Instance("region", "zone", agentId, "test.type", agentUri));
+        provisioner.addAgent(new Instance(agentId, "test.type", Joiner.on('/').join("ec2", "region", "zone", agentId, "agent"), agentUri));
 
         // coordinator won't see it until it update is called
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
@@ -121,13 +122,14 @@ public class TestCoordinator
     @Test
     public void testInstallWithinResourceLimit()
     {
-        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512)));
+                ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.setAgentStatus(status);
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
 
@@ -140,13 +142,14 @@ public class TestCoordinator
     @Test
     public void testInstallNotEnoughResources()
     {
-        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
-                ImmutableMap.<String, Integer>of()));
+                ImmutableMap.<String, Integer>of());
+        coordinator.setAgentStatus(status);
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
         assertEquals(slots.size(), 0);
@@ -155,13 +158,14 @@ public class TestCoordinator
     @Test
     public void testInstallResourcesConsumed()
     {
-        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512)));
+                ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.setAgentStatus(status);
 
         // install an apple server
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);

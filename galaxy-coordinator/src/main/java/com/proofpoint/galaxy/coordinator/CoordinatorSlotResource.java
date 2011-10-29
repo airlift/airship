@@ -13,7 +13,6 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -23,7 +22,7 @@ import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -43,6 +42,7 @@ import java.util.UUID;
 import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.toSlotRepresentation;
 import static java.lang.Math.max;
 
 @Path("/v1/slot")
@@ -76,56 +76,6 @@ public class CoordinatorSlotResource
         Iterable<SlotStatusWithExpectedState> result = coordinator.getAllSlotStatusWithExpectedState(slotFilter);
 
         return Response.ok(Iterables.transform(result, toSlotRepresentation(prefixSize))).build();
-    }
-
-    public static Function<SlotStatusWithExpectedState, SlotStatusRepresentation> toSlotRepresentation(final int size)
-    {
-        return new Function<SlotStatusWithExpectedState, SlotStatusRepresentation>()
-        {
-            public SlotStatusRepresentation apply(SlotStatusWithExpectedState status)
-            {
-                return from(status, size);
-            }
-        };
-    }
-
-    public static SlotStatusRepresentation from(SlotStatusWithExpectedState slotStatusWithExpectedState, int shortIdPrefixSize)
-    {
-        SlotStatus slotStatus = slotStatusWithExpectedState.getSlotStatus();
-        ExpectedSlotStatus expectedSlotStatus = slotStatusWithExpectedState.getExpectedSlotStatus();
-
-        String expectedBinary = null;
-        String expectedConfig = null;
-        String expectedStatus = null;
-        if (expectedSlotStatus != null) {
-            expectedBinary = expectedSlotStatus.getBinary();
-            expectedConfig = expectedSlotStatus.getConfig();
-            expectedStatus = expectedSlotStatus.getStatus() == null ? null : expectedSlotStatus.getStatus().toString();
-        }
-
-        String binary = null;
-        String config = null;
-        if (slotStatus.getAssignment() != null) {
-            binary = slotStatus.getAssignment().getBinary().toString();
-            config = slotStatus.getAssignment().getConfig().toString();
-        }
-
-        return new SlotStatusRepresentation(slotStatus.getId(),
-                slotStatus.getId().toString().substring(0, shortIdPrefixSize),
-                slotStatus.getName(),
-                slotStatus.getSelf(),
-                slotStatus.getLocation(),
-                binary,
-                config,
-                slotStatus.getState().toString(),
-                slotStatus.getVersion(),
-                slotStatus.getStatusMessage(),
-                slotStatus.getInstallPath(),
-                slotStatus.getResources(),
-                expectedBinary,
-                expectedConfig,
-                expectedStatus
-        );
     }
 
     @POST

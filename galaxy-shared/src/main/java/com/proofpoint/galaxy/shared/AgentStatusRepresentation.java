@@ -4,19 +4,34 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.validation.constraints.NotNull;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation
 {
+    public static List<AgentStatusRepresentation> toAgentStatusRepresentations(Iterable<AgentStatus> agents)
+    {
+        return ImmutableList.copyOf(Iterables.transform(agents, new Function<AgentStatus, AgentStatusRepresentation>()
+        {
+            @Override
+            public AgentStatusRepresentation apply(AgentStatus agent)
+            {
+                return from(agent);
+            }
+        }));
+    }
+
     public static final String GALAXY_AGENT_VERSION_HEADER = "x-galaxy-agent-version";
 
     private final String agentId;
@@ -130,6 +145,32 @@ public class AgentStatusRepresentation
     public String getVersion()
     {
         return version;
+    }
+
+    public String getHost() {
+        if (self == null) {
+            return null;
+        }
+        return self.getHost();
+    }
+
+    public String getIp()
+    {
+        String host = getHost();
+        if (host == null) {
+            return null;
+        }
+
+        if ("localhost".equalsIgnoreCase(host)) {
+            return "127.0.0.1";
+        }
+
+        try {
+            return InetAddress.getByName(host).getHostAddress();
+        }
+        catch (UnknownHostException e) {
+            return "unknown";
+        }
     }
 
     public AgentStatus toAgentStatus()

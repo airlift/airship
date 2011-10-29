@@ -15,15 +15,20 @@ public class BinaryUrlResolver
     @Inject
     public BinaryUrlResolver(BinaryRepository repository, HttpServerInfo serverInfo)
     {
+        this(repository, serverInfo.getHttpUri());
+    }
+
+    public BinaryUrlResolver(BinaryRepository repository, URI baseUri)
+    {
         this.repository = repository;
-        baseUri = serverInfo.getHttpUri();
+        this.baseUri = baseUri;
     }
 
     public URI resolve(BinarySpec spec)
     {
         URI uri = repository.getBinaryUri(spec);
 
-        if (uri != null && "file".equalsIgnoreCase(uri.getScheme())) {
+        if (baseUri != null && uri != null && "file".equalsIgnoreCase(uri.getScheme())) {
             UriBuilder uriBuilder = UriBuilder.fromUri(baseUri)
                     .path(BinaryResource.class)
                     .path(spec.getGroupId())

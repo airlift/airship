@@ -24,6 +24,7 @@ import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
+import com.proofpoint.units.Duration;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,13 +48,13 @@ public class Agent
 {
     private final String agentId;
     private final ConcurrentMap<String, Slot> slots;
-    private final AgentConfig config;
     private final DeploymentManagerFactory deploymentManagerFactory;
     private final LifecycleManager lifecycleManager;
     private final File slotsDir;
-    private final HttpServerInfo httpServerInfo;
     private final String location;
     private final Map<String, Integer> resources;
+    private final Duration maxLockWait;
+    private final URI baseUri;
 
     @Inject
     public Agent(AgentConfig config,
@@ -62,30 +63,48 @@ public class Agent
             DeploymentManagerFactory deploymentManagerFactory,
             LifecycleManager lifecycleManager)
     {
-        Preconditions.checkNotNull(config, "config is null");
-        Preconditions.checkNotNull(httpServerInfo, "httpServerInfo is null");
-        Preconditions.checkNotNull(nodeInfo, "nodeInfo is null");
+        this(nodeInfo.getNodeId(),
+                nodeInfo.getLocation(),
+                config.getSlotsDir(),
+                httpServerInfo.getHttpUri(),
+                config.getResourcesFile(),
+                deploymentManagerFactory,
+                lifecycleManager,
+                config.getMaxLockWait()
+        );
+    }
+
+    public Agent(
+            String agentId,
+            String location,
+            String slotsDir,
+            URI baseUri,
+            String resourcesFilename,
+            DeploymentManagerFactory deploymentManagerFactory,
+            LifecycleManager lifecycleManager,
+            Duration maxLockWait)
+    {
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
 
-        this.agentId = nodeInfo.getNodeId();
-        this.config = config;
-        this.httpServerInfo = httpServerInfo;
-        location = nodeInfo.getLocation();
+        this.agentId = agentId;
+        this.baseUri = baseUri;
+        this.maxLockWait = maxLockWait;
+        this.location = location;
 
         this.deploymentManagerFactory = deploymentManagerFactory;
         this.lifecycleManager = lifecycleManager;
 
         slots = new ConcurrentHashMap<String, Slot>();
 
-        slotsDir = new File(this.config.getSlotsDir());
-        if (!slotsDir.isDirectory()) {
-            slotsDir.mkdirs();
-            Preconditions.checkArgument(slotsDir.isDirectory(), format("Slots directory %s is not a directory", slotsDir));
+        this.slotsDir = new File(slotsDir);
+        if (!this.slotsDir.isDirectory()) {
+            this.slotsDir.mkdirs();
+            Preconditions.checkArgument(this.slotsDir.isDirectory(), format("Slots directory %s is not a directory", this.slotsDir));
         }
 
         // Assure data dir exists or can be created
-        File dataDir = new File(this.config.getSlotsDir());
+        File dataDir = new File(slotsDir);
         if (!dataDir.isDirectory()) {
             dataDir.mkdirs();
             Preconditions.checkArgument(dataDir.isDirectory(), format("Data directory %s is not a directory", dataDir));
@@ -100,8 +119,8 @@ public class Agent
                 // todo bad slot
             }
             else {
-                URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
-                Slot slot = new DeploymentSlot(slotUri, deploymentManager, lifecycleManager, config.getMaxLockWait());
+                URI slotUri = baseUri.resolve("/v1/agent/slot/").resolve(slotName);
+                Slot slot = new DeploymentSlot(slotUri, deploymentManager, lifecycleManager, maxLockWait);
                 slots.put(slotName, slot);
             }
         }
@@ -110,8 +129,8 @@ public class Agent
         // Load resources file
         //
         Map<String, Integer> resources = ImmutableMap.of();
-        if (config.getResourcesFile() != null) {
-            File resourcesFile = new File(this.config.getResourcesFile());
+        if (resourcesFilename != null) {
+            File resourcesFile = new File(resourcesFilename);
             if (resourcesFile.canRead()) {
                 ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
                 Properties properties = new Properties();
@@ -156,7 +175,7 @@ public class Agent
             SlotStatus slotStatus = slot.status();
             builder.add(slotStatus);
         }
-        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, httpServerInfo.getHttpUri(), location, null, builder.build(), resources);
+        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, baseUri, location, null, builder.build(), resources);
         return agentStatus;
     }
 
@@ -173,8 +192,8 @@ public class Agent
         // todo name selection is not thread safe
         // create slot
         String slotName = getNextSlotName(installation.getAssignment().getConfig().getComponent());
-        URI slotUri = httpServerInfo.getHttpUri().resolve("/v1/agent/slot/").resolve(slotName);
-        Slot slot = new DeploymentSlot(slotUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, config.getMaxLockWait());
+        URI slotUri = baseUri.resolve("/v1/agent/slot/").resolve(slotName);
+        Slot slot = new DeploymentSlot(slotUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, maxLockWait);
         slots.put(slotName, slot);
 
         // return last slot status

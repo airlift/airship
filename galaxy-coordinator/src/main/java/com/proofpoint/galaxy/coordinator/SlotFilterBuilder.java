@@ -28,6 +28,10 @@ import static java.lang.String.format;
 
 public class SlotFilterBuilder
 {
+    public static SlotFilterBuilder builder(boolean filterRequired) {
+        return new SlotFilterBuilder(filterRequired);
+    }
+
     public static Predicate<SlotStatus> build(UriInfo uriInfo, boolean filterRequired, List<UUID> allUuids)
     {
         SlotFilterBuilder builder = new SlotFilterBuilder(filterRequired);
@@ -44,19 +48,8 @@ public class SlotFilterBuilder
             }
             else if ("uuid" .equals(entry.getKey())) {
                 for (String shortId : entry.getValue()) {
-                    Predicate<UUID> startsWithPrefix = Predicates.compose(startsWith(shortId.toLowerCase()), compose(toLowerCase(), StringFunctions.<UUID>toStringFunction()));
-                    Collection<UUID> matches = Collections2.filter(allUuids, startsWithPrefix);
-
-                    if (matches.size() > 1) {
-                        throw new IllegalArgumentException(format("Ambiguous expansion for id '%s': %s", shortId, matches));
-                    }
-
-                    if (matches.isEmpty()) {
-                        builder.shortCircuit();
+                    if (!builder.addSlotUuidFilter(shortId, allUuids)) {
                         break;
-                    }
-                    else {
-                        builder.addSlotUuidFilter(matches.iterator().next());
                     }
                 }
             }
@@ -104,6 +97,25 @@ public class SlotFilterBuilder
         SlotLifecycleState state = SlotLifecycleState.lookup(stateFilter);
         Preconditions.checkArgument(state != null, "unknown state " + stateFilter);
         stateFilters.add(new StatePredicate(state));
+    }
+
+    public boolean addSlotUuidFilter(String shortId, List<UUID> allUuids)
+    {
+        Predicate<UUID> startsWithPrefix = Predicates.compose(startsWith(shortId.toLowerCase()), compose(toLowerCase(), StringFunctions.<UUID>toStringFunction()));
+        Collection<UUID> matches = Collections2.filter(allUuids, startsWithPrefix);
+
+        if (matches.size() > 1) {
+            throw new IllegalArgumentException(format("Ambiguous expansion for id '%s': %s", shortId, matches));
+        }
+
+        if (matches.isEmpty()) {
+            shortCircuit();
+            return false;
+        }
+        else {
+            addSlotUuidFilter(matches.iterator().next());
+            return true;
+        }
     }
 
     public void addSlotUuidFilter(UUID uuid)

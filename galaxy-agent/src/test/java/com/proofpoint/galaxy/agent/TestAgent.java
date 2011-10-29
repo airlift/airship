@@ -30,7 +30,7 @@ public class TestAgent
                 .setSlotsDir(new File(tempDir, "slots").getAbsolutePath())
                 .setResourcesFile(resourcesFile.getAbsolutePath());
 
-        nodeInfo = new NodeInfo("test", "pool", "nodeId", InetAddress.getByAddress(new byte[]{127, 0, 0, 1}), "location");
+        nodeInfo = new NodeInfo("test", "pool", "nodeId", InetAddress.getByAddress(new byte[]{127, 0, 0, 1}), "location", "binarySpec", "configSpec");
 
         agent = new Agent(
                 config,

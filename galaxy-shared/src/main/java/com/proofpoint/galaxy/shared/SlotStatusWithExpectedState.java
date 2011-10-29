@@ -1,6 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
-
-import com.proofpoint.galaxy.shared.SlotStatus;
+package com.proofpoint.galaxy.shared;
 
 public class SlotStatusWithExpectedState
 {

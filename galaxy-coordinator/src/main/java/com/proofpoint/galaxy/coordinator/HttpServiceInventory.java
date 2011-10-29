@@ -40,6 +40,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class HttpServiceInventory implements ServiceInventory
 {
     private static final Logger log = Logger.get(HttpServiceInventory.class);
@@ -49,15 +51,20 @@ public class HttpServiceInventory implements ServiceInventory
     private final Set<ConfigSpec> invalidServiceInventory = Collections.newSetFromMap(new ConcurrentHashMap<ConfigSpec, Boolean>());
 
     @Inject
-    public HttpServiceInventory(ConfigRepository configRepository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec, NodeInfo nodeInfo)
+    public HttpServiceInventory(ConfigRepository configRepository, NodeInfo nodeInfo, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec)
+    {
+        this(configRepository, checkNotNull(nodeInfo, "nodeInfo is null").getEnvironment(), descriptorsJsonCodec);
+    }
+
+    public HttpServiceInventory(ConfigRepository configRepository, String environment, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec)
     {
         Preconditions.checkNotNull(configRepository, "repository is null");
         Preconditions.checkNotNull(descriptorsJsonCodec, "descriptorsJsonCodec is null");
-        Preconditions.checkNotNull(nodeInfo, "nodeInfo is null");
+        Preconditions.checkNotNull(environment, "environment is null");
 
         this.configRepository = configRepository;
         this.descriptorsJsonCodec = descriptorsJsonCodec;
-        environment = nodeInfo.getEnvironment();
+        this.environment = environment;
     }
 
     @Override

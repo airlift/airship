@@ -175,13 +175,14 @@ public class TestCoordinatorSlotResource
     public void testInstall(int numberOfAgents, int limit, Assignment assignment)
     {
         for (int i = 0; i < numberOfAgents; i++) {
-            coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+            final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                     ONLINE,
                     URI.create("fake://appleServer1/"),
                     "unknown/location",
                     "instance.type",
                     ImmutableList.<SlotStatus>of(),
-                    ImmutableMap.of("cpu", 8, "memory", 1024)));
+                    ImmutableMap.of("cpu", 8, "memory", 1024));
+            coordinator.setAgentStatus(status);
         }
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
@@ -203,13 +204,14 @@ public class TestCoordinatorSlotResource
     @Test
     public void testInstallWithinResourceLimit()
     {
-        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512)));
+                ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.setAgentStatus(status);
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
         Response response = resource.install(AssignmentRepresentation.from(APPLE_ASSIGNMENT), 1, uriInfo);
@@ -228,13 +230,14 @@ public class TestCoordinatorSlotResource
     @Test
     public void testInstallNotEnoughResources()
     {
-        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
-                ImmutableMap.<String, Integer>of()));
+                ImmutableMap.<String, Integer>of());
+        coordinator.setAgentStatus(status);
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
         Response response = resource.install(AssignmentRepresentation.from(APPLE_ASSIGNMENT), 1, uriInfo);
@@ -248,13 +251,14 @@ public class TestCoordinatorSlotResource
     @Test
     public void testInstallResourcesConsumed()
     {
-        coordinator.setAgentStatus(new AgentStatus(UUID.randomUUID().toString(),
+        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512)));
+                ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.setAgentStatus(status);
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
 

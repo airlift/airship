@@ -11,6 +11,7 @@ import com.amazonaws.services.simpledb.model.SelectRequest;
 import com.amazonaws.services.simpledb.model.SelectResult;
 import com.google.common.base.Preconditions;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;

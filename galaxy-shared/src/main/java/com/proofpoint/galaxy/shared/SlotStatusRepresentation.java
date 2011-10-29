@@ -21,7 +21,9 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -99,6 +101,56 @@ public class SlotStatusRepresentation
                 null,
                 null,
                 null
+        );
+    }
+
+    public static Function<SlotStatusWithExpectedState, SlotStatusRepresentation> toSlotRepresentation(final int size)
+    {
+        return new Function<SlotStatusWithExpectedState, SlotStatusRepresentation>()
+        {
+            public SlotStatusRepresentation apply(SlotStatusWithExpectedState status)
+            {
+                return from(status, size);
+            }
+        };
+    }
+
+    public static SlotStatusRepresentation from(SlotStatusWithExpectedState slotStatusWithExpectedState, int shortIdPrefixSize)
+    {
+        SlotStatus slotStatus = slotStatusWithExpectedState.getSlotStatus();
+        ExpectedSlotStatus expectedSlotStatus = slotStatusWithExpectedState.getExpectedSlotStatus();
+
+        String expectedBinary = null;
+        String expectedConfig = null;
+        String expectedStatus = null;
+        if (expectedSlotStatus != null) {
+            expectedBinary = expectedSlotStatus.getBinary();
+            expectedConfig = expectedSlotStatus.getConfig();
+            expectedStatus = expectedSlotStatus.getStatus() == null ? null : expectedSlotStatus.getStatus().toString();
+        }
+
+        String binary = null;
+        String config = null;
+        if (slotStatus.getAssignment() != null) {
+            binary = slotStatus.getAssignment().getBinary().toString();
+            config = slotStatus.getAssignment().getConfig().toString();
+        }
+
+        return new SlotStatusRepresentation(slotStatus.getId(),
+                slotStatus.getId().toString().substring(0, shortIdPrefixSize),
+                slotStatus.getName(),
+                slotStatus.getSelf(),
+                slotStatus.getLocation(),
+                binary,
+                config,
+                slotStatus.getState().toString(),
+                slotStatus.getVersion(),
+                slotStatus.getStatusMessage(),
+                slotStatus.getInstallPath(),
+                slotStatus.getResources(),
+                expectedBinary,
+                expectedConfig,
+                expectedStatus
         );
     }
 
@@ -242,6 +294,32 @@ public class SlotStatusRepresentation
         }
         else {
             return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), null, installPath, resources);
+        }
+    }
+
+    public String getHost() {
+        if (self == null) {
+            return null;
+        }
+        return self.getHost();
+    }
+
+    public String getIp()
+    {
+        String host = getHost();
+        if (host == null) {
+            return null;
+        }
+
+        if ("localhost".equalsIgnoreCase(host)) {
+            return "127.0.0.1";
+        }
+
+        try {
+            return InetAddress.getByName(host).getHostAddress();
+        }
+        catch (UnknownHostException e) {
+            return "unknown";
         }
     }
 

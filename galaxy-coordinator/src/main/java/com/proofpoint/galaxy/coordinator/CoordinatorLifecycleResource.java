@@ -54,17 +54,8 @@ public class CoordinatorLifecycleResource
     {
         Preconditions.checkNotNull(newState, "newState must not be null");
 
-        SlotLifecycleState state;
-        if ("running" .equals(newState)) {
-            state = SlotLifecycleState.RUNNING;
-        }
-        else if ("restarting" .equals(newState)) {
-            state = SlotLifecycleState.RESTARTING;
-        }
-        else if ("stopped" .equals(newState)) {
-            state = SlotLifecycleState.STOPPED;
-        }
-        else {
+        SlotLifecycleState state = SlotLifecycleState.lookup(newState);
+        if (state == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 

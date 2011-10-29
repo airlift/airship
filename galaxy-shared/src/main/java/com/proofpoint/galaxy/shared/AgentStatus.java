@@ -44,6 +44,21 @@ public class AgentStatus
         this.version = createVersion(agentId, state, slots, resources);
     }
 
+    public AgentStatus(AgentStatus agentStatus, AgentLifecycleState state)
+    {
+        Preconditions.checkNotNull(agentStatus, "agentStatus is null");
+        Preconditions.checkNotNull(state, "state is null");
+
+        this.uri = agentStatus.uri;
+        this.state = state;
+        this.agentId = agentStatus.agentId;
+        this.location = agentStatus.location;
+        this.instanceType = agentStatus.instanceType;
+        this.slots = agentStatus.slots;
+        this.resources = agentStatus.resources;
+        this.version = createVersion(agentId, state, slots.values(), resources);
+    }
+
     public String getAgentId()
     {
         return agentId;
@@ -52,6 +67,11 @@ public class AgentStatus
     public AgentLifecycleState getState()
     {
         return state;
+    }
+    
+    public AgentStatus updateState(AgentLifecycleState state)
+    {
+        return new AgentStatus(this, state);
     }
 
     public URI getUri()
@@ -141,7 +161,7 @@ public class AgentStatus
         };
     }
 
-    public static String createVersion(String agentId, AgentLifecycleState state, List<SlotStatus> slots, Map<String, Integer> resources)
+    public static String createVersion(String agentId, AgentLifecycleState state, Iterable<SlotStatus> slots, Map<String, Integer> resources)
     {
         List<Object> parts = new ArrayList<Object>();
         parts.add(agentId);

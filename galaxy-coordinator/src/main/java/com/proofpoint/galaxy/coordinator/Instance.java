@@ -15,7 +15,6 @@
  */
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.Immutable;
@@ -31,24 +30,15 @@ public class Instance
 {
     private final String instanceId;
     private final String instanceType;
-    private final String region;
-    private final String availabilityZone;
     private String location;
     private final URI uri;
 
-    public Instance(String region, String availabilityZone, String instanceId, String instanceType)
-    {
-        this(region, availabilityZone, instanceId, instanceType, null);
-    }
-
-    public Instance(String region, String availabilityZone, String instanceId, String instanceType, URI uri)
+    public Instance(String instanceId, String instanceType, String location, URI uri)
     {
         this.uri = uri;
-        this.region = checkNotNull(region, "region is null");
-        this.availabilityZone = checkNotNull(availabilityZone, "availabilityZone is null");
         this.instanceId = checkNotNull(instanceId, "instanceId is null");
         this.instanceType = checkNotNull(instanceType, "instanceType is null");
-        location = Joiner.on('/').join("ec2", region, availabilityZone, instanceId, "agent");
+        this.location = location;
     }
 
     public String getInstanceId()
@@ -59,16 +49,6 @@ public class Instance
     public String getInstanceType()
     {
         return instanceType;
-    }
-
-    public String getRegion()
-    {
-        return region;
-    }
-
-    public String getAvailabilityZone()
-    {
-        return availabilityZone;
     }
 
     public String getLocation()
@@ -106,8 +86,6 @@ public class Instance
         return Objects.toStringHelper(this)
                 .add("instanceId", instanceId)
                 .add("instanceType", instanceType)
-                .add("region", region)
-                .add("availabilityZone", availabilityZone)
                 .add("location", location)
                 .add("uri", uri)
                 .toString();

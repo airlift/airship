@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.common.io.PatternFilenameFilter;
+import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.FileUtils;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
