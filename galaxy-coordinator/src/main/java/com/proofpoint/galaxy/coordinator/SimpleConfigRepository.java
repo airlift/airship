@@ -2,6 +2,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -16,6 +17,7 @@ import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.node.NodeInfo;
 
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +89,7 @@ public class SimpleConfigRepository implements ConfigRepository
     }
 
     @Override
-    public InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
+    public URI getConfigResource(String environment, ConfigSpec configSpec, String path)
     {
         StringBuilder uriBuilder = toBaseUri(configSpec);
 
@@ -95,18 +97,32 @@ public class SimpleConfigRepository implements ConfigRepository
             try {
                 URI configBaseUri = configRepositoryBase.resolve(uriBuilder.toString());
                 URI uri = configRepositoryBase.resolve(configBaseUri.resolve(path));
-
                 InputSupplier<InputStream> inputSupplier = Resources.newInputStreamSupplier(uri.toURL());
 
                 // attempt to read the first line of the file to make sure it is a valid location
                 CharStreams.readFirstLine(CharStreams.newReaderSupplier(inputSupplier, Charsets.UTF_8));
 
-                return inputSupplier;
+                return uri;
             }
             catch (Exception ignored) {
             }
         }
         return null;
+    }
+
+    @Override
+    public InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
+    {
+        URI resource = getConfigResource(environment, configSpec, path);
+        if (resource == null) {
+            return null;
+        }
+        try {
+            return Resources.newInputStreamSupplier(resource.toURL());
+        }
+        catch (MalformedURLException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     private StringBuilder toBaseUri(ConfigSpec configSpec)

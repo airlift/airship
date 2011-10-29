@@ -29,6 +29,12 @@ public class RepoHelper
         }
 
         @Override
+        public URI getConfigResource(String environment, ConfigSpec configSpec, String path)
+        {
+            return null;
+        }
+
+        @Override
         public InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
         {
             return null;

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.galaxy.shared.FileUtils.copyRecursively;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 

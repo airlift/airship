@@ -18,7 +18,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
@@ -117,7 +116,8 @@ public class GitConfigurationRepository implements ConfigRepository
             String path = basePath + file.getName();
             if (file.isDirectory()) {
                 builder.addAll(getConfigMap(path + "/", file));
-            } else if (!file.getName().startsWith("galaxy-")) {
+            }
+            else if (!file.getName().startsWith("galaxy-")) {
                 builder.add(path);
             }
         }
@@ -128,10 +128,24 @@ public class GitConfigurationRepository implements ConfigRepository
     @Override
     public InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
     {
-        return getConfigFile(environment, configSpec.getComponent(), configSpec.getVersion(), configSpec.getPool(), path);
+        File configFile = getConfigFile(environment, configSpec.getComponent(), configSpec.getVersion(), configSpec.getPool(), path);
+        if (configFile == null) {
+            return null;
+        }
+        return Files.newInputStreamSupplier(configFile);
     }
 
-    public InputSupplier<FileInputStream> getConfigFile(String environment, String type, String version, String pool, String path)
+    @Override
+    public URI getConfigResource(String environment, ConfigSpec configSpec, String path)
+    {
+        File configFile = getConfigFile(environment, configSpec.getComponent(), configSpec.getVersion(), configSpec.getPool(), path);
+        if (configFile == null) {
+            return null;
+        }
+        return configFile.toURI();
+    }
+
+    public File getConfigFile(String environment, String type, String version, String pool, String path)
     {
         if (localRepository == null) {
             return null;
@@ -144,7 +158,7 @@ public class GitConfigurationRepository implements ConfigRepository
                 return null;
             }
         }
-        return Files.newInputStreamSupplier(file);
+        return file;
     }
 
     private static class RepositoryUpdater implements Runnable

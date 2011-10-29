@@ -1,20 +1,16 @@
 package com.proofpoint.galaxy.configuration;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.InputSupplier;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
+import java.io.File;
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
+
+import static com.google.common.io.Files.newInputStreamSupplier;
 
 @Path("/v1/config/{environment}/{type}/{pool}/{version}")
 public class ConfigurationResource
@@ -50,10 +46,10 @@ public class ConfigurationResource
             @PathParam("version") String version,
             @PathParam("path") String path)
     {
-        InputSupplier<? extends InputStream> configFile = configurationRepository.getConfigFile(environment, type, version, pool, path);
+        File configFile = configurationRepository.getConfigFile(environment, type, version, pool, path);
         if (configFile == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
-        return Response.ok(new InputSupplierStreamingOutput(configFile)).build();
+        return Response.ok(new InputSupplierStreamingOutput(newInputStreamSupplier(configFile))).build();
     }
 }

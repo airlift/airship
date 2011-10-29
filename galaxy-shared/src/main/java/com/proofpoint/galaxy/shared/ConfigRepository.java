@@ -9,5 +9,6 @@ import java.util.Map;
 public interface ConfigRepository
 {
     Map<String, URI> getConfigMap(String environment, ConfigSpec configSpec);
+    URI getConfigResource(String environment, ConfigSpec configSpec, String path);
     InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path);
 }
