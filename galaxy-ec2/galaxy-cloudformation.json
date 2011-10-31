@@ -57,19 +57,59 @@
                         "PolicyDocument": {
                             "Statement": [{
                                 "Sid": "Stmt1318024300306",
-                                "Action": [
-                                    "ec2:CreateTags",
-                                    "ec2:DeleteTags",
-                                    "ec2:DescribeAvailabilityZones",
-                                    "ec2:DescribeInstances",
-                                    "ec2:RunInstances",
-                                    "ec2:StartInstances",
-                                    "ec2:StopInstances",
-                                    "ec2:TerminateInstances"
-                                ],
-                                "Effect": "Allow",
-                                "Resource": "*"
-                            }]
+                                    "Action": [
+                                        "ec2:CreateTags",
+                                        "ec2:DeleteTags",
+                                        "ec2:DescribeAvailabilityZones",
+                                        "ec2:DescribeInstances",
+                                        "ec2:RunInstances",
+                                        "ec2:StartInstances",
+                                        "ec2:StopInstances",
+                                        "ec2:TerminateInstances"
+                                    ],
+                                    "Effect": "Allow",
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Sid": "Stmt1319924400132",
+                                    "Action": [
+                                        "s3:ListBucket"
+                                    ],
+                                    "Effect": "Allow",
+                                    "Resource" : { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "KeyStoreBucket" }]] },
+                                    "Condition": {
+                                        "StringEquals": {
+                                            "s3:delimiter": "/"
+                                        },
+                                        "Bool": {
+                                            "aws:SecureTransport": "true"
+                                        }
+                                    }
+                                },
+                                {
+                                    "Sid": "Stmt1319924959909",
+                                    "Action": [
+                                        "s3:GetObject"
+                                    ],
+                                    "Effect": "Allow",
+                                    "Resource" : { "Fn::Join": ["", ["arn:aws:s3:::", { "Fn::Join": ["/", [{ "Ref": "KeyStoreBucket" }, { "Ref": "KeyStorePath" }, "*"]] }]] },
+                                    "Condition": {
+                                        "Bool": {
+                                            "aws:SecureTransport": "true"
+                                        }
+                                    }
+                                },
+                                {
+                                    "Sid": "Stmt1319926760042",
+                                    "Action": [
+                                        "sdb:CreateDomain",
+                                        "sdb:PutAttributes",
+                                        "sdb:Select"
+                                    ],
+                                    "Effect": "Allow",
+                                    "Resource" : { "Fn::Join": ["", ["arn:aws:sdb:*:*:domain/galaxy-", { "Ref": "Environment" }]] }
+                                }
+                            ]
                         }
                     }
                 ]
