@@ -39,6 +39,12 @@
         "GalaxyVersion": {
             "Type": "String",
             "Default": "0.7-SNAPSHOT"
+        },
+        "KeyStoreBucket": {
+            "Type": "String"
+        },
+        "KeyStorePath": {
+            "Type": "String"
         }
     },
     "Resources" : {
@@ -168,6 +174,12 @@
                                              },
                                              {
                                                  "Fn::Join": ["=", ["coordinator.aws.agent.default-instance-type", { "Ref": "DefaultAgentInstanceType" }]]
+                                             },
+                                             {
+                                                 "Fn::Join": ["=", ["coordinator.aws.s3-keystore.bucket", { "Ref": "KeyStoreBucket" }]]
+                                             },
+                                             {
+                                                 "Fn::Join": ["=", ["coordinator.aws.s3-keystore.path", { "Ref": "KeyStorePath" }]]
                                              },
                                              "",
                                              "--===============4809107299230207060==",
