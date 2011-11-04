@@ -1,7 +1,5 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -177,6 +175,7 @@ public class Coordinator
         return agent.status();
     }
 
+    @VisibleForTesting
     public void updateAllAgents()
     {
         for (Instance instance : this.provisioner.listAgents()) {
@@ -231,6 +230,7 @@ public class Coordinator
         return agents;
     }
 
+    @VisibleForTesting
     public boolean removeAgent(String agentId)
     {
         return agents.remove(agentId) != null;
