@@ -137,6 +137,8 @@ public class LauncherLifecycleManager implements LifecycleManager
         map.put("node.id", deployment.getNodeId().toString());
         map.put("node.location", deployment.getLocation());
         map.put("node.data-dir", deployment.getDataDir().getAbsolutePath());
+        map.put("node.binary-spec", deployment.getAssignment().getBinary().toString());
+        map.put("node.config-spec", deployment.getAssignment().getConfig().toString());
 
         // add ip only if explicitly set on the agent
         if (InetAddresses.coerceToInteger(nodeInfo.getBindIp()) != 0) {
