@@ -2,18 +2,22 @@
     "AWSTemplateFormatVersion" : "2010-09-09",
     "Parameters" : {
         "Environment": {
+            "Description" : "Unique name of this Galaxy environment within your EC2 account",
             "Type": "String",
             "AllowedPattern": "[a-z0-9][_a-z0-9]*"
         },
         "CoordinatorInstanceType" : {
+            "Description" : "EC2 instance type of the coordinator",
             "Default" : "t1.micro",
             "Type" : "String"
         },
         "DefaultAgentInstanceType" : {
+            "Description" : "Default EC2 instance type for agents",
             "Default" : "t1.micro",
             "Type" : "String"
         },
         "SecurityGroup": {
+            "Description" : "EC2 security group for coordinator and agents",
             "Type": "String",
             "Default": "default"
         },
@@ -23,27 +27,33 @@
             "Default": "keypair"
         },
         "CoordinatorPort": {
+            "Description" : "Bind port for coordinator",
             "Type": "Number",
             "Default": "64000",
             "MinValue": "1",
             "MaxValue": "65535"
         },
         "BinaryRepoURI": {
+            "Description" : "Urls of the binary repositories",
             "Type": "String",
             "Default": "https://oss.sonatype.org/content/repositories/releases/,https://oss.sonatype.org/content/repositories/snapshots"
         },
         "ConfigGitRepoURI": {
+            "Description" : "Git url of the configuration repository",
             "Type": "String",
             "Default": "git://github.com/dain/galaxy-example-config.git"
         },
         "GalaxyVersion": {
+            "Description" : "Version of Galaxy to use",
             "Type": "String",
             "Default": "0.7-SNAPSHOT"
         },
         "KeyStoreBucket": {
+            "Description" : "Name of the S3 bucket containing your ssh public keys",
             "Type": "String"
         },
         "KeyStorePath": {
+            "Description" : "Path to your ssh public keys (within of the S3)",
             "Type": "String"
         }
     },
@@ -255,6 +265,11 @@
         }
     },
     "Outputs" : {
+        "Coordinator" : {
+            "Value" : {
+                "Fn::GetAtt" : [ "CoordinatorInstance" , "PublicDnsName" ]
+            }
+        },
         "CoordinatorURL" : {
             "Value" : {
                 "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "CoordinatorInstance" , "PublicIp" ] }, ":", { "Ref" : "CoordinatorPort" }]]
