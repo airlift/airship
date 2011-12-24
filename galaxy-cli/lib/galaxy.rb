@@ -11,6 +11,15 @@ require 'galaxy/colorize'
 require 'galaxy/shell'
 require 'galaxy/table'
 
+# stop http client from overriding the Date header
+class HTTPClient
+  class Session
+    def set_header(req)
+      # do nothing
+    end
+  end
+end
+
 module Galaxy
   GALAXY_VERSION = "0.1"
 
