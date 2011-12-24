@@ -194,7 +194,7 @@ group_id = 'com.proofpoint.galaxy'
 version = install_manifest['galaxy.version']
 
 # install galaxy gem
-gem_url, errors = MavenRepo.new(urls).resolve(group_id, 'galaxy', version, "gem")
+gem_url, errors = MavenRepo.new(urls).resolve(group_id, 'galaxy-cli', version, "gem")
 if gem_url.nil?
   errors.each { |uri, e| puts "#{uri} => #{e.message}" }
   raise "Could not resolve url for #{group_id}:galaxy:#{version}:gem"
