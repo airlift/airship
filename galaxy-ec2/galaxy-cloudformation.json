@@ -112,7 +112,7 @@
                 "Tags" : [
                     {
                         "Key" : "Name",
-                        "Value" : { "Fn::Join": ["-", ["galaxy", { "Ref": "AWS::StackName" }]] }
+                        "Value" : { "Fn::Join": ["-", ["galaxy", { "Ref": "Environment" }, "coordinator"]] }
                     }
                 ],
                 "UserData": {
