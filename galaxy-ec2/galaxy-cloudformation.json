@@ -47,14 +47,6 @@
             "Description" : "Version of Galaxy to use",
             "Type": "String",
             "Default": "0.7-SNAPSHOT"
-        },
-        "KeyStoreBucket": {
-            "Description" : "Name of the S3 bucket containing your ssh public keys",
-            "Type": "String"
-        },
-        "KeyStorePath": {
-            "Description" : "Path to your ssh public keys (within of the S3)",
-            "Type": "String"
         }
     },
     "Resources" : {
@@ -79,35 +71,6 @@
                                     ],
                                     "Effect": "Allow",
                                     "Resource": "*"
-                                },
-                                {
-                                    "Sid": "Stmt1319924400132",
-                                    "Action": [
-                                        "s3:ListBucket"
-                                    ],
-                                    "Effect": "Allow",
-                                    "Resource" : { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "KeyStoreBucket" }]] },
-                                    "Condition": {
-                                        "StringEquals": {
-                                            "s3:delimiter": "/"
-                                        },
-                                        "Bool": {
-                                            "aws:SecureTransport": "true"
-                                        }
-                                    }
-                                },
-                                {
-                                    "Sid": "Stmt1319924959909",
-                                    "Action": [
-                                        "s3:GetObject"
-                                    ],
-                                    "Effect": "Allow",
-                                    "Resource" : { "Fn::Join": ["", ["arn:aws:s3:::", { "Fn::Join": ["/", [{ "Ref": "KeyStoreBucket" }, { "Ref": "KeyStorePath" }, "*"]] }]] },
-                                    "Condition": {
-                                        "Bool": {
-                                            "aws:SecureTransport": "true"
-                                        }
-                                    }
                                 },
                                 {
                                     "Sid": "Stmt1319926760042",
@@ -224,12 +187,6 @@
                                              },
                                              {
                                                  "Fn::Join": ["=", ["coordinator.aws.agent.default-instance-type", { "Ref": "DefaultAgentInstanceType" }]]
-                                             },
-                                             {
-                                                 "Fn::Join": ["=", ["coordinator.aws.s3-keystore.bucket", { "Ref": "KeyStoreBucket" }]]
-                                             },
-                                             {
-                                                 "Fn::Join": ["=", ["coordinator.aws.s3-keystore.path", { "Ref": "KeyStorePath" }]]
                                              },
                                              "",
                                              "--===============4809107299230207060==",
