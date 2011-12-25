@@ -22,6 +22,7 @@ import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Time;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -56,34 +57,49 @@ public class S3AuthorizedKeyStore
 
     public S3AuthorizedKeyStore(AmazonS3 s3Client, String bucketName, String path, Duration refreshInterval)
     {
-        this.s3Client = checkNotNull(s3Client);
-        this.bucketName = checkNotNull(bucketName);
-        if (!path.endsWith("/")) {
-            path = path + "/";
+        this.s3Client = s3Client;
+        this.bucketName = bucketName;
+
+        if (bucketName != null) {
+            if (path == null) {
+                path = "/";
+            } else if (!path.endsWith("/")) {
+                path = path + "/";
+            }
         }
-        this.path = checkNotNull(path);
-        this.refreshInterval = checkNotNull(refreshInterval);
-        executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("S3AuthorizedKeyStore-%s").build());
+        this.path = path;
+
+        this.refreshInterval = refreshInterval;
+        if (refreshInterval != null) {
+            executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("S3AuthorizedKeyStore-%s").build());
+        } else {
+            executor = null;
+        }
+
         refreshKeys();
     }
 
     @PostConstruct
     public void start()
     {
-        executor.scheduleWithFixedDelay(new Runnable()
-        {
-            @Override
-            public void run()
+        if (executor != null) {
+            executor.scheduleWithFixedDelay(new Runnable()
             {
-                refreshKeys();
-            }
-        }, 0, (long) refreshInterval.toMillis(), TimeUnit.MILLISECONDS);
+                @Override
+                public void run()
+                {
+                    refreshKeys();
+                }
+            }, 0, (long) refreshInterval.toMillis(), TimeUnit.MILLISECONDS);
+        }
     }
 
     @PreDestroy
     public void stop()
     {
-        executor.shutdownNow();
+        if (executor != null) {
+            executor.shutdownNow();
+        }
     }
 
     @Override
@@ -96,6 +112,10 @@ public class S3AuthorizedKeyStore
     synchronized Map<Fingerprint, AuthorizedKey> refreshKeys()
     {
         ImmutableMap.Builder<Fingerprint, AuthorizedKey> newAuthorizedKeys = ImmutableMap.builder();
+        if (bucketName == null) {
+            return newAuthorizedKeys.build();
+        }
+
         Map<String, KeyFile> newKeyFiles = new TreeMap<String, KeyFile>();
         for (S3ObjectSummary objectSummary : new S3ObjectListing(s3Client, new ListObjectsRequest(bucketName, path, null, "/", null))) {
             KeyFile keyFile = keyFiles.get(objectSummary.getKey());

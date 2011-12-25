@@ -132,7 +132,6 @@ public class AwsProvisionerConfig
         return awsEndpoint;
     }
 
-    @NotNull
     public String getS3KeystoreBucket()
     {
         return s3KeystoreBucket;
@@ -146,7 +145,6 @@ public class AwsProvisionerConfig
         return this;
     }
 
-    @NotNull
     public String getS3KeystorePath()
     {
         return s3KeystorePath;
@@ -160,7 +158,6 @@ public class AwsProvisionerConfig
         return this;
     }
 
-    @NotNull
     public Duration getS3KeystoreRefreshInterval()
     {
         return s3KeystoreRefreshInterval;

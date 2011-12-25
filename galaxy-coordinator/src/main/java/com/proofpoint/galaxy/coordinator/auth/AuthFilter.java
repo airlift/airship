@@ -39,11 +39,13 @@ public class AuthFilter
     private static final Duration MAX_REQUEST_TIME_SKEW = new Duration(5, TimeUnit.MINUTES);
 
     private final SignatureVerifier verifier;
+    private final boolean enabled;
 
     @Inject
-    public AuthFilter(SignatureVerifier verifier)
+    public AuthFilter(AuthConfig config, SignatureVerifier verifier)
     {
         this.verifier = verifier;
+        this.enabled = config.isEnabled();
     }
 
     @Override
@@ -64,6 +66,11 @@ public class AuthFilter
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
             throws IOException, ServletException
     {
+        if (!enabled) {
+            chain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
