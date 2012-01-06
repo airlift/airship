@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
@@ -55,6 +56,12 @@ public class FileStateManager implements StateManager
             }
         }
         return slots;
+    }
+
+    @Override
+    public void deleteExpectedState(UUID slotId)
+    {
+         new File(dataDir, slotId.toString() + ".json").delete();
     }
 
     @Override

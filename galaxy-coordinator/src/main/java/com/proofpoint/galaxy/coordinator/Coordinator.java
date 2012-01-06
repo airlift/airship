@@ -375,6 +375,24 @@ public class Coordinator
         }));
     }
 
+    public List<SlotStatus> resetExpectedState(Predicate<SlotStatus> filter)
+    {
+        return ImmutableList.copyOf(transform(filter(getAllSlotStatus(), filter), new Function<SlotStatus, SlotStatus>()
+        {
+            @Override
+            public SlotStatus apply(SlotStatus slotStatus)
+            {
+                if (slotStatus.getState() != SlotLifecycleState.UNKNOWN) {
+                    stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), slotStatus.getState(), slotStatus.getAssignment()));
+                }
+                else {
+                    stateManager.deleteExpectedState(slotStatus.getId());
+                }
+                return slotStatus;
+            }
+        }));
+    }
+
     public List<SlotStatus> getAllSlotStatus()
     {
         return getAllSlotsStatus(Predicates.<SlotStatus>alwaysTrue());

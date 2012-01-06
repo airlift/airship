@@ -3,6 +3,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.model.Attribute;
 import com.amazonaws.services.simpledb.model.CreateDomainRequest;
+import com.amazonaws.services.simpledb.model.DeleteAttributesRequest;
 import com.amazonaws.services.simpledb.model.Item;
 import com.amazonaws.services.simpledb.model.PutAttributesRequest;
 import com.amazonaws.services.simpledb.model.ReplaceableAttribute;
@@ -54,6 +55,24 @@ public class SimpleDbStateManager implements StateManager
             log.error(e, "Error reading expected slot status");
         }
         return slots;
+    }
+
+    @Override
+    public void deleteExpectedState(UUID slotId)
+    {
+        Preconditions.checkNotNull(slotId, "id is null");
+
+        List<Attribute> attributes = newArrayList();
+        attributes.add(new Attribute("state", null));
+        attributes.add(new Attribute("binary", null));
+        attributes.add(new Attribute("config", null));
+
+        try {
+            simpleDb.deleteAttributes(new DeleteAttributesRequest().withDomainName(domainName).withItemName(slotId.toString()).withAttributes(attributes));
+        }
+        catch (Exception e) {
+            log.error(e, "Error deleting expected slot status for slot %s", slotId);
+        }
     }
 
     @Override

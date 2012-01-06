@@ -241,6 +241,16 @@ module Galaxy
       []
     end
 
+    def self.reset_to_actual(filter, options, args)
+      if !args.empty? then
+        raise CommandError.new(:invalid_usage, "You can not pass arguments to reset-to-actual.")
+      end
+      if filter.empty? then
+        raise CommandError.new(:invalid_usage, "You must specify a filter when for reset-to-actual.")
+      end
+      coordinator_request(filter, options, :delete, "expected-state")
+    end
+
     def self.agent_show(filter, options, args)
       if !args.empty? then
         raise CommandError.new(:invalid_usage, "You can not pass arguments to agent show.")
@@ -398,7 +408,7 @@ module Galaxy
 
   class CLI
 
-    COMMANDS = [:show, :install, :upgrade, :terminate, :start, :stop, :restart, :ssh, :agent_show, :agent_add]
+    COMMANDS = [:show, :install, :upgrade, :terminate, :start, :stop, :restart, :ssh, :reset_to_actual, :agent_show, :agent_add]
     INITIAL_OPTIONS = {
         :coordinator_url => ENV['GALAXY_COORDINATOR'] || 'http://localhost:64000',
         :ssh_command => "bash --login"
@@ -505,6 +515,7 @@ NOTES
         exit EXIT_CODES[:success]
       end
 
+      args[0] = args[0].gsub('-', '_');
       command = args[0].to_sym
 
       is_agent = false
