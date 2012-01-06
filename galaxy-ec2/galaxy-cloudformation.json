@@ -34,7 +34,7 @@
             "MaxValue": "65535"
         },
         "BinaryRepoURI": {
-            "Description" : "Urls of the binary repositories",
+            "Description" : "Urls of the binary repositories (comma-separated)",
             "Type": "String",
             "Default": "https://oss.sonatype.org/content/repositories/releases/,https://oss.sonatype.org/content/repositories/snapshots"
         },
