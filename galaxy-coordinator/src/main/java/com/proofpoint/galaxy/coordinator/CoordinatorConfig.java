@@ -58,23 +58,27 @@ public class CoordinatorConfig
         return this;
     }
 
+    @Deprecated
     public String getLocalBinaryRepo()
     {
         return localBinaryRepo;
     }
 
-    @Config("coordinator.binary-repo.local")
+    @Deprecated
+     @Config("coordinator.binary-repo.local")
     public CoordinatorConfig setLocalBinaryRepo(String localBinaryRepo)
     {
         this.localBinaryRepo = localBinaryRepo;
         return this;
     }
 
+    @Deprecated
     public boolean isLocalMavenRepositoryEnabled()
     {
         return localMavenRepositoryEnabled;
     }
 
+    @Deprecated
     @Config("coordinator.local-maven-repo.enabled")
     public CoordinatorConfig setLocalMavenRepositoryEnabled(boolean localMavenRepositoryEnabled)
     {

@@ -1,15 +1,12 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.io.Files;
-import com.proofpoint.galaxy.shared.ArchiveHelper;
 
 import java.io.File;
 
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.newInputStreamSupplier;
 import static com.proofpoint.galaxy.shared.ArchiveHelper.createArchive;
-import static com.proofpoint.galaxy.shared.FileUtils.copyRecursively;
-import static com.proofpoint.galaxy.shared.FileUtils.createTar;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 
@@ -25,7 +22,7 @@ public class TestingBinaryRepository extends MavenBinaryRepository
 
     public TestingBinaryRepository(File targetRepo)
     {
-        super(null, false, targetRepo.toURI().toString());
+        super(targetRepo.toURI());
         this.targetRepo = targetRepo;
     }
 
