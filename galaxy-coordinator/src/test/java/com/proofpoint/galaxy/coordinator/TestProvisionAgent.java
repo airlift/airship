@@ -90,7 +90,7 @@ public class TestProvisionAgent
     private static NodeInfo createTestNodeInfo()
     {
         String nodeId = UUID.randomUUID().toString();
-        return new NodeInfo("test", "foo", nodeId, getTestIp(), "/test/" + nodeId);
+        return new NodeInfo("test", "foo", nodeId, getTestIp(), "/test/" + nodeId, "binarySpec", "configSpec");
     }
 
     private static InetAddress getTestIp()

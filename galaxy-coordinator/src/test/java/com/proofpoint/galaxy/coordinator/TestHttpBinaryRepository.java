@@ -18,7 +18,7 @@ public class TestHttpBinaryRepository
             throws Exception
     {
         HttpServerConfig config = new HttpServerConfig();
-        NodeInfo nodeInfo = new NodeInfo("testing", "general", "abc", InetAddress.getLocalHost(), "/slot");
+        NodeInfo nodeInfo = new NodeInfo("testing", "general", "abc", InetAddress.getLocalHost(), "/slot", "binarySpec", "configSpec");
 
         HttpServerInfo serverInfo = new HttpServerInfo(config, nodeInfo);
         BinaryUrlResolver urlResolver = new BinaryUrlResolver(new TestingBinaryRepository(), serverInfo);
