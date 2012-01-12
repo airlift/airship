@@ -46,7 +46,7 @@
         "GalaxyVersion": {
             "Description" : "Version of Galaxy to use",
             "Type": "String",
-            "Default": "0.7-SNAPSHOT"
+            "Default": "0.8-SNAPSHOT"
         }
     },
     "Resources" : {
