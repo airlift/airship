@@ -77,6 +77,8 @@
                                     "Action": [
                                         "sdb:CreateDomain",
                                         "sdb:PutAttributes",
+                                        "sdb:BatchDeleteAttributes",
+                                        "sdb:DeleteAttributes",
                                         "sdb:Select"
                                     ],
                                     "Effect": "Allow",
