@@ -38,10 +38,6 @@
         </developer>
     </developers>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <scm>
         <connection>scm:git:git://github.com/dain/galaxy-server.git</connection>
         <developerConnection>scm:git:git@github.com:dain/galaxy-server.git</developerConnection>
