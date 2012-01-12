@@ -13,7 +13,7 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-configuration-repository</artifactId>
-    <version>0.7</version>
+    <version>0.8-SNAPSHOT</version>
     <name>galaxy-configuration-repository</name>
 
     <distributionManagement>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.7</version>
+            <version>0.8-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -139,7 +139,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.7</version>
+            <version>0.8-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

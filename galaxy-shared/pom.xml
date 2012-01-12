@@ -5,13 +5,13 @@
     <parent>
         <groupId>com.proofpoint.galaxy</groupId>
         <artifactId>galaxy-root</artifactId>
-        <version>0.7</version>
+        <version>0.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-shared</artifactId>
-    <version>0.7</version>
+    <version>0.8-SNAPSHOT</version>
     <name>galaxy-shared</name>
 
     <properties>
