@@ -7,6 +7,41 @@
     <packaging>pom</packaging>
     <name>galaxy-root</name>
 
+    <description>Galaxy</description>
+    <url>http://github.com/dain/galaxy-server</url>
+
+    <inceptionYear>2011</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>dain</id>
+            <name>Dain Sundstrom</name>
+            <email>dain@iq80.com</email>
+        </developer>
+        <developer>
+            <id>mtraverso</id>
+            <name>Martin Traverso</name>
+            <email>mtraverso@gmail.com</email>
+        </developer>
+        <developer>
+            <id>electrum</id>
+            <name>David Phillips</name>
+            <email>david@acz.org</email>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <scm>
         <connection>scm:git:git://github.com/dain/galaxy-server.git</connection>
         <developerConnection>scm:git:git@github.com:dain/galaxy-server.git</developerConnection>
