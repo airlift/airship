@@ -209,7 +209,7 @@ public class AgentFilterBuilder
         }
 
         @Override
-        public boolean apply(@Nullable AgentStatus agentStatus)
+        public boolean apply(AgentStatus agentStatus)
         {
             if (agentStatus == null) {
                 return false;

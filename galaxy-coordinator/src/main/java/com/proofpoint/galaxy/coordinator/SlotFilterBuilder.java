@@ -281,7 +281,7 @@ public class SlotFilterBuilder
         }
 
         @Override
-        public boolean apply(@Nullable SlotStatus slotStatus)
+        public boolean apply(SlotStatus slotStatus)
         {
             return slotStatus.getState() == state;
         }
