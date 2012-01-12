@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.proofpoint.galaxy</groupId>
         <artifactId>galaxy-root</artifactId>
-        <version>0.7-SNAPSHOT</version>
+        <version>0.7</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -15,7 +15,7 @@
     <name>galaxy-cli</name>
     <description>Galaxy command line interface</description>
 
-    <version>0.7-SNAPSHOT</version>
+    <version>0.7</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

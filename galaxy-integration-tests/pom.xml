@@ -5,13 +5,13 @@
     <parent>
         <groupId>com.proofpoint.galaxy</groupId>
         <artifactId>galaxy-root</artifactId>
-        <version>0.7-SNAPSHOT</version>
+        <version>0.7</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-integration-tests</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.7</version>
     <name>galaxy-integration-tests</name>
 
     <properties>
@@ -37,14 +37,14 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-agent</artifactId>
-            <version>0.7-SNAPSHOT</version>
+            <version>0.7</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-coordinator</artifactId>
-            <version>0.7-SNAPSHOT</version>
+            <version>0.7</version>
             <scope>test</scope>
         </dependency>
 
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.7-SNAPSHOT</version>
+            <version>0.7</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-coordinator</artifactId>
-            <version>0.7-SNAPSHOT</version>
+            <version>0.7</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-agent</artifactId>
-            <version>0.7-SNAPSHOT</version>
+            <version>0.7</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
