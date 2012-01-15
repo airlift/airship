@@ -17,8 +17,12 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Scopes;
+import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
@@ -31,10 +35,12 @@ import com.proofpoint.galaxy.coordinator.BinaryRepository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
+import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
 import com.proofpoint.galaxy.coordinator.Instance;
 import com.proofpoint.galaxy.coordinator.LocalProvisioner;
 import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
 import com.proofpoint.galaxy.coordinator.Provisioner;
+import com.proofpoint.galaxy.coordinator.StateManager;
 import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
 import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
@@ -55,6 +61,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.validation.metadata.Scope;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
@@ -66,6 +73,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
 
+import static com.google.inject.Scopes.SINGLETON;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
@@ -151,7 +159,15 @@ public class TestServerIntegration
                 new JsonModule(),
                 new JaxrsModule(),
                 new CoordinatorMainModule(),
-                new LocalProvisionerModule(),
+                Modules.override(new LocalProvisionerModule()).with(new Module()
+                {
+                    @Override
+                    public void configure(Binder binder)
+                    {
+                        binder.bind(StateManager.class).to(InMemoryStateManager.class).in(SINGLETON);
+                        binder.bind(Provisioner.class).to(LocalProvisioner.class).in(SINGLETON);
+                    }
+                }),
                 new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
 
         coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
@@ -292,10 +308,10 @@ public class TestServerIntegration
                 SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
-        assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
         assertEquals(bananaSlot.status().getState(), STOPPED);
+        assertEqualsNoOrder(actual, expected);
     }
 
     @Test

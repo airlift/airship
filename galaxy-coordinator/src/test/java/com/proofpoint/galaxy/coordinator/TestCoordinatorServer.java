@@ -51,6 +51,7 @@ import java.util.UUID;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.collect.Lists.transform;
+import static com.google.inject.Scopes.SINGLETON;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
@@ -109,7 +110,8 @@ public class TestCoordinatorServer
                     @Override
                     public void configure(Binder binder)
                     {
-                        binder.bind(StateManager.class).to(InMemoryStateManager.class);
+                        binder.bind(StateManager.class).to(InMemoryStateManager.class).in(SINGLETON);
+                        binder.bind(Provisioner.class).to(LocalProvisioner.class).in(SINGLETON);
                     }
                 }),
                 Modules.override(new CoordinatorMainModule()).with(new Module()

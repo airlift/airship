@@ -32,6 +32,7 @@ import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
 import static java.lang.Math.max;
 
@@ -55,7 +56,7 @@ public class CoordinatorLifecycleResource
         Preconditions.checkNotNull(newState, "newState must not be null");
 
         SlotLifecycleState state = SlotLifecycleState.lookup(newState);
-        if (state == null) {
+        if (state == null || state == UNKNOWN) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
