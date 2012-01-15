@@ -33,6 +33,7 @@ import static com.proofpoint.galaxy.standalone.Column.ip;
 import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
 import static com.proofpoint.galaxy.standalone.Column.status;
+import static com.proofpoint.galaxy.standalone.Column.statusMessage;
 import static org.iq80.cli.OptionsType.GLOBAL;
 
 public class Galaxy
@@ -130,7 +131,7 @@ public class Galaxy
                 System.out.println("No slots match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, binary, config);
+                TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, binary, config, statusMessage);
                 tablePrinter.print(slots);
             }
         }

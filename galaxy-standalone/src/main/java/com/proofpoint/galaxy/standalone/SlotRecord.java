@@ -76,6 +76,8 @@ public class SlotRecord implements Record
                 return slotStatus.getExpectedBinary();
             case expectedConfig:
                 return slotStatus.getExpectedConfig();
+            case statusMessage:
+                return slotStatus.getStatusMessage();
             default:
                 return null;
         }

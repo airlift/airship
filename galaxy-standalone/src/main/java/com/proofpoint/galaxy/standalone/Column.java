@@ -12,6 +12,7 @@ public enum Column
     expectedStatus("expected-status"),
     expectedBinary("expected-binary"),
     expectedConfig("expected-config"),
+    statusMessage(""),
     location,
     instanceType("type");
 
