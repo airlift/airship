@@ -1,5 +1,7 @@
 package com.proofpoint.galaxy.standalone;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static java.lang.Math.max;
 
@@ -60,26 +63,9 @@ public class TablePrinter
                 columns.put(column, columnSize);
             }
 
-            for (Record record : Iterables.concat(ImmutableList.of(headerRecord), records)) {
-                boolean first = true;
-                for (Entry<Column, Integer> entry : columns.entrySet()) {
-                    if (!first) {
-                        System.out.print(columnSeparator);
-                    }
-                    first = false;
-
-                    Column column = entry.getKey();
-                    int columnSize = entry.getValue();
-
-                    String value = Objects.firstNonNull(record.getValue(column), "");
-                    String colorizedValue = Objects.firstNonNull(record.getColorizedValue(column), "");
-
-                    System.out.print(colorizedValue);
-
-
-                    System.out.print(spaces(max(0, columnSize - value.length())));
-                }
-                System.out.println();
+            for (final Record record : Iterables.concat(ImmutableList.of(headerRecord), records)) {
+                String line = Joiner.on(columnSeparator).join(transform(columns.entrySet(), columnFormatter(record)));
+                System.out.println(line.trim());
             }
         }
         else {
@@ -98,6 +84,23 @@ public class TablePrinter
                 System.out.println();
             }
         }
+    }
+
+    private Function<Entry<Column, Integer>, String> columnFormatter(final Record record)
+    {
+        return new Function<Entry<Column, Integer>, String>()
+        {
+            public String apply(Entry<Column, Integer> entry)
+            {
+                Column column = entry.getKey();
+                int columnSize = entry.getValue();
+
+                String value = Objects.firstNonNull(record.getValue(column), "");
+                String colorizedValue = Objects.firstNonNull(record.getColorizedValue(column), "");
+
+                return colorizedValue + spaces(max(0, columnSize - value.length()));
+            }
+        };
     }
 
     private static String spaces(int count)
