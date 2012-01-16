@@ -16,7 +16,7 @@ public class Ssh
     public static void execSsh(SlotStatusRepresentation slot, String command)
     {
         String host = slot.getHost();
-        command = firstNonNull(command, "$SHELL");
+        command = firstNonNull(command, "$SHELL -l");
 
         Preconditions.checkNotNull(host, "host is null");
         String path = firstNonNull(slot.getInstallPath(), "$Home");
