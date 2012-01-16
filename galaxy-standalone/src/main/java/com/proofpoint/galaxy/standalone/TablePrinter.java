@@ -5,11 +5,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static java.lang.Math.max;
 
 public class TablePrinter
 {
@@ -41,12 +43,18 @@ public class TablePrinter
         if (Ansi.isEnabled()) {
             Map<Column, Integer> columns = newLinkedHashMap();
 
-            for (Column column : this.columns) {
-                int columnSize = column.getHeader().length();
-                for (Record record : records) {
-                    String value = record.getValue(column);
-                    if (value != null) {
-                        columnSize = Math.max(value.length(), columnSize);
+            for (Iterator<Column> iterator = this.columns.iterator(); iterator.hasNext(); ) {
+                Column column = iterator.next();
+
+                int columnSize = 0;
+                if (iterator.hasNext()) {
+                    columnSize = column.getHeader().length();
+
+                    for (Record record : records) {
+                        String value = record.getValue(column);
+                        if (value != null) {
+                            columnSize = Math.max(value.length(), columnSize);
+                        }
                     }
                 }
                 columns.put(column, columnSize);
@@ -67,7 +75,9 @@ public class TablePrinter
                     String colorizedValue = Objects.firstNonNull(record.getColorizedValue(column), "");
 
                     System.out.print(colorizedValue);
-                    System.out.print(spaces(columnSize - value.length()));
+
+
+                    System.out.print(spaces(max(0, columnSize - value.length())));
                 }
                 System.out.println();
             }
