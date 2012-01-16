@@ -4,7 +4,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import org.fusesource.jansi.Ansi.Color;
+
+import static com.proofpoint.galaxy.standalone.Ansi.colorize;
 
 public class AgentRecord implements Record
 {
@@ -64,41 +68,27 @@ public class AgentRecord implements Record
     @Override
     public String getColorizedValue(Column column)
     {
-        return getValue(column);
+        Object value = getObjectValue(column);
+        if (Column.status == column) {
+            AgentLifecycleState state = AgentLifecycleState.valueOf(toString(value));
+            if (AgentLifecycleState.ONLINE == state) {
+                return colorize(state, Color.GREEN);
+            } else if (AgentLifecycleState.OFFLINE == state) {
+                return colorize(state, Color.RED);
+            } else if (AgentLifecycleState.PROVISIONING == state) {
+                return colorize(state, Color.BLUE);
+            }
+        } else if (Column.statusMessage == column) {
+            return colorize(value, Color.RED);
+        }
+        return toString(value);
     }
 
-    @Override
-    public boolean equals(Object o)
+    private String toString(Object value)
     {
-        if (this == o) {
-            return true;
+        if (value == null) {
+            return "";
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        AgentRecord that = (AgentRecord) o;
-
-        if (!agentStatus.getAgentId().equals(that.agentStatus.getAgentId())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return agentStatus.getAgentId().hashCode();
-    }
-
-    @Override
-    public String toString()
-    {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("AgentRecord");
-        sb.append("{agentStatus=").append(agentStatus);
-        sb.append('}');
-        return sb.toString();
+        return String.valueOf(value);
     }
 }

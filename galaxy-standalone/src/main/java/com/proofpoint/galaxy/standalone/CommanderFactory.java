@@ -44,6 +44,8 @@ import static com.google.common.collect.Lists.newArrayList;
 public class CommanderFactory
 {
     private static final String AGENT_ID = "standalone";
+    private static final String INSTANCE_TYPE = "standalone";
+    private static final String LOCATION = Joiner.on('/').join("localhost", AGENT_ID, "agent");
     private static final URI AGENT_URI = URI.create("java://localhost");
     private static final Duration COMMAND_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
 
@@ -108,7 +110,7 @@ public class CommanderFactory
         // Create agent
         //
         String slotsDir = coordinatorUri.getPath();
-        DeploymentManagerFactory deploymentManagerFactory = new DirectoryDeploymentManagerFactory(AGENT_ID, slotsDir, COMMAND_TIMEOUT);
+        DeploymentManagerFactory deploymentManagerFactory = new DirectoryDeploymentManagerFactory(LOCATION, slotsDir, COMMAND_TIMEOUT);
 
         LifecycleManager lifecycleManager = new LauncherLifecycleManager(
                 environment,
@@ -118,7 +120,7 @@ public class CommanderFactory
                 COMMAND_TIMEOUT);
 
         Agent agent = new Agent(AGENT_ID,
-                AGENT_ID,
+                LOCATION,
                 slotsDir,
                 AGENT_URI,
                 null,
@@ -156,7 +158,7 @@ public class CommanderFactory
         @Override
         public List<Instance> listAgents()
         {
-            return ImmutableList.of(new Instance(AGENT_ID, "standalone", Joiner.on('/').join("ec2", "local", "local", AGENT_ID, "agent"), AGENT_URI));
+            return ImmutableList.of(new Instance(AGENT_ID, INSTANCE_TYPE, LOCATION, AGENT_URI));
         }
 
         @Override
@@ -222,7 +224,14 @@ public class CommanderFactory
         @Override
         public AgentStatus status()
         {
-            return agent.getAgentStatus();
+            AgentStatus agentStatus = agent.getAgentStatus();
+            return new AgentStatus(agentStatus.getAgentId(),
+                    agentStatus.getState(),
+                    agentStatus.getUri(),
+                    agentStatus.getLocation(),
+                    INSTANCE_TYPE,
+                    agentStatus.getSlotStatuses(),
+                    agentStatus.getResources());
         }
 
         @Override

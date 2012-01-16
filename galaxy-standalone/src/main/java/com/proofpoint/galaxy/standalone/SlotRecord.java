@@ -3,9 +3,13 @@ package com.proofpoint.galaxy.standalone;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import org.fusesource.jansi.Ansi.Color;
+
+import static com.proofpoint.galaxy.standalone.Ansi.colorize;
 
 public class SlotRecord implements Record
 {
@@ -86,16 +90,31 @@ public class SlotRecord implements Record
     @Override
     public String getValue(Column column)
     {
-        Object value = getObjectValue(column);
-        if (value == null) {
-            return "";
-        }
-        return String.valueOf(value);
+        return toString(getObjectValue(column));
     }
 
     @Override
     public String getColorizedValue(Column column)
     {
-        return getValue(column);
+        Object value = getObjectValue(column);
+        if (Column.status == column) {
+            SlotLifecycleState state = SlotLifecycleState.lookup(toString(value));
+            if (SlotLifecycleState.RUNNING == state) {
+                return colorize(state, Color.GREEN);
+            } else if (SlotLifecycleState.UNKNOWN == state) {
+                return colorize(state, Color.RED);
+            }
+        } else if (Column.statusMessage == column) {
+            return colorize(value, Color.RED);
+        }
+        return toString(value);
+    }
+
+    private String toString(Object value)
+    {
+        if (value == null) {
+            return "";
+        }
+        return String.valueOf(value);
     }
 }

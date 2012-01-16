@@ -38,37 +38,55 @@ public class TablePrinter
 
     public void print(Iterable<Record> records)
     {
-        Map<Column, Integer> columns = newLinkedHashMap();
+        if (Ansi.isEnabled()) {
+            Map<Column, Integer> columns = newLinkedHashMap();
 
-        for (Column column : this.columns) {
-            int columnSize = column.getHeader().length();
-            for (Record record : records) {
-                String value = record.getValue(column);
-                if (value != null) {
-                    columnSize = Math.max(value.length(), columnSize);
+            for (Column column : this.columns) {
+                int columnSize = column.getHeader().length();
+                for (Record record : records) {
+                    String value = record.getValue(column);
+                    if (value != null) {
+                        columnSize = Math.max(value.length(), columnSize);
+                    }
                 }
+                columns.put(column, columnSize);
             }
-            columns.put(column, columnSize);
+
+            for (Record record : Iterables.concat(ImmutableList.of(headerRecord), records)) {
+                boolean first = true;
+                for (Entry<Column, Integer> entry : columns.entrySet()) {
+                    if (!first) {
+                        System.out.print(columnSeparator);
+                    }
+                    first = false;
+
+                    Column column = entry.getKey();
+                    int columnSize = entry.getValue();
+
+                    String value = Objects.firstNonNull(record.getValue(column), "");
+                    String colorizedValue = Objects.firstNonNull(record.getColorizedValue(column), "");
+
+                    System.out.print(colorizedValue);
+                    System.out.print(spaces(columnSize - value.length()));
+                }
+                System.out.println();
+            }
         }
+        else {
+            for (Record record : records) {
+                boolean first = true;
+                for (Column column : columns) {
+                    if (!first) {
+                        System.out.print("\t");
+                    }
+                    first = false;
 
-        for (Record header : Iterables.concat(ImmutableList.of(headerRecord), records)) {
-            boolean first = true;
-            for (Entry<Column, Integer> column : columns.entrySet()) {
-                if (!first) {
-                    System.out.print(columnSeparator);
+                    String value = Objects.firstNonNull(record.getValue(column), "");
+
+                    System.out.print(value);
                 }
-                first = false;
-
-                Column columnName = column.getKey();
-                int columnSize = column.getValue();
-
-                String value = Objects.firstNonNull(header.getValue(columnName), "");
-                String colorizedValue = Objects.firstNonNull(header.getColorizedValue(columnName), "");
-
-                System.out.print(colorizedValue);
-                System.out.print(spaces(columnSize - value.length()));
+                System.out.println();
             }
-            System.out.println();
         }
     }
 
