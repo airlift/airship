@@ -50,13 +50,22 @@ public class StaticProvisioner implements Provisioner
                     .setUri(uri)
                     .build();
 
-            AgentStatusRepresentation agent = httpClient.execute(request, JsonResponseHandler.create(agentCodec)).checkedGet();
+            try {
+                AgentStatusRepresentation agent = httpClient.execute(request, JsonResponseHandler.create(agentCodec)).checkedGet();
 
-            instances.add(new Instance(agent.getAgentId(),
-                    firstNonNull(agent.getInstanceType(), "unknown"),
-                    firstNonNull(agent.getLocation(), "unknown"),
-                    agent.getSelf()
-            ));
+                instances.add(new Instance(agent.getAgentId(),
+                        firstNonNull(agent.getInstanceType(), "unknown"),
+                        firstNonNull(agent.getLocation(), "unknown"),
+                        agent.getSelf()
+                ));
+            }
+            catch (Exception e) {
+                instances.add(new Instance(localAgentUri,
+                        "unknown",
+                        "unknown",
+                        uri
+                ));
+            }
         }
         return ImmutableList.copyOf(instances.build());
     }
