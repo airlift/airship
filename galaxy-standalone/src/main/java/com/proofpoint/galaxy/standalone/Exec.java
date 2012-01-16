@@ -9,14 +9,41 @@ import jnr.posix.util.Platform;
 import static com.google.common.base.Objects.firstNonNull;
 import static java.lang.System.getenv;
 
-public class Ssh
+public class Exec
 {
     public static String PS = Platform.IS_WINDOWS ? ";" : ":";
 
-    public static void execSsh(SlotStatusRepresentation slot, String command)
+    public static void execLocal(SlotStatusRepresentation slot, String command)
+    {
+        command = firstNonNull(command, "exec -l $0");
+
+        String path = firstNonNull(slot.getInstallPath(), "$HOME");
+
+        StringBuilder localCommand = new StringBuilder();
+        localCommand.append("cd \"").append(path).append("\"; ").append(command);
+
+        execLocal(localCommand.toString());
+    }
+
+    public static void execLocal(String command)
+    {
+        POSIX posix = POSIXFactory.getPOSIX();
+        String shell = firstNonNull(getenv("SHELL"), firstNonNull(findFileInPath(posix, "bash", null), "/bin/ssh"));
+
+        String[] args;
+        if (command == null) {
+            args = new String[]{shell, "-l"};
+        }
+        else {
+            args = new String[]{shell, "-c", shellQuote(command)};
+        }
+        posix.execv(shell, args);
+    }
+
+    public static void execRemote(SlotStatusRepresentation slot, String command)
     {
         String host = slot.getHost();
-        command = firstNonNull(command, "$SHELL -l");
+        command = firstNonNull(command, "exec -l $0");
 
         Preconditions.checkNotNull(host, "host is null");
         String path = firstNonNull(slot.getInstallPath(), "$HOME");
@@ -24,10 +51,10 @@ public class Ssh
         StringBuilder remoteCommandBuilder = new StringBuilder();
         remoteCommandBuilder.append("cd \"").append(path).append("\"; ").append(command);
 
-        execSsh(host, remoteCommandBuilder.toString());
+        execRemote(host, remoteCommandBuilder.toString());
     }
 
-    public static void execSsh(String host, String command)
+    public static void execRemote(String host, String command)
     {
         POSIX posix = POSIXFactory.getPOSIX();
         String ssh = firstNonNull(getenv("GALAXY_SSH_COMMAND"), firstNonNull(findFileInPath(posix, "ssh", null), "/usr/bin/ssh"));

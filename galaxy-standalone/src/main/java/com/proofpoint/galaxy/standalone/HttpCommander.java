@@ -142,7 +142,7 @@ public class HttpCommander implements Commander
         if (slots.isEmpty()) {
             return false;
         }
-        Ssh.execSsh(slots.get(0), command);
+        Exec.execRemote(slots.get(0), command);
         return true;
     }
 

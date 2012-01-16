@@ -117,7 +117,7 @@ public class LocalCommander implements Commander
         if (slots.isEmpty()) {
             return false;
         }
-        Ssh.execSsh(SlotStatusRepresentation.from(slots.get(0)), command);
+        Exec.execLocal(SlotStatusRepresentation.from(slots.get(0)), command);
         return true;
     }
 
