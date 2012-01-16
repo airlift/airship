@@ -19,7 +19,7 @@ public class Ssh
         command = firstNonNull(command, "$SHELL -l");
 
         Preconditions.checkNotNull(host, "host is null");
-        String path = firstNonNull(slot.getInstallPath(), "$Home");
+        String path = firstNonNull(slot.getInstallPath(), "$HOME");
 
         StringBuilder remoteCommandBuilder = new StringBuilder();
         remoteCommandBuilder.append("cd \"").append(path).append("\"; ").append(command);
