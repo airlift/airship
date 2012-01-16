@@ -20,7 +20,7 @@ public interface Commander
 
     List<Record> resetExpectedState(SlotFilter slotFilter);
 
-    void ssh(SlotFilter slotFilter, List<String> args);
+    boolean ssh(SlotFilter slotFilter, String command);
 
     List<Record> showAgents(AgentFilter agentFilter)
             throws Exception;

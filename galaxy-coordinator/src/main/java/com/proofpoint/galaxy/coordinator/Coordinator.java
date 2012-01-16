@@ -480,7 +480,7 @@ public class Coordinator
         return ImmutableList.copyOf(stats);
     }
 
-    public Iterable<SlotStatusWithExpectedState> getAllSlotStatusWithExpectedState(Predicate<SlotStatus> slotFilter)
+    public List<SlotStatusWithExpectedState> getAllSlotStatusWithExpectedState(Predicate<SlotStatus> slotFilter)
     {
         ImmutableMap<UUID, ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
         ImmutableMap<UUID, SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());

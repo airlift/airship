@@ -131,9 +131,19 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public void ssh(SlotFilter slotFilter, List<String> args)
+    public boolean ssh(SlotFilter slotFilter, String command)
     {
-        throw new UnsupportedOperationException();
+        URI uri = slotFilter.toUri(UriBuilder.fromUri(coordinatorUri).path("/v1/slot"));
+        Request request = RequestBuilder.prepareGet()
+                .setUri(uri)
+                .build();
+
+        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        if (slots.isEmpty()) {
+            return false;
+        }
+        Ssh.execSsh(slots.get(0), command);
+        return true;
     }
 
     @Override

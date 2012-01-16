@@ -359,13 +359,13 @@ public class Galaxy
         @Options
         public final SlotFilter slotFilter = new SlotFilter();
 
-        @Arguments(name = "ssh-arg", description = "Ssh command line arguments")
-        public final List<String> args = Lists.newArrayList();
+        @Arguments(name = "command", description = "Command to execute on the remote host")
+        public String command;
 
         @Override
         public void execute(Commander commander)
         {
-            commander.ssh(slotFilter, args);
+            commander.ssh(slotFilter, command);
         }
 
         @Override
@@ -374,7 +374,7 @@ public class Galaxy
             final StringBuilder sb = new StringBuilder();
             sb.append("InstallCommand");
             sb.append("{slotFilter=").append(slotFilter);
-            sb.append(", args=").append(args);
+            sb.append(", args=").append(command);
             sb.append(", globalOptions=").append(globalOptions);
             sb.append('}');
             return sb.toString();

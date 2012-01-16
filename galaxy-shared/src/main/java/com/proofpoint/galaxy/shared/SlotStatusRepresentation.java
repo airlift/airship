@@ -115,6 +115,11 @@ public class SlotStatusRepresentation
         };
     }
 
+    public static SlotStatusRepresentation from(SlotStatusWithExpectedState slotStatusWithExpectedState)
+    {
+        return from(slotStatusWithExpectedState, MAX_ID_SIZE);
+    }
+
     public static SlotStatusRepresentation from(SlotStatusWithExpectedState slotStatusWithExpectedState, int shortIdPrefixSize)
     {
         SlotStatus slotStatus = slotStatusWithExpectedState.getSlotStatus();

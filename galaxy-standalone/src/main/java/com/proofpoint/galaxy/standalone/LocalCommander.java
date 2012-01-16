@@ -3,13 +3,14 @@ package com.proofpoint.galaxy.standalone;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.proofpoint.galaxy.coordinator.Coordinator;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 
 import java.util.List;
@@ -106,9 +107,18 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public void ssh(SlotFilter slotFilter, List<String> args)
+    public boolean ssh(SlotFilter slotFilter, String command)
     {
-        System.out.println("ssh is not supported");
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+
+        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
+
+        List<SlotStatusWithExpectedState> slots = coordinator.getAllSlotStatusWithExpectedState(slotPredicate);
+        if (slots.isEmpty()) {
+            return false;
+        }
+        Ssh.execSsh(SlotStatusRepresentation.from(slots.get(0)), command);
+        return true;
     }
 
     @Override
