@@ -16,6 +16,7 @@ import org.iq80.cli.GitLikeCommandParser.Builder;
 import org.iq80.cli.Option;
 import org.iq80.cli.Options;
 import org.iq80.cli.ParseException;
+import org.iq80.cli.model.GlobalMetadata;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -35,6 +37,7 @@ import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
 import static com.proofpoint.galaxy.standalone.Column.status;
 import static com.proofpoint.galaxy.standalone.Column.statusMessage;
+import static org.iq80.cli.HelpCommand.help;
 
 public class Galaxy
 {
@@ -43,7 +46,8 @@ public class Galaxy
     {
         Builder<GalaxyCommand> builder = GitLikeCommandParser.parser("galaxy", GalaxyCommand.class)
                 .withDescription("cloud management system")
-                .defaultCommand(ShowCommand.class)
+                .defaultCommand(HelpCommand.class)
+                .addCommand(HelpCommand.class)
                 .addCommand(ShowCommand.class)
                 .addCommand(InstallCommand.class)
                 .addCommand(UpgradeCommand.class)
@@ -151,6 +155,41 @@ public class Galaxy
                 TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, instanceType, location);
                 tablePrinter.print(agents);
             }
+        }
+    }
+
+    @Command(name = "help", description = "Display help information about galaxy")
+    public static class HelpCommand extends GalaxyCommand
+    {
+        @Options
+        public GlobalMetadata global;
+
+        @Arguments
+        public List<String> command = newArrayList();
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            help(global, command);
+            return null;
+        }
+
+        @Override
+        public void execute(Commander commander)
+                throws Exception
+        {
+        }
+
+        @Override
+        public String toString()
+        {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("HelpCommand");
+            sb.append("{global=").append(global);
+            sb.append(", command=").append(command);
+            sb.append('}');
+            return sb.toString();
         }
     }
 
