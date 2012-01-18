@@ -12,6 +12,7 @@ import com.proofpoint.log.LoggingConfiguration;
 import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;
 import org.iq80.cli.GitLikeCommandParser;
+import org.iq80.cli.GitLikeCommandParser.Builder;
 import org.iq80.cli.Option;
 import org.iq80.cli.Options;
 import org.iq80.cli.ParseException;
@@ -34,15 +35,14 @@ import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
 import static com.proofpoint.galaxy.standalone.Column.status;
 import static com.proofpoint.galaxy.standalone.Column.statusMessage;
-import static org.iq80.cli.OptionsType.GLOBAL;
 
 public class Galaxy
 {
     public static void main(String[] args)
             throws Exception
     {
-        GitLikeCommandParser<GalaxyCommand> galaxyParser = GitLikeCommandParser.builder("galaxy")
-                .withCommandType(GalaxyCommand.class)
+        Builder<GalaxyCommand> builder = GitLikeCommandParser.parser("galaxy", GalaxyCommand.class)
+                .defaultCommand(ShowCommand.class)
                 .addCommand(ShowCommand.class)
                 .addCommand(InstallCommand.class)
                 .addCommand(UpgradeCommand.class)
@@ -51,18 +51,22 @@ public class Galaxy
                 .addCommand(StopCommand.class)
                 .addCommand(RestartCommand.class)
                 .addCommand(SshCommand.class)
-                .addCommand(ResetToActualCommand.class)
+                .addCommand(ResetToActualCommand.class);
+
+        builder.addGroup("agent")
+                .defaultCommand(AgentShowCommand.class)
                 .addCommand(AgentShowCommand.class)
                 .addCommand(AgentAddCommand.class)
-                .addCommand(AgentTerminateCommand.class)
-                .build();
+                .addCommand(AgentTerminateCommand.class);
+
+        GitLikeCommandParser<GalaxyCommand> galaxyParser = builder.build();
 
         galaxyParser.parse(args).call();
     }
 
     public static abstract class GalaxyCommand implements Callable<Void>
     {
-        @Options(GLOBAL)
+        @Options
         public GlobalOptions globalOptions = new GlobalOptions();
 
         @Override
@@ -148,7 +152,7 @@ public class Galaxy
         }
     }
 
-    @Command(name = "show", description = "Show state of all slots", defaultCommand = true)
+    @Command(name = "show", description = "Show state of all slots")
     public static class ShowCommand extends GalaxyCommand
     {
         @Options
@@ -214,7 +218,7 @@ public class Galaxy
             final StringBuilder sb = new StringBuilder();
             sb.append("InstallCommand");
             sb.append("{count=").append(count);
-            sb.append(", slotFilter=").append(agentFilter);
+            sb.append(", agentFilter=").append(agentFilter);
             sb.append(", assignment=").append(assignment);
             sb.append(", globalOptions=").append(globalOptions);
             sb.append('}');
@@ -359,7 +363,7 @@ public class Galaxy
         @Options
         public final SlotFilter slotFilter = new SlotFilter();
 
-        @Arguments(name = "command", description = "Command to execute on the remote host")
+        @Arguments(description = "Command to execute on the remote host")
         public String command;
 
         @Override
@@ -381,7 +385,7 @@ public class Galaxy
         }
     }
 
-    @Command(name = "show", description = "Show agent details", defaultCommand = true, group = "agent")
+    @Command(name = "show", description = "Show agent details")
     public static class AgentShowCommand extends GalaxyCommand
     {
         @Options
@@ -407,7 +411,7 @@ public class Galaxy
         }
     }
 
-    @Command(name = "add", description = "Provision a new agent", group = "agent")
+    @Command(name = "add", description = "Provision a new agent")
     public static class AgentAddCommand extends GalaxyCommand
     {
         @Option(options = {"--count"}, description = "Number of agents to provision")
@@ -441,10 +445,10 @@ public class Galaxy
         }
     }
 
-    @Command(name = "terminate", description = "Provision a new agent", group = "agent")
+    @Command(name = "terminate", description = "Provision a new agent")
     public static class AgentTerminateCommand extends GalaxyCommand
     {
-        @Arguments(name = "agent-id", description = "Agent to terminate", required = true)
+        @Arguments(title = "agent-id", description = "Agent to terminate", required = true)
         public String agentId;
 
         @Override
