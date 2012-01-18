@@ -13,34 +13,34 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class AgentFilter
 {
-    @Option(name = {"-i", "--host"}, description = "Select slots on the given host")
+    @Option(name = {"-i", "--host"}, description = "Select agent on the given host")
     public final List<String> host = newArrayList();
 
-    @Option(name = {"-I", "--ip"}, description = "Select slots at the given IP address")
+    @Option(name = {"-I", "--ip"}, description = "Select agent at the given IP address")
     public final List<String> ip = newArrayList();
 
-    @Option(name = {"-u", "--uuid"}, description = "Select slot with the given UUID")
+    @Option(name = {"-u", "--uuid"}, description = "Select agent containing a slot the given UUID")
     public final List<String> uuid = newArrayList();
 
-    @Option(name = {"-s", "--state"}, description = "Select 'r{unning}', 's{topped}' or 'unknown' slots")
+    @Option(name = {"-s", "--state"}, description = "Select agent containing 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
 
     public Predicate<AgentStatus> toAgentPredicate()
     {
-        AgentFilterBuilder slotFilterBuilder = AgentFilterBuilder.builder();
+        AgentFilterBuilder agentFilterBuilder = AgentFilterBuilder.builder();
         for (String hostGlob : host) {
-            slotFilterBuilder.addHostGlobFilter(hostGlob);
+            agentFilterBuilder.addHostGlobFilter(hostGlob);
         }
         for (String ipFilter : ip) {
-            slotFilterBuilder.addIpFilter(ipFilter);
+            agentFilterBuilder.addIpFilter(ipFilter);
         }
         for (String stateFilter : state) {
-            slotFilterBuilder.addStateFilter(stateFilter);
+            agentFilterBuilder.addStateFilter(stateFilter);
         }
         for (String uuidGlob : uuid) {
-            slotFilterBuilder.addSlotUuidGlobFilter(uuidGlob);
+            agentFilterBuilder.addSlotUuidGlobFilter(uuidGlob);
         }
-        return slotFilterBuilder.build();
+        return agentFilterBuilder.build();
     }
 
     @Override

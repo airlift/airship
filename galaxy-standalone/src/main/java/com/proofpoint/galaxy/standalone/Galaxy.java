@@ -42,6 +42,7 @@ public class Galaxy
             throws Exception
     {
         Builder<GalaxyCommand> builder = GitLikeCommandParser.parser("galaxy", GalaxyCommand.class)
+                .withDescription("cloud management system")
                 .defaultCommand(ShowCommand.class)
                 .addCommand(ShowCommand.class)
                 .addCommand(InstallCommand.class)
@@ -54,6 +55,7 @@ public class Galaxy
                 .addCommand(ResetToActualCommand.class);
 
         builder.addGroup("agent")
+                .withDescription("Manage agents")
                 .defaultCommand(AgentShowCommand.class)
                 .addCommand(AgentShowCommand.class)
                 .addCommand(AgentAddCommand.class)
