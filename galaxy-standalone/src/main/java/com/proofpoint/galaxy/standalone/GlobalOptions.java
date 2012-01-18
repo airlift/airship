@@ -11,19 +11,19 @@ import static org.iq80.cli.OptionType.GLOBAL;
 
 public class GlobalOptions
 {
-    @Option(type = GLOBAL, options = "--environment", description = "Galaxy environment")
+    @Option(type = GLOBAL, name = "--environment", description = "Galaxy environment")
     public String environment;
 
-    @Option(type = GLOBAL, options = "--coordinator", description = "Galaxy coordinator host (overrides GALAXY_COORDINATOR)")
+    @Option(type = GLOBAL, name = "--coordinator", description = "Galaxy coordinator host (overrides GALAXY_COORDINATOR)")
     public String coordinator = Objects.firstNonNull(System.getenv("GALAXY_COORDINATOR"), "http://localhost:64000");
 
-    @Option(type = GLOBAL, options = "--binary-repository", description = "Binary repository to use in standalone mode")
+    @Option(type = GLOBAL, name = "--binary-repository", description = "Binary repository to use in standalone mode")
     public final List<String> binaryRepository = newArrayList();
 
-    @Option(type = GLOBAL, options = "--config-repository", description = "Configuration repository to use in standalone mode")
+    @Option(type = GLOBAL, name = "--config-repository", description = "Configuration repository to use in standalone mode")
     public final List<String> configRepository = newArrayList();
 
-    @Option(type = GLOBAL, options = "--debug", description = "Enable debug messages")
+    @Option(type = GLOBAL, name = "--debug", description = "Enable debug messages")
     public boolean debug = false;
 
     @Override

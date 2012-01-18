@@ -14,22 +14,22 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class SlotFilter
 {
-    @Option(options = {"-b", "--binary"}, description = "Select slots with a given binary")
+    @Option(name = {"-b", "--binary"}, description = "Select slots with a given binary")
     public final List<String> binary = newArrayList();
 
-    @Option(options = {"-c", "--config"}, description = "Select slots with a given configuration")
+    @Option(name = {"-c", "--config"}, description = "Select slots with a given configuration")
     public final List<String> config = newArrayList();
 
-    @Option(options = {"-i", "--host"}, description = "Select slots on the given host")
+    @Option(name = {"-i", "--host"}, description = "Select slots on the given host")
     public final List<String> host = newArrayList();
 
-    @Option(options = {"-I", "--ip"}, description = "Select slots at the given IP address")
+    @Option(name = {"-I", "--ip"}, description = "Select slots at the given IP address")
     public final List<String> ip = newArrayList();
 
-    @Option(options = {"-u", "--uuid"}, description = "Select slot with the given UUID")
+    @Option(name = {"-u", "--uuid"}, description = "Select slot with the given UUID")
     public final List<String> uuid = newArrayList();
 
-    @Option(options = {"-s", "--state"}, description = "Select 'r{unning}', 's{topped}' or 'unknown' slots")
+    @Option(name = {"-s", "--state"}, description = "Select 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
 
     public Predicate<SlotStatus> toSlotPredicate(boolean filterRequired, List<UUID> allUuids)

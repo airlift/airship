@@ -180,7 +180,7 @@ public class Galaxy
     @Command(name = "install", description = "Install software in a new slot")
     public static class InstallCommand extends GalaxyCommand
     {
-        @Option(options = {"--count"}, description = "Number of instances to install")
+        @Option(name = {"--count"}, description = "Number of instances to install")
         public int count = 1;
 
         @Options
@@ -414,10 +414,10 @@ public class Galaxy
     @Command(name = "add", description = "Provision a new agent")
     public static class AgentAddCommand extends GalaxyCommand
     {
-        @Option(options = {"--count"}, description = "Number of agents to provision")
+        @Option(name = {"--count"}, description = "Number of agents to provision")
         public int count = 1;
 
-        @Option(options = {"--availability-zone"}, description = "Availability zone to provision")
+        @Option(name = {"--availability-zone"}, description = "Availability zone to provision")
         public String availabilityZone;
 
         @Arguments(usage = "[<instance-type>]", description = "Instance type to provision")
