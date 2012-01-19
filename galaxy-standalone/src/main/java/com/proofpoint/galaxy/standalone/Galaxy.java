@@ -13,11 +13,11 @@ import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;
 import org.iq80.cli.GitLikeCommandParser;
 import org.iq80.cli.GitLikeCommandParser.Builder;
+import org.iq80.cli.Help;
 import org.iq80.cli.Option;
-import org.iq80.cli.Options;
 import org.iq80.cli.ParseException;
-import org.iq80.cli.model.GlobalMetadata;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
-import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -37,7 +36,6 @@ import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
 import static com.proofpoint.galaxy.standalone.Column.status;
 import static com.proofpoint.galaxy.standalone.Column.statusMessage;
-import static org.iq80.cli.HelpCommand.help;
 
 public class Galaxy
 {
@@ -72,7 +70,7 @@ public class Galaxy
 
     public static abstract class GalaxyCommand implements Callable<Void>
     {
-        @Options
+        @Inject
         public GlobalOptions globalOptions = new GlobalOptions();
 
         @Override
@@ -161,17 +159,14 @@ public class Galaxy
     @Command(name = "help", description = "Display help information about galaxy")
     public static class HelpCommand extends GalaxyCommand
     {
-        @Options
-        public GlobalMetadata global;
-
-        @Arguments
-        public List<String> command = newArrayList();
+        @Inject
+        public Help help;
 
         @Override
         public Void call()
                 throws Exception
         {
-            help(global, command);
+            help.call();
             return null;
         }
 
@@ -179,6 +174,7 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -186,8 +182,7 @@ public class Galaxy
         {
             final StringBuilder sb = new StringBuilder();
             sb.append("HelpCommand");
-            sb.append("{global=").append(global);
-            sb.append(", command=").append(command);
+            sb.append("{help=").append(help);
             sb.append('}');
             return sb.toString();
         }
@@ -196,7 +191,7 @@ public class Galaxy
     @Command(name = "show", description = "Show state of all slots")
     public static class ShowCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
@@ -224,7 +219,7 @@ public class Galaxy
         @Option(name = {"--count"}, description = "Number of instances to install")
         public int count = 1;
 
-        @Options
+        @Inject
         public final AgentFilter agentFilter = new AgentFilter();
 
         @Arguments(usage = "<groupId:artifactId[:packaging[:classifier]]:version> @<component:pools:version>",
@@ -270,7 +265,7 @@ public class Galaxy
     @Command(name = "upgrade", description = "Upgrade software in a slot")
     public static class UpgradeCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Arguments(usage = "[<binary-version>] [@<config-version>]",
@@ -320,7 +315,7 @@ public class Galaxy
     @Command(name = "terminate", description = "Terminate (remove) a slot")
     public static class TerminateCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
@@ -345,7 +340,7 @@ public class Galaxy
     @Command(name = "start", description = "Start a server")
     public static class StartCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
@@ -359,7 +354,7 @@ public class Galaxy
     @Command(name = "stop", description = "Stop a server")
     public static class StopCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
@@ -373,7 +368,7 @@ public class Galaxy
     @Command(name = "restart", description = "Restart server")
     public static class RestartCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
@@ -387,7 +382,7 @@ public class Galaxy
     @Command(name = "reset-to-actual", description = "Reset slot expected state to actual")
     public static class ResetToActualCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
@@ -401,7 +396,7 @@ public class Galaxy
     @Command(name = "ssh", description = "ssh to slot installation")
     public static class SshCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Arguments(description = "Command to execute on the remote host")
@@ -429,7 +424,7 @@ public class Galaxy
     @Command(name = "show", description = "Show agent details")
     public static class AgentShowCommand extends GalaxyCommand
     {
-        @Options
+        @Inject
         public final AgentFilter agentFilter = new AgentFilter();
 
         @Override
@@ -486,7 +481,7 @@ public class Galaxy
         }
     }
 
-    @Command(name = "terminate", description = "Provision a new agent")
+    @Command(name = "terminate", description = "Terminate an agent")
     public static class AgentTerminateCommand extends GalaxyCommand
     {
         @Arguments(title = "agent-id", description = "Agent to terminate", required = true)
