@@ -56,7 +56,7 @@ public class SlotFilter
         return slotFilterBuilder.build();
     }
 
-    public URI toURI(URI baseUri)
+    public URI toUri(URI baseUri)
     {
         UriBuilder uriBuilder = UriBuilder.fromUri(baseUri);
         return toUri(uriBuilder);
