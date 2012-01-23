@@ -168,7 +168,46 @@ public class TestUriBuilder
 
         assertEquals(uri.toASCIIString(), "http://www.example.com/?k1=1&k1=2&k1=0");
     }
-    
+
+    @Test
+    public void testAddEmptyParameter()
+    {
+        URI uri = UriBuilder.uriBuilder()
+                .scheme("http")
+                .host("www.example.com")
+                .addParameter("pretty")
+                .build();
+
+        assertEquals(uri.toASCIIString(), "http://www.example.com?pretty");
+    }
+
+    @Test
+    public void testAddMultipleEmptyParameters()
+    {
+        URI uri = UriBuilder.uriBuilder()
+                .scheme("http")
+                .host("www.example.com")
+                .addParameter("pretty")
+                .addParameter("pretty")
+                .build();
+
+        assertEquals(uri.toASCIIString(), "http://www.example.com?pretty&pretty");
+    }
+
+    @Test
+    public void testAddMixedEmptyAndNonEmptyParameters()
+    {
+        URI uri = UriBuilder.uriBuilder()
+                .scheme("http")
+                .host("www.example.com")
+                .addParameter("pretty")
+                .addParameter("pretty", "true")
+                .addParameter("pretty")
+                .build();
+
+        assertEquals(uri.toASCIIString(), "http://www.example.com?pretty&pretty=true&pretty");
+    }
+
     @Test
     public void testReplaceParameters()
     {

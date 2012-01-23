@@ -147,6 +147,10 @@ public class UriBuilder
     {
         Preconditions.checkNotNull(name, "name is null");
 
+        if (values.length == 0) {
+            params.put(name, null);
+        }
+
         for (String value : values) {
             params.put(name, value);
         }
@@ -175,8 +179,10 @@ public class UriBuilder
                 Map.Entry<String, String> entry = iterator.next();
 
                 builder.append(encode(entry.getKey(), ALLOWED_QUERY_CHARS));
-                builder.append('=');
-                builder.append(encode(entry.getValue(), ALLOWED_QUERY_CHARS));
+                if (entry.getValue() != null) {
+                    builder.append('=');
+                    builder.append(encode(entry.getValue(), ALLOWED_QUERY_CHARS));
+                }
 
                 if (iterator.hasNext()) {
                     builder.append('&');
