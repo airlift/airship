@@ -53,12 +53,12 @@ public class UriBuilder
         params.putAll(parseParams(previous.getRawQuery()));
     }
 
-    public static UriBuilder builder()
+    public static UriBuilder uriBuilder()
     {
         return new UriBuilder();
     }
 
-    public static UriBuilder from(URI uri)
+    public static UriBuilder uriBuilderFromUri(URI uri)
     {
         Preconditions.checkNotNull(uri, "uri is null");
 
