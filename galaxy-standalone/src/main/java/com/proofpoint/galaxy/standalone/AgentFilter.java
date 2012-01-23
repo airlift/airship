@@ -3,9 +3,9 @@ package com.proofpoint.galaxy.standalone;
 import com.google.common.base.Predicate;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import org.iq80.cli.Option;
 
-import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.List;
 
@@ -58,23 +58,23 @@ public class AgentFilter
 
     public URI toUri(URI baseUri)
     {
-        UriBuilder uriBuilder = UriBuilder.fromUri(baseUri);
+        HttpUriBuilder uriBuilder = HttpUriBuilder.uriBuilderFrom(baseUri);
         return toUri(uriBuilder);
     }
 
-    public URI toUri(UriBuilder uriBuilder)
+    public URI toUri(HttpUriBuilder uriBuilder)
     {
         for (String hostGlob : host) {
-            uriBuilder.queryParam("host", hostGlob);
+            uriBuilder.addParameter("host", hostGlob);
         }
         for (String ipFilter : ip) {
-            uriBuilder.queryParam("ip", ipFilter);
+            uriBuilder.addParameter("ip", ipFilter);
         }
         for (String stateFilter : state) {
-            uriBuilder.queryParam("state", stateFilter);
+            uriBuilder.addParameter("state", stateFilter);
         }
         for (String shortId : uuid) {
-            uriBuilder.queryParam("uuid", shortId);
+            uriBuilder.addParameter("uuid", shortId);
         }
         return uriBuilder.build();
     }
