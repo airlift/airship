@@ -60,23 +60,28 @@ public class UriBuilder
 
     public static UriBuilder from(URI uri)
     {
+        Preconditions.checkNotNull(uri, "uri is null");
+
         return new UriBuilder(uri);
     }
 
     public UriBuilder scheme(String scheme)
     {
+        Preconditions.checkNotNull(scheme, "scheme is null");
         this.scheme = scheme;
         return this;
     }
 
     public UriBuilder host(String host)
     {
+        Preconditions.checkNotNull(host, "host is null");
         this.host = host;
         return this;
     }
 
     public UriBuilder port(int port)
     {
+        Preconditions.checkArgument(port >= 1 && port <= 65535, "port must be in the range 1-65535");
         this.port = port;
         return this;
     }
@@ -127,6 +132,8 @@ public class UriBuilder
 
     public UriBuilder replaceParameter(String name, String value)
     {
+        Preconditions.checkNotNull(name, "name is null");
+
         params.removeAll(name);
         params.put(name, value);
         return this;
@@ -134,6 +141,8 @@ public class UriBuilder
 
     public UriBuilder addParameter(String name, String value)
     {
+        Preconditions.checkNotNull(name, "name is null");
+
         params.put(name, value);
         return this;
     }
