@@ -236,7 +236,7 @@ public class UriBuilder
     {
         Preconditions.checkArgument(CharMatcher.ASCII.matchesAllOf(encoded), "string must be ASCII");
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream out = new ByteArrayOutputStream(encoded.length());
         for (int i = 0; i < encoded.length(); i++) {
             char c = encoded.charAt(i);
 
