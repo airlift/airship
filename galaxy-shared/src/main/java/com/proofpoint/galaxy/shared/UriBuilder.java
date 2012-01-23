@@ -243,10 +243,14 @@ public class UriBuilder
             if (c == '%') {
                 Preconditions.checkArgument(i + 2 < encoded.length(), "percent encoded value is truncated");
 
-                char high = encoded.charAt(++i);
-                char low = encoded.charAt(++i);
-                int value = (Character.digit(high, 16) << 4) | (Character.digit(low, 16));
+                int high = Character.digit(encoded.charAt(i + 1), 16);
+                int low = Character.digit(encoded.charAt(i + 2), 16);
+
+                Preconditions.checkArgument(high != -1 && low != -1, "percent encoded value is not a valid hex string: ", encoded.substring(i, i + 2));
+
+                int value = (high << 4) | (low);
                 out.write(value);
+                i += 2;
             }
             else {
                 out.write((int) c);
