@@ -221,7 +221,7 @@ public class UriBuilder
             }
             else {
                 builder.append('%');
-                builder.append(Ascii.toUpperCase(forDigit((b >> 4) & 0xF, 16)));
+                builder.append(Ascii.toUpperCase(forDigit((b >>> 4) & 0xF, 16)));
                 builder.append(Ascii.toUpperCase(forDigit(b & 0xF, 16)));
             }
         }
