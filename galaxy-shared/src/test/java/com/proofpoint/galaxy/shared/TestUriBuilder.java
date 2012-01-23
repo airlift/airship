@@ -212,4 +212,16 @@ public class TestUriBuilder
 
         assertEquals(uri.toASCIIString(), "http://www.example.com?a=1");
     }
+
+    @Test
+    public void testEncodesQueryParameters()
+    {
+        URI uri = UriBuilder.builder()
+            .scheme("http")
+            .host("www.example.com")
+            .replaceParameter("a", "&")
+            .build();
+
+        assertEquals(uri.toASCIIString(), "http://www.example.com?a=%26");
+    }
 }
