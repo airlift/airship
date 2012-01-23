@@ -178,7 +178,7 @@ public class TestUriBuilder
                 .addParameter("pretty")
                 .build();
 
-        assertEquals(uri.toASCIIString(), "http://www.example.com?pretty");
+        assertEquals(uri.toASCIIString(), "http://www.example.com/?pretty");
     }
 
     @Test
@@ -191,7 +191,7 @@ public class TestUriBuilder
                 .addParameter("pretty")
                 .build();
 
-        assertEquals(uri.toASCIIString(), "http://www.example.com?pretty&pretty");
+        assertEquals(uri.toASCIIString(), "http://www.example.com/?pretty&pretty");
     }
 
     @Test
@@ -205,7 +205,7 @@ public class TestUriBuilder
                 .addParameter("pretty")
                 .build();
 
-        assertEquals(uri.toASCIIString(), "http://www.example.com?pretty&pretty=true&pretty");
+        assertEquals(uri.toASCIIString(), "http://www.example.com/?pretty&pretty=true&pretty");
     }
 
     @Test
@@ -284,7 +284,7 @@ public class TestUriBuilder
                 .addParameter("a", "1")
                 .build();
 
-        assertEquals(uri.toASCIIString(), "http://www.example.com?a=1");
+        assertEquals(uri.toASCIIString(), "http://www.example.com/?a=1");
     }
 
     @Test
@@ -296,6 +296,6 @@ public class TestUriBuilder
             .replaceParameter("a", "&")
             .build();
 
-        assertEquals(uri.toASCIIString(), "http://www.example.com?a=%26");
+        assertEquals(uri.toASCIIString(), "http://www.example.com/?a=%26");
     }
 }

@@ -170,6 +170,11 @@ public class UriBuilder
             builder.append(port);
         }
 
+        String path = this.path;
+        if (path.equals("") && !params.isEmpty()) {
+            path = "/";
+        }
+
         builder.append(encode(path, ALLOWED_PATH_CHARS));
 
         if (!params.isEmpty()) {
