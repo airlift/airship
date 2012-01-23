@@ -20,9 +20,9 @@ import java.util.Map;
 import static java.lang.Character.forDigit;
 
 /**
- * An RFC-3986-compatible URI builder with support for http-like query parameters
+ * An RFC-3986-compatible HTTP URI builder
  */
-public class UriBuilder
+public class HttpUriBuilder
 {
     private String scheme;
     private String host;
@@ -40,11 +40,11 @@ public class UriBuilder
     private static byte[] ALLOWED_PATH_CHARS = Bytes.concat(PCHAR, new byte[] {'/', '&'});
     private static byte[] ALLOWED_QUERY_CHARS = Bytes.concat(PCHAR, new byte[] {'/', '?'});
 
-    private UriBuilder()
+    private HttpUriBuilder()
     {
     }
 
-    private UriBuilder(URI previous)
+    private HttpUriBuilder(URI previous)
     {
         scheme = previous.getScheme();
         host = previous.getHost();
@@ -53,40 +53,43 @@ public class UriBuilder
         params.putAll(parseParams(previous.getRawQuery()));
     }
 
-    public static UriBuilder uriBuilder()
+    public static HttpUriBuilder uriBuilder()
     {
-        return new UriBuilder();
+        return new HttpUriBuilder();
     }
 
-    public static UriBuilder uriBuilderFrom(URI uri)
+    public static HttpUriBuilder uriBuilderFrom(URI uri)
     {
         Preconditions.checkNotNull(uri, "uri is null");
+        Preconditions.checkArgument(uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"), "scheme must be either http or https");
 
-        return new UriBuilder(uri);
+        return new HttpUriBuilder(uri);
     }
 
-    public UriBuilder scheme(String scheme)
+    public HttpUriBuilder scheme(String scheme)
     {
         Preconditions.checkNotNull(scheme, "scheme is null");
+        Preconditions.checkArgument(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"), "scheme must be either http or https");
+
         this.scheme = scheme;
         return this;
     }
 
-    public UriBuilder host(String host)
+    public HttpUriBuilder host(String host)
     {
         Preconditions.checkNotNull(host, "host is null");
         this.host = host;
         return this;
     }
 
-    public UriBuilder port(int port)
+    public HttpUriBuilder port(int port)
     {
         Preconditions.checkArgument(port >= 1 && port <= 65535, "port must be in the range 1-65535");
         this.port = port;
         return this;
     }
     
-    public UriBuilder defaultPort()
+    public HttpUriBuilder defaultPort()
     {
         this.port = -1;
         return this;
@@ -95,7 +98,7 @@ public class UriBuilder
     /**
      * Replace the current path with the given unencoded path
      */
-    public UriBuilder replacePath(String path)
+    public HttpUriBuilder replacePath(String path)
     {
         Preconditions.checkNotNull(path, "path is null");
 
@@ -113,7 +116,7 @@ public class UriBuilder
      * All reserved characters except '/' will be percent-encoded. '/' are considered as path separators and
      * appended verbatim.
      */
-    public UriBuilder appendPath(String path)
+    public HttpUriBuilder appendPath(String path)
     {
         Preconditions.checkNotNull(path, "path is null");
 
@@ -133,7 +136,7 @@ public class UriBuilder
         return this;
     }
 
-    public UriBuilder replaceParameter(String name, String... values)
+    public HttpUriBuilder replaceParameter(String name, String... values)
     {
         Preconditions.checkNotNull(name, "name is null");
 
@@ -143,7 +146,7 @@ public class UriBuilder
         return this;
     }
 
-    public UriBuilder addParameter(String name, String... values)
+    public HttpUriBuilder addParameter(String name, String... values)
     {
         Preconditions.checkNotNull(name, "name is null");
 
