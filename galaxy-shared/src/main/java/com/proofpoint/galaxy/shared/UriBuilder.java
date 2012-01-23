@@ -98,7 +98,10 @@ public class UriBuilder
     public UriBuilder replacePath(String path)
     {
         Preconditions.checkNotNull(path, "path is null");
-        Preconditions.checkArgument(path.startsWith("/"), "path must start with '/'");
+
+        if (!path.equals("") && !path.startsWith("/")) {
+            path = "/" + path;
+        }
 
         this.path = path;
         return this;

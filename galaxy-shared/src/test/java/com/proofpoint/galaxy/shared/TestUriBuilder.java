@@ -40,6 +40,18 @@ public class TestUriBuilder
     }
 
     @Test
+    public void testReplacePathWithRelative()
+    {
+        URI uri = UriBuilder.builder()
+                .scheme("http")
+                .host("www.example.com")
+                .replacePath("a/b/c")
+                .build();
+
+        assertEquals(uri.toASCIIString(), "http://www.example.com/a/b/c");
+    }
+
+    @Test
     public void testAppendToDefaultPath()
     {
         URI uri = UriBuilder.builder()
