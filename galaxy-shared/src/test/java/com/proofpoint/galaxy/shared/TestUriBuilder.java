@@ -12,7 +12,7 @@ public class TestUriBuilder
     public void testCreateFromUri()
     {
         URI original = URI.create("http://www.example.com:8081/a%20/%C3%A5?k=1&k=2&%C3%A5=3");
-        assertEquals(UriBuilder.uriBuilderFromUri(original).build(), original);
+        assertEquals(UriBuilder.uriBuilderFrom(original).build(), original);
     }
 
     @Test
@@ -211,7 +211,7 @@ public class TestUriBuilder
     @Test
     public void testReplaceParameters()
     {
-        URI uri = UriBuilder.uriBuilderFromUri(URI.create("http://www.example.com:8081/?k1=1&k1=2&k2=3"))
+        URI uri = UriBuilder.uriBuilderFrom(URI.create("http://www.example.com:8081/?k1=1&k1=2&k2=3"))
                 .replaceParameter("k1", "4")
                 .build();
 
@@ -221,7 +221,7 @@ public class TestUriBuilder
     @Test
     public void testReplaceParameterMultivalued()
     {
-        URI uri = UriBuilder.uriBuilderFromUri(URI.create("http://www.example.com/?k1=1&k1=2&k2=3"))
+        URI uri = UriBuilder.uriBuilderFrom(URI.create("http://www.example.com/?k1=1&k1=2&k2=3"))
                 .replaceParameter("k1", "a", "b", "c")
                 .build();
 
@@ -231,7 +231,7 @@ public class TestUriBuilder
     @Test
     public void testReplacePort()
     {
-        URI uri = UriBuilder.uriBuilderFromUri(URI.create("http://www.example.com:8081/"))
+        URI uri = UriBuilder.uriBuilderFrom(URI.create("http://www.example.com:8081/"))
                 .port(80)
                 .build();
 
@@ -241,7 +241,7 @@ public class TestUriBuilder
     @Test
     public void testDefaultPort()
     {
-        URI uri = UriBuilder.uriBuilderFromUri(URI.create("http://www.example.com:8081"))
+        URI uri = UriBuilder.uriBuilderFrom(URI.create("http://www.example.com:8081"))
                 .defaultPort()
                 .build();
 

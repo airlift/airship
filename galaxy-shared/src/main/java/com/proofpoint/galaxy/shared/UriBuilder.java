@@ -58,7 +58,7 @@ public class UriBuilder
         return new UriBuilder();
     }
 
-    public static UriBuilder uriBuilderFromUri(URI uri)
+    public static UriBuilder uriBuilderFrom(URI uri)
     {
         Preconditions.checkNotNull(uri, "uri is null");
 
