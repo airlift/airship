@@ -133,20 +133,24 @@ public class UriBuilder
         return this;
     }
 
-    public UriBuilder replaceParameter(String name, String value)
+    public UriBuilder replaceParameter(String name, String... values)
     {
         Preconditions.checkNotNull(name, "name is null");
 
         params.removeAll(name);
-        params.put(name, value);
+        addParameter(name, values);
+
         return this;
     }
 
-    public UriBuilder addParameter(String name, String value)
+    public UriBuilder addParameter(String name, String... values)
     {
         Preconditions.checkNotNull(name, "name is null");
 
-        params.put(name, value);
+        for (String value : values) {
+            params.put(name, value);
+        }
+
         return this;
     }
 

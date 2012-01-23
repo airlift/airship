@@ -155,6 +155,19 @@ public class TestUriBuilder
 
         assertEquals(uri.toASCIIString(), "http://www.example.com/?k1=1&k1=2&k1=0&k2=3");
     }
+
+    @Test
+    public void testAddParameterMultivalued()
+    {
+        URI uri = UriBuilder.uriBuilder()
+                .scheme("http")
+                .host("www.example.com")
+                .replacePath("/")
+                .addParameter("k1", "1", "2", "0")
+                .build();
+
+        assertEquals(uri.toASCIIString(), "http://www.example.com/?k1=1&k1=2&k1=0");
+    }
     
     @Test
     public void testReplaceParameters()
@@ -164,6 +177,16 @@ public class TestUriBuilder
                 .build();
 
         assertEquals(uri.toASCIIString(), "http://www.example.com:8081/?k2=3&k1=4");
+    }
+
+    @Test
+    public void testReplaceParameterMultivalued()
+    {
+        URI uri = UriBuilder.uriBuilderFromUri(URI.create("http://www.example.com/?k1=1&k1=2&k2=3"))
+                .replaceParameter("k1", "a", "b", "c")
+                .build();
+
+        assertEquals(uri.toASCIIString(), "http://www.example.com/?k2=3&k1=a&k1=b&k1=c");
     }
 
     @Test
