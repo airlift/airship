@@ -40,11 +40,11 @@ public class UriBuilder
     private static byte[] ALLOWED_PATH_CHARS = Bytes.concat(PCHAR, new byte[] {'/', '&'});
     private static byte[] ALLOWED_QUERY_CHARS = Bytes.concat(PCHAR, new byte[] {'/', '?'});
 
-    public UriBuilder()
+    private UriBuilder()
     {
     }
 
-    public UriBuilder(URI previous)
+    private UriBuilder(URI previous)
     {
         scheme = previous.getScheme();
         host = previous.getHost();
