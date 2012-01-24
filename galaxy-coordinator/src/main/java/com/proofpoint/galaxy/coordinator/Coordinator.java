@@ -333,7 +333,7 @@ public class Coordinator
                 if (filter.apply(slot.status())) {
                     SlotStatus slotStatus = agent.terminateSlot(slot.getId());
                     if (slotStatus.getState() == TERMINATED) {
-                        stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(),TERMINATED, null));
+                        stateManager.deleteExpectedState(slotStatus.getId());
                     }
                     builder.add(slotStatus);
                 }
@@ -427,6 +427,10 @@ public class Coordinator
             SlotStatus actualState = actualStates.get(uuid);
             ExpectedSlotStatus expectedState = expectedStates.get(uuid);
             if (actualState == null) {
+                // skip terminated slots
+                if (expectedState == null || expectedState.getStatus() == SlotLifecycleState.TERMINATED)  {
+                    continue;
+                }
                 actualState = new SlotStatus(uuid, "unknown", null, "unknown", UNKNOWN, expectedState.getAssignment(), null);
                 actualState = actualState.updateState(UNKNOWN, "Slot is missing; Expected slot to be " + expectedState.getStatus());
             } else if (expectedState == null) {
