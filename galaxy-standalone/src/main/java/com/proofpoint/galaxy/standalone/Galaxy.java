@@ -10,9 +10,9 @@ import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.log.Logging;
 import com.proofpoint.log.LoggingConfiguration;
 import org.iq80.cli.Arguments;
+import org.iq80.cli.Cli;
+import org.iq80.cli.Cli.CliBuilder;
 import org.iq80.cli.Command;
-import org.iq80.cli.GitLikeCli;
-import org.iq80.cli.GitLikeCli.CliBuilder;
 import org.iq80.cli.Help;
 import org.iq80.cli.Option;
 import org.iq80.cli.ParseException;
@@ -36,7 +36,7 @@ import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
 import static com.proofpoint.galaxy.standalone.Column.status;
 import static com.proofpoint.galaxy.standalone.Column.statusMessage;
-import static org.iq80.cli.GitLikeCli.buildCli;
+import static org.iq80.cli.Cli.buildCli;
 
 public class Galaxy
 {
@@ -64,7 +64,7 @@ public class Galaxy
                         AgentAddCommand.class,
                         AgentTerminateCommand.class);
 
-        GitLikeCli<GalaxyCommand> galaxyParser = builder.build();
+        Cli<GalaxyCommand> galaxyParser = builder.build();
 
         galaxyParser.parse(args).call();
     }
