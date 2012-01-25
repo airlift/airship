@@ -30,7 +30,7 @@ public class ConfigurationMainModule
         binder.requireExplicitBindings();
 
         binder.bind(ConfigurationResource.class).in(Scopes.SINGLETON);
-        binder.bind(GitConfigurationRepository.class).in(Scopes.SINGLETON);
+        binder.bind(GitConfigurationStore.class).in(Scopes.SINGLETON);
         bindConfig(binder).to(GitConfigurationRepositoryConfig.class);
 
         bindConfig(binder).to(ConfigurationRepositoryConfig.class);

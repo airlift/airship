@@ -21,7 +21,6 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.Scopes;
 import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
@@ -61,7 +60,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.validation.metadata.Scope;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
@@ -109,7 +107,6 @@ public class TestServerIntegration
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
 
     private File binaryRepoDir;
-    private File configRepoDir;
     private File localBinaryRepoDir;
     private BinaryRepository binaryRepository;
     private ConfigRepository configRepository;
@@ -129,7 +126,7 @@ public class TestServerIntegration
     {
         try {
             binaryRepoDir = TestingBinaryRepository.createBinaryRepoDir();
-            configRepoDir = TestingConfigRepository.createConfigRepoDir();
+            TestingConfigRepository.initConfigRepo(binaryRepoDir);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -142,7 +139,7 @@ public class TestServerIntegration
                 .put("node.environment", "prod")
                 .put("galaxy.version", "123")
                 .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
-                .put("coordinator.config-repo", configRepoDir.toURI().toString())
+                .put("coordinator.config-repo.group-id", "prod")
                 .put("coordinator.binary-repo.local", localBinaryRepoDir.toString())
                 .put("coordinator.status.expiration", "100d")
                 .put("coordinator.aws.access-key", "my-access-key")
@@ -241,15 +238,15 @@ public class TestServerIntegration
 
         appleSlot1 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
                 binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap("prod", APPLE_ASSIGNMENT.getConfig()),
+                configRepository.getConfigFile(APPLE_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
         appleSlot2 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
                 binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap("prod", APPLE_ASSIGNMENT.getConfig()),
+                configRepository.getConfigFile(APPLE_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
         bananaSlot = agent.getSlot(agent.install(new Installation(BANANA_ASSIGNMENT,
                 binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
-                configRepository.getConfigMap("prod", BANANA_ASSIGNMENT.getConfig()),
+                configRepository.getConfigFile(BANANA_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
 
         agentInstance = new Instance(agent.getAgentId(), "test.type", "location", agentServer.getBaseUrl());
@@ -282,9 +279,6 @@ public class TestServerIntegration
         }
         if (binaryRepoDir != null) {
             deleteRecursively(binaryRepoDir);
-        }
-        if (configRepoDir != null) {
-            deleteRecursively(configRepoDir);
         }
         if (localBinaryRepoDir != null) {
             deleteRecursively(localBinaryRepoDir);

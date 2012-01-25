@@ -1,9 +1,9 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import com.proofpoint.galaxy.shared.ConfigUtils;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.CommandFailedException;
@@ -13,9 +13,8 @@ import com.proofpoint.units.Duration;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
+import java.net.URL;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 import static com.google.common.base.Charsets.UTF_8;
@@ -164,22 +163,16 @@ public class DirectoryDeploymentManager implements DeploymentManager
             }
             File binaryRootDir = files.get(0);
 
-            // copy config files from config repository
-            for (Entry<String, URI> entry : installation.getConfigFiles().entrySet()) {
-                String configFile = entry.getKey();
-                URI configUri = entry.getValue();
-                try {
-                    File targetFile = new File(binaryRootDir, configFile);
-                    targetFile.getParentFile().mkdirs();
-                    Files.copy(Resources.newInputStreamSupplier(configUri.toURL()), targetFile);
-                }
-                catch (IOException e) {
-                    throw new RuntimeException(String.format("Unable to download config file %s from %s for config %s",
-                            configFile,
-                            configUri,
-                            assignment.getConfig()));
-                }
+            // unpack config bundle
+            try {
+                URL url = installation.getConfigFile().toURL();
+                ConfigUtils.unpackConfig(Resources.newInputStreamSupplier(url), binaryRootDir);
             }
+            catch (Exception e) {
+                throw new RuntimeException("Unable to extract config bundle " + assignment.getConfig() + ": " + e.getMessage());
+            }
+
+            // save deployment versions file
             try {
                 save(deployment);
             }

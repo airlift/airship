@@ -1,41 +1,53 @@
 package com.proofpoint.galaxy.configuration;
 
+import com.proofpoint.galaxy.shared.ConfigUtils;
+
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.StreamingOutput;
 import java.io.File;
-import java.net.URI;
-import java.util.Map;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import static com.google.common.io.Files.newInputStreamSupplier;
 
 @Path("/v1/config/{environment}/{type}/{pool}/{version}")
 public class ConfigurationResource
 {
-    private final GitConfigurationRepository configurationRepository;
+    private final GitConfigurationStore configurationStore;
 
     @Inject
-    public ConfigurationResource(GitConfigurationRepository configRepository)
+    public ConfigurationResource(GitConfigurationStore configStore)
     {
-        this.configurationRepository = configRepository;
+        this.configurationStore = configStore;
     }
 
     @GET
-    @Path("config-map.json")
-    public Response getConfigMap(@PathParam("environment") String environment,
-            @PathParam("type") String type,
-            @PathParam("pool") String pool,
-            @PathParam("version") String version)
+    public Response getConfigMap(
+            @PathParam("environment") final String environment,
+            @PathParam("type") final String type,
+            @PathParam("pool") final String pool,
+            @PathParam("version") final String version)
     {
-        Map<String, URI> configMap = configurationRepository.getConfigMap(environment, type, version, pool);
-        if (configMap == null) {
+        final File configDir = configurationStore.getConfigDir(environment, type, version, pool);
+        if (configDir == null) {
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        return Response.ok(configMap).build();
+        return Response.ok(new StreamingOutput()
+        {
+            @Override
+            public void write(OutputStream output)
+                    throws IOException, WebApplicationException
+            {
+                ConfigUtils.packConfig(configDir, output);
+            }
+        }).build();
     }
 
     @GET
@@ -46,7 +58,7 @@ public class ConfigurationResource
             @PathParam("version") String version,
             @PathParam("path") String path)
     {
-        File configFile = configurationRepository.getConfigFile(environment, type, version, pool, path);
+        File configFile = configurationStore.getConfigFile(environment, type, version, pool, path);
         if (configFile == null) {
             return Response.status(Status.NOT_FOUND).build();
         }

@@ -15,6 +15,8 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.CharStreams;
+import com.google.common.io.InputSupplier;
 import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
@@ -23,6 +25,9 @@ import com.proofpoint.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.shared.ConfigUtils.newConfigEntrySupplier;
 import static java.lang.String.format;
 
 public class AwsProvisioner implements Provisioner
@@ -242,14 +248,25 @@ public class AwsProvisioner implements Provisioner
                 boundaryLine
         );
 
-        URI resourcesFile = configRepository.getConfigResource(environment, new ConfigSpec("agent", galaxyVersion, instanceType), "etc/resources.properties");
+
+        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(configRepository,
+                environment,
+                new ConfigSpec("agent", galaxyVersion, instanceType),
+                "etc/resources.properties");
         if (resourcesFile != null) {
-            lines.add(
-                    contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-agent-resources.properties"), "",
-                    resourcesFile.toString(),
-                    "",
-                    boundaryLine
-            );
+            try {
+                String resourcesProperties = CharStreams.toString(CharStreams.newReaderSupplier(resourcesFile, Charsets.UTF_8));
+                lines.add(
+                        contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-agent-resources.properties"), "",
+                        resourcesProperties,
+                        "",
+                        boundaryLine);
+            }
+            catch (FileNotFoundException ignored) {
+            }
+            catch (IOException e) {
+                throw new RuntimeException("Error reading agent resources file");
+            }
         }
         return Joiner.on('\n').join(lines.build());
     }

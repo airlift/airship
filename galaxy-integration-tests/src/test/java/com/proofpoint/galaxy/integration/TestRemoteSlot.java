@@ -69,12 +69,12 @@ public class TestRemoteSlot
 {
     private static final Installation APPLE_INSTALLATION = new Installation(APPLE_ASSIGNMENT,
             URI.create("fake://localhost/apple.tar.gz"),
-            ImmutableMap.of("config", URI.create("fake://localhost/apple.config")),
+            URI.create("fake://localhost/apple.config"),
             ImmutableMap.of("memory", 512));
 
     private static final Installation BANANA_INSTALLATION = new Installation(BANANA_ASSIGNMENT,
             URI.create("fake://localhost/banana.tar.gz"),
-            ImmutableMap.of("config", URI.create("fake://localhost/banana.config")),
+            URI.create("fake://localhost/banana.config"),
             ImmutableMap.of("cpu", 1));
 
     private AsyncHttpClient client;

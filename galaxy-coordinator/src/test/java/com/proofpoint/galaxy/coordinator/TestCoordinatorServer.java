@@ -92,7 +92,7 @@ public class TestCoordinatorServer
         Map<String, String> properties = ImmutableMap.<String, String>builder()
                 .put("galaxy.version", "123")
                 .put("coordinator.binary-repo", "http://localhost:9999/")
-                .put("coordinator.config-repo", "http://localhost:8888/")
+                .put("coordinator.config-repo.group-id", "prod")
                 .put("coordinator.aws.access-key", "my-access-key")
                 .put("coordinator.aws.secret-key", "my-secret-key")
                 .put("coordinator.aws.agent.ami", "ami-0123abcd")

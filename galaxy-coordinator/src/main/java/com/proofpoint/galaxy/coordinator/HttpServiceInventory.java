@@ -25,12 +25,14 @@ import com.proofpoint.discovery.client.ServiceState;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
+import com.proofpoint.galaxy.shared.ConfigUtils;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
@@ -97,7 +99,7 @@ public class HttpServiceInventory implements ServiceInventory
 
     private Map<String, String> interpolateProperties(Map<String, String> properties, SlotStatus slotStatus)
     {
-        ImmutableMap.Builder<String,String> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
         for (Entry<String, String> entry : properties.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
@@ -115,7 +117,7 @@ public class HttpServiceInventory implements ServiceInventory
         }
 
         ConfigSpec config = assignment.getConfig();
-        InputSupplier<? extends InputStream> configFile = configRepository.getConfigFile(environment, config, "galaxy-service-inventory.json");
+        InputSupplier<? extends InputStream> configFile = ConfigUtils.newConfigEntrySupplier(configRepository, environment, config, "galaxy-service-inventory.json");
         if (configFile == null) {
             return null;
         }
@@ -125,6 +127,8 @@ public class HttpServiceInventory implements ServiceInventory
             List<ServiceDescriptor> descriptors = descriptorsJsonCodec.fromJson(json);
             invalidServiceInventory.remove(config);
             return descriptors;
+        }
+        catch (FileNotFoundException e) {
         }
         catch (Exception e) {
             if (invalidServiceInventory.add(config)) {

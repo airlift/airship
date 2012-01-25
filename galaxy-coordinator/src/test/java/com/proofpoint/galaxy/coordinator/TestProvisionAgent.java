@@ -4,9 +4,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
@@ -17,7 +15,6 @@ import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -77,21 +74,9 @@ public class TestProvisionAgent
         ConfigRepository configRepository = new ConfigRepository()
         {
             @Override
-            public Map<String, URI> getConfigMap(String environment, ConfigSpec configSpec)
+            public URI getConfigFile(ConfigSpec configSpec)
             {
-                return ImmutableMap.of();
-            }
-
-            @Override
-            public URI getConfigResource(String environment, ConfigSpec configSpec, String path)
-            {
-                return null;
-            }
-
-            @Override
-            public InputSupplier<? extends InputStream> getConfigFile(String environment, ConfigSpec configSpec, String path)
-            {
-                return null;
+                return URI.create("fake://localhost/" + configSpec);
             }
         };
 

@@ -30,6 +30,7 @@ public class CoordinatorConfig
     private boolean localMavenRepositoryEnabled;
     private List<String> configRepoBases = ImmutableList.of();
     private String localConfigRepo;
+    private String configRepositoryGroupId;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
     @NotNull
@@ -65,7 +66,7 @@ public class CoordinatorConfig
     }
 
     @Deprecated
-     @Config("coordinator.binary-repo.local")
+    @Config("coordinator.binary-repo.local")
     public CoordinatorConfig setLocalBinaryRepo(String localBinaryRepo)
     {
         this.localBinaryRepo = localBinaryRepo;
@@ -109,6 +110,18 @@ public class CoordinatorConfig
     {
         this.localConfigRepo = localConfigRepo;
         return this;
+    }
+
+    @NotNull
+    public String getConfigRepositoryGroupId()
+    {
+        return configRepositoryGroupId;
+    }
+
+    @Config("coordinator.config-repo.group-id")
+    public void setConfigRepositoryGroupId(String configRepositoryGroupId)
+    {
+        this.configRepositoryGroupId = configRepositoryGroupId;
     }
 
     @NotNull

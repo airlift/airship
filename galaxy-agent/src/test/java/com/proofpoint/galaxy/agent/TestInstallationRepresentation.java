@@ -32,10 +32,7 @@ public class TestInstallationRepresentation
     private final InstallationRepresentation expected = new InstallationRepresentation(
             AssignmentRepresentation.from(APPLE_ASSIGNMENT),
             "fetch://binary.tar.gz",
-            ImmutableMap.<String,String>builder()
-                    .put("etc/config.properties", "fetch://config.properties")
-                    .put("readme.txt", "fetch://readme.txt")
-                    .build(),
+            "fetch://config.config",
             ImmutableMap.of("memory", 512)
     );
 

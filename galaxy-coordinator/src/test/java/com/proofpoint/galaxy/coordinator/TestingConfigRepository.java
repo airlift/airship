@@ -1,18 +1,19 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Files;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.proofpoint.galaxy.shared.ConfigSpec;
+import com.proofpoint.galaxy.shared.FileUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 
-public class TestingConfigRepository extends SimpleConfigRepository
+public class TestingConfigRepository extends ConfigInBinaryRepository
 {
     private final File targetRepo;
 
@@ -23,8 +24,9 @@ public class TestingConfigRepository extends SimpleConfigRepository
     }
 
     public TestingConfigRepository(File targetRepo)
+            throws Exception
     {
-        super("prod", targetRepo.toURI());
+        super(new MavenBinaryRepository(targetRepo.toURI()), "prod");
         this.targetRepo = targetRepo;
     }
 
@@ -36,13 +38,10 @@ public class TestingConfigRepository extends SimpleConfigRepository
     public static File createConfigRepoDir()
             throws Exception
     {
-        File targetRepo = null;
+        File targetRepo = createTempDir("config");
         try {
-            targetRepo = createTempDir("config");
 
-            createConfig(new File(targetRepo, "prod/apple/1.0"), "apple");
-            createConfig(new File(targetRepo, "prod/apple/2.0"), "apple");
-            createConfig(new File(targetRepo, "prod/banana/2.0-SNAPSHOT"), "banana");
+            initConfigRepo(targetRepo);
 
             return targetRepo;
         }
@@ -54,43 +53,52 @@ public class TestingConfigRepository extends SimpleConfigRepository
         }
     }
 
-    public static void createConfig(File dir, String name)
+    public static void initConfigRepo(File targetRepo)
             throws IOException
     {
-        dir.mkdirs();
+        createConfig(targetRepo, new ConfigSpec("apple", "1.0"));
+        createConfig(targetRepo, new ConfigSpec("apple", "2.0"));
+        createConfig(targetRepo, new ConfigSpec("banana", "2.0-SNAPSHOT"));
+    }
+
+    public static void createConfig(File dir, ConfigSpec configSpec)
+            throws IOException
+    {
+        String name = configSpec.getComponent();
+        String artifactId = configSpec.getComponent() + "-" + configSpec.getPool();
+        File configFile = FileUtils.newFile(dir, "prod", artifactId, configSpec.getVersion(), artifactId + "-" + configSpec.getVersion() + ".config");
+
+        configFile.getParentFile().mkdirs();
+
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(configFile));
 
         // text file
-        Files.write(name, new File(dir, name + ".txt"), UTF_8);
+        out.putNextEntry(new ZipEntry(name + ".txt"));
+        out.write(name.getBytes(UTF_8));
 
         // config.properties
-        Files.write(
-                "http-server.http.port=0\n" +
-                        "config=" + name,
-                new File(dir, "config.properties"), UTF_8);
+        out.putNextEntry(new ZipEntry("config.properties"));
+        String properties = "http-server.http.port=0\n" +
+                "config=" + name;
+        out.write(properties.getBytes(UTF_8));
+
 
         // jvm.config
-        new File(dir, "jvm.config").createNewFile();
+        out.putNextEntry(new ZipEntry("jvm.config"));
 
         // config.properties
+        String resources;
         if ("apple".equals(name)) {
-            Files.write(
-                    "memory=512\n" +
-                            "cpu=1",
-                    new File(dir, "galaxy-resources.properties"), UTF_8);
-        } else {
-            Files.write(
-                    "memory=1024\n" +
-                            "cpu=2",
-                    new File(dir, "galaxy-resources.properties"), UTF_8);
+            resources = "memory=512\n" +
+                    "cpu=1";
         }
+        else {
+            resources = "memory=1024\n" +
+                    "cpu=2";
+        }
+        out.putNextEntry(new ZipEntry("galaxy-resources.properties"));
+        out.write(resources.getBytes(UTF_8));
 
-
-        // config-map.json
-        Map<String, String> configMap = ImmutableMap.<String, String>builder()
-                .put("etc/" + name + ".txt", name + ".txt")
-                .put("etc/config.properties", "config.properties")
-                .put("etc/jvm.config", "jvm.config")
-                .build();
-        Files.write(new ObjectMapper().writeValueAsString(configMap), new File(dir, "config-map.json"), UTF_8);
+        out.close();
     }
 }

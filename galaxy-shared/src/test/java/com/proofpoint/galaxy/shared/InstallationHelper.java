@@ -15,11 +15,11 @@ public class InstallationHelper
 {
     public static final Installation APPLE_INSTALLATION = new Installation(APPLE_ASSIGNMENT,
             URI.create("fake://localhost/apple.tar.gz"),
-            ImmutableMap.of("config", URI.create("fake://localhost/apple.config")),
+            URI.create("fake://localhost/apple.config"),
             ImmutableMap.of("memory", 512));
     public static final Installation BANANA_INSTALLATION = new Installation(BANANA_ASSIGNMENT,
             URI.create("fake://localhost/banana.tar.gz"),
-            ImmutableMap.of("config", URI.create("fake://localhost/banana.config")),
+            URI.create("fake://localhost/banana.config"),
             ImmutableMap.of("cpu", 1));
 
     private final File targetRepo;
@@ -44,10 +44,8 @@ public class InstallationHelper
         }
         this.targetRepo = targetRepo;
 
-        ImmutableMap<String, URI> configFiles = ImmutableMap.of("readme.txt", new File("README.txt").toURI());
-
-        appleInstallation = new Installation(APPLE_ASSIGNMENT, binaryFile.toURI(), configFiles, ImmutableMap.of("memory", 512));
-        bananaInstallation = new Installation(BANANA_ASSIGNMENT, binaryFile.toURI(), configFiles, ImmutableMap.of("cpu", 1));
+        appleInstallation = new Installation(APPLE_ASSIGNMENT, binaryFile.toURI(), new File("README.txt").toURI(), ImmutableMap.of("memory", 512));
+        bananaInstallation = new Installation(BANANA_ASSIGNMENT, binaryFile.toURI(), new File("README.txt").toURI(), ImmutableMap.of("cpu", 1));
     }
 
     public void destroy()

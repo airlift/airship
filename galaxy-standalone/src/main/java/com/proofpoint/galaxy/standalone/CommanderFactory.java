@@ -24,7 +24,7 @@ import com.proofpoint.galaxy.coordinator.RemoteAgent;
 import com.proofpoint.galaxy.coordinator.RemoteAgentFactory;
 import com.proofpoint.galaxy.coordinator.RemoteSlot;
 import com.proofpoint.galaxy.coordinator.ServiceInventory;
-import com.proofpoint.galaxy.coordinator.SimpleConfigRepository;
+import com.proofpoint.galaxy.coordinator.ConfigInBinaryRepository;
 import com.proofpoint.galaxy.coordinator.StateManager;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.ConfigRepository;
@@ -104,7 +104,6 @@ public class CommanderFactory
         Preconditions.checkNotNull(this.configRepositories, "configRepositories is null");
 
         List<URI> binaryRepoBases = ImmutableList.copyOf(Lists.transform(binaryRepositories, new ToUriFunction()));
-        List<URI> configRepositoryBases = ImmutableList.copyOf(Lists.transform(configRepositories, new ToUriFunction()));
 
         //
         // Create agent
@@ -131,7 +130,8 @@ public class CommanderFactory
         //
         // Create coordinator
         //
-        ConfigRepository configRepository = new SimpleConfigRepository(environment, configRepositoryBases);
+        MavenBinaryRepository binaryRepository = new MavenBinaryRepository(binaryRepoBases);
+        ConfigRepository configRepository = new ConfigInBinaryRepository(binaryRepository, "environment");
         ServiceInventory serviceInventory = new HttpServiceInventory(configRepository, environment, JsonCodec.listJsonCodec(ServiceDescriptor.class));
 
         Provisioner provisioner = new StandaloneProvisioner();
@@ -145,7 +145,7 @@ public class CommanderFactory
 
         return new Coordinator(environment,
                 remoteAgentFactory,
-                new BinaryUrlResolver(new MavenBinaryRepository(binaryRepoBases), (URI) null),
+                new BinaryUrlResolver(binaryRepository, (URI) null),
                 configRepository,
                 provisioner,
                 stateManager,

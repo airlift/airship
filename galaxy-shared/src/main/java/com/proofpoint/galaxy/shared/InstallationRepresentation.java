@@ -13,8 +13,6 @@
  */
 package com.proofpoint.galaxy.shared;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
@@ -23,40 +21,34 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.Map;
-import java.util.Map.Entry;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class InstallationRepresentation
 {
     private final AssignmentRepresentation assignment;
     private final String binaryFile;
-    private final Map<String,String> configFiles;
-    private final Map<String,Integer> resources;
+    private final String configFile;
+    private final Map<String, Integer> resources;
 
     public static InstallationRepresentation from(Installation installation)
     {
-        Builder<String, String> builder = ImmutableMap.builder();
-        for (Entry<String, URI> entry : installation.getConfigFiles().entrySet()) {
-            builder.put(entry.getKey(), entry.getValue().toString());
-        }
-
         Assignment assignment = installation.getAssignment();
         return new InstallationRepresentation(
                 AssignmentRepresentation.from(assignment),
                 installation.getBinaryFile().toString(),
-                builder.build(),
+                installation.getConfigFile().toString(),
                 installation.getResources());
     }
 
     @JsonCreator
     public InstallationRepresentation(@JsonProperty("assignment") AssignmentRepresentation assignmentRepresentation,
             @JsonProperty("binaryFile") String binaryFile,
-            @JsonProperty("configFiles") Map<String, String> configFiles,
-            @JsonProperty("resources") Map<String,Integer> resources)
+            @JsonProperty("configFile") String configFile,
+            @JsonProperty("resources") Map<String, Integer> resources)
     {
         this.assignment = assignmentRepresentation;
         this.binaryFile = binaryFile;
-        this.configFiles = configFiles;
+        this.configFile = configFile;
         this.resources = resources;
     }
 
@@ -76,9 +68,9 @@ public class InstallationRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    public Map<String, String> getConfigFiles()
+    public String getConfigFile()
     {
-        return configFiles;
+        return configFile;
     }
 
     @JsonProperty
@@ -89,11 +81,7 @@ public class InstallationRepresentation
 
     public Installation toInstallation()
     {
-        Builder<String, URI> builder = ImmutableMap.builder();
-        for (Entry<String, String> entry : configFiles.entrySet()) {
-            builder.put(entry.getKey(), URI.create(entry.getValue()));
-        }
-        Installation installation = new Installation(assignment.toAssignment(), URI.create(binaryFile), builder.build(), resources);
+        Installation installation = new Installation(assignment.toAssignment(), URI.create(binaryFile), URI.create(configFile), resources);
         return installation;
     }
 
@@ -125,11 +113,11 @@ public class InstallationRepresentation
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("InstallationRepresentation");
         sb.append("{assignment=").append(assignment);
         sb.append(", binaryFile='").append(binaryFile).append('\'');
-        sb.append(", configFiles=").append(configFiles);
+        sb.append(", configFile=").append(configFile);
         sb.append(", resources=").append(resources);
         sb.append('}');
         return sb.toString();

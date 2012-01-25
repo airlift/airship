@@ -56,6 +56,7 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.ConfigUtils.newConfigEntrySupplier;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -266,10 +267,10 @@ public class Coordinator
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
-        Map<String, URI> configMap = configRepository.getConfigMap(environment, assignment.getConfig());
+        URI configFile= configRepository.getConfigFile(assignment.getConfig());
         Map<String, Integer> resources = readResources(assignment);
 
-        Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap, resources);
+        Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configFile, resources);
 
         List<SlotStatus> slots = newArrayList();
         List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), Predicates.and(filterAgentsBy(filter), filterAgentsWithAssignment(assignment))));
@@ -330,7 +331,7 @@ public class Coordinator
     {
         ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
 
-        InputSupplier<? extends InputStream> resourcesFile = configRepository.getConfigFile(environment, assignment.getConfig(), "galaxy-resources.properties");
+        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(configRepository, environment, assignment.getConfig(), "galaxy-resources.properties");
         if (resourcesFile != null) {
             try {
                 Properties resources = new Properties();
@@ -370,9 +371,9 @@ public class Coordinator
         }
         Assignment assignment = newAssignments.iterator().next();
 
-        Map<String, URI> configMap = configRepository.getConfigMap(environment, assignment.getConfig());
+        URI configFile = configRepository.getConfigFile(assignment.getConfig());
 
-        final Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configMap, ImmutableMap.<String, Integer>of());
+        final Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configFile, ImmutableMap.<String, Integer>of());
 
         return ImmutableList.copyOf(transform(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
         {

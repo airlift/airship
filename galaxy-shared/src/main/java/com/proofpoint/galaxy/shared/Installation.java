@@ -25,19 +25,19 @@ public class Installation
 {
     private final Assignment assignment;
     private final URI binaryFile;
-    private final Map<String, URI> configFiles;
+    private final URI configFile;
     private final Map<String, Integer> resources;
 
-    public Installation(Assignment assignment, URI binaryFile, Map<String, URI> configFiles, Map<String, Integer> resources)
+    public Installation(Assignment assignment, URI binaryFile, URI configFile, Map<String, Integer> resources)
     {
         Preconditions.checkNotNull(assignment, "assignment is null");
         Preconditions.checkNotNull(binaryFile, "binaryFile is null");
-        Preconditions.checkNotNull(configFiles, "configFiles is null");
+        Preconditions.checkNotNull(configFile, "configFile is null");
         Preconditions.checkNotNull(resources, "resources is null");
 
         this.assignment = assignment;
         this.binaryFile = binaryFile;
-        this.configFiles = ImmutableMap.copyOf(configFiles);
+        this.configFile = configFile;
         this.resources = ImmutableMap.copyOf(resources);
     }
 
@@ -51,9 +51,9 @@ public class Installation
         return binaryFile;
     }
 
-    public Map<String, URI> getConfigFiles()
+    public URI getConfigFile()
     {
-        return configFiles;
+        return configFile;
     }
 
     public Map<String, Integer> getResources()
@@ -89,11 +89,11 @@ public class Installation
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("Installation");
         sb.append("{assignment=").append(assignment);
         sb.append(", binaryFile=").append(binaryFile);
-        sb.append(", configFiles=").append(configFiles);
+        sb.append(", configFile=").append(configFile);
         sb.append(", resources=").append(resources);
         sb.append('}');
         return sb.toString();

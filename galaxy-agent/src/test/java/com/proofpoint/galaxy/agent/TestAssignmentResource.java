@@ -45,7 +45,7 @@ public class TestAssignmentResource
     private static final Assignment APPLE_V2 = new Assignment("food.fruit:apple:2.0", "@apple:2.0");
     private static final InstallationRepresentation UPGRADE = new InstallationRepresentation(AssignmentRepresentation.from(APPLE_V2),
             "fetch://binary.tar.gz",
-            ImmutableMap.of("readme.txt", "fetch://readme.txt"),
+            "fetch://config.config",
             ImmutableMap.of("memory", 512)
     );
 
