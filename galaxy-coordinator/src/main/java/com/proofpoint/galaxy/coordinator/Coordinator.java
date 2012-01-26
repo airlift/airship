@@ -69,7 +69,7 @@ public class Coordinator
     private final ConcurrentMap<String, RemoteAgent> agents;
 
     private final String environment;
-    private final BinaryUrlResolver binaryUrlResolver;
+    private final BinaryRepository binaryRepository;
     private final ConfigRepository configRepository;
     private final ScheduledExecutorService timerService;
     private final Duration statusExpiration;
@@ -82,14 +82,14 @@ public class Coordinator
     public Coordinator(NodeInfo nodeInfo,
             CoordinatorConfig config,
             RemoteAgentFactory remoteAgentFactory,
-            BinaryUrlResolver binaryUrlResolver,
+            BinaryRepository binaryRepository,
             ConfigRepository configRepository,
             Provisioner provisioner,
             StateManager stateManager, ServiceInventory serviceInventory)
     {
         this(nodeInfo.getEnvironment(),
                 remoteAgentFactory,
-                binaryUrlResolver,
+                binaryRepository,
                 configRepository,
                 provisioner,
                 stateManager,
@@ -100,7 +100,7 @@ public class Coordinator
 
     public Coordinator(String environment,
             RemoteAgentFactory remoteAgentFactory,
-            BinaryUrlResolver binaryUrlResolver,
+            BinaryRepository binaryRepository,
             ConfigRepository configRepository,
             Provisioner provisioner,
             StateManager stateManager,
@@ -110,7 +110,7 @@ public class Coordinator
         Preconditions.checkNotNull(environment, "environment is null");
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(configRepository, "repository is null");
-        Preconditions.checkNotNull(binaryUrlResolver, "binaryUrlResolver is null");
+        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
         Preconditions.checkNotNull(provisioner, "provisioner is null");
         Preconditions.checkNotNull(stateManager, "stateManager is null");
         Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
@@ -118,7 +118,7 @@ public class Coordinator
 
         this.environment = environment;
         this.remoteAgentFactory = remoteAgentFactory;
-        this.binaryUrlResolver = binaryUrlResolver;
+        this.binaryRepository = binaryRepository;
         this.configRepository = configRepository;
         this.provisioner = provisioner;
         this.stateManager = stateManager;
@@ -270,7 +270,7 @@ public class Coordinator
         URI configFile= configRepository.getConfigFile(assignment.getConfig());
         Map<String, Integer> resources = readResources(assignment);
 
-        Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configFile, resources);
+        Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configFile, resources);
 
         List<SlotStatus> slots = newArrayList();
         List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), Predicates.and(filterAgentsBy(filter), filterAgentsWithAssignment(assignment))));
@@ -373,7 +373,7 @@ public class Coordinator
 
         URI configFile = configRepository.getConfigFile(assignment.getConfig());
 
-        final Installation installation = new Installation(assignment, binaryUrlResolver.resolve(assignment.getBinary()), configFile, ImmutableMap.<String, Integer>of());
+        final Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configFile, ImmutableMap.<String, Integer>of());
 
         return ImmutableList.copyOf(transform(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
         {

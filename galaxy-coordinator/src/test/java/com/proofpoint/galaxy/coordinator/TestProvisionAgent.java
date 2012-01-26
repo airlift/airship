@@ -8,8 +8,6 @@ import com.google.common.io.Files;
 import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
-import com.proofpoint.http.server.HttpServerConfig;
-import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.Test;
@@ -57,7 +55,6 @@ public class TestProvisionAgent
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsProvisionerConfig.getAwsAccessKey(), awsProvisionerConfig.getAwsSecretKey());
         AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
         NodeInfo nodeInfo = createTestNodeInfo();
-        HttpServerInfo httpServerInfo = new HttpServerInfo(new HttpServerConfig(), nodeInfo);
         BinaryRepository binaryRepository = new BinaryRepository() {
             @Override
             public URI getBinaryUri(BinarySpec binarySpec)
@@ -80,8 +77,7 @@ public class TestProvisionAgent
             }
         };
 
-        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, new BinaryUrlResolver(binaryRepository, httpServerInfo),
-                configRepository, coordinatorConfig, awsProvisionerConfig);
+        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, binaryRepository, configRepository, coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 2;
         List<Instance> provisioned = provisioner.provisionAgents(agentCount, null, null);

@@ -8,8 +8,6 @@ import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.http.server.HttpServerConfig;
-import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
@@ -42,14 +40,13 @@ public class TestCoordinator
             throws Exception
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
-        BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), nodeInfo));
 
         configRepository = new TestingConfigRepository();
 
         provisioner = new LocalProvisioner();
         coordinator = new Coordinator(nodeInfo.getEnvironment(),
                 new MockRemoteAgentFactory(),
-                urlResolver,
+                MOCK_BINARY_REPO,
                 configRepository,
                 provisioner,
                 new InMemoryStateManager(),

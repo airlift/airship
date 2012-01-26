@@ -52,14 +52,14 @@ public class AwsProvisioner implements Provisioner
     private final String awsAgentSecurityGroup;
     private final String awsAgentDefaultInstanceType;
     private final int awsAgentDefaultPort;
-    private final BinaryUrlResolver urlResolver;
+    private final BinaryRepository binaryRepository;
     private final Set<String> invalidInstances = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     private final ConfigRepository configRepository;
 
     @Inject
     public AwsProvisioner(AmazonEC2 ec2Client,
             NodeInfo nodeInfo,
-            BinaryUrlResolver urlResolver,
+            BinaryRepository binaryRepository,
             ConfigRepository configRepository,
             CoordinatorConfig coordinatorConfig,
             AwsProvisionerConfig awsProvisionerConfig)
@@ -79,7 +79,7 @@ public class AwsProvisioner implements Provisioner
         awsAgentDefaultInstanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
         awsAgentDefaultPort = awsProvisionerConfig.getAwsAgentDefaultPort();
 
-        this.urlResolver = checkNotNull(urlResolver, "urlResolver is null");
+        this.binaryRepository = checkNotNull(binaryRepository, "binaryRepository is null");
         this.configRepository = checkNotNull(configRepository, "configRepository is null");
 
     }
@@ -216,8 +216,8 @@ public class AwsProvisioner implements Provisioner
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
 
-        URI partHandler = urlResolver.resolve(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler"));
-        URI installScript = urlResolver.resolve(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "rb", "install"));
+        URI partHandler = binaryRepository.getBinaryUri(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler"));
+        URI installScript = binaryRepository.getBinaryUri(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "rb", "install"));
 
         ImmutableList.Builder<String> lines = ImmutableList.builder();
         lines.add(

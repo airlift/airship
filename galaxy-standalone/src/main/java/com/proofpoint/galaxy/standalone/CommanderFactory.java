@@ -12,7 +12,6 @@ import com.proofpoint.galaxy.agent.DirectoryDeploymentManagerFactory;
 import com.proofpoint.galaxy.agent.LauncherLifecycleManager;
 import com.proofpoint.galaxy.agent.LifecycleManager;
 import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.coordinator.BinaryUrlResolver;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.coordinator.HttpServiceInventory;
@@ -145,7 +144,7 @@ public class CommanderFactory
 
         return new Coordinator(environment,
                 remoteAgentFactory,
-                new BinaryUrlResolver(binaryRepository, (URI) null),
+                binaryRepository,
                 configRepository,
                 provisioner,
                 stateManager,

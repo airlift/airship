@@ -21,8 +21,6 @@ import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.http.server.HttpServerConfig;
-import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
@@ -65,12 +63,11 @@ public class TestCoordinatorLifecycleResource
             throws Exception
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
-        BinaryUrlResolver urlResolver = new BinaryUrlResolver(MOCK_BINARY_REPO, new HttpServerInfo(new HttpServerConfig(), nodeInfo));
 
         coordinator = new Coordinator(nodeInfo,
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
                 new MockRemoteAgentFactory(),
-                urlResolver,
+                MOCK_BINARY_REPO,
                 MOCK_CONFIG_REPO,
                 new LocalProvisioner(),
                 new InMemoryStateManager(),

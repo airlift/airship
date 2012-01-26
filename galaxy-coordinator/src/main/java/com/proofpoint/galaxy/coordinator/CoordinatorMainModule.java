@@ -51,7 +51,6 @@ public class CoordinatorMainModule
         binder.bind(AdminResource.class).in(Scopes.SINGLETON);
         binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
         binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
-        binder.bind(BinaryUrlResolver.class).in(Scopes.SINGLETON);
         binder.bind(ConfigRepository.class).to(ConfigInBinaryRepository.class).in(Scopes.SINGLETON);
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
