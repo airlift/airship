@@ -7,6 +7,7 @@ import com.proofpoint.galaxy.shared.ConfigSpec;
 
 import java.net.URI;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ConfigInBinaryRepository implements ConfigRepository
@@ -36,7 +37,7 @@ public class ConfigInBinaryRepository implements ConfigRepository
 
     private BinarySpec toBinarySpec(ConfigSpec configSpec)
     {
-        String artifactId = configSpec.getComponent() + "-" + configSpec.getPool();
+        String artifactId = configSpec.getComponent() + "-" + firstNonNull(configSpec.getPool(), "general");
         return new BinarySpec(groupId, artifactId, configSpec.getVersion(), "config", null);
     }
 }

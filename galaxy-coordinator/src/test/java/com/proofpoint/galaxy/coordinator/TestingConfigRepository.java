@@ -11,6 +11,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.base.Objects.firstNonNull;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 
@@ -66,7 +67,7 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
             throws IOException
     {
         String name = configSpec.getComponent();
-        String artifactId = configSpec.getComponent() + "-" + configSpec.getPool();
+        String artifactId = configSpec.getComponent() + "-" + firstNonNull(configSpec.getPool(), "general");
         File configFile = FileUtils.newFile(dir, "prod", artifactId, configSpec.getVersion(), artifactId + "-" + configSpec.getVersion() + ".config");
 
         configFile.getParentFile().mkdirs();
