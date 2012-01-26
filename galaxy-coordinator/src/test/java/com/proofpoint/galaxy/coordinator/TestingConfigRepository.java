@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.collect.ImmutableList;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.FileUtils;
 
@@ -26,7 +27,7 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
     public TestingConfigRepository(File targetRepo)
             throws Exception
     {
-        super(new MavenBinaryRepository(targetRepo.toURI()), "prod");
+        super(new MavenBinaryRepository(ImmutableList.<String>of("prod"), targetRepo.toURI()), "prod");
         this.targetRepo = targetRepo;
     }
 

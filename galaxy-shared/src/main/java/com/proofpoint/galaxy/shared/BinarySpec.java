@@ -93,6 +93,11 @@ public class BinarySpec
         return version;
     }
 
+    public boolean isResolved()
+    {
+        return groupId != null && !version.contains("SNAPSHOT");
+    }
+
     public boolean equalsIgnoreVersion(BinarySpec that)
     {
         if (this == that) {

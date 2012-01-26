@@ -129,7 +129,7 @@ public class CommanderFactory
         //
         // Create coordinator
         //
-        MavenBinaryRepository binaryRepository = new MavenBinaryRepository(binaryRepoBases);
+        MavenBinaryRepository binaryRepository = new MavenBinaryRepository(ImmutableList.<String>of(), binaryRepoBases);
         ConfigRepository configRepository = new ConfigInBinaryRepository(binaryRepository, "environment");
         ServiceInventory serviceInventory = new HttpServiceInventory(configRepository, environment, JsonCodec.listJsonCodec(ServiceDescriptor.class));
 

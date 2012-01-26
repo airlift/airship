@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 
 import java.io.File;
@@ -22,7 +23,7 @@ public class TestingBinaryRepository extends MavenBinaryRepository
 
     public TestingBinaryRepository(File targetRepo)
     {
-        super(targetRepo.toURI());
+        super(ImmutableList.<String>of(), targetRepo.toURI());
         this.targetRepo = targetRepo;
     }
 
