@@ -34,7 +34,7 @@ public class TestMavenBinaryRepository
         BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:apple:1.0");
         Assert.assertEquals(
                 repo.resolveBinarySpec(binarySpec),
-                binarySpec);
+                new BinarySpec("food.fruit", "apple", "1.0", null, null, "1.0"));
 
         URI uri = repo.getBinaryUri(binarySpec);
         Assert.assertTrue(uri.getPath().endsWith("/food/fruit/apple/1.0/apple-1.0.tar.gz"));
@@ -47,7 +47,7 @@ public class TestMavenBinaryRepository
         BinarySpec binarySpec = BinarySpec.valueOf("apple:1.0");
         Assert.assertEquals(
                 repo.resolveBinarySpec(binarySpec),
-                BinarySpec.valueOf("food.fruit:apple:1.0"));
+                new BinarySpec("food.fruit", "apple", "1.0", null, null, "1.0"));
 
         URI uri = repo.getBinaryUri(binarySpec);
         Assert.assertTrue(uri.getPath().endsWith("/food/fruit/apple/1.0/apple-1.0.tar.gz"));
@@ -71,6 +71,19 @@ public class TestMavenBinaryRepository
             throws Exception
     {
         BinarySpec binarySpec = BinarySpec.valueOf("banana:2.0-SNAPSHOT");
+        Assert.assertEquals(
+                repo.resolveBinarySpec(binarySpec),
+                new BinarySpec("food.fruit", "banana", "2.0-SNAPSHOT", null, null, "2.0-20110311.201909-1"));
+
+        URI uri = repo.getBinaryUri(binarySpec);
+        Assert.assertTrue(uri.getPath().endsWith("/food/fruit/banana/2.0-SNAPSHOT/banana-2.0-20110311.201909-1.tar.gz"));
+    }
+
+    @Test
+    public void resolveTimestamp()
+            throws Exception
+    {
+        BinarySpec binarySpec = BinarySpec.valueOf("food.fruit:banana:2.0-20110311.201909-1");
         Assert.assertEquals(
                 repo.resolveBinarySpec(binarySpec),
                 new BinarySpec("food.fruit", "banana", "2.0-SNAPSHOT", null, null, "2.0-20110311.201909-1"));

@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AssignmentHelper;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
@@ -20,10 +19,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.RESOLVED_APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.SHORT_APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
@@ -201,7 +200,7 @@ public class TestCoordinator
 
     private void assertAppleSlot(SlotStatus slot)
     {
-        assertEquals(slot.getAssignment(), APPLE_ASSIGNMENT);
+        assertEquals(slot.getAssignment(), RESOLVED_APPLE_ASSIGNMENT);
         assertEquals(slot.getState(), STOPPED);
         assertEquals(slot.getResources(), ImmutableMap.of("cpu", 1, "memory", 512));
     }

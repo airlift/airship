@@ -120,7 +120,7 @@ public class BinarySpec
 
     public boolean isResolved()
     {
-        return groupId != null && (!version.contains("SNAPSHOT") || fileVersion != null);
+        return groupId != null && fileVersion != null;
     }
 
     public boolean equalsIgnoreVersion(BinarySpec that)
