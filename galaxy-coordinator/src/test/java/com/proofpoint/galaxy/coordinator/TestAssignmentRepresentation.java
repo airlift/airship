@@ -28,7 +28,7 @@ public class TestAssignmentRepresentation
     private final JsonCodec<AssignmentRepresentation> codec = jsonCodec(AssignmentRepresentation.class);
 
     private final AssignmentRepresentation expected = new AssignmentRepresentation(
-            APPLE_ASSIGNMENT.getBinary().toString(),
+            APPLE_ASSIGNMENT.getBinary().toGAV(),
             APPLE_ASSIGNMENT.getConfig().toString());
 
     @Test

@@ -84,7 +84,7 @@ public class SimpleDbStateManager implements StateManager
         List<ReplaceableAttribute> attributes = newArrayList();
         attributes.add(new ReplaceableAttribute("state", slotStatus.getStatus().toString(), true));
         if (slotStatus.getAssignment() != null) {
-            attributes.add(new ReplaceableAttribute("binary", slotStatus.getAssignment().getBinary().toString(), true));
+            attributes.add(new ReplaceableAttribute("binary", slotStatus.getAssignment().getBinary().toGAV(), true));
             attributes.add(new ReplaceableAttribute("config", slotStatus.getAssignment().getConfig().toString(), true));
         }
 

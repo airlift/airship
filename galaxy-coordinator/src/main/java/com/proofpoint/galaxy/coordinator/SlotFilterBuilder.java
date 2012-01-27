@@ -284,7 +284,7 @@ public class SlotFilterBuilder
                 return false;
             }
             BinarySpec binary = slotStatus.getAssignment().getBinary();
-            return binary != null && glob.apply(binary.toString());
+            return binary != null && glob.apply(binary.toGAV());
         }
     }
 

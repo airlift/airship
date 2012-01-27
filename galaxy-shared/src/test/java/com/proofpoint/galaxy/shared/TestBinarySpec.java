@@ -13,7 +13,6 @@
  */
 package com.proofpoint.galaxy.shared;
 
-import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -34,6 +33,7 @@ public class TestBinarySpec
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
         Assert.assertEquals(spec, new BinarySpec("my.groupId", "artifactId", "version", "packaging", "classifier"));
+        Assert.assertEquals(spec.toGAV(), "my.groupId:artifactId:packaging:classifier:version");
         Assert.assertEquals(spec.toString(), "my.groupId:artifactId:packaging:classifier:version");
     }
 
@@ -48,6 +48,7 @@ public class TestBinarySpec
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
         Assert.assertEquals(spec, new BinarySpec("my.groupId", "artifactId", "version", "packaging", null));
+        Assert.assertEquals(spec.toGAV(), "my.groupId:artifactId:packaging:version");
         Assert.assertEquals(spec.toString(), "my.groupId:artifactId:packaging:version");
     }
 
@@ -62,7 +63,23 @@ public class TestBinarySpec
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
         Assert.assertEquals(spec, new BinarySpec("my.groupId", "artifactId", "version", "tar.gz", null));
+        Assert.assertEquals(spec.toGAV(), "my.groupId:artifactId:version");
         Assert.assertEquals(spec.toString(), "my.groupId:artifactId:version");
+    }
+
+    @Test
+    public void shortSpec()
+    {
+        BinarySpec spec = BinarySpec.valueOf("artifactId:version");
+        Assert.assertNull(spec.getGroupId());
+        Assert.assertEquals(spec.getArtifactId(), "artifactId");
+        Assert.assertEquals(spec.getPackaging(), "tar.gz");
+        Assert.assertNull(spec.getClassifier());
+        Assert.assertEquals(spec.getVersion(), "version");
+        Assert.assertEquals(spec, spec);
+        Assert.assertEquals(spec, new BinarySpec(null, "artifactId", "version", "tar.gz", null));
+        Assert.assertEquals(spec.toGAV(), "artifactId:version");
+        Assert.assertEquals(spec.toString(), "artifactId:version");
     }
 
     @Test
@@ -76,6 +93,7 @@ public class TestBinarySpec
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
         Assert.assertEquals(spec, new BinarySpec("my.groupId", "artifactId", "version", "tar.gz", "classifier"));
+        Assert.assertEquals(spec.toGAV(), "my.groupId:artifactId:tar.gz:classifier:version");
         Assert.assertEquals(spec.toString(), "my.groupId:artifactId:tar.gz:classifier:version");
     }
 

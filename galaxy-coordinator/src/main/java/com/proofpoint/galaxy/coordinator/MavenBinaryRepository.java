@@ -64,7 +64,7 @@ public class MavenBinaryRepository implements BinaryRepository
             builder.append(resolvedUri.getGroupId().replace('.', '/')).append('/');
             builder.append(resolvedUri.getArtifactId()).append('/');
             builder.append(binarySpec.getVersion()).append('/');
-            builder.append(resolvedUri.getArtifactId()).append('-').append(resolvedUri.getVersion());
+            builder.append(resolvedUri.getArtifactId()).append('-').append(resolvedUri.getFileVersion());
             if (resolvedUri.getClassifier() != null) {
                 builder.append('-').append(resolvedUri.getClassifier());
             }
@@ -82,6 +82,7 @@ public class MavenBinaryRepository implements BinaryRepository
         throw new RuntimeException("Unable to find binary " + resolvedUri + " at " + checkedUris);
     }
 
+    @Override
     public BinarySpec resolveBinarySpec(BinarySpec binarySpec)
     {
         if (binarySpec.isResolved()) {
@@ -105,40 +106,47 @@ public class MavenBinaryRepository implements BinaryRepository
                 builder.append(binarySpec.getVersion()).append('/');
                 builder.append("maven-metadata.xml");
 
+                boolean foundTimestampVersion = false;
                 for (URI binaryRepositoryBase : binaryRepositoryBases) {
                     URI uri = binaryRepositoryBase.resolve(builder.toString());
                     try {
                         MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
-                        String version = String.format("%s-%s-%s",
+                        String fileVersion = String.format("%s-%s-%s",
                                 binarySpec.getVersion().replaceAll("-SNAPSHOT", ""),
                                 metadata.versioning.snapshot.timestamp,
                                 metadata.versioning.snapshot.buildNumber);
-                        binarySpecs.add(new BinarySpec(groupId, binarySpec.getArtifactId(), version, binarySpec.getPackaging(), binarySpec.getClassifier()));
+                        binarySpecs.add(new BinarySpec(groupId, binarySpec.getArtifactId(), binarySpec.getVersion(), binarySpec.getPackaging(), binarySpec.getClassifier(), fileVersion));
+                        foundTimestampVersion = true;
                     }
                     catch (Exception ignored) {
                         // no maven-metadata.xml file... hope this is laid out normally
                     }
+                }
+
+                // if we could not resolve the timestamp version, try resolving
+                // artifact with "SNAPSHOT" verison since some old maven repositories
+                // don't replace SNAPSHOTS with timestamps
+                if (foundTimestampVersion) {
+                    continue;
                 }
             }
-            else {
-                StringBuilder builder = new StringBuilder();
-                builder.append(groupId.replace('.', '/')).append('/');
-                builder.append(binarySpec.getArtifactId()).append('/');
-                builder.append("maven-metadata.xml");
 
-                for (URI binaryRepositoryBase : binaryRepositoryBases) {
-                    URI uri = binaryRepositoryBase.resolve(builder.toString());
-                    try {
-                        MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
-                        if (metadata.versioning.versions.contains(binarySpec.getVersion())) {
-                            binarySpecs.add(new BinarySpec(groupId, binarySpec.getArtifactId(), binarySpec.getVersion(), binarySpec.getPackaging(), binarySpec.getClassifier()));
-                        }
-                    }
-                    catch (Exception ignored) {
-                        // no maven-metadata.xml file... hope this is laid out normally
+            StringBuilder builder = new StringBuilder();
+            builder.append(groupId.replace('.', '/')).append('/');
+            builder.append(binarySpec.getArtifactId()).append('/');
+            builder.append("maven-metadata.xml");
+
+            for (URI binaryRepositoryBase : binaryRepositoryBases) {
+                URI uri = binaryRepositoryBase.resolve(builder.toString());
+                try {
+                    MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
+                    if (metadata.versioning.versions.contains(binarySpec.getVersion())) {
+                        binarySpecs.add(new BinarySpec(groupId, binarySpec.getArtifactId(), binarySpec.getVersion(), binarySpec.getPackaging(), binarySpec.getClassifier()));
                     }
                 }
-
+                catch (Exception ignored) {
+                    // no maven-metadata.xml file... hope this is laid out normally
+                }
             }
         }
 
@@ -146,6 +154,8 @@ public class MavenBinaryRepository implements BinaryRepository
             throw new RuntimeException("Ambiguous spec " + binarySpec + "  matched " + binarySpecs);
         }
         if (binarySpecs.isEmpty()) {
+            // Some maven repositories don't have maven metadata so as long as the groupId is resolved
+            // just continue
             if (binarySpec.getGroupId() != null) {
                 return binarySpec;
             }

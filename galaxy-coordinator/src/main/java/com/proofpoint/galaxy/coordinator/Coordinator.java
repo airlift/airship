@@ -270,6 +270,7 @@ public class Coordinator
         URI configFile= configRepository.getConfigFile(assignment.getConfig());
         Map<String, Integer> resources = readResources(assignment);
 
+        assignment = new Assignment(binaryRepository.resolveBinarySpec(assignment.getBinary()), assignment.getConfig());
         Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configFile, resources);
 
         List<SlotStatus> slots = newArrayList();

@@ -23,7 +23,7 @@ public class TestSlotStatusRepresentation
             "slot1",
             URI.create("fake://apple"),
             "location/apple",
-            AssignmentHelper.APPLE_ASSIGNMENT.getBinary().toString(),
+            AssignmentHelper.APPLE_ASSIGNMENT.getBinary().toGAV(),
             AssignmentHelper.APPLE_ASSIGNMENT.getConfig().toString(),
             STOPPED.toString(),
             "abc",

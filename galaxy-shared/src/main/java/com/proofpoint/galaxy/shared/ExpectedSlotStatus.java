@@ -57,7 +57,7 @@ public class ExpectedSlotStatus
         if (assignment == null) {
             return null;
         }
-        return assignment.getBinary().toString();
+        return assignment.getBinary().toGAV();
     }
 
     @JsonProperty

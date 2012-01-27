@@ -14,15 +14,18 @@
 package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.Immutable;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Immutable
 public class BinarySpec
 {
-    public static final String BINARY_SPEC_REGEX = "^([^:]+):([^:]+)(?::([^:]+))?(?::([^:]+))?:([^:]+)$";
+    public static final String BINARY_SPEC_REGEX = "^([^:]+):([^:]+)(?::([^:]+))?(?::([^:]+))?(?::([^:]+))?$";
     private static final Pattern BINARY_SPEC_PATTERN = Pattern.compile(BINARY_SPEC_REGEX);
     public static final String DEFAULT_PACKAGING = "tar.gz";
 
@@ -31,6 +34,7 @@ public class BinarySpec
     private final String packaging;
     private final String classifier;
     private final String version;
+    private final String fileVersion;
 
     public static BinarySpec valueOf(String binarySpec)
     {
@@ -38,12 +42,19 @@ public class BinarySpec
         if (!matcher.matches()) {
             throw new IllegalArgumentException("Invalid binary spec: " + binarySpec);
         }
-        String groupId = matcher.group(1);
-        String artifactId = matcher.group(2);
-        String packaging = matcher.group(3);
-        String classifier = matcher.group(4);
-        String version = matcher.group(5);
-        return new BinarySpec(groupId, artifactId, version, packaging, classifier);
+
+        List<String> parts = ImmutableList.copyOf(Splitter.on(':').split(binarySpec));
+        if (parts.size() == 5) {
+            return new BinarySpec(parts.get(0), parts.get(1), parts.get(4), parts.get(2), parts.get(3));
+        } else if (parts.size() == 4) {
+            return new BinarySpec(parts.get(0), parts.get(1), parts.get(3), parts.get(2), null);
+        } else if (parts.size() == 3) {
+            return new BinarySpec(parts.get(0), parts.get(1), parts.get(2), null, null);
+        } else if (parts.size() == 2) {
+            return new BinarySpec(null, parts.get(0), parts.get(1), null, null);
+        } else  {
+            throw new IllegalArgumentException("Invalid binary spec: " + binarySpec);
+        }
     }
 
     public BinarySpec(String groupId, String artifactId, String version)
@@ -53,7 +64,11 @@ public class BinarySpec
 
     public BinarySpec(String groupId, String artifactId, String version, String packaging, String classifier)
     {
-        Preconditions.checkNotNull(groupId, "groupId is null");
+        this(groupId, artifactId, version, packaging, classifier, null);
+    }
+
+    public BinarySpec(String groupId, String artifactId, String version, String packaging, String classifier, String fileVersion)
+    {
         Preconditions.checkNotNull(artifactId, "artifactId is null");
         Preconditions.checkNotNull(version, "version is null");
 
@@ -66,6 +81,7 @@ public class BinarySpec
         this.packaging = packaging;
         this.classifier = classifier;
         this.version = version;
+        this.fileVersion = fileVersion;
     }
 
     public String getGroupId()
@@ -93,9 +109,18 @@ public class BinarySpec
         return version;
     }
 
+    public String getFileVersion()
+    {
+        if (fileVersion != null) {
+            return fileVersion;
+        } else {
+            return version;
+        }
+    }
+
     public boolean isResolved()
     {
-        return groupId != null && !version.contains("SNAPSHOT");
+        return groupId != null && (!version.contains("SNAPSHOT") || fileVersion != null);
     }
 
     public boolean equalsIgnoreVersion(BinarySpec that)
@@ -141,13 +166,16 @@ public class BinarySpec
         if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) {
             return false;
         }
-        if (!groupId.equals(that.groupId)) {
+        if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) {
             return false;
         }
         if (!packaging.equals(that.packaging)) {
             return false;
         }
         if (!version.equals(that.version)) {
+            return false;
+        }
+        if (fileVersion != null ? !fileVersion.equals(that.fileVersion) : that.fileVersion != null) {
             return false;
         }
 
@@ -157,32 +185,54 @@ public class BinarySpec
     @Override
     public int hashCode()
     {
-        int result = groupId.hashCode();
+        int result = (groupId != null ? groupId.hashCode() : 0);
         result = 31 * result + artifactId.hashCode();
         result = 31 * result + packaging.hashCode();
         result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
         result = 31 * result + version.hashCode();
+        result = 31 * result + (fileVersion != null ? fileVersion.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString()
     {
-        return toGAV(DEFAULT_PACKAGING);
-    }
-
-    public String toGAV(String defaultPackaging)
-    {
         final StringBuilder sb = new StringBuilder();
-        sb.append(groupId).append(':');
+        if (groupId != null) {
+            sb.append(groupId).append(':');
+        }
         sb.append(artifactId).append(':');
-        if (!packaging.equals(defaultPackaging) || classifier != null) {
+        if (!packaging.equals(DEFAULT_PACKAGING) || classifier != null) {
             sb.append(packaging).append(':');
         }
         if (classifier != null) {
             sb.append(classifier).append(':');
         }
         sb.append(version);
+        if (fileVersion != null) {
+            sb.append("(").append(fileVersion).append(")");
+        }
+        return sb.toString();
+    }
+
+    public String toGAV()
+    {
+        final StringBuilder sb = new StringBuilder();
+        if (groupId != null) {
+            sb.append(groupId).append(':');
+        }
+        sb.append(artifactId).append(':');
+        if (!packaging.equals(DEFAULT_PACKAGING) || classifier != null) {
+            sb.append(packaging).append(':');
+        }
+        if (classifier != null) {
+            sb.append(classifier).append(':');
+        }
+        if (fileVersion != null) {
+            sb.append(fileVersion);
+        } else {
+            sb.append(version);
+        }
         return sb.toString();
     }
 }

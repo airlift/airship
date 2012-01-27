@@ -29,7 +29,7 @@ public class AssignmentRepresentation
 
     public static AssignmentRepresentation from(Assignment assignment)
     {
-        return new AssignmentRepresentation(assignment.getBinary().toString(), assignment.getConfig().toString());
+        return new AssignmentRepresentation(assignment.getBinary().toGAV(), assignment.getConfig().toString());
     }
 
     @JsonCreator

@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AssignmentHelper;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
@@ -23,6 +24,7 @@ import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.SHORT_APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -34,6 +36,7 @@ public class TestCoordinator
     private Duration statusExpiration = new Duration(500, TimeUnit.MILLISECONDS);
     private LocalProvisioner provisioner;
     private TestingConfigRepository configRepository;
+    private TestingBinaryRepository binaryRepository;
 
     @BeforeMethod
     public void setUp()
@@ -42,11 +45,12 @@ public class TestCoordinator
         NodeInfo nodeInfo = new NodeInfo("testing");
 
         configRepository = new TestingConfigRepository();
+        binaryRepository = new TestingBinaryRepository();
 
         provisioner = new LocalProvisioner();
         coordinator = new Coordinator(nodeInfo.getEnvironment(),
                 new MockRemoteAgentFactory(),
-                MOCK_BINARY_REPO,
+                binaryRepository,
                 configRepository,
                 provisioner,
                 new InMemoryStateManager(),
@@ -61,6 +65,7 @@ public class TestCoordinator
             throws Exception
     {
         configRepository.destroy();
+        binaryRepository.destroy();
     }
 
     @Test
@@ -114,6 +119,26 @@ public class TestCoordinator
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
         // slot is online because MOCK slot is fake.... a real slot would transition to offline
         assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
+    }
+
+    @Test
+    public void testInstallWithinShortBinarySpec()
+    {
+        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
+                ONLINE,
+                URI.create("fake://appleServer1/"),
+                "unknown/location",
+                "instance.type",
+                ImmutableList.<SlotStatus>of(),
+                ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.setAgentStatus(status);
+
+        List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, SHORT_APPLE_ASSIGNMENT);
+
+        assertEquals(slots.size(), 1);
+        for (SlotStatus slot : slots) {
+            assertAppleSlot(slot);
+        }
     }
 
     @Test

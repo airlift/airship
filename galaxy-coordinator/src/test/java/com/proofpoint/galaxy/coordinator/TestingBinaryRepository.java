@@ -23,7 +23,7 @@ public class TestingBinaryRepository extends MavenBinaryRepository
 
     public TestingBinaryRepository(File targetRepo)
     {
-        super(ImmutableList.<String>of(), targetRepo.toURI());
+        super(ImmutableList.<String>of("food.fruit"), targetRepo.toURI());
         this.targetRepo = targetRepo;
     }
 

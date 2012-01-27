@@ -15,6 +15,12 @@ public class RepoHelper
         {
             return URI.create("fake://localhost/" + binarySpec);
         }
+
+        @Override
+        public BinarySpec resolveBinarySpec(BinarySpec binarySpec)
+        {
+            return binarySpec;
+        }
     };
     public static final ConfigRepository MOCK_CONFIG_REPO = new ConfigRepository()
     {

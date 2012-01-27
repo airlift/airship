@@ -60,11 +60,17 @@ public class TestProvisionAgent
             public URI getBinaryUri(BinarySpec binarySpec)
             {
                 try {
-                    return new URI("file", null, "host", 9999, "/" + binarySpec.toString(), null, null);
+                    return new URI("file", null, "host", 9999, "/" + binarySpec.toGAV(), null, null);
                 }
                 catch (URISyntaxException e) {
                     throw new AssertionError(e);
                 }
+            }
+
+            @Override
+            public BinarySpec resolveBinarySpec(BinarySpec binarySpec)
+            {
+                return binarySpec;
             }
         };
 

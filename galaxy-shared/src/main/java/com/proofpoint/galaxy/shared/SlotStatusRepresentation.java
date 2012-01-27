@@ -82,7 +82,7 @@ public class SlotStatusRepresentation
         String binary = null;
         String config = null;
         if (slotStatus.getAssignment() != null) {
-            binary = slotStatus.getAssignment().getBinary().toString();
+            binary = slotStatus.getAssignment().getBinary().toGAV();
             config = slotStatus.getAssignment().getConfig().toString();
         }
 
@@ -137,7 +137,7 @@ public class SlotStatusRepresentation
         String binary = null;
         String config = null;
         if (slotStatus.getAssignment() != null) {
-            binary = slotStatus.getAssignment().getBinary().toString();
+            binary = slotStatus.getAssignment().getBinary().toGAV();
             config = slotStatus.getAssignment().getConfig().toString();
         }
 
