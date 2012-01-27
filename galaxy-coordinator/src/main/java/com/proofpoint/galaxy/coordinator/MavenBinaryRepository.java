@@ -42,7 +42,7 @@ public class MavenBinaryRepository implements BinaryRepository
     public MavenBinaryRepository(CoordinatorConfig config)
             throws Exception
     {
-        this.defaultGroupIds = ImmutableList.copyOf(Splitter.on(",").trimResults().omitEmptyStrings().split(config.getConfigRepositoryGroupId()));
+        this.defaultGroupIds = ImmutableList.copyOf(Splitter.on(",").trimResults().omitEmptyStrings().split(config.getDefaultRepositoryGroupId()));
 
         Builder<URI> builder = ImmutableList.builder();
 

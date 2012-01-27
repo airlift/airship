@@ -25,12 +25,8 @@ import java.util.concurrent.TimeUnit;
 public class CoordinatorConfig
 {
     private String galaxyVersion;
-    private String localBinaryRepo;
     private List<String> binaryRepoBases = ImmutableList.of();
-    private boolean localMavenRepositoryEnabled;
-    private List<String> configRepoBases = ImmutableList.of();
-    private String localConfigRepo;
-    private String configRepositoryGroupId;
+    private String defaultRepositoryGroupId;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
     @NotNull
@@ -59,69 +55,16 @@ public class CoordinatorConfig
         return this;
     }
 
-    @Deprecated
-    public String getLocalBinaryRepo()
-    {
-        return localBinaryRepo;
-    }
-
-    @Deprecated
-    @Config("coordinator.binary-repo.local")
-    public CoordinatorConfig setLocalBinaryRepo(String localBinaryRepo)
-    {
-        this.localBinaryRepo = localBinaryRepo;
-        return this;
-    }
-
-    @Deprecated
-    public boolean isLocalMavenRepositoryEnabled()
-    {
-        return localMavenRepositoryEnabled;
-    }
-
-    @Deprecated
-    @Config("coordinator.local-maven-repo.enabled")
-    public CoordinatorConfig setLocalMavenRepositoryEnabled(boolean localMavenRepositoryEnabled)
-    {
-        this.localMavenRepositoryEnabled = localMavenRepositoryEnabled;
-        return this;
-    }
-
     @NotNull
-    public List<String> getConfigRepoBases()
+    public String getDefaultRepositoryGroupId()
     {
-        return configRepoBases;
+        return defaultRepositoryGroupId;
     }
 
-    @Config("coordinator.config-repo")
-    public CoordinatorConfig setConfigRepoBases(String configRepoBases)
+    @Config("coordinator.default-group-id")
+    public void setDefaultRepositoryGroupId(String defaultRepositoryGroupId)
     {
-        this.configRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(configRepoBases));
-        return this;
-    }
-
-    public String getLocalConfigRepo()
-    {
-        return localConfigRepo;
-    }
-
-    @Config("coordinator.config-repo.local")
-    public CoordinatorConfig setLocalConfigRepo(String localConfigRepo)
-    {
-        this.localConfigRepo = localConfigRepo;
-        return this;
-    }
-
-    @NotNull
-    public String getConfigRepositoryGroupId()
-    {
-        return configRepositoryGroupId;
-    }
-
-    @Config("coordinator.config-repo.group-id")
-    public void setConfigRepositoryGroupId(String configRepositoryGroupId)
-    {
-        this.configRepositoryGroupId = configRepositoryGroupId;
+        this.defaultRepositoryGroupId = defaultRepositoryGroupId;
     }
 
     @NotNull

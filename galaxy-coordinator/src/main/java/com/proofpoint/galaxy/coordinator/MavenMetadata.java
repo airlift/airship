@@ -2,6 +2,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -10,8 +11,10 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.transform.stream.StreamSource;
+import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 
 @XmlType
@@ -49,11 +52,11 @@ public class MavenMetadata
 
         @XmlElement(name = "snapshotVersion")
         @XmlElementWrapper(name = "snapshotVersions")
-        public List<SnapshotVersion> snapshotVersions;
+        public final List<SnapshotVersion> snapshotVersions = new ArrayList<SnapshotVersion>();
 
         @XmlElement(name = "version")
         @XmlElementWrapper(name = "versions")
-        public List<String> versions;
+        public final List<String> versions = new ArrayList<String>();
     }
 
     @XmlType
@@ -108,6 +111,15 @@ public class MavenMetadata
     {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         return unmarshaller.unmarshal(new StreamSource(new StringReader(in)), MavenMetadata.class).getValue();
+    }
+
+    public static void marshalMavenMetadata(File file, MavenMetadata metadata)
+            throws Exception
+    {
+        file.getParentFile().mkdirs();
+
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        marshaller.marshal(metadata, file);
     }
 
 }

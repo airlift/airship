@@ -126,7 +126,7 @@ public class TestServerIntegration
     {
         try {
             binaryRepoDir = TestingBinaryRepository.createBinaryRepoDir();
-            TestingConfigRepository.initConfigRepo(binaryRepoDir);
+            TestingConfigRepository.initConfigRepo(binaryRepoDir, "prod");
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -139,7 +139,7 @@ public class TestServerIntegration
                 .put("node.environment", "prod")
                 .put("galaxy.version", "123")
                 .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
-                .put("coordinator.config-repo.group-id", "prod")
+                .put("coordinator.default-group-id", "prod")
                 .put("coordinator.binary-repo.local", localBinaryRepoDir.toString())
                 .put("coordinator.status.expiration", "100d")
                 .put("coordinator.aws.access-key", "my-access-key")

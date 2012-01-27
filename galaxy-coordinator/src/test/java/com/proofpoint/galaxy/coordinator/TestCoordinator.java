@@ -43,8 +43,8 @@ public class TestCoordinator
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
 
-        configRepository = new TestingConfigRepository();
         binaryRepository = new TestingBinaryRepository();
+        configRepository = new TestingConfigRepository();
 
         provisioner = new LocalProvisioner();
         coordinator = new Coordinator(nodeInfo.getEnvironment(),

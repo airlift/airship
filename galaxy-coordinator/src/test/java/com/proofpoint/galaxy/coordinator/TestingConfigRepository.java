@@ -1,12 +1,13 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
+import com.proofpoint.galaxy.coordinator.MavenMetadata.Snapshot;
+import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
+import com.proofpoint.galaxy.coordinator.MavenMetadata.Versioning;
 import com.proofpoint.galaxy.shared.ConfigSpec;
-import com.proofpoint.galaxy.shared.FileUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -14,6 +15,7 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Objects.firstNonNull;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 
 public class TestingConfigRepository extends ConfigInBinaryRepository
 {
@@ -28,7 +30,7 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
     public TestingConfigRepository(File targetRepo)
             throws Exception
     {
-        super(new MavenBinaryRepository(ImmutableList.<String>of("prod"), targetRepo.toURI()), "prod");
+        super(new MavenBinaryRepository(ImmutableList.<String>of("prod"), targetRepo.toURI()));
         this.targetRepo = targetRepo;
     }
 
@@ -43,7 +45,7 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
         File targetRepo = createTempDir("config");
         try {
 
-            initConfigRepo(targetRepo);
+            initConfigRepo(targetRepo, "prod");
 
             return targetRepo;
         }
@@ -55,20 +57,24 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
         }
     }
 
-    public static void initConfigRepo(File targetRepo)
-            throws IOException
+    public static void initConfigRepo(File targetRepo, String groupId)
+            throws Exception
     {
-        createConfig(targetRepo, new ConfigSpec("apple", "1.0"));
-        createConfig(targetRepo, new ConfigSpec("apple", "2.0"));
-        createConfig(targetRepo, new ConfigSpec("banana", "2.0-SNAPSHOT"));
+        createConfig(groupId, targetRepo, new ConfigSpec("apple", "1.0"), null);
+        createConfig(groupId, targetRepo, new ConfigSpec("apple", "2.0"), null);
+        createConfig(groupId, targetRepo, new ConfigSpec("banana", "2.0-SNAPSHOT"), "2.0-20110311.201909-1");
+
+        createMavenMetadata(targetRepo, groupId, "apple-general", ImmutableList.of(new VersionInfo("1.0"), new VersionInfo("2.0")));
+        createMavenMetadata(targetRepo, groupId, "banana-general", ImmutableList.of(new VersionInfo("2.0-SNAPSHOT", "20110311.201909", "1")));
     }
 
-    public static void createConfig(File dir, ConfigSpec configSpec)
-            throws IOException
+    public static void createConfig(String groupId, File dir, ConfigSpec configSpec, String timestampVersion)
+            throws Exception
     {
         String name = configSpec.getComponent();
         String artifactId = configSpec.getComponent() + "-" + firstNonNull(configSpec.getPool(), "general");
-        File configFile = FileUtils.newFile(dir, "prod", artifactId, configSpec.getVersion(), artifactId + "-" + configSpec.getVersion() + ".config");
+
+        File configFile = newFile(dir, groupId, artifactId, configSpec.getVersion(), artifactId + "-" + firstNonNull(timestampVersion, configSpec.getVersion()) + ".config");
 
         configFile.getParentFile().mkdirs();
 
@@ -102,5 +108,60 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
         out.write(resources.getBytes(UTF_8));
 
         out.close();
+    }
+
+    private static void createMavenMetadata(File dir, String groupId, String artifactId, Iterable<VersionInfo> versions)
+            throws Exception
+    {
+        MavenMetadata mavenMetadata = new MavenMetadata();
+        mavenMetadata.groupId = groupId;
+        mavenMetadata.artifactId = artifactId;
+        mavenMetadata.versioning = new Versioning();
+        for (VersionInfo version : versions) {
+            mavenMetadata.versioning.versions.add(version.version);
+        }
+        MavenMetadata.marshalMavenMetadata(newFile(dir, groupId, artifactId, "maven-metadata.xml"), mavenMetadata);
+
+        for (VersionInfo version : versions) {
+            if (version.version.contains("-SNAPSHOT")) {
+                MavenMetadata snapshotMetadata = new MavenMetadata();
+                snapshotMetadata.groupId = groupId;
+                snapshotMetadata.artifactId = artifactId;
+                snapshotMetadata.version = version.version;
+
+                snapshotMetadata.versioning = new Versioning();
+                snapshotMetadata.versioning.snapshot = new Snapshot();
+                snapshotMetadata.versioning.snapshot.timestamp = version.timestamp;
+                snapshotMetadata.versioning.snapshot.buildNumber = version.buildNumber;
+
+                SnapshotVersion snapshotVersion = new SnapshotVersion();
+                snapshotVersion.value = String.format("%s-%s-%s",
+                        version.version.replaceAll("-SNAPSHOT", ""),
+                        version.timestamp,
+                        version.buildNumber);
+                snapshotMetadata.versioning.snapshotVersions.add(snapshotVersion);
+                
+                MavenMetadata.marshalMavenMetadata(newFile(dir, groupId, artifactId, version.version, "maven-metadata.xml"), snapshotMetadata);
+            }
+        }
+    }
+
+    private static class VersionInfo
+    {
+        public final String version;
+        public final String timestamp;
+        public final String buildNumber;
+
+        private VersionInfo(String version)
+        {
+            this(version, null, null);
+        }
+
+        private VersionInfo(String version, String timestamp, String buildNumber)
+        {
+            this.version = version;
+            this.timestamp = timestamp;
+            this.buildNumber = buildNumber;
+        }
     }
 }

@@ -13,20 +13,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ConfigInBinaryRepository implements ConfigRepository
 {
     private final BinaryRepository binaryRepository;
-    private final String groupId;
 
     @Inject
-    public ConfigInBinaryRepository(BinaryRepository binaryRepository, CoordinatorConfig config)
-    {
-        this(binaryRepository, checkNotNull(config, "config is null").getConfigRepositoryGroupId());
-    }
-
-    public ConfigInBinaryRepository(BinaryRepository binaryRepository, String groupId)
+    public ConfigInBinaryRepository(BinaryRepository binaryRepository)
     {
         checkNotNull(binaryRepository, "binaryRepository is null");
-        checkNotNull(groupId, "groupId is null");
         this.binaryRepository = binaryRepository;
-        this.groupId = groupId;
     }
 
     @Override
@@ -38,6 +30,6 @@ public class ConfigInBinaryRepository implements ConfigRepository
     private BinarySpec toBinarySpec(ConfigSpec configSpec)
     {
         String artifactId = configSpec.getComponent() + "-" + firstNonNull(configSpec.getPool(), "general");
-        return new BinarySpec(groupId, artifactId, configSpec.getVersion(), "config", null);
+        return new BinarySpec(null, artifactId, configSpec.getVersion(), "config", null);
     }
 }

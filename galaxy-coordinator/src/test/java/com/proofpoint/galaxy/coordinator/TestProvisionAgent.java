@@ -46,10 +46,7 @@ public class TestProvisionAgent
         assertValidates(awsProvisionerConfig);
 
         CoordinatorConfig coordinatorConfig = new CoordinatorConfig()
-                .setGalaxyVersion("0.7-SNAPSHOT")
-                .setLocalBinaryRepo(
-                        "https://oss.sonatype.org/content/repositories/releases/,https://oss.sonatype.org/content/repositories/snapshots,http://10.242.211.107:8000/nexus/content/repositories/proofpoint-dev,http://10.242.211.107:8000/nexus/content/repositories/proofpoint-eng-snapshots")
-                .setLocalConfigRepo("git://10.242.211.107/config.git");
+                .setGalaxyVersion("0.7-SNAPSHOT");
         assertValidates(coordinatorConfig);
 
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsProvisionerConfig.getAwsAccessKey(), awsProvisionerConfig.getAwsSecretKey());

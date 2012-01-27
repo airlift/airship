@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import org.testng.annotations.Test;
 
@@ -51,7 +52,7 @@ public class TestMavenMetadata
         assertNotNull(metadata.versioning);
 
         assertNull(metadata.versioning.snapshot);
-        assertNull(metadata.versioning.snapshotVersions);
+        assertEquals(metadata.versioning.snapshotVersions, ImmutableList.of());
 
         assertEquals(metadata.versioning.lastUpdated, "20110304215947");
     }
