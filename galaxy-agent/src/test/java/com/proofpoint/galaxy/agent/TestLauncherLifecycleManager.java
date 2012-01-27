@@ -28,6 +28,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -67,7 +69,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
     private Deployment createDeploymentDir(Assignment assignment)
             throws IOException
     {
-        String name = assignment.getConfig().getComponent();
+        String name = assignment.getConfig().getArtifactId();
         File deploymentDir = new File(slotDir, name);
         File dataDir = new File(slotDir, "data");
         dataDir.mkdirs();
@@ -128,6 +130,11 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         assertTrue(nodeConfig.exists());
 
         String conf = Files.toString(nodeConfig, Charsets.UTF_8);
-        assertTrue(conf.contains("node.pool=general"));
+        Properties properties = new Properties();
+        properties.load(new StringReader(conf));
+        assertEquals(properties.getProperty("node.environment"), "prod");
+        assertEquals(properties.getProperty("node.config-spec"), "@apple:1.0");
+        assertEquals(properties.getProperty("node.binary-spec"), "food.fruit:apple:1.0");
+        assertEquals(properties.getProperty("node.location"), "location");
     }
 }

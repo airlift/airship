@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.ConfigUtils.newConfigEntrySupplier;
@@ -249,9 +250,13 @@ public class AwsProvisioner implements Provisioner
         );
 
 
+        String configArtifactId = "agent";
+        if (instanceType != null) {
+            configArtifactId = configArtifactId + "-" + instanceType;
+        }
         InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(configRepository,
                 environment,
-                new ConfigSpec("agent", galaxyVersion, instanceType),
+                new ConfigSpec(configArtifactId, galaxyVersion),
                 "etc/resources.properties");
         if (resourcesFile != null) {
             try {

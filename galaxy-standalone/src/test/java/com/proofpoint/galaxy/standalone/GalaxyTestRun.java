@@ -27,7 +27,7 @@ public class GalaxyTestRun
     {
         execute(globalArgs, "show");
         execute(globalArgs, "reset-to-actual", "-b", "*");
-        execute(globalArgs, "install", "com.proofpoint.platform:sample-server:0.50", "@sample-server:general:1.0");
+        execute(globalArgs, "install", "com.proofpoint.platform:sample-server:0.50", "@sample-server:1.0");
         Thread.sleep(2000);
         execute(globalArgs, "show");
         execute(globalArgs, "start", "-b", "*");

@@ -29,7 +29,7 @@ public class TestAssignmentRepresentation
 
     private final AssignmentRepresentation expected = new AssignmentRepresentation(
             APPLE_ASSIGNMENT.getBinary().toGAV(),
-            APPLE_ASSIGNMENT.getConfig().toString());
+            APPLE_ASSIGNMENT.getConfig().toGAV());
 
     @Test
     public void testJsonRoundTrip()

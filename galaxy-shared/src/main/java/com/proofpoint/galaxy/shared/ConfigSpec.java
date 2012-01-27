@@ -13,20 +13,16 @@
  */
 package com.proofpoint.galaxy.shared;
 
-import com.google.common.base.Preconditions;
-
 import javax.annotation.concurrent.Immutable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Immutable
-public class ConfigSpec
+public class ConfigSpec extends BinarySpec
 {
-    public static final String CONFIG_SPEC_REGEX = "^@([^:]+)(?::([^:]+))?:([^:]+)$";
+    public static final String CONFIG_SPEC_REGEX = "^@(?:([^:]+):)?([^:]+):([^:]+)$";
     private static final Pattern CONFIG_SPEC_PATTERN = Pattern.compile(CONFIG_SPEC_REGEX);
-    private final String component;
-    private final String pool;
-    private final String version;
+    public static final String DEFAULT_PACKAGING = "config";
 
     public static ConfigSpec valueOf(String configSpec)
     {
@@ -34,105 +30,35 @@ public class ConfigSpec
         if (!matcher.matches()) {
             throw new IllegalArgumentException("Invalid config spec: " + configSpec);
         }
-        String component = matcher.group(1);
-        String pool = matcher.group(2);
+        String groupId = matcher.group(1);
+        String artifactId = matcher.group(2);
         String version = matcher.group(3);
-        return new ConfigSpec(component, version, pool);
+        return new ConfigSpec(groupId, artifactId, version);
     }
 
-    public ConfigSpec(String component, String version)
+    public ConfigSpec(String artifactId, String version)
     {
-        this(component, version, null);
+        super(null, artifactId, version, DEFAULT_PACKAGING, null);
     }
 
-    public ConfigSpec(String component, String version, String pool)
+    public ConfigSpec(String groupId, String artifactId, String version)
     {
-        Preconditions.checkNotNull(component, "artifactId is null");
-        Preconditions.checkNotNull(version, "version is null");
-
-        this.component = component;
-        this.pool = pool;
-        this.version = version;
+        this(groupId, artifactId, version, null);
     }
 
-    public String getComponent()
+    public ConfigSpec(String groupId, String artifactId, String version, String fileVersion)
     {
-        return component;
-    }
-
-    public String getPool()
-    {
-        return pool;
-    }
-
-    public String getVersion()
-    {
-        return version;
-    }
-
-    public boolean equalsIgnoreVersion(ConfigSpec that)
-    {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-
-        if (!component.equals(that.component)) {
-            return false;
-        }
-        if (pool != null ? !pool.equals(that.pool) : that.pool != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ConfigSpec that = (ConfigSpec) o;
-
-        if (!component.equals(that.component)) {
-            return false;
-        }
-        if (pool != null ? !pool.equals(that.pool) : that.pool != null) {
-            return false;
-        }
-        if (!version.equals(that.version)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result =  component.hashCode();
-        result = 31 * result + (pool != null ? pool.hashCode() : 0);
-        result = 31 * result + version.hashCode();
-        return result;
+        super(groupId, artifactId, version, DEFAULT_PACKAGING, null, fileVersion);
     }
 
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder();
-        sb.append('@');
-        sb.append(component).append(':');
-        if (pool != null) {
-            sb.append(pool).append(':');
-        }
-        sb.append(version);
-        return sb.toString();
+        return "@" + toGAV(DEFAULT_PACKAGING, true);
+    }
+
+    public String toGAV()
+    {
+        return "@" + toGAV(DEFAULT_PACKAGING, false);
     }
 }

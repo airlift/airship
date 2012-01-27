@@ -191,7 +191,7 @@ public class Agent
     {
         // todo name selection is not thread safe
         // create slot
-        String slotName = getNextSlotName(installation.getAssignment().getConfig().getComponent());
+        String slotName = getNextSlotName(installation.getAssignment().getConfig().getArtifactId());
         URI slotUri = baseUri.resolve("/v1/agent/slot/").resolve(slotName);
         Slot slot = new DeploymentSlot(slotUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, maxLockWait);
         slots.put(slotName, slot);

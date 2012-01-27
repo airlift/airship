@@ -304,7 +304,7 @@ public class SlotFilterBuilder
                 return false;
             }
             ConfigSpec config = slotStatus.getAssignment().getConfig();
-            return config != null && glob.apply(config.toString());
+            return config != null && glob.apply(config.toGAV());
         }
     }
 

@@ -140,12 +140,11 @@ public class LauncherLifecycleManager implements LifecycleManager
         ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
 
         map.put("node.environment", environment);
-        map.put("node.pool", getPool(deployment.getAssignment().getConfig()));
         map.put("node.id", deployment.getNodeId().toString());
         map.put("node.location", deployment.getLocation());
         map.put("node.data-dir", deployment.getDataDir().getAbsolutePath());
         map.put("node.binary-spec", deployment.getAssignment().getBinary().toGAV());
-        map.put("node.config-spec", deployment.getAssignment().getConfig().toString());
+        map.put("node.config-spec", deployment.getAssignment().getConfig().toGAV());
 
         // add ip only if explicitly set on the agent
         if (bindIp != null && InetAddresses.coerceToInteger(bindIp) != 0) {
@@ -165,17 +164,6 @@ public class LauncherLifecycleManager implements LifecycleManager
         catch (IOException e) {
             nodeConfig.delete();
             throw new RuntimeException("create node config failed: " + e.getMessage());
-        }
-    }
-
-    private static String getPool(ConfigSpec config)
-    {
-        // todo remove this when default pool is "general"
-        String pool = config.getPool();
-        if (pool != null) {
-            return pool;
-        } else {
-            return ServiceSelectorConfig.DEFAULT_POOL;
         }
     }
 }

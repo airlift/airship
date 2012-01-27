@@ -197,42 +197,42 @@ public class BinarySpec
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder();
-        if (groupId != null) {
-            sb.append(groupId).append(':');
-        }
-        sb.append(artifactId).append(':');
-        if (!packaging.equals(DEFAULT_PACKAGING) || classifier != null) {
-            sb.append(packaging).append(':');
-        }
-        if (classifier != null) {
-            sb.append(classifier).append(':');
-        }
-        sb.append(version);
-        if (fileVersion != null) {
-            sb.append("(").append(fileVersion).append(")");
-        }
-        return sb.toString();
+        return toGAV(DEFAULT_PACKAGING, true);
     }
 
     public String toGAV()
+    {
+        return toGAV(DEFAULT_PACKAGING, false);
+    }
+
+    protected String toGAV(String defaultPackaging, boolean showFullVersion)
     {
         final StringBuilder sb = new StringBuilder();
         if (groupId != null) {
             sb.append(groupId).append(':');
         }
         sb.append(artifactId).append(':');
-        if (!packaging.equals(DEFAULT_PACKAGING) || classifier != null) {
+        if (!packaging.equals(defaultPackaging) || classifier != null) {
             sb.append(packaging).append(':');
         }
         if (classifier != null) {
             sb.append(classifier).append(':');
         }
-        if (fileVersion != null) {
-            sb.append(fileVersion);
-        } else {
+
+        if (showFullVersion) {
             sb.append(version);
+            if (fileVersion != null) {
+                sb.append("(").append(fileVersion).append(")");
+            }
         }
+        else {
+            if (fileVersion != null) {
+                sb.append(fileVersion);
+            } else {
+                sb.append(version);
+            }
+        }
+
         return sb.toString();
     }
 }

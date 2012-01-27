@@ -83,12 +83,11 @@ public class HttpServiceInventory implements ServiceInventory
             if (serviceDescriptors == null) {
                 continue;
             }
-            ConfigSpec config = slotStatus.getAssignment().getConfig();
             for (ServiceDescriptor serviceDescriptor : serviceDescriptors) {
                 newDescriptors.add(new ServiceDescriptor(null,
                         slotStatus.getId().toString(),
                         serviceDescriptor.getType(),
-                        config.getPool(),
+                        serviceDescriptor.getPool(),
                         slotStatus.getLocation(),
                         slotStatus.getState() == SlotLifecycleState.RUNNING ? ServiceState.RUNNING : ServiceState.STOPPED,
                         interpolateProperties(serviceDescriptor.getProperties(), slotStatus)));

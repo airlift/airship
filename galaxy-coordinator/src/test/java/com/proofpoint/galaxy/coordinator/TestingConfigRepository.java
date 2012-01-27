@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.Snapshot;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.Versioning;
-import com.proofpoint.galaxy.shared.ConfigSpec;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,34 +59,35 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
     public static void initConfigRepo(File targetRepo, String groupId)
             throws Exception
     {
-        createConfig(groupId, targetRepo, new ConfigSpec("apple", "1.0"), null);
-        createConfig(groupId, targetRepo, new ConfigSpec("apple", "2.0"), null);
-        createConfig(groupId, targetRepo, new ConfigSpec("banana", "2.0-SNAPSHOT"), "2.0-20110311.201909-1");
+        createConfig(targetRepo, groupId, "apple", "1.0", null);
+        createConfig(targetRepo, groupId, "apple", "2.0", null);
+        createConfig(targetRepo, groupId, "banana", "2.0-SNAPSHOT", "2.0-20110311.201909-1");
 
-        createMavenMetadata(targetRepo, groupId, "apple-general", ImmutableList.of(new VersionInfo("1.0"), new VersionInfo("2.0")));
-        createMavenMetadata(targetRepo, groupId, "banana-general", ImmutableList.of(new VersionInfo("2.0-SNAPSHOT", "20110311.201909", "1")));
+        createMavenMetadata(targetRepo, groupId, "apple", ImmutableList.of(new VersionInfo("1.0"), new VersionInfo("2.0")));
+        createMavenMetadata(targetRepo, groupId, "banana", ImmutableList.of(new VersionInfo("2.0-SNAPSHOT", "20110311.201909", "1")));
     }
 
-    public static void createConfig(String groupId, File dir, ConfigSpec configSpec, String timestampVersion)
+    public static void createConfig(File dir, String groupId, String artifactId, String version, String timestampVersion)
             throws Exception
     {
-        String name = configSpec.getComponent();
-        String artifactId = configSpec.getComponent() + "-" + firstNonNull(configSpec.getPool(), "general");
-
-        File configFile = newFile(dir, groupId, artifactId, configSpec.getVersion(), artifactId + "-" + firstNonNull(timestampVersion, configSpec.getVersion()) + ".config");
+        File configFile = newFile(dir,
+                groupId,
+                artifactId,
+                version,
+                artifactId + "-"+ firstNonNull(timestampVersion, version) + ".config");
 
         configFile.getParentFile().mkdirs();
 
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(configFile));
 
         // text file
-        out.putNextEntry(new ZipEntry(name + ".txt"));
-        out.write(name.getBytes(UTF_8));
+        out.putNextEntry(new ZipEntry(artifactId + ".txt"));
+        out.write(artifactId.getBytes(UTF_8));
 
         // config.properties
         out.putNextEntry(new ZipEntry("config.properties"));
         String properties = "http-server.http.port=0\n" +
-                "config=" + name;
+                "config=" + artifactId;
         out.write(properties.getBytes(UTF_8));
 
 
@@ -96,7 +96,7 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
 
         // config.properties
         String resources;
-        if ("apple".equals(name)) {
+        if ("apple".equals(artifactId)) {
             resources = "memory=512\n" +
                     "cpu=1";
         }

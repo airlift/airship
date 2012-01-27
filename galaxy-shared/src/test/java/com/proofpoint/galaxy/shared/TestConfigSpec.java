@@ -17,6 +17,7 @@ import com.proofpoint.testing.EquivalenceTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static java.util.Arrays.asList;
 
 public class TestConfigSpec
@@ -24,32 +25,62 @@ public class TestConfigSpec
     @Test
     public void fullConfigSpec()
     {
-        ConfigSpec spec = ConfigSpec.valueOf("@component:pool:version");
-        Assert.assertEquals(spec.getComponent(), "component");
-        Assert.assertEquals(spec.getPool(), "pool");
+        ConfigSpec spec = ConfigSpec.valueOf("@component-pool:version");
+        Assert.assertNull(spec.getGroupId());
+        Assert.assertEquals(spec.getArtifactId(), "component-pool");
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
-        Assert.assertEquals(spec, new ConfigSpec("component", "version", "pool"));
-        Assert.assertEquals(spec.toString(), "@component:pool:version");
+        Assert.assertEquals(spec, new ConfigSpec("component-pool", "version"));
+        Assert.assertEquals(spec.toString(), "@component-pool:version");
+        Assert.assertEquals(spec.toGAV(), "@component-pool:version");
     }
 
     @Test
     public void simpleSpec()
     {
         ConfigSpec spec = ConfigSpec.valueOf("@component:version");
-        Assert.assertEquals(spec.getComponent(), "component");
-        Assert.assertNull(spec.getPool());
+        Assert.assertNull(spec.getGroupId());
+        Assert.assertEquals(spec.getArtifactId(), "component");
         Assert.assertEquals(spec.getVersion(), "version");
         Assert.assertEquals(spec, spec);
         Assert.assertEquals(spec, new ConfigSpec("component", "version"));
         Assert.assertEquals(spec.toString(), "@component:version");
+        Assert.assertEquals(spec.toGAV(), "@component:version");
+    }
+
+    @Test
+    public void snapshotSpec()
+    {
+        ConfigSpec spec = new ConfigSpec(null, "component", "2.0-SNAPSHOT", "2.0-12345678.123456-1");
+        Assert.assertNull(spec.getGroupId());
+        Assert.assertEquals(spec.getArtifactId(), "component");
+        Assert.assertEquals(spec.getVersion(), "2.0-SNAPSHOT");
+        Assert.assertEquals(spec.getFileVersion(), "2.0-12345678.123456-1");
+        Assert.assertEquals(spec, spec);
+        Assert.assertEquals(spec, new ConfigSpec(null, "component", "2.0-SNAPSHOT", "2.0-12345678.123456-1"));
+        Assert.assertEquals(spec.toString(), "@component:2.0-SNAPSHOT(2.0-12345678.123456-1)");
+        Assert.assertEquals(spec.toGAV(), "@component:2.0-12345678.123456-1");
+    }
+
+    @Test
+    public void fullSpec()
+    {
+        ConfigSpec spec = new ConfigSpec("group", "component", "2.0-SNAPSHOT", "2.0-12345678.123456-1");
+        Assert.assertEquals(spec.getGroupId(), "group");
+        Assert.assertEquals(spec.getArtifactId(), "component");
+        Assert.assertEquals(spec.getVersion(), "2.0-SNAPSHOT");
+        Assert.assertEquals(spec.getFileVersion(), "2.0-12345678.123456-1");
+        Assert.assertEquals(spec, spec);
+        Assert.assertEquals(spec, new ConfigSpec("group", "component", "2.0-SNAPSHOT", "2.0-12345678.123456-1"));
+        Assert.assertEquals(spec.toString(), "@group:component:2.0-SNAPSHOT(2.0-12345678.123456-1)");
+        Assert.assertEquals(spec.toGAV(), "@group:component:2.0-12345678.123456-1");
     }
 
     @Test
     public void testEquivalence()
     {
         EquivalenceTester.check(
-                asList(ConfigSpec.valueOf("@component:version"), new ConfigSpec("component", "version"), new ConfigSpec("component", "version", null)),
-                asList(ConfigSpec.valueOf("@component:pool:version"), new ConfigSpec("component", "version", "pool")));
+                asList(ConfigSpec.valueOf("@component:version"), new ConfigSpec("component", "version"), new ConfigSpec("component", "version")),
+                asList(ConfigSpec.valueOf("@component-pool:version"), new ConfigSpec("component-pool", "version")));
     }
 }

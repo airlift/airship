@@ -66,7 +66,7 @@ public class ExpectedSlotStatus
         if (assignment == null) {
             return null;
         }
-        return assignment.getConfig().toString();
+        return assignment.getConfig().toGAV();
     }
 
     @Override
