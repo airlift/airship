@@ -5,7 +5,7 @@
     "self":"fake://apple",
     "location":"location/apple",
     "binary":"food.fruit:apple:1.0",
-    "config":"@apple:1.0",
+    "config":"@prod:apple:1.0",
     "status":"STOPPED",
     "version":"abc",
     "installPath": "/apple",

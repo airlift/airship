@@ -133,7 +133,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         Properties properties = new Properties();
         properties.load(new StringReader(conf));
         assertEquals(properties.getProperty("node.environment"), "prod");
-        assertEquals(properties.getProperty("node.config-spec"), "@apple:1.0");
+        assertEquals(properties.getProperty("node.config-spec"), "@prod:apple:1.0");
         assertEquals(properties.getProperty("node.binary-spec"), "food.fruit:apple:1.0");
         assertEquals(properties.getProperty("node.location"), "location");
     }

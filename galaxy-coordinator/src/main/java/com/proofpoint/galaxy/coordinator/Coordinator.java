@@ -264,7 +264,7 @@ public class Coordinator
         URI configFile= repository.getUri(assignment.getConfig());
         Map<String, Integer> resources = readResources(assignment);
 
-        assignment = new Assignment(repository.resolve(assignment.getBinary()), assignment.getConfig());
+        assignment = new Assignment(repository.resolve(assignment.getBinary()), repository.resolve(assignment.getConfig()));
         Installation installation = new Installation(assignment, repository.getUri(assignment.getBinary()), configFile, resources);
 
         List<SlotStatus> slots = newArrayList();

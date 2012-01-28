@@ -11,7 +11,7 @@
             "location":"location/apple",
             "installPath":"/apple",
             "binary":"food.fruit:apple:1.0",
-            "config":"@apple:1.0",
+            "config":"@prod:apple:1.0",
             "status":"STOPPED",
             "resources":{},
             "version":"abc"
@@ -23,7 +23,7 @@
             "location":"location/banana",
             "installPath":"/banana",
             "binary":"food.fruit:banana:2.0-SNAPSHOT",
-            "config":"@banana:2.0-SNAPSHOT",
+            "config":"@prod:banana:2.0-SNAPSHOT",
             "status":"STOPPED",
             "resources":{},
             "version":"abc"
