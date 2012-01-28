@@ -17,8 +17,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.BinarySpec;
-import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.ConfigUtils.newConfigEntrySupplier;
@@ -53,15 +52,13 @@ public class AwsProvisioner implements Provisioner
     private final String awsAgentSecurityGroup;
     private final String awsAgentDefaultInstanceType;
     private final int awsAgentDefaultPort;
-    private final BinaryRepository binaryRepository;
+    private final Repository repository;
     private final Set<String> invalidInstances = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
-    private final ConfigRepository configRepository;
 
     @Inject
     public AwsProvisioner(AmazonEC2 ec2Client,
             NodeInfo nodeInfo,
-            BinaryRepository binaryRepository,
-            ConfigRepository configRepository,
+            Repository repository,
             CoordinatorConfig coordinatorConfig,
             AwsProvisionerConfig awsProvisionerConfig)
     {
@@ -80,8 +77,7 @@ public class AwsProvisioner implements Provisioner
         awsAgentDefaultInstanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
         awsAgentDefaultPort = awsProvisionerConfig.getAwsAgentDefaultPort();
 
-        this.binaryRepository = checkNotNull(binaryRepository, "binaryRepository is null");
-        this.configRepository = checkNotNull(configRepository, "configRepository is null");
+        this.repository = checkNotNull(repository, "repository is null");
 
     }
 
@@ -217,8 +213,8 @@ public class AwsProvisioner implements Provisioner
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
 
-        URI partHandler = binaryRepository.getBinaryUri(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler"));
-        URI installScript = binaryRepository.getBinaryUri(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "rb", "install"));
+        URI partHandler = repository.getUri(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler"));
+        URI installScript = repository.getUri(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "rb", "install"));
 
         ImmutableList.Builder<String> lines = ImmutableList.builder();
         lines.add(
@@ -254,8 +250,7 @@ public class AwsProvisioner implements Provisioner
         if (instanceType != null) {
             configArtifactId = configArtifactId + "-" + instanceType;
         }
-        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(configRepository,
-                environment,
+        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(repository,
                 new ConfigSpec(configArtifactId, galaxyVersion),
                 "etc/resources.properties");
         if (resourcesFile != null) {

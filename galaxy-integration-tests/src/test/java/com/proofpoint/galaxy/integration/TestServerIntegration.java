@@ -30,7 +30,8 @@ import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.coordinator.BinaryRepository;
+import com.proofpoint.galaxy.coordinator.TestingRepository;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
@@ -41,10 +42,7 @@ import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
 import com.proofpoint.galaxy.coordinator.Provisioner;
 import com.proofpoint.galaxy.coordinator.StateManager;
 import com.proofpoint.galaxy.coordinator.Strings;
-import com.proofpoint.galaxy.coordinator.TestingBinaryRepository;
-import com.proofpoint.galaxy.coordinator.TestingConfigRepository;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
@@ -108,8 +106,7 @@ public class TestServerIntegration
 
     private File binaryRepoDir;
     private File localBinaryRepoDir;
-    private BinaryRepository binaryRepository;
-    private ConfigRepository configRepository;
+    private Repository repository;
 
     private int prefixSize;
     private Instance agentInstance;
@@ -125,8 +122,7 @@ public class TestServerIntegration
             throws Exception
     {
         try {
-            binaryRepoDir = TestingBinaryRepository.createBinaryRepoDir();
-            TestingConfigRepository.initConfigRepo(binaryRepoDir, "prod");
+            binaryRepoDir = TestingRepository.createBinaryRepoDir();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -169,8 +165,7 @@ public class TestServerIntegration
 
         coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
         coordinator = coordinatorInjector.getInstance(Coordinator.class);
-        binaryRepository = coordinatorInjector.getInstance(BinaryRepository.class);
-        configRepository = coordinatorInjector.getInstance(ConfigRepository.class);
+        repository = coordinatorInjector.getInstance(Repository.class);
         provisioner = (LocalProvisioner) coordinatorInjector.getInstance(Provisioner.class);
 
         coordinatorServer.start();
@@ -237,16 +232,16 @@ public class TestServerIntegration
 
 
         appleSlot1 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
-                binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigFile(APPLE_ASSIGNMENT.getConfig()),
+                repository.getUri(APPLE_ASSIGNMENT.getBinary()),
+                repository.getUri(APPLE_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
         appleSlot2 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
-                binaryRepository.getBinaryUri(APPLE_ASSIGNMENT.getBinary()),
-                configRepository.getConfigFile(APPLE_ASSIGNMENT.getConfig()),
+                repository.getUri(APPLE_ASSIGNMENT.getBinary()),
+                repository.getUri(APPLE_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
         bananaSlot = agent.getSlot(agent.install(new Installation(BANANA_ASSIGNMENT,
-                binaryRepository.getBinaryUri(BANANA_ASSIGNMENT.getBinary()),
-                configRepository.getConfigFile(BANANA_ASSIGNMENT.getConfig()),
+                repository.getUri(BANANA_ASSIGNMENT.getBinary()),
+                repository.getUri(BANANA_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
 
         agentInstance = new Instance(agent.getAgentId(), "test.type", "location", agentServer.getBaseUrl());

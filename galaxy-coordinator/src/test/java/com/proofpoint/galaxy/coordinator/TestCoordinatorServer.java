@@ -26,7 +26,7 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.galaxy.shared.ConfigRepository;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -57,8 +57,7 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_REPO;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
@@ -119,8 +118,7 @@ public class TestCoordinatorServer
                     public void configure(Binder binder)
                     {
                         binder.bind(RemoteAgentFactory.class).to(MockRemoteAgentFactory.class).in(Scopes.SINGLETON);
-                        binder.bind(BinaryRepository.class).toInstance(MOCK_BINARY_REPO);
-                        binder.bind(ConfigRepository.class).toInstance(MOCK_CONFIG_REPO);
+                        binder.bind(Repository.class).toInstance(MOCK_REPO);
                     }
                 }),
                 new ConfigurationModule(new ConfigurationFactory(properties)));

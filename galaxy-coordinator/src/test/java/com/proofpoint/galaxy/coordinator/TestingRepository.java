@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.Snapshot;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.Versioning;
@@ -12,24 +13,26 @@ import java.util.zip.ZipOutputStream;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.io.Resources.getResource;
+import static com.google.common.io.Resources.newInputStreamSupplier;
+import static com.proofpoint.galaxy.shared.ArchiveHelper.createArchive;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 
-public class TestingConfigRepository extends ConfigInBinaryRepository
+public class TestingRepository extends MavenRepository
 {
     private final File targetRepo;
 
-    public TestingConfigRepository()
+    public TestingRepository()
             throws Exception
     {
-        this(createConfigRepoDir());
+        this(createBinaryRepoDir());
     }
 
-    public TestingConfigRepository(File targetRepo)
-            throws Exception
+    public TestingRepository(File targetRepo)
     {
-        super(new MavenBinaryRepository(ImmutableList.<String>of("prod"), targetRepo.toURI()));
+        super(ImmutableList.<String>of("prod", "food.fruit"), targetRepo.toURI());
         this.targetRepo = targetRepo;
     }
 
@@ -38,12 +41,33 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
         deleteRecursively(targetRepo);
     }
 
-    public static File createConfigRepoDir()
+    public static File createBinaryRepoDir()
             throws Exception
     {
-        File targetRepo = createTempDir("config");
+        File targetRepo = null;
         try {
+            targetRepo = createTempDir("repo");
 
+            // copy maven-metadata.xml files
+            File appleMavenMetadata = new File(targetRepo, "food/fruit/apple/maven-metadata.xml");
+            appleMavenMetadata.getParentFile().mkdirs();
+            Files.copy(newInputStreamSupplier(getResource(TestingRepository.class, "apple-maven-metadata.xml")), appleMavenMetadata);
+
+            File bananaMavenMetadata = new File(targetRepo, "food/fruit/banana/2.0-SNAPSHOT/maven-metadata.xml");
+            bananaMavenMetadata.getParentFile().mkdirs();
+            Files.copy(newInputStreamSupplier(getResource(TestingRepository.class, "banana-maven-metadata.xml")), bananaMavenMetadata);
+
+            // tar up the archive and add them to the repository
+            File appleArchiveV1 = new File(targetRepo, "food/fruit/apple/1.0/apple-1.0.tar.gz");
+            File appleArchiveV2 = new File(targetRepo, "food/fruit/apple/2.0/apple-2.0.tar.gz");
+            File bananaArchive = new File(targetRepo, "food/fruit/banana/2.0-SNAPSHOT/banana-2.0-20110311.201909-1.tar.gz");
+            createArchive(appleArchiveV1);
+            appleArchiveV2.getParentFile().mkdirs();
+            Files.copy(appleArchiveV1, appleArchiveV2);
+            bananaArchive.getParentFile().mkdirs();
+            Files.copy(appleArchiveV1, bananaArchive);
+
+            // add prod configurations
             initConfigRepo(targetRepo, "prod");
 
             return targetRepo;
@@ -74,7 +98,7 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
                 groupId,
                 artifactId,
                 version,
-                artifactId + "-"+ firstNonNull(timestampVersion, version) + ".config");
+                artifactId + "-" + firstNonNull(timestampVersion, version) + ".config");
 
         configFile.getParentFile().mkdirs();
 
@@ -141,7 +165,7 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
                         version.timestamp,
                         version.buildNumber);
                 snapshotMetadata.versioning.snapshotVersions.add(snapshotVersion);
-                
+
                 MavenMetadata.marshalMavenMetadata(newFile(dir, groupId, artifactId, version.version, "maven-metadata.xml"), snapshotMetadata);
             }
         }

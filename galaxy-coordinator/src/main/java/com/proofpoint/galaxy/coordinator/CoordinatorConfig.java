@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.proofpoint.configuration.Config;
+import com.proofpoint.configuration.LegacyConfig;
 import com.proofpoint.units.Duration;
 
 import javax.validation.constraints.NotNull;
@@ -48,7 +49,8 @@ public class CoordinatorConfig
         return binaryRepoBases;
     }
 
-    @Config("coordinator.binary-repo")
+    @Config("coordinator.repo")
+    @LegacyConfig("coordinator.binary-repo")
     public CoordinatorConfig setBinaryRepoBases(String binaryRepoBases)
     {
         this.binaryRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(binaryRepoBases));

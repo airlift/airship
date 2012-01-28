@@ -95,9 +95,9 @@ public class ConfigUtils
         }
     }
 
-    public static InputSupplier<? extends InputStream> newConfigEntrySupplier(ConfigRepository configRepository, String environment, ConfigSpec configSpec, final String entryName)
+    public static InputSupplier<? extends InputStream> newConfigEntrySupplier(Repository repository, ConfigSpec configSpec, final String entryName)
     {
-        URI binaryUri = configRepository.getConfigFile(configSpec);
+        URI binaryUri = repository.getUri(configSpec);
         if (binaryUri == null) {
             return null;
         }

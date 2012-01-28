@@ -34,8 +34,7 @@ public class TestCoordinator
     private Coordinator coordinator;
     private Duration statusExpiration = new Duration(500, TimeUnit.MILLISECONDS);
     private LocalProvisioner provisioner;
-    private TestingConfigRepository configRepository;
-    private TestingBinaryRepository binaryRepository;
+    private TestingRepository repository;
 
     @BeforeMethod
     public void setUp()
@@ -43,14 +42,12 @@ public class TestCoordinator
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
 
-        binaryRepository = new TestingBinaryRepository();
-        configRepository = new TestingConfigRepository();
+        repository = new TestingRepository();
 
         provisioner = new LocalProvisioner();
         coordinator = new Coordinator(nodeInfo.getEnvironment(),
                 new MockRemoteAgentFactory(),
-                binaryRepository,
-                configRepository,
+                repository,
                 provisioner,
                 new InMemoryStateManager(),
                 new MockServiceInventory(),
@@ -63,8 +60,7 @@ public class TestCoordinator
     public void tearDown()
             throws Exception
     {
-        configRepository.destroy();
-        binaryRepository.destroy();
+        repository.destroy();
     }
 
     @Test

@@ -8,8 +8,7 @@ public class GalaxyTestRun
             "--environment", "test",
             "--coordinator", "/tmp/agent/slots",
             "--binary-repository", "https://oss.sonatype.org/content/repositories/releases/",
-            "--binary-repository", "https://oss.sonatype.org/content/repositories/snapshots/",
-            "--config-repository", "http://localhost:64001/v1/config/"
+            "--binary-repository", "https://oss.sonatype.org/content/repositories/snapshots/"
     };
 
     private static final String[] REMOTE_GLOBAL_ARGS = {

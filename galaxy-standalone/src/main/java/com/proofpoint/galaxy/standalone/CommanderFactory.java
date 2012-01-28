@@ -13,20 +13,18 @@ import com.proofpoint.galaxy.agent.LauncherLifecycleManager;
 import com.proofpoint.galaxy.agent.LifecycleManager;
 import com.proofpoint.galaxy.agent.Slot;
 import com.proofpoint.galaxy.coordinator.Coordinator;
+import com.proofpoint.galaxy.coordinator.MavenRepository;
 import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.coordinator.HttpServiceInventory;
 import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
 import com.proofpoint.galaxy.coordinator.Instance;
-import com.proofpoint.galaxy.coordinator.MavenBinaryRepository;
 import com.proofpoint.galaxy.coordinator.Provisioner;
 import com.proofpoint.galaxy.coordinator.RemoteAgent;
 import com.proofpoint.galaxy.coordinator.RemoteAgentFactory;
 import com.proofpoint.galaxy.coordinator.RemoteSlot;
 import com.proofpoint.galaxy.coordinator.ServiceInventory;
-import com.proofpoint.galaxy.coordinator.ConfigInBinaryRepository;
 import com.proofpoint.galaxy.coordinator.StateManager;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.ConfigRepository;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
@@ -50,8 +48,7 @@ public class CommanderFactory
 
     private String environment;
     private URI coordinatorUri;
-    private final List<String> binaryRepositories = newArrayList();
-    private final List<String> configRepositories = newArrayList();
+    private final List<String> repositories = newArrayList();
 
     public CommanderFactory setEnvironment(String environment)
     {
@@ -65,17 +62,10 @@ public class CommanderFactory
         return this;
     }
 
-    public CommanderFactory setBinaryRepositories(List<String> binaryRepositories)
+    public CommanderFactory setRepositories(List<String> repositories)
     {
-        this.binaryRepositories.clear();
-        this.binaryRepositories.addAll(binaryRepositories);
-        return this;
-    }
-
-    public CommanderFactory setConfigRepositories(List<String> configRepositories)
-    {
-        this.configRepositories.clear();
-        this.configRepositories.addAll(configRepositories);
+        this.repositories.clear();
+        this.repositories.addAll(repositories);
         return this;
     }
 
@@ -99,10 +89,9 @@ public class CommanderFactory
     {
         Preconditions.checkNotNull(coordinatorUri, "coordinatorUri is null");
         Preconditions.checkNotNull(environment, "environment is null");
-        Preconditions.checkNotNull(this.binaryRepositories, "binaryRepositories is null");
-        Preconditions.checkNotNull(this.configRepositories, "configRepositories is null");
+        Preconditions.checkNotNull(this.repositories, "binaryRepositories is null");
 
-        List<URI> binaryRepoBases = ImmutableList.copyOf(Lists.transform(binaryRepositories, new ToUriFunction()));
+        List<URI> binaryRepoBases = ImmutableList.copyOf(Lists.transform(repositories, new ToUriFunction()));
 
         //
         // Create agent
@@ -129,9 +118,8 @@ public class CommanderFactory
         //
         // Create coordinator
         //
-        MavenBinaryRepository binaryRepository = new MavenBinaryRepository(ImmutableList.<String>of(), binaryRepoBases);
-        ConfigRepository configRepository = new ConfigInBinaryRepository(binaryRepository);
-        ServiceInventory serviceInventory = new HttpServiceInventory(configRepository, environment, JsonCodec.listJsonCodec(ServiceDescriptor.class));
+        MavenRepository repository = new MavenRepository(ImmutableList.<String>of(), binaryRepoBases);
+        ServiceInventory serviceInventory = new HttpServiceInventory(repository, environment, JsonCodec.listJsonCodec(ServiceDescriptor.class));
 
         Provisioner provisioner = new StandaloneProvisioner();
 
@@ -144,8 +132,7 @@ public class CommanderFactory
 
         return new Coordinator(environment,
                 remoteAgentFactory,
-                binaryRepository,
-                configRepository,
+                repository,
                 provisioner,
                 stateManager,
                 serviceInventory,

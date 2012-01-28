@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.io.Resources;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.BinarySpec;
 
 import javax.inject.Inject;
@@ -15,10 +16,10 @@ import java.net.URL;
 @Path("/v1/binary/")
 public class BinaryResource
 {
-    private final BinaryRepository repository;
+    private final Repository repository;
 
     @Inject
-    public BinaryResource(BinaryRepository repository)
+    public BinaryResource(Repository repository)
     {
         this.repository = repository;
     }
@@ -45,7 +46,7 @@ public class BinaryResource
 
         URL binaryUrl = null;
         try {
-            binaryUrl = repository.getBinaryUri(binarySpec).toURL();
+            binaryUrl = repository.getUri(binarySpec).toURL();
         }
         catch (MalformedURLException e) {
         }

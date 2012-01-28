@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
@@ -38,7 +37,7 @@ public class TestCoordinatorSlotResource
 {
     private CoordinatorSlotResource resource;
     private Coordinator coordinator;
-    private TestingConfigRepository configRepository;
+    private TestingRepository repository;
 
     @BeforeMethod
     public void setUp()
@@ -46,13 +45,12 @@ public class TestCoordinatorSlotResource
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
 
-        configRepository = new TestingConfigRepository();
+        repository = new TestingRepository();
 
         coordinator = new Coordinator(nodeInfo,
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
                 new MockRemoteAgentFactory(),
-                MOCK_BINARY_REPO,
-                configRepository,
+                repository,
                 new LocalProvisioner(),
                 new InMemoryStateManager(),
                 new MockServiceInventory());
@@ -63,7 +61,7 @@ public class TestCoordinatorSlotResource
     public void tearDown()
             throws Exception
     {
-        configRepository.destroy();
+        repository.destroy();
     }
 
     @Test

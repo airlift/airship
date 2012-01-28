@@ -33,8 +33,7 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
@@ -67,8 +66,7 @@ public class TestCoordinatorLifecycleResource
         coordinator = new Coordinator(nodeInfo,
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
                 new MockRemoteAgentFactory(),
-                MOCK_BINARY_REPO,
-                MOCK_CONFIG_REPO,
+                MOCK_REPO,
                 new LocalProvisioner(),
                 new InMemoryStateManager(),
                 new MockServiceInventory());

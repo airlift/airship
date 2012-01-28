@@ -23,7 +23,7 @@ import com.proofpoint.galaxy.coordinator.auth.AuthConfig;
 import com.proofpoint.galaxy.coordinator.auth.AuthFilter;
 import com.proofpoint.galaxy.coordinator.auth.SignatureVerifier;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.ConfigRepository;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -50,8 +50,7 @@ public class CoordinatorMainModule
         binder.bind(InvalidSlotFilterExceptionMapper.class).in(Scopes.SINGLETON);
         binder.bind(AdminResource.class).in(Scopes.SINGLETON);
         binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
-        binder.bind(BinaryRepository.class).to(MavenBinaryRepository.class).in(Scopes.SINGLETON);
-        binder.bind(ConfigRepository.class).to(ConfigInBinaryRepository.class).in(Scopes.SINGLETON);
+        binder.bind(Repository.class).to(MavenRepository.class).in(Scopes.SINGLETON);
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 

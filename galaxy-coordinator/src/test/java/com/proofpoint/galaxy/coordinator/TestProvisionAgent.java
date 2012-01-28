@@ -5,9 +5,8 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.BinarySpec;
-import com.proofpoint.galaxy.shared.ConfigRepository;
-import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.Test;
@@ -52,9 +51,9 @@ public class TestProvisionAgent
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsProvisionerConfig.getAwsAccessKey(), awsProvisionerConfig.getAwsSecretKey());
         AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
         NodeInfo nodeInfo = createTestNodeInfo();
-        BinaryRepository binaryRepository = new BinaryRepository() {
+        Repository repository = new Repository() {
             @Override
-            public URI getBinaryUri(BinarySpec binarySpec)
+            public URI getUri(BinarySpec binarySpec)
             {
                 try {
                     return new URI("file", null, "host", 9999, "/" + binarySpec.toGAV(), null, null);
@@ -65,22 +64,13 @@ public class TestProvisionAgent
             }
 
             @Override
-            public BinarySpec resolveBinarySpec(BinarySpec binarySpec)
+            public BinarySpec resolve(BinarySpec binarySpec)
             {
                 return binarySpec;
             }
         };
 
-        ConfigRepository configRepository = new ConfigRepository()
-        {
-            @Override
-            public URI getConfigFile(ConfigSpec configSpec)
-            {
-                return URI.create("fake://localhost/" + configSpec);
-            }
-        };
-
-        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, binaryRepository, configRepository, coordinatorConfig, awsProvisionerConfig);
+        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, repository, coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 2;
         List<Instance> provisioned = provisioner.provisionAgents(agentCount, null, null);

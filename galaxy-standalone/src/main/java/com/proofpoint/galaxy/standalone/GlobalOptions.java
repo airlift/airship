@@ -17,11 +17,8 @@ public class GlobalOptions
     @Option(type = GLOBAL, name = "--coordinator", description = "Galaxy coordinator host (overrides GALAXY_COORDINATOR)")
     public String coordinator = Objects.firstNonNull(System.getenv("GALAXY_COORDINATOR"), "http://localhost:64000");
 
-    @Option(type = GLOBAL, name = "--binary-repository", description = "Binary repository to use in standalone mode")
-    public final List<String> binaryRepository = newArrayList();
-
-    @Option(type = GLOBAL, name = "--config-repository", description = "Configuration repository to use in standalone mode")
-    public final List<String> configRepository = newArrayList();
+    @Option(type = GLOBAL, name = "--repository", description = "Repository to use in standalone mode")
+    public final List<String> repository = newArrayList();
 
     @Option(type = GLOBAL, name = "--debug", description = "Enable debug messages")
     public boolean debug = false;

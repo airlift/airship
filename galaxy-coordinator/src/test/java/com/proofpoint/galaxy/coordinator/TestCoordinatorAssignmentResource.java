@@ -39,8 +39,7 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_BINARY_REPO;
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_CONFIG_REPO;
+import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_REPO;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -66,8 +65,7 @@ public class TestCoordinatorAssignmentResource
         coordinator = new Coordinator(nodeInfo,
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
                 new MockRemoteAgentFactory(),
-                MOCK_BINARY_REPO,
-                MOCK_CONFIG_REPO,
+                MOCK_REPO,
                 new LocalProvisioner(),
                 new InMemoryStateManager(),
                 new MockServiceInventory());

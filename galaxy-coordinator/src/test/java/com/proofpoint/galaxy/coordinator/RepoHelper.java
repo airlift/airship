@@ -1,34 +1,24 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.BinarySpec;
-import com.proofpoint.galaxy.shared.ConfigRepository;
-import com.proofpoint.galaxy.shared.ConfigSpec;
 
 import java.net.URI;
 
 public class RepoHelper
 {
-    public static final BinaryRepository MOCK_BINARY_REPO = new BinaryRepository()
+    public static final Repository MOCK_REPO = new Repository()
     {
         @Override
-        public URI getBinaryUri(BinarySpec binarySpec)
+        public URI getUri(BinarySpec binarySpec)
         {
             return URI.create("fake://localhost/" + binarySpec);
         }
 
         @Override
-        public BinarySpec resolveBinarySpec(BinarySpec binarySpec)
+        public BinarySpec resolve(BinarySpec binarySpec)
         {
             return binarySpec;
-        }
-    };
-    public static final ConfigRepository MOCK_CONFIG_REPO = new ConfigRepository()
-    {
-        @Override
-        public URI getConfigFile(ConfigSpec configSpec)
-        {
-            return URI.create("fake://localhost/" + configSpec);
-
         }
     };
 }

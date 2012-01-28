@@ -20,7 +20,7 @@ import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.ConfigRepository;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
@@ -69,8 +69,7 @@ public class Coordinator
     private final ConcurrentMap<String, RemoteAgent> agents;
 
     private final String environment;
-    private final BinaryRepository binaryRepository;
-    private final ConfigRepository configRepository;
+    private final Repository repository;
     private final ScheduledExecutorService timerService;
     private final Duration statusExpiration;
     private final Provisioner provisioner;
@@ -82,15 +81,13 @@ public class Coordinator
     public Coordinator(NodeInfo nodeInfo,
             CoordinatorConfig config,
             RemoteAgentFactory remoteAgentFactory,
-            BinaryRepository binaryRepository,
-            ConfigRepository configRepository,
+            Repository repository,
             Provisioner provisioner,
             StateManager stateManager, ServiceInventory serviceInventory)
     {
         this(nodeInfo.getEnvironment(),
                 remoteAgentFactory,
-                binaryRepository,
-                configRepository,
+                repository,
                 provisioner,
                 stateManager,
                 serviceInventory,
@@ -100,8 +97,7 @@ public class Coordinator
 
     public Coordinator(String environment,
             RemoteAgentFactory remoteAgentFactory,
-            BinaryRepository binaryRepository,
-            ConfigRepository configRepository,
+            Repository repository,
             Provisioner provisioner,
             StateManager stateManager,
             ServiceInventory serviceInventory,
@@ -109,8 +105,7 @@ public class Coordinator
     {
         Preconditions.checkNotNull(environment, "environment is null");
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
-        Preconditions.checkNotNull(configRepository, "repository is null");
-        Preconditions.checkNotNull(binaryRepository, "binaryRepository is null");
+        Preconditions.checkNotNull(repository, "repository is null");
         Preconditions.checkNotNull(provisioner, "provisioner is null");
         Preconditions.checkNotNull(stateManager, "stateManager is null");
         Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
@@ -118,8 +113,7 @@ public class Coordinator
 
         this.environment = environment;
         this.remoteAgentFactory = remoteAgentFactory;
-        this.binaryRepository = binaryRepository;
-        this.configRepository = configRepository;
+        this.repository = repository;
         this.provisioner = provisioner;
         this.stateManager = stateManager;
         this.serviceInventory = serviceInventory;
@@ -267,11 +261,11 @@ public class Coordinator
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
-        URI configFile= configRepository.getConfigFile(assignment.getConfig());
+        URI configFile= repository.getUri(assignment.getConfig());
         Map<String, Integer> resources = readResources(assignment);
 
-        assignment = new Assignment(binaryRepository.resolveBinarySpec(assignment.getBinary()), assignment.getConfig());
-        Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configFile, resources);
+        assignment = new Assignment(repository.resolve(assignment.getBinary()), assignment.getConfig());
+        Installation installation = new Installation(assignment, repository.getUri(assignment.getBinary()), configFile, resources);
 
         List<SlotStatus> slots = newArrayList();
         List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), Predicates.and(filterAgentsBy(filter), filterAgentsWithAssignment(assignment))));
@@ -332,7 +326,7 @@ public class Coordinator
     {
         ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
 
-        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(configRepository, environment, assignment.getConfig(), "galaxy-resources.properties");
+        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(repository, assignment.getConfig(), "galaxy-resources.properties");
         if (resourcesFile != null) {
             try {
                 Properties resources = new Properties();
@@ -372,9 +366,9 @@ public class Coordinator
         }
         Assignment assignment = newAssignments.iterator().next();
 
-        URI configFile = configRepository.getConfigFile(assignment.getConfig());
+        URI configFile = repository.getUri(assignment.getConfig());
 
-        final Installation installation = new Installation(assignment, binaryRepository.getBinaryUri(assignment.getBinary()), configFile, ImmutableMap.<String, Integer>of());
+        final Installation installation = new Installation(assignment, repository.getUri(assignment.getBinary()), configFile, ImmutableMap.<String, Integer>of());
 
         return ImmutableList.copyOf(transform(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
         {

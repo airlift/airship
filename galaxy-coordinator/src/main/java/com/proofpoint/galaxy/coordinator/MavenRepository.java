@@ -11,6 +11,7 @@ import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.BinarySpec;
 
 import java.io.InputStream;
@@ -21,26 +22,26 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
 
-public class MavenBinaryRepository implements BinaryRepository
+public class MavenRepository implements Repository
 {
     private static final Pattern TIMESTAMP_VERSION = Pattern.compile("^(.+)-[0-9]{8}\\.[0-9]{6}\\-[0-9]$");
     private final List<String> defaultGroupIds;
-    private final List<URI> binaryRepositoryBases;
+    private final List<URI> repositoryBases;
 
-    public MavenBinaryRepository(Iterable<String> defaultGroupIds, URI binaryRepositoryBase, URI... binaryRepositoryBases)
+    public MavenRepository(Iterable<String> defaultGroupIds, URI repositoryBase, URI... repositoryBases)
     {
         this.defaultGroupIds = ImmutableList.copyOf(defaultGroupIds);
-        this.binaryRepositoryBases = ImmutableList.<URI>builder().add(binaryRepositoryBase).add(binaryRepositoryBases).build();
+        this.repositoryBases = ImmutableList.<URI>builder().add(repositoryBase).add(repositoryBases).build();
     }
 
-    public MavenBinaryRepository(Iterable<String> defaultGroupIds, Iterable<URI> binaryRepositoryBases)
+    public MavenRepository(Iterable<String> defaultGroupIds, Iterable<URI> repositoryBases)
     {
         this.defaultGroupIds = ImmutableList.copyOf(defaultGroupIds);
-        this.binaryRepositoryBases = ImmutableList.copyOf(binaryRepositoryBases);
+        this.repositoryBases = ImmutableList.copyOf(repositoryBases);
     }
 
     @Inject
-    public MavenBinaryRepository(CoordinatorConfig config)
+    public MavenRepository(CoordinatorConfig config)
             throws Exception
     {
         this.defaultGroupIds = ImmutableList.copyOf(Splitter.on(",").trimResults().omitEmptyStrings().split(config.getDefaultRepositoryGroupId()));
@@ -53,11 +54,11 @@ public class MavenBinaryRepository implements BinaryRepository
             }
             builder.add(URI.create(binaryRepoBase));
         }
-        binaryRepositoryBases = builder.build();
+        repositoryBases = builder.build();
     }
 
     @Override
-    public URI getBinaryUri(BinarySpec binarySpec)
+    public URI getUri(BinarySpec binarySpec)
     {
         return getBinaryUri(binarySpec, true);
     }
@@ -65,10 +66,10 @@ public class MavenBinaryRepository implements BinaryRepository
     public URI getBinaryUri(BinarySpec binarySpec, boolean required)
     {
         // resolve binary spec groupId or snapshot version
-        binarySpec = resolveBinarySpec(binarySpec);
+        binarySpec = resolve(binarySpec);
 
         List<URI> checkedUris = newArrayList();
-        for (URI binaryRepositoryBase : binaryRepositoryBases) {
+        for (URI repositoryBase : repositoryBases) {
             // build the uri
             StringBuilder builder = new StringBuilder();
             builder.append(binarySpec.getGroupId().replace('.', '/')).append('/');
@@ -80,7 +81,7 @@ public class MavenBinaryRepository implements BinaryRepository
             }
             builder.append('.').append(binarySpec.getPackaging());
 
-            URI uri = binaryRepositoryBase.resolve(builder.toString());
+            URI uri = repositoryBase.resolve(builder.toString());
 
             // try to download some of the file
             if (isValidBinary(uri)) {
@@ -98,7 +99,7 @@ public class MavenBinaryRepository implements BinaryRepository
     }
 
     @Override
-    public BinarySpec resolveBinarySpec(BinarySpec binarySpec)
+    public BinarySpec resolve(BinarySpec binarySpec)
     {
         if (binarySpec.isResolved()) {
             return binarySpec;
@@ -157,7 +158,7 @@ public class MavenBinaryRepository implements BinaryRepository
         }
 
         if (binarySpecs.isEmpty()) {
-            throw new RuntimeException("Unable to find " + binarySpec + " at " + binaryRepositoryBases);
+            throw new RuntimeException("Unable to find " + binarySpec + " at " + repositoryBases);
         }
 
         return binarySpecs.get(0);
@@ -166,7 +167,7 @@ public class MavenBinaryRepository implements BinaryRepository
     private BinarySpec resolveSnapshotTimestamp(BinarySpec binarySpec, String groupId)
     {
 
-        for (URI binaryRepositoryBase : binaryRepositoryBases) {
+        for (URI repositoryBase : repositoryBases) {
             try {
                 // load maven metadata file
                 StringBuilder builder = new StringBuilder();
@@ -174,7 +175,7 @@ public class MavenBinaryRepository implements BinaryRepository
                 builder.append(binarySpec.getArtifactId()).append('/');
                 builder.append(binarySpec.getVersion()).append('/');
                 builder.append("maven-metadata.xml");
-                URI uri = binaryRepositoryBase.resolve(builder.toString());
+                URI uri = repositoryBase.resolve(builder.toString());
                 MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
 
                 for (SnapshotVersion snapshotVersion : metadata.versioning.snapshotVersions) {

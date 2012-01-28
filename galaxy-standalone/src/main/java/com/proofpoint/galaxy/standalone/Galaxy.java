@@ -86,8 +86,7 @@ public class Galaxy
             Commander commander = new CommanderFactory()
                     .setEnvironment(globalOptions.environment)
                     .setCoordinatorUri(coordinatorUri)
-                    .setBinaryRepositories(globalOptions.binaryRepository)
-                    .setConfigRepositories(globalOptions.configRepository)
+                    .setRepositories(globalOptions.repository)
                     .build();
 
             try {
