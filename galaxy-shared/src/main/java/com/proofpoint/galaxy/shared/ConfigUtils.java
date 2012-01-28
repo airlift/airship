@@ -95,19 +95,19 @@ public class ConfigUtils
         }
     }
 
-    public static InputSupplier<? extends InputStream> newConfigEntrySupplier(Repository repository, ConfigSpec configSpec, final String entryName)
+    public static InputSupplier<? extends InputStream> newConfigEntrySupplier(Repository repository, MavenCoordinates config, final String entryName)
     {
-        URI binaryUri = repository.getUri(configSpec);
-        if (binaryUri == null) {
+        URI uri = repository.getUri(config);
+        if (uri == null) {
             return null;
         }
 
         URL configUrl;
         try {
-            configUrl = binaryUri.toURL();
+            configUrl = uri.toURL();
         }
         catch (MalformedURLException e) {
-            throw new RuntimeException("Invalid config bundle location " + binaryUri);
+            throw new RuntimeException("Invalid config bundle location " + uri);
         }
 
         return ConfigUtils.newConfigEntrySupplier(Resources.newInputStreamSupplier(configUrl), entryName);

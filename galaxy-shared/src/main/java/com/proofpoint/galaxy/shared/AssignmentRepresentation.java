@@ -21,6 +21,11 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import static com.proofpoint.galaxy.shared.BinarySpec.BINARY_SPEC_REGEX;
+import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
+import static com.proofpoint.galaxy.shared.ConfigSpec.CONFIG_SPEC_REGEX;
+import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
+
 @JsonAutoDetect(JsonMethod.NONE)
 public class AssignmentRepresentation
 {
@@ -29,7 +34,7 @@ public class AssignmentRepresentation
 
     public static AssignmentRepresentation from(Assignment assignment)
     {
-        return new AssignmentRepresentation(assignment.getBinary().toGAV(), assignment.getConfig().toGAV());
+        return new AssignmentRepresentation(toBinaryGAV(assignment.getBinary()), toConfigGAV(assignment.getConfig()));
     }
 
     @JsonCreator
@@ -41,7 +46,7 @@ public class AssignmentRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    @Pattern(regexp = BinarySpec.BINARY_SPEC_REGEX, message = "is malformed")
+    @Pattern(regexp = BINARY_SPEC_REGEX, message = "is malformed")
     public String getBinary()
     {
         return binary;
@@ -49,7 +54,7 @@ public class AssignmentRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    @Pattern(regexp = ConfigSpec.CONFIG_SPEC_REGEX, message = "is malformed")
+    @Pattern(regexp = CONFIG_SPEC_REGEX, message = "is malformed")
     public String getConfig()
     {
         return config;
@@ -94,7 +99,7 @@ public class AssignmentRepresentation
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("AssignmentRepresentation");
         sb.append("{binary='").append(binary).append('\'');
         sb.append(", config='").append(config).append('\'');

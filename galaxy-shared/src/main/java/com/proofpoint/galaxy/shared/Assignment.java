@@ -17,22 +17,25 @@ import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.Immutable;
 
+import static com.proofpoint.galaxy.shared.BinarySpec.parseBinarySpec;
+import static com.proofpoint.galaxy.shared.ConfigSpec.parseConfigSpec;
+
 @Immutable
 public class Assignment
 {
-    private final BinarySpec binary;
-    private final ConfigSpec config;
+    private final MavenCoordinates binary;
+    private final MavenCoordinates config;
 
     public Assignment(String binary, String config)
     {
         Preconditions.checkNotNull(binary, "binary is null");
         Preconditions.checkNotNull(config, "config is null");
 
-        this.binary = BinarySpec.valueOf(binary);
-        this.config = ConfigSpec.valueOf(config);
+        this.binary = parseBinarySpec(binary);
+        this.config = parseConfigSpec(config);
     }
 
-    public Assignment(BinarySpec binary, ConfigSpec config)
+    public Assignment(MavenCoordinates binary, MavenCoordinates config)
     {
         Preconditions.checkNotNull(binary, "binary is null");
         Preconditions.checkNotNull(config, "config is null");
@@ -41,12 +44,12 @@ public class Assignment
         this.config = config;
     }
 
-    public BinarySpec getBinary()
+    public MavenCoordinates getBinary()
     {
         return binary;
     }
 
-    public ConfigSpec getConfig()
+    public MavenCoordinates getConfig()
     {
         return config;
     }
@@ -103,7 +106,7 @@ public class Assignment
     @Override
     public String toString()
     {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("Assignment");
         sb.append("{binary=").append(binary);
         sb.append(", config=").append(config);

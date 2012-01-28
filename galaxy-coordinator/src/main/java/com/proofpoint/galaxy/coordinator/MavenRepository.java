@@ -12,7 +12,7 @@ import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
 import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.BinarySpec;
+import com.proofpoint.galaxy.shared.MavenCoordinates;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -21,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.shared.BinarySpec.createBinarySpec;
 
 public class MavenRepository implements Repository
 {
@@ -58,12 +59,12 @@ public class MavenRepository implements Repository
     }
 
     @Override
-    public URI getUri(BinarySpec binarySpec)
+    public URI getUri(MavenCoordinates binarySpec)
     {
         return getBinaryUri(binarySpec, true);
     }
 
-    public URI getBinaryUri(BinarySpec binarySpec, boolean required)
+    public URI getBinaryUri(MavenCoordinates binarySpec, boolean required)
     {
         // resolve binary spec groupId or snapshot version
         binarySpec = resolve(binarySpec);
@@ -99,7 +100,7 @@ public class MavenRepository implements Repository
     }
 
     @Override
-    public BinarySpec resolve(BinarySpec binarySpec)
+    public MavenCoordinates resolve(MavenCoordinates binarySpec)
     {
         if (binarySpec.isResolved()) {
             return binarySpec;
@@ -113,10 +114,10 @@ public class MavenRepository implements Repository
             groupIds = defaultGroupIds;
         }
 
-        List<BinarySpec> binarySpecs = newArrayList();
+        List<MavenCoordinates> binarySpecs = newArrayList();
         for (String groupId : groupIds) {
             // check for a file with the exact name
-            BinarySpec resolvedSpec = new BinarySpec(groupId,
+            MavenCoordinates resolvedSpec = createBinarySpec(groupId,
                     binarySpec.getArtifactId(),
                     binarySpec.getVersion(),
                     binarySpec.getPackaging(),
@@ -130,7 +131,7 @@ public class MavenRepository implements Repository
 
             // check of a timestamped snapshot file
             if (binarySpec.getVersion().contains("SNAPSHOT")) {
-                BinarySpec timestampSpec = resolveSnapshotTimestamp(binarySpec, groupId);
+                MavenCoordinates timestampSpec = resolveSnapshotTimestamp(binarySpec, groupId);
                 if (timestampSpec != null) {
                     binarySpecs.add(timestampSpec);
                     continue;
@@ -140,7 +141,7 @@ public class MavenRepository implements Repository
             // Snapshot revisions are resolved to timestamp version which may need to be converted back to SNAPSHOT for resolution
             Matcher timestampMatcher = TIMESTAMP_VERSION.matcher(binarySpec.getVersion());
             if (timestampMatcher.matches()) {
-                BinarySpec snapshotSpec = new BinarySpec(groupId,
+                MavenCoordinates snapshotSpec = createBinarySpec(groupId,
                         binarySpec.getArtifactId(),
                         timestampMatcher.group(1) + "-SNAPSHOT",
                         binarySpec.getPackaging(),
@@ -164,7 +165,7 @@ public class MavenRepository implements Repository
         return binarySpecs.get(0);
     }
 
-    private BinarySpec resolveSnapshotTimestamp(BinarySpec binarySpec, String groupId)
+    private MavenCoordinates resolveSnapshotTimestamp(MavenCoordinates binarySpec, String groupId)
     {
 
         for (URI repositoryBase : repositoryBases) {
@@ -180,7 +181,7 @@ public class MavenRepository implements Repository
 
                 for (SnapshotVersion snapshotVersion : metadata.versioning.snapshotVersions) {
                     if (binarySpec.getPackaging().equals(snapshotVersion.extension) && Objects.equal(binarySpec.getClassifier(), snapshotVersion.classifier)) {
-                        BinarySpec timestampSpec = new BinarySpec(groupId,
+                        MavenCoordinates timestampSpec = createBinarySpec(groupId,
                                 binarySpec.getArtifactId(),
                                 binarySpec.getVersion(),
                                 binarySpec.getPackaging(),

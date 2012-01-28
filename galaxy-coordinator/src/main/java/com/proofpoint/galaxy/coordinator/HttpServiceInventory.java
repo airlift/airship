@@ -23,14 +23,13 @@ import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceState;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.ConfigUtils;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
-import com.proofpoint.node.NodeInfo;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -42,31 +41,21 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public class HttpServiceInventory implements ServiceInventory
 {
     private static final Logger log = Logger.get(HttpServiceInventory.class);
     private final Repository repository;
-    private final String environment;
     private final JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec;
-    private final Set<ConfigSpec> invalidServiceInventory = Collections.newSetFromMap(new ConcurrentHashMap<ConfigSpec, Boolean>());
+    private final Set<MavenCoordinates> invalidServiceInventory = Collections.newSetFromMap(new ConcurrentHashMap<MavenCoordinates, Boolean>());
 
     @Inject
-    public HttpServiceInventory(Repository repository, NodeInfo nodeInfo, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec)
-    {
-        this(repository, checkNotNull(nodeInfo, "nodeInfo is null").getEnvironment(), descriptorsJsonCodec);
-    }
-
-    public HttpServiceInventory(Repository repository, String environment, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec)
+    public HttpServiceInventory(Repository repository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec)
     {
         Preconditions.checkNotNull(repository, "repository is null");
         Preconditions.checkNotNull(descriptorsJsonCodec, "descriptorsJsonCodec is null");
-        Preconditions.checkNotNull(environment, "environment is null");
 
         this.repository = repository;
         this.descriptorsJsonCodec = descriptorsJsonCodec;
-        this.environment = environment;
     }
 
     @Override
@@ -115,7 +104,7 @@ public class HttpServiceInventory implements ServiceInventory
             return null;
         }
 
-        ConfigSpec config = assignment.getConfig();
+        MavenCoordinates config = assignment.getConfig();
         InputSupplier<? extends InputStream> configFile = ConfigUtils.newConfigEntrySupplier(repository, config, "galaxy-service-inventory.json");
         if (configFile == null) {
             return null;

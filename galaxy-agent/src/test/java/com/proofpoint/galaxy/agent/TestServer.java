@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
+import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
@@ -235,8 +237,8 @@ public class TestServer
                 .put("id", slot.getId().toString())
                 .put("shortId", slot.getId().toString())
                 .put("name", slot.getName())
-                .put("binary", appleInstallation.getAssignment().getBinary().toGAV())
-                .put("config", appleInstallation.getAssignment().getConfig().toGAV())
+                .put("binary", toBinaryGAV(appleInstallation.getAssignment().getBinary()))
+                .put("config", toConfigGAV(appleInstallation.getAssignment().getConfig()))
                 .put("self", urlFor(slot))
                 .put("location", slot.status().getLocation())
                 .put("status", STOPPED.toString())
@@ -324,8 +326,8 @@ public class TestServer
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
-                .put("binary", appleInstallation.getAssignment().getBinary().toGAV())
-                .put("config", appleInstallation.getAssignment().getConfig().toGAV())
+                .put("binary", toBinaryGAV(appleInstallation.getAssignment().getBinary()))
+                .put("config", toConfigGAV(appleInstallation.getAssignment().getConfig()))
                 .put("self", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", STOPPED.toString())
@@ -356,8 +358,8 @@ public class TestServer
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
-                .put("binary", appleInstallation.getAssignment().getBinary().toGAV())
-                .put("config", appleInstallation.getAssignment().getConfig().toGAV())
+                .put("binary", toBinaryGAV(appleInstallation.getAssignment().getBinary()))
+                .put("config", toConfigGAV(appleInstallation.getAssignment().getConfig()))
                 .put("self", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", RUNNING.toString())
@@ -389,8 +391,8 @@ public class TestServer
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
-                .put("binary", appleInstallation.getAssignment().getBinary().toGAV())
-                .put("config", appleInstallation.getAssignment().getConfig().toGAV())
+                .put("binary", toBinaryGAV(appleInstallation.getAssignment().getBinary()))
+                .put("config", toConfigGAV(appleInstallation.getAssignment().getConfig()))
                 .put("self", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", STOPPED.toString())
@@ -421,8 +423,8 @@ public class TestServer
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
-                .put("binary", appleInstallation.getAssignment().getBinary().toGAV())
-                .put("config", appleInstallation.getAssignment().getConfig().toGAV())
+                .put("binary", toBinaryGAV(appleInstallation.getAssignment().getBinary()))
+                .put("config", toConfigGAV(appleInstallation.getAssignment().getConfig()))
                 .put("self", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", RUNNING.toString())

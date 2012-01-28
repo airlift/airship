@@ -13,18 +13,16 @@
  */
 package com.proofpoint.galaxy.shared;
 
-import javax.annotation.concurrent.Immutable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Immutable
-public class ConfigSpec extends BinarySpec
+public final class ConfigSpec
 {
     public static final String CONFIG_SPEC_REGEX = "^@(?:([^:]+):)?([^:]+):([^:]+)$";
     private static final Pattern CONFIG_SPEC_PATTERN = Pattern.compile(CONFIG_SPEC_REGEX);
-    public static final String DEFAULT_PACKAGING = "config";
+    public static final String DEFAULT_CONFIG_PACKAGING = "config";
 
-    public static ConfigSpec valueOf(String configSpec)
+    public static MavenCoordinates parseConfigSpec(String configSpec)
     {
         Matcher matcher = CONFIG_SPEC_PATTERN.matcher(configSpec);
         if (!matcher.matches()) {
@@ -33,32 +31,30 @@ public class ConfigSpec extends BinarySpec
         String groupId = matcher.group(1);
         String artifactId = matcher.group(2);
         String version = matcher.group(3);
-        return new ConfigSpec(groupId, artifactId, version);
+        return createConfigSpec(groupId, artifactId, version);
     }
 
-    public ConfigSpec(String artifactId, String version)
+    public static MavenCoordinates createConfigSpec(String artifactId, String version)
     {
-        super(null, artifactId, version, DEFAULT_PACKAGING, null);
+        return new MavenCoordinates(null, artifactId, version, DEFAULT_CONFIG_PACKAGING, null, null);
     }
 
-    public ConfigSpec(String groupId, String artifactId, String version)
+    public static MavenCoordinates createConfigSpec(String groupId, String artifactId, String version)
     {
-        this(groupId, artifactId, version, null);
+        return new MavenCoordinates(groupId, artifactId, version, DEFAULT_CONFIG_PACKAGING, null, null);
     }
 
-    public ConfigSpec(String groupId, String artifactId, String version, String fileVersion)
+    public static MavenCoordinates createConfigSpec(String groupId, String artifactId, String version, String fileVersion)
     {
-        super(groupId, artifactId, version, DEFAULT_PACKAGING, null, fileVersion);
+        return new MavenCoordinates(groupId, artifactId, version, DEFAULT_CONFIG_PACKAGING, null, fileVersion);
     }
 
-    @Override
-    public String toString()
+    public static String toConfigGAV(MavenCoordinates configSpec)
     {
-        return "@" + toGAV(DEFAULT_PACKAGING, true);
+        return "@"  + MavenCoordinates.toGAV(configSpec, DEFAULT_CONFIG_PACKAGING, false);
     }
 
-    public String toGAV()
+    private ConfigSpec()
     {
-        return "@" + toGAV(DEFAULT_PACKAGING, false);
     }
 }

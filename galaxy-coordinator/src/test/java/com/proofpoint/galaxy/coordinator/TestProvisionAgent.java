@@ -6,7 +6,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.BinarySpec;
+import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.Test;
@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.experimental.testing.ValidationAssertions.assertValidates;
+import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
 import static org.testng.Assert.assertEquals;
 
 public class TestProvisionAgent
@@ -53,10 +54,10 @@ public class TestProvisionAgent
         NodeInfo nodeInfo = createTestNodeInfo();
         Repository repository = new Repository() {
             @Override
-            public URI getUri(BinarySpec binarySpec)
+            public URI getUri(MavenCoordinates binarySpec)
             {
                 try {
-                    return new URI("file", null, "host", 9999, "/" + binarySpec.toGAV(), null, null);
+                    return new URI("file", null, "host", 9999, "/" + toBinaryGAV(binarySpec), null, null);
                 }
                 catch (URISyntaxException e) {
                     throw new AssertionError(e);
@@ -64,7 +65,7 @@ public class TestProvisionAgent
             }
 
             @Override
-            public BinarySpec resolve(BinarySpec binarySpec)
+            public MavenCoordinates resolve(MavenCoordinates binarySpec)
             {
                 return binarySpec;
             }

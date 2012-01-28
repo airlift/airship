@@ -9,6 +9,8 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
+import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
@@ -23,8 +25,8 @@ public class TestSlotStatusRepresentation
             "slot1",
             URI.create("fake://apple"),
             "location/apple",
-            AssignmentHelper.APPLE_ASSIGNMENT.getBinary().toGAV(),
-            AssignmentHelper.APPLE_ASSIGNMENT.getConfig().toGAV(),
+            toBinaryGAV(AssignmentHelper.APPLE_ASSIGNMENT.getBinary()),
+            toConfigGAV(AssignmentHelper.APPLE_ASSIGNMENT.getConfig()),
             STOPPED.toString(),
             "abc",
             null,

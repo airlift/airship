@@ -7,10 +7,8 @@ import com.google.common.io.Files;
 import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.proofpoint.discovery.client.ServiceSelectorConfig;
 import com.proofpoint.galaxy.shared.Command;
 import com.proofpoint.galaxy.shared.CommandFailedException;
-import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
@@ -24,6 +22,8 @@ import java.net.URI;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
+import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
@@ -143,8 +143,8 @@ public class LauncherLifecycleManager implements LifecycleManager
         map.put("node.id", deployment.getNodeId().toString());
         map.put("node.location", deployment.getLocation());
         map.put("node.data-dir", deployment.getDataDir().getAbsolutePath());
-        map.put("node.binary-spec", deployment.getAssignment().getBinary().toGAV());
-        map.put("node.config-spec", deployment.getAssignment().getConfig().toGAV());
+        map.put("node.binary-spec", toBinaryGAV(deployment.getAssignment().getBinary()));
+        map.put("node.config-spec", toConfigGAV(deployment.getAssignment().getConfig()));
 
         // add ip only if explicitly set on the agent
         if (bindIp != null && InetAddresses.coerceToInteger(bindIp) != 0) {

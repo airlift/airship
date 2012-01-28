@@ -6,8 +6,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
-import com.proofpoint.galaxy.shared.BinarySpec;
-import com.proofpoint.galaxy.shared.ConfigSpec;
+import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
@@ -24,6 +23,8 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Functions.compose;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.startsWith;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toLowerCase;
+import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
+import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 import static java.lang.String.format;
 
 public class SlotFilterBuilder
@@ -283,8 +284,8 @@ public class SlotFilterBuilder
             if (slotStatus == null) {
                 return false;
             }
-            BinarySpec binary = slotStatus.getAssignment().getBinary();
-            return binary != null && glob.apply(binary.toGAV());
+            MavenCoordinates binary = slotStatus.getAssignment().getBinary();
+            return binary != null && glob.apply(toBinaryGAV(binary));
         }
     }
 
@@ -303,8 +304,8 @@ public class SlotFilterBuilder
             if (slotStatus == null) {
                 return false;
             }
-            ConfigSpec config = slotStatus.getAssignment().getConfig();
-            return config != null && glob.apply(config.toGAV());
+            MavenCoordinates config = slotStatus.getAssignment().getConfig();
+            return config != null && glob.apply(toConfigGAV(config));
         }
     }
 

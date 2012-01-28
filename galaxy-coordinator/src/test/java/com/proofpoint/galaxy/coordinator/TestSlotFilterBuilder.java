@@ -4,7 +4,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.SlotUuidPredicate;
 import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.BinarySpec;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.BinarySpecPredicate;
@@ -23,6 +22,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.BinarySpec.parseBinarySpec;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static java.util.Arrays.asList;
@@ -145,7 +145,7 @@ public class TestSlotFilterBuilder
                 "slotName",
                 URI.create("fake://localhost"),
                 "location", UNKNOWN,
-                new Assignment(BinarySpec.valueOf("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT"), APPLE_ASSIGNMENT.getConfig()),
+                new Assignment(parseBinarySpec("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT"), APPLE_ASSIGNMENT.getConfig()),
                 "/slotName",
                 ImmutableMap.<String, Integer>of());
 

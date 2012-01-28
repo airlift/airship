@@ -27,6 +27,11 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.BinarySpec.BINARY_SPEC_REGEX;
+import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
+import static com.proofpoint.galaxy.shared.ConfigSpec.CONFIG_SPEC_REGEX;
+import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
+
 @JsonAutoDetect(JsonMethod.NONE)
 public class SlotStatusRepresentation
 {
@@ -82,8 +87,8 @@ public class SlotStatusRepresentation
         String binary = null;
         String config = null;
         if (slotStatus.getAssignment() != null) {
-            binary = slotStatus.getAssignment().getBinary().toGAV();
-            config = slotStatus.getAssignment().getConfig().toGAV();
+            binary = toBinaryGAV(slotStatus.getAssignment().getBinary());
+            config = toConfigGAV(slotStatus.getAssignment().getConfig());
         }
 
         return new SlotStatusRepresentation(slotStatus.getId(),
@@ -137,8 +142,8 @@ public class SlotStatusRepresentation
         String binary = null;
         String config = null;
         if (slotStatus.getAssignment() != null) {
-            binary = slotStatus.getAssignment().getBinary().toGAV();
-            config = slotStatus.getAssignment().getConfig().toGAV();
+            binary = toBinaryGAV(slotStatus.getAssignment().getBinary());
+            config = toConfigGAV(slotStatus.getAssignment().getConfig());
         }
 
         return new SlotStatusRepresentation(slotStatus.getId(),
@@ -230,7 +235,7 @@ public class SlotStatusRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    @Pattern(regexp = BinarySpec.BINARY_SPEC_REGEX, message = "is malformed")
+    @Pattern(regexp = BINARY_SPEC_REGEX, message = "is malformed")
     public String getBinary()
     {
         return binary;
@@ -238,7 +243,7 @@ public class SlotStatusRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    @Pattern(regexp = ConfigSpec.CONFIG_SPEC_REGEX, message = "is malformed")
+    @Pattern(regexp = CONFIG_SPEC_REGEX, message = "is malformed")
     public String getConfig()
     {
         return config;

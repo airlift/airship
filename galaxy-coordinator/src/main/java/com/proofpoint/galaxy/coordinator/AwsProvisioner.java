@@ -18,8 +18,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.BinarySpec;
-import com.proofpoint.galaxy.shared.ConfigSpec;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
@@ -37,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.shared.BinarySpec.createBinarySpec;
+import static com.proofpoint.galaxy.shared.ConfigSpec.createConfigSpec;
 import static com.proofpoint.galaxy.shared.ConfigUtils.newConfigEntrySupplier;
 import static java.lang.String.format;
 
@@ -213,8 +213,8 @@ public class AwsProvisioner implements Provisioner
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
 
-        URI partHandler = repository.getUri(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler"));
-        URI installScript = repository.getUri(new BinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "rb", "install"));
+        URI partHandler = repository.getUri(createBinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler"));
+        URI installScript = repository.getUri(createBinarySpec("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "rb", "install"));
 
         ImmutableList.Builder<String> lines = ImmutableList.builder();
         lines.add(
@@ -251,7 +251,7 @@ public class AwsProvisioner implements Provisioner
             configArtifactId = configArtifactId + "-" + instanceType;
         }
         InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(repository,
-                new ConfigSpec(configArtifactId, galaxyVersion),
+                createConfigSpec(configArtifactId, galaxyVersion),
                 "etc/resources.properties");
         if (resourcesFile != null) {
             try {

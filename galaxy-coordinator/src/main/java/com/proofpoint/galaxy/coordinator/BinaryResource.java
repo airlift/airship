@@ -2,7 +2,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.io.Resources;
 import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.BinarySpec;
+import com.proofpoint.galaxy.shared.MavenCoordinates;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -12,6 +12,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import static com.proofpoint.galaxy.shared.BinarySpec.createBinarySpec;
 
 @Path("/v1/binary/")
 public class BinaryResource
@@ -42,7 +44,7 @@ public class BinaryResource
             @PathParam("packaging") String packaging,
             @PathParam("classifier") String classifier)
     {
-        BinarySpec binarySpec = new BinarySpec(groupId, artifactId, version, packaging, classifier);
+        MavenCoordinates binarySpec = createBinarySpec(groupId, artifactId, version, packaging, classifier);
 
         URL binaryUrl = null;
         try {
