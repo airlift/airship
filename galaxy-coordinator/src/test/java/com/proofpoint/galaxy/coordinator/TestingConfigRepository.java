@@ -135,6 +135,7 @@ public class TestingConfigRepository extends ConfigInBinaryRepository
                 snapshotMetadata.versioning.snapshot.buildNumber = version.buildNumber;
 
                 SnapshotVersion snapshotVersion = new SnapshotVersion();
+                snapshotVersion.extension = "config";
                 snapshotVersion.value = String.format("%s-%s-%s",
                         version.version.replaceAll("-SNAPSHOT", ""),
                         version.timestamp,

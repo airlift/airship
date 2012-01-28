@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -9,6 +10,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
 import com.proofpoint.galaxy.shared.BinarySpec;
 
 import java.io.InputStream;
@@ -127,36 +129,9 @@ public class MavenBinaryRepository implements BinaryRepository
 
             // check of a timestamped snapshot file
             if (binarySpec.getVersion().contains("SNAPSHOT")) {
-                boolean foundSnapshotVersion = false;
-                for (URI binaryRepositoryBase : binaryRepositoryBases) {
-                    try {
-                        MavenMetadata metadata = loadMavenMetadata(binaryRepositoryBase,
-                                groupId,
-                                binarySpec.getArtifactId(),
-                                binarySpec.getVersion());
-
-                        String fileVersion = String.format("%s-%s-%s",
-                                binarySpec.getVersion().replaceAll("-SNAPSHOT", ""),
-                                metadata.versioning.snapshot.timestamp,
-                                metadata.versioning.snapshot.buildNumber);
-
-                        binarySpecs.add(new BinarySpec(groupId,
-                                binarySpec.getArtifactId(),
-                                binarySpec.getVersion(),
-                                binarySpec.getPackaging(),
-                                binarySpec.getClassifier(),
-                                fileVersion));
-                        foundSnapshotVersion = true;
-                    }
-                    catch (Exception ignored) {
-                        // no maven-metadata.xml file... hope this is laid out normally
-                    }
-                }
-
-                // if we could not resolve the timestamp version, try resolving
-                // artifact with "SNAPSHOT" version since some old maven repositories
-                // don't replace SNAPSHOTS with timestamps
-                if (foundSnapshotVersion) {
+                BinarySpec timestampSpec = resolveSnapshotTimestamp(binarySpec, groupId);
+                if (timestampSpec != null) {
+                    binarySpecs.add(timestampSpec);
                     continue;
                 }
             }
@@ -188,19 +163,38 @@ public class MavenBinaryRepository implements BinaryRepository
         return binarySpecs.get(0);
     }
 
-    private MavenMetadata loadMavenMetadata(URI repositoryBase, String groupId, String artifactId, String version)
-            throws Exception
+    private BinarySpec resolveSnapshotTimestamp(BinarySpec binarySpec, String groupId)
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append(groupId.replace('.', '/')).append('/');
-        builder.append(artifactId).append('/');
-        if (version != null) {
-            builder.append(version).append('/');
-        }
-        builder.append("maven-metadata.xml");
 
-        URI uri = repositoryBase.resolve(builder.toString());
-        return MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
+        for (URI binaryRepositoryBase : binaryRepositoryBases) {
+            try {
+                // load maven metadata file
+                StringBuilder builder = new StringBuilder();
+                builder.append(groupId.replace('.', '/')).append('/');
+                builder.append(binarySpec.getArtifactId()).append('/');
+                builder.append(binarySpec.getVersion()).append('/');
+                builder.append("maven-metadata.xml");
+                URI uri = binaryRepositoryBase.resolve(builder.toString());
+                MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
+
+                for (SnapshotVersion snapshotVersion : metadata.versioning.snapshotVersions) {
+                    if (binarySpec.getPackaging().equals(snapshotVersion.extension) && Objects.equal(binarySpec.getClassifier(), snapshotVersion.classifier)) {
+                        BinarySpec timestampSpec = new BinarySpec(groupId,
+                                binarySpec.getArtifactId(),
+                                binarySpec.getVersion(),
+                                binarySpec.getPackaging(),
+                                binarySpec.getClassifier(),
+                                snapshotVersion.value);
+
+                        return timestampSpec;
+                    }
+                }
+            }
+            catch (Exception ignored) {
+                // no maven-metadata.xml file... hope this is laid out normally
+            }
+        }
+        return null;
     }
 
     private boolean isValidBinary(URI uri)
