@@ -19,8 +19,6 @@ import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import org.testng.annotations.Test;
 
-import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
@@ -29,9 +27,7 @@ public class TestAssignmentRepresentation
 {
     private final JsonCodec<AssignmentRepresentation> codec = jsonCodec(AssignmentRepresentation.class);
 
-    private final AssignmentRepresentation expected = new AssignmentRepresentation(
-            toBinaryGAV(APPLE_ASSIGNMENT.getBinary()),
-            toConfigGAV(APPLE_ASSIGNMENT.getConfig()));
+    private final AssignmentRepresentation expected = AssignmentRepresentation.from(APPLE_ASSIGNMENT);
 
     @Test
     public void testJsonRoundTrip()

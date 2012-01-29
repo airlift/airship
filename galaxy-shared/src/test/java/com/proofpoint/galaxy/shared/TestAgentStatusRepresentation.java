@@ -24,8 +24,6 @@ import java.net.URI;
 import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
@@ -48,8 +46,8 @@ public class TestAgentStatusRepresentation
                             "slot1",
                             URI.create("fake://apple"),
                             "location/apple",
-                            toBinaryGAV(APPLE_ASSIGNMENT.getBinary()),
-                            toConfigGAV(APPLE_ASSIGNMENT.getConfig()),
+                            APPLE_ASSIGNMENT.getBinary(),
+                            APPLE_ASSIGNMENT.getConfig(),
                             STOPPED.toString(),
                             "abc",
                             null,
@@ -63,8 +61,8 @@ public class TestAgentStatusRepresentation
                             "slot2",
                             URI.create("fake://banana"),
                             "location/banana",
-                            toBinaryGAV(BANANA_ASSIGNMENT.getBinary()),
-                            toConfigGAV(BANANA_ASSIGNMENT.getConfig()),
+                            BANANA_ASSIGNMENT.getBinary(),
+                            BANANA_ASSIGNMENT.getConfig(),
                             STOPPED.toString(),
                             "abc",
                             null,

@@ -15,13 +15,108 @@ package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Immutable
 public class MavenCoordinates
 {
+    private static final String MAVEN_COORDINATES_REGEX = "^([^:]+):([^:]+)(?::([^:]+))?(?::([^:]+))?(?::([^:]+))?$";
+    private static final Pattern MAVEN_COORDINATES_PATTERN = Pattern.compile(MAVEN_COORDINATES_REGEX);
+    public static final String DEFAULT_CONFIG_PACKAGING = "config";
+    public static final String DEFAULT_BINARY_PACKAGING = "tar.gz";
+
+    public static MavenCoordinates fromConfigGAV(String configSpec)
+    {
+        Preconditions.checkNotNull(configSpec, "configSpec is null");
+        if (!configSpec.startsWith("@")) {
+            return null;
+        }
+        configSpec = configSpec.substring(1);
+        return fromGAV(configSpec, DEFAULT_CONFIG_PACKAGING);
+    }
+
+    public static MavenCoordinates fromBinaryGAV(String configSpec)
+    {
+        return fromGAV(configSpec, DEFAULT_BINARY_PACKAGING);
+    }
+
+    public static MavenCoordinates fromGAV(String coordinates)
+    {
+        return fromGAV(coordinates, null);
+    }
+
+    private static MavenCoordinates fromGAV(String coordinates, String defaultPackaging)
+    {
+        Matcher matcher = MAVEN_COORDINATES_PATTERN.matcher(coordinates);
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        List<String> parts = ImmutableList.copyOf(Splitter.on(':').split(coordinates));
+        if (parts.size() == 5) {
+            return new MavenCoordinates(parts.get(0), parts.get(1), parts.get(4), parts.get(2), parts.get(3), null);
+        } else if (parts.size() == 4) {
+            return new MavenCoordinates(parts.get(0), parts.get(1), parts.get(3), parts.get(2), null, null);
+        } else if (defaultPackaging != null) {
+            if (parts.size() == 3) {
+                return new MavenCoordinates(parts.get(0), parts.get(1), parts.get(2), defaultPackaging, null, null);
+            } else if (parts.size() == 2) {
+                return new MavenCoordinates(null, parts.get(0), parts.get(1), defaultPackaging, null, null);
+            }
+        }
+        return null;
+    }
+
+    public static String toConfigGAV(MavenCoordinates configSpec)
+    {
+        return "@" + configSpec.toGAV(DEFAULT_CONFIG_PACKAGING, false);
+    }
+
+    public static String toBinaryGAV(MavenCoordinates binarySpec)
+    {
+        return binarySpec.toGAV(DEFAULT_BINARY_PACKAGING, false);
+    }
+
+    public String toGAV(@Nullable String defaultPackaging, boolean showFullVersion)
+    {
+        final StringBuilder sb = new StringBuilder();
+        if (groupId != null) {
+            sb.append(groupId).append(':');
+        }
+        sb.append(artifactId).append(':');
+        if (!Objects.equal(packaging, defaultPackaging) || classifier != null) {
+            sb.append(packaging).append(':');
+        }
+        if (classifier != null) {
+            sb.append(classifier).append(':');
+        }
+
+        if (showFullVersion) {
+            sb.append(version);
+            if (fileVersion != null) {
+                sb.append("(").append(fileVersion).append(")");
+            }
+        }
+        else {
+            if (fileVersion != null) {
+                sb.append(fileVersion);
+            } else {
+                sb.append(version);
+            }
+        }
+
+        return sb.toString();
+    }
+
+
+
     private final String groupId;
     private final String artifactId;
     private final String packaging;
@@ -156,37 +251,11 @@ public class MavenCoordinates
     @Override
     public String toString()
     {
-        return toGAV(this, null, true);
+        return toGAV(null, true);
     }
 
-    public static String toGAV(MavenCoordinates binarySpec, @Nullable String defaultPackaging, boolean showFullVersion)
+    public String toGAV()
     {
-        final StringBuilder sb = new StringBuilder();
-        if (binarySpec.groupId != null) {
-            sb.append(binarySpec.groupId).append(':');
-        }
-        sb.append(binarySpec.artifactId).append(':');
-        if (!Objects.equal(binarySpec.packaging, defaultPackaging) || binarySpec.classifier != null) {
-            sb.append(binarySpec.packaging).append(':');
-        }
-        if (binarySpec.classifier != null) {
-            sb.append(binarySpec.classifier).append(':');
-        }
-
-        if (showFullVersion) {
-            sb.append(binarySpec.version);
-            if (binarySpec.fileVersion != null) {
-                sb.append("(").append(binarySpec.fileVersion).append(")");
-            }
-        }
-        else {
-            if (binarySpec.fileVersion != null) {
-                sb.append(binarySpec.fileVersion);
-            } else {
-                sb.append(binarySpec.version);
-            }
-        }
-
-        return sb.toString();
+        return toGAV(null, false);
     }
 }

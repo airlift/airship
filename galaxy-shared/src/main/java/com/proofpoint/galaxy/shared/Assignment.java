@@ -17,25 +17,13 @@ import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.Immutable;
 
-import static com.proofpoint.galaxy.shared.BinarySpec.parseBinarySpec;
-import static com.proofpoint.galaxy.shared.ConfigSpec.parseConfigSpec;
-
 @Immutable
 public class Assignment
 {
-    private final MavenCoordinates binary;
-    private final MavenCoordinates config;
+    private final String binary;
+    private final String config;
 
     public Assignment(String binary, String config)
-    {
-        Preconditions.checkNotNull(binary, "binary is null");
-        Preconditions.checkNotNull(config, "config is null");
-
-        this.binary = parseBinarySpec(binary);
-        this.config = parseConfigSpec(config);
-    }
-
-    public Assignment(MavenCoordinates binary, MavenCoordinates config)
     {
         Preconditions.checkNotNull(binary, "binary is null");
         Preconditions.checkNotNull(config, "config is null");
@@ -44,33 +32,14 @@ public class Assignment
         this.config = config;
     }
 
-    public MavenCoordinates getBinary()
+    public String getBinary()
     {
         return binary;
     }
 
-    public MavenCoordinates getConfig()
+    public String getConfig()
     {
         return config;
-    }
-
-    public boolean equalsIgnoreVersion(Assignment that)
-    {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-
-        if (!binary.equalsIgnoreVersion(that.binary)) {
-            return false;
-        }
-        if (!config.equalsIgnoreVersion(that.config)) {
-            return false;
-        }
-
-        return true;
     }
 
     @Override

@@ -25,6 +25,7 @@ import java.util.Map;
 @JsonAutoDetect(JsonMethod.NONE)
 public class InstallationRepresentation
 {
+    private final String shortName;
     private final AssignmentRepresentation assignment;
     private final String binaryFile;
     private final String configFile;
@@ -34,6 +35,7 @@ public class InstallationRepresentation
     {
         Assignment assignment = installation.getAssignment();
         return new InstallationRepresentation(
+                installation.getShortName(),
                 AssignmentRepresentation.from(assignment),
                 installation.getBinaryFile().toString(),
                 installation.getConfigFile().toString(),
@@ -41,15 +43,25 @@ public class InstallationRepresentation
     }
 
     @JsonCreator
-    public InstallationRepresentation(@JsonProperty("assignment") AssignmentRepresentation assignmentRepresentation,
+    public InstallationRepresentation(
+            @JsonProperty("shortName") String shortName,
+            @JsonProperty("assignment") AssignmentRepresentation assignmentRepresentation,
             @JsonProperty("binaryFile") String binaryFile,
             @JsonProperty("configFile") String configFile,
             @JsonProperty("resources") Map<String, Integer> resources)
     {
+        this.shortName = shortName;
         this.assignment = assignmentRepresentation;
         this.binaryFile = binaryFile;
         this.configFile = configFile;
         this.resources = resources;
+    }
+
+    @JsonProperty
+    @NotNull(message = "is missing")
+    public String getShortName()
+    {
+        return shortName;
     }
 
     @JsonProperty
@@ -81,7 +93,7 @@ public class InstallationRepresentation
 
     public Installation toInstallation()
     {
-        Installation installation = new Installation(assignment.toAssignment(), URI.create(binaryFile), URI.create(configFile), resources);
+        Installation installation = new Installation(shortName, assignment.toAssignment(), URI.create(binaryFile), URI.create(configFile), resources);
         return installation;
     }
 
@@ -115,7 +127,8 @@ public class InstallationRepresentation
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("InstallationRepresentation");
-        sb.append("{assignment=").append(assignment);
+        sb.append("{shortName=").append(shortName);
+        sb.append(", assignment=").append(assignment);
         sb.append(", binaryFile='").append(binaryFile).append('\'');
         sb.append(", configFile=").append(configFile);
         sb.append(", resources=").append(resources);

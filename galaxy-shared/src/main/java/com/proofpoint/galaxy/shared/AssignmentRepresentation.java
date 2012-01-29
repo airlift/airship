@@ -19,12 +19,6 @@ import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
-import static com.proofpoint.galaxy.shared.BinarySpec.BINARY_SPEC_REGEX;
-import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.ConfigSpec.CONFIG_SPEC_REGEX;
-import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class AssignmentRepresentation
@@ -34,7 +28,7 @@ public class AssignmentRepresentation
 
     public static AssignmentRepresentation from(Assignment assignment)
     {
-        return new AssignmentRepresentation(toBinaryGAV(assignment.getBinary()), toConfigGAV(assignment.getConfig()));
+        return new AssignmentRepresentation(assignment.getBinary(), assignment.getConfig());
     }
 
     @JsonCreator
@@ -46,7 +40,6 @@ public class AssignmentRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    @Pattern(regexp = BINARY_SPEC_REGEX, message = "is malformed")
     public String getBinary()
     {
         return binary;
@@ -54,7 +47,6 @@ public class AssignmentRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    @Pattern(regexp = CONFIG_SPEC_REGEX, message = "is malformed")
     public String getConfig()
     {
         return config;

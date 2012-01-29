@@ -5,9 +5,12 @@ import com.google.common.io.Files;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.Snapshot;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.Versioning;
+import com.proofpoint.galaxy.shared.MavenCoordinates;
+import com.proofpoint.galaxy.shared.Repository;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URI;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -19,9 +22,91 @@ import static com.proofpoint.galaxy.shared.ArchiveHelper.createArchive;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.FileUtils.newFile;
+import static com.proofpoint.galaxy.shared.MavenCoordinates.toBinaryGAV;
+import static com.proofpoint.galaxy.shared.MavenCoordinates.toConfigGAV;
 
 public class TestingRepository extends MavenRepository
 {
+    public static final Repository MOCK_REPO = new Repository()
+    {
+        @Override
+        public String configResolve(String config)
+        {
+            return config;
+        }
+
+        @Override
+        public String configShortName(String config)
+        {
+            return config;
+        }
+
+        @Override
+        public String configUpgrade(String config, String version)
+        {
+            MavenCoordinates coordinates = MavenCoordinates.fromConfigGAV(config);
+            if (coordinates == null) {
+                return null;
+            }
+
+            coordinates = new MavenCoordinates(coordinates.getGroupId(),
+                    coordinates.getArtifactId(),
+                    version,
+                    coordinates.getPackaging(),
+                    coordinates.getClassifier(),
+                    null);
+
+            return toConfigGAV(coordinates);
+        }
+
+        @Override
+        public boolean configEqualsIgnoreVersion(String config1, String config2)
+        {
+            return false;
+        }
+
+        @Override
+        public URI configToHttpUri(String config)
+        {
+            return URI.create("fake://config/" + config);
+        }
+
+        @Override
+        public String binaryResolve(String binary)
+        {
+            return binary;
+        }
+
+        @Override
+        public String binaryUpgrade(String binary, String version)
+        {
+            MavenCoordinates coordinates = MavenCoordinates.fromBinaryGAV(binary);
+            if (coordinates == null) {
+                return null;
+            }
+
+            coordinates = new MavenCoordinates(coordinates.getGroupId(),
+                    coordinates.getArtifactId(),
+                    version,
+                    coordinates.getPackaging(),
+                    coordinates.getClassifier(),
+                    null);
+
+            return toBinaryGAV(coordinates);
+        }
+
+        @Override
+        public boolean binaryEqualsIgnoreVersion(String binary1, String binary2)
+        {
+            return false;
+        }
+
+        @Override
+        public URI binaryToHttpUri(String binary)
+        {
+            return URI.create("fake://binary/" + binary);
+        }
+    };
     private final File targetRepo;
 
     public TestingRepository()

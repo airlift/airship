@@ -95,9 +95,9 @@ public class ConfigUtils
         }
     }
 
-    public static InputSupplier<? extends InputStream> newConfigEntrySupplier(Repository repository, MavenCoordinates config, final String entryName)
+    public static InputSupplier<? extends InputStream> newConfigEntrySupplier(Repository repository, String config, final String entryName)
     {
-        URI uri = repository.getUri(config);
+        URI uri = repository.configToHttpUri(config);
         if (uri == null) {
             return null;
         }

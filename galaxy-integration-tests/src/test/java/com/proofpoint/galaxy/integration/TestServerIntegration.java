@@ -231,17 +231,20 @@ public class TestServerIntegration
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
 
-        appleSlot1 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
-                repository.getUri(APPLE_ASSIGNMENT.getBinary()),
-                repository.getUri(APPLE_ASSIGNMENT.getConfig()),
+        appleSlot1 = agent.getSlot(agent.install(new Installation("apple",
+                APPLE_ASSIGNMENT,
+                repository.binaryToHttpUri(APPLE_ASSIGNMENT.getBinary()),
+                repository.configToHttpUri(APPLE_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
-        appleSlot2 = agent.getSlot(agent.install(new Installation(APPLE_ASSIGNMENT,
-                repository.getUri(APPLE_ASSIGNMENT.getBinary()),
-                repository.getUri(APPLE_ASSIGNMENT.getConfig()),
+        appleSlot2 = agent.getSlot(agent.install(new Installation("apple",
+                APPLE_ASSIGNMENT,
+                repository.binaryToHttpUri(APPLE_ASSIGNMENT.getBinary()),
+                repository.configToHttpUri(APPLE_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
-        bananaSlot = agent.getSlot(agent.install(new Installation(BANANA_ASSIGNMENT,
-                repository.getUri(BANANA_ASSIGNMENT.getBinary()),
-                repository.getUri(BANANA_ASSIGNMENT.getConfig()),
+        bananaSlot = agent.getSlot(agent.install(new Installation("banana",
+                BANANA_ASSIGNMENT,
+                repository.binaryToHttpUri(BANANA_ASSIGNMENT.getBinary()),
+                repository.configToHttpUri(BANANA_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
 
         agentInstance = new Instance(agent.getAgentId(), "test.type", "location", agentServer.getBaseUrl());
@@ -328,8 +331,8 @@ public class TestServerIntegration
         assertEquals(appleSlot2.status().getState(), STOPPED);
         assertEquals(bananaSlot.status().getState(), STOPPED);
 
-        assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
-        assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(appleSlot1.status().getAssignment(), upgradeVersions.upgradeAssignment(repository, APPLE_ASSIGNMENT));
+        assertEquals(appleSlot2.status().getAssignment(), upgradeVersions.upgradeAssignment(repository, APPLE_ASSIGNMENT));
     }
 
     @Test

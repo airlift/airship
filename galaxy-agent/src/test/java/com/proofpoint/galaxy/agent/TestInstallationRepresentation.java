@@ -30,6 +30,7 @@ public class TestInstallationRepresentation
     private final JsonCodec<InstallationRepresentation> codec = jsonCodec(InstallationRepresentation.class);
 
     private final InstallationRepresentation expected = new InstallationRepresentation(
+            "apple",
             AssignmentRepresentation.from(APPLE_ASSIGNMENT),
             "fetch://binary.tar.gz",
             "fetch://config.config",

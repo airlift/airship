@@ -22,8 +22,6 @@ import java.net.URI;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
@@ -42,13 +40,15 @@ public class LauncherLifecycleManager implements LifecycleManager
     @Inject
     public LauncherLifecycleManager(AgentConfig config, NodeInfo nodeInfo, HttpServerInfo httpServerInfo)
     {
-        this(nodeInfo.getEnvironment(), (httpServerInfo.getHttpsUri() != null ? httpServerInfo.getHttpsUri() : httpServerInfo.getHttpUri()), nodeInfo.getBindIp(), config.getLauncherTimeout(),
+        this(nodeInfo.getEnvironment(),
+                (httpServerInfo.getHttpsUri() != null ? httpServerInfo.getHttpsUri() : httpServerInfo.getHttpUri()),
+                nodeInfo.getBindIp(),
+                config.getLauncherTimeout(),
                 config.getLauncherStopTimeout()
         );
     }
 
-    public LauncherLifecycleManager(String environment, URI baseUri, InetAddress bindIp, Duration launcherTimeout,
-            Duration launcherStopTimeout)
+    public LauncherLifecycleManager(String environment, URI baseUri, InetAddress bindIp, Duration launcherTimeout, Duration launcherStopTimeout)
     {
         this.launcherTimeout = launcherTimeout;
         stopTimeout = launcherStopTimeout;
@@ -143,8 +143,8 @@ public class LauncherLifecycleManager implements LifecycleManager
         map.put("node.id", deployment.getNodeId().toString());
         map.put("node.location", deployment.getLocation());
         map.put("node.data-dir", deployment.getDataDir().getAbsolutePath());
-        map.put("node.binary-spec", toBinaryGAV(deployment.getAssignment().getBinary()));
-        map.put("node.config-spec", toConfigGAV(deployment.getAssignment().getConfig()));
+        map.put("node.binary-spec", deployment.getAssignment().getBinary());
+        map.put("node.config-spec", deployment.getAssignment().getConfig());
 
         // add ip only if explicitly set on the agent
         if (bindIp != null && InetAddresses.coerceToInteger(bindIp) != 0) {

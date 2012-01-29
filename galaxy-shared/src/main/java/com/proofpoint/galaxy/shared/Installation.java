@@ -23,22 +23,30 @@ import java.util.Map;
 @Immutable
 public class Installation
 {
+    private final String shortName;
     private final Assignment assignment;
     private final URI binaryFile;
     private final URI configFile;
     private final Map<String, Integer> resources;
 
-    public Installation(Assignment assignment, URI binaryFile, URI configFile, Map<String, Integer> resources)
+    public Installation(String shortName, Assignment assignment, URI binaryFile, URI configFile, Map<String, Integer> resources)
     {
+        Preconditions.checkNotNull(shortName, "shortName is null");
         Preconditions.checkNotNull(assignment, "assignment is null");
         Preconditions.checkNotNull(binaryFile, "binaryFile is null");
         Preconditions.checkNotNull(configFile, "configFile is null");
         Preconditions.checkNotNull(resources, "resources is null");
 
+        this.shortName = shortName;
         this.assignment = assignment;
         this.binaryFile = binaryFile;
         this.configFile = configFile;
         this.resources = ImmutableMap.copyOf(resources);
+    }
+
+    public String getShortName()
+    {
+        return shortName;
     }
 
     public Assignment getAssignment()
@@ -91,7 +99,8 @@ public class Installation
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("Installation");
-        sb.append("{assignment=").append(assignment);
+        sb.append("{shortName=").append(shortName);
+        sb.append(", assignment=").append(assignment);
         sb.append(", binaryFile=").append(binaryFile);
         sb.append(", configFile=").append(configFile);
         sb.append(", resources=").append(resources);

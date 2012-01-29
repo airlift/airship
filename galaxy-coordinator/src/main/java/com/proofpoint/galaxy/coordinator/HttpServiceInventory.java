@@ -23,7 +23,6 @@ import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceState;
 import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.ConfigUtils;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
@@ -46,7 +45,7 @@ public class HttpServiceInventory implements ServiceInventory
     private static final Logger log = Logger.get(HttpServiceInventory.class);
     private final Repository repository;
     private final JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec;
-    private final Set<MavenCoordinates> invalidServiceInventory = Collections.newSetFromMap(new ConcurrentHashMap<MavenCoordinates, Boolean>());
+    private final Set<String> invalidServiceInventory = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     @Inject
     public HttpServiceInventory(Repository repository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec)
@@ -104,7 +103,7 @@ public class HttpServiceInventory implements ServiceInventory
             return null;
         }
 
-        MavenCoordinates config = assignment.getConfig();
+        String config = assignment.getConfig();
         InputSupplier<? extends InputStream> configFile = ConfigUtils.newConfigEntrySupplier(repository, config, "galaxy-service-inventory.json");
         if (configFile == null) {
             return null;

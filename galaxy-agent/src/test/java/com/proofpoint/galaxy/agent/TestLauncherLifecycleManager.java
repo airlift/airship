@@ -62,14 +62,13 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
                 nodeInfo,
                 new HttpServerInfo(new HttpServerConfig(), nodeInfo));
 
-        appleDeployment = createDeploymentDir(APPLE_ASSIGNMENT);
-        bananaDeployment = createDeploymentDir(BANANA_ASSIGNMENT);
+        appleDeployment = createDeploymentDir("apple", APPLE_ASSIGNMENT);
+        bananaDeployment = createDeploymentDir("banana", BANANA_ASSIGNMENT);
     }
 
-    private Deployment createDeploymentDir(Assignment assignment)
+    private Deployment createDeploymentDir(String name, Assignment assignment)
             throws IOException
     {
-        String name = assignment.getConfig().getArtifactId();
         File deploymentDir = new File(slotDir, name);
         File dataDir = new File(slotDir, "data");
         dataDir.mkdirs();
@@ -129,9 +128,9 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         File nodeConfig = new File(deployment.getDeploymentDir(), "etc/node.properties");
         assertTrue(nodeConfig.exists());
 
-        String conf = Files.toString(nodeConfig, Charsets.UTF_8);
+        String config = Files.toString(nodeConfig, Charsets.UTF_8);
         Properties properties = new Properties();
-        properties.load(new StringReader(conf));
+        properties.load(new StringReader(config));
         assertEquals(properties.getProperty("node.environment"), "prod");
         assertEquals(properties.getProperty("node.config-spec"), "@prod:apple:1.0");
         assertEquals(properties.getProperty("node.binary-spec"), "food.fruit:apple:1.0");

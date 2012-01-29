@@ -57,7 +57,7 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_REPO;
+import static com.proofpoint.galaxy.coordinator.TestingRepository.MOCK_REPO;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
@@ -253,8 +253,8 @@ public class TestCoordinatorServer
         assertEquals(apple2Status.getState(), STOPPED);
         assertEquals(bananaStatus.getState(), STOPPED);
 
-        assertEquals(apple1Status.getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
-        assertEquals(apple2Status.getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(apple1Status.getAssignment(), upgradeVersions.upgradeAssignment(MOCK_REPO, APPLE_ASSIGNMENT));
+        assertEquals(apple2Status.getAssignment(), upgradeVersions.upgradeAssignment(MOCK_REPO, APPLE_ASSIGNMENT));
         assertEquals(bananaStatus.getAssignment(), BANANA_ASSIGNMENT);
     }
 

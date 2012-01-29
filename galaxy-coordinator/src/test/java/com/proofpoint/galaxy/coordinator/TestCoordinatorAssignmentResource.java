@@ -39,7 +39,7 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.coordinator.RepoHelper.MOCK_REPO;
+import static com.proofpoint.galaxy.coordinator.TestingRepository.MOCK_REPO;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -149,8 +149,8 @@ public class TestCoordinatorAssignmentResource
         assertEquals(apple2Status.getState(), STOPPED);
         assertEquals(bananaStatus.getState(), STOPPED);
 
-        assertEquals(apple1Status.getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
-        assertEquals(apple2Status.getAssignment(), upgradeVersions.upgradeAssignment(APPLE_ASSIGNMENT));
+        assertEquals(apple1Status.getAssignment(), upgradeVersions.upgradeAssignment(MOCK_REPO, APPLE_ASSIGNMENT));
+        assertEquals(apple2Status.getAssignment(), upgradeVersions.upgradeAssignment(MOCK_REPO, APPLE_ASSIGNMENT));
         assertEquals(bananaStatus.getAssignment(), BANANA_ASSIGNMENT);
     }
 

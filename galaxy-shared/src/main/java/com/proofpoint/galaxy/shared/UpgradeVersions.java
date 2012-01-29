@@ -6,8 +6,6 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import static com.proofpoint.galaxy.shared.ConfigSpec.createConfigSpec;
-
 @JsonAutoDetect(JsonMethod.NONE)
 public class UpgradeVersions
 {
@@ -33,17 +31,17 @@ public class UpgradeVersions
         return configVersion;
     }
 
-    public Assignment upgradeAssignment(Assignment assignment)
+    public Assignment upgradeAssignment(Repository repository, Assignment assignment)
     {
         Preconditions.checkNotNull(assignment, "assignment is null");
 
-        MavenCoordinates binary = assignment.getBinary();
+        String binary = assignment.getBinary();
         if (binaryVersion != null) {
-            binary = BinarySpec.createBinarySpec(binary.getGroupId(), binary.getArtifactId(), binaryVersion, binary.getPackaging(), binary.getClassifier());
+            binary = repository.binaryUpgrade(binary, binaryVersion);
         }
-        MavenCoordinates config = assignment.getConfig();
+        String config = assignment.getConfig();
         if (configVersion != null) {
-            config = createConfigSpec(config.getArtifactId(), configVersion);
+            config = repository.configUpgrade(config, configVersion);
         }
 
         return new Assignment(binary, config);

@@ -7,9 +7,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
-
 public class ExpectedSlotStatus
 {
     private final UUID id;
@@ -60,7 +57,7 @@ public class ExpectedSlotStatus
         if (assignment == null) {
             return null;
         }
-        return toBinaryGAV(assignment.getBinary());
+        return assignment.getBinary();
     }
 
     @JsonProperty
@@ -69,7 +66,7 @@ public class ExpectedSlotStatus
         if (assignment == null) {
             return null;
         }
-        return toConfigGAV(assignment.getConfig());
+        return assignment.getConfig();
     }
 
     @Override

@@ -33,7 +33,7 @@ public class TestInstallation
         URI binaryFile = URI.create("fake://localhost/binaryFile");
         URI configFile = URI.create("fake://localhost/configFile");
 
-        Installation installation = new Installation(APPLE_ASSIGNMENT, binaryFile, configFile, ImmutableMap.of("memory", 512));
+        Installation installation = new Installation("apple", APPLE_ASSIGNMENT, binaryFile, configFile, ImmutableMap.of("memory", 512));
 
         assertEquals(installation.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(installation.getBinaryFile(), binaryFile);
@@ -45,13 +45,13 @@ public class TestInstallation
     {
         EquivalenceTester.check(
                 asList(
-                        new Installation(APPLE_ASSIGNMENT, URI.create("fetch://binary.tar.gz"), URI.create("fetch://config.txt"), ImmutableMap.of("memory", 512)),
-                        new Installation(APPLE_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), URI.create("fetch://anything.txt"), ImmutableMap.of("memory", 512))
+                        new Installation("apple", APPLE_ASSIGNMENT, URI.create("fetch://binary.tar.gz"), URI.create("fetch://config.txt"), ImmutableMap.of("memory", 512)),
+                        new Installation("apple", APPLE_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), URI.create("fetch://anything.txt"), ImmutableMap.of("memory", 512))
 
                 ),
                 asList(
-                        new Installation(BANANA_ASSIGNMENT, URI.create("fetch://binary.tar.gz"), URI.create("fetch://config.txt"), ImmutableMap.of("memory", 512)),
-                        new Installation(BANANA_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), URI.create("fetch://anything.txt"), ImmutableMap.of("memory", 512))
+                        new Installation("banana", BANANA_ASSIGNMENT, URI.create("fetch://binary.tar.gz"), URI.create("fetch://config.txt"), ImmutableMap.of("memory", 512)),
+                        new Installation("banana", BANANA_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), URI.create("fetch://anything.txt"), ImmutableMap.of("memory", 512))
 
                 )
         );

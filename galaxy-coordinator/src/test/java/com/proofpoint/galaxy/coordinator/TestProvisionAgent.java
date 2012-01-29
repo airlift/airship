@@ -5,16 +5,12 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +18,7 @@ import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.experimental.testing.ValidationAssertions.assertValidates;
-import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
+import static com.proofpoint.galaxy.coordinator.TestingRepository.MOCK_REPO;
 import static org.testng.Assert.assertEquals;
 
 public class TestProvisionAgent
@@ -52,26 +48,8 @@ public class TestProvisionAgent
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsProvisionerConfig.getAwsAccessKey(), awsProvisionerConfig.getAwsSecretKey());
         AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
         NodeInfo nodeInfo = createTestNodeInfo();
-        Repository repository = new Repository() {
-            @Override
-            public URI getUri(MavenCoordinates binarySpec)
-            {
-                try {
-                    return new URI("file", null, "host", 9999, "/" + toBinaryGAV(binarySpec), null, null);
-                }
-                catch (URISyntaxException e) {
-                    throw new AssertionError(e);
-                }
-            }
 
-            @Override
-            public MavenCoordinates resolve(MavenCoordinates binarySpec)
-            {
-                return binarySpec;
-            }
-        };
-
-        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, repository, coordinatorConfig, awsProvisionerConfig);
+        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, MOCK_REPO, coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 2;
         List<Instance> provisioned = provisioner.provisionAgents(agentCount, null, null);

@@ -22,7 +22,6 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.BinarySpec.parseBinarySpec;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static java.util.Arrays.asList;
@@ -145,7 +144,7 @@ public class TestSlotFilterBuilder
                 "slotName",
                 URI.create("fake://localhost"),
                 "location", UNKNOWN,
-                new Assignment(parseBinarySpec("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT"), APPLE_ASSIGNMENT.getConfig()),
+                new Assignment("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT", APPLE_ASSIGNMENT.getConfig()),
                 "/slotName",
                 ImmutableMap.<String, Integer>of());
 

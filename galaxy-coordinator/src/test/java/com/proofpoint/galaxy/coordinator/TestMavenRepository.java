@@ -1,15 +1,11 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.proofpoint.galaxy.shared.MavenCoordinates;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-
-import static com.proofpoint.galaxy.shared.BinarySpec.createBinarySpec;
-import static com.proofpoint.galaxy.shared.BinarySpec.parseBinarySpec;
 
 public class TestMavenRepository
 {
@@ -34,12 +30,12 @@ public class TestMavenRepository
     public void resolveAbsoluteSpec()
             throws Exception
     {
-        MavenCoordinates binarySpec = parseBinarySpec("food.fruit:apple:1.0");
+        String binarySpec = "food.fruit:apple:1.0";
         Assert.assertEquals(
-                repo.resolve(binarySpec),
-                createBinarySpec("food.fruit", "apple", "1.0", null, null, "1.0"));
+                repo.binaryResolve(binarySpec),
+                "food.fruit:apple:1.0");
 
-        URI uri = repo.getUri(binarySpec);
+        URI uri = repo.binaryToHttpUri(binarySpec);
         Assert.assertTrue(uri.getPath().endsWith("/food/fruit/apple/1.0/apple-1.0.tar.gz"));
     }
 
@@ -47,12 +43,12 @@ public class TestMavenRepository
     public void resolveDefaultGroupId()
             throws Exception
     {
-        MavenCoordinates binarySpec = parseBinarySpec("apple:1.0");
+        String binarySpec = "apple:1.0";
         Assert.assertEquals(
-                repo.resolve(binarySpec),
-                createBinarySpec("food.fruit", "apple", "1.0", null, null, "1.0"));
+                repo.binaryResolve(binarySpec),
+                "food.fruit:apple:1.0");
 
-        URI uri = repo.getUri(binarySpec);
+        URI uri = repo.binaryToHttpUri(binarySpec);
         Assert.assertTrue(uri.getPath().endsWith("/food/fruit/apple/1.0/apple-1.0.tar.gz"));
     }
 
@@ -60,12 +56,12 @@ public class TestMavenRepository
     public void resolveSnapshot()
             throws Exception
     {
-        MavenCoordinates binarySpec = parseBinarySpec("food.fruit:banana:2.0-SNAPSHOT");
+        String binarySpec = "food.fruit:banana:2.0-SNAPSHOT";
         Assert.assertEquals(
-                repo.resolve(binarySpec),
-                createBinarySpec("food.fruit", "banana", "2.0-SNAPSHOT", null, null, "2.0-20110311.201909-1"));
+                repo.binaryResolve(binarySpec),
+                "food.fruit:banana:2.0-20110311.201909-1");
 
-        URI uri = repo.getUri(binarySpec);
+        URI uri = repo.binaryToHttpUri(binarySpec);
         Assert.assertTrue(uri.getPath().endsWith("/food/fruit/banana/2.0-SNAPSHOT/banana-2.0-20110311.201909-1.tar.gz"));
     }
 
@@ -73,12 +69,12 @@ public class TestMavenRepository
     public void resolveSnapshotWithDefaultGroupId()
             throws Exception
     {
-        MavenCoordinates binarySpec = parseBinarySpec("banana:2.0-SNAPSHOT");
+        String binarySpec = "banana:2.0-SNAPSHOT";
         Assert.assertEquals(
-                repo.resolve(binarySpec),
-                createBinarySpec("food.fruit", "banana", "2.0-SNAPSHOT", null, null, "2.0-20110311.201909-1"));
+                repo.binaryResolve(binarySpec),
+                "food.fruit:banana:2.0-20110311.201909-1");
 
-        URI uri = repo.getUri(binarySpec);
+        URI uri = repo.binaryToHttpUri(binarySpec);
         Assert.assertTrue(uri.getPath().endsWith("/food/fruit/banana/2.0-SNAPSHOT/banana-2.0-20110311.201909-1.tar.gz"));
     }
 
@@ -86,12 +82,12 @@ public class TestMavenRepository
     public void resolveTimestamp()
             throws Exception
     {
-        MavenCoordinates binarySpec = parseBinarySpec("food.fruit:banana:2.0-20110311.201909-1");
+        String binarySpec = "food.fruit:banana:2.0-20110311.201909-1";
         Assert.assertEquals(
-                repo.resolve(binarySpec),
-                createBinarySpec("food.fruit", "banana", "2.0-SNAPSHOT", null, null, "2.0-20110311.201909-1"));
+                repo.binaryResolve(binarySpec),
+                "food.fruit:banana:2.0-20110311.201909-1");
 
-        URI uri = repo.getUri(binarySpec);
+        URI uri = repo.binaryToHttpUri(binarySpec);
         Assert.assertTrue(uri.getPath().endsWith("/food/fruit/banana/2.0-SNAPSHOT/banana-2.0-20110311.201909-1.tar.gz"));
     }
 }

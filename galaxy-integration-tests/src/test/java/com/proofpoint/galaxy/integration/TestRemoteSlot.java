@@ -67,12 +67,14 @@ import static org.testng.Assert.assertTrue;
 
 public class TestRemoteSlot
 {
-    private static final Installation APPLE_INSTALLATION = new Installation(APPLE_ASSIGNMENT,
+    private static final Installation APPLE_INSTALLATION = new Installation("apple",
+            APPLE_ASSIGNMENT,
             URI.create("fake://localhost/apple.tar.gz"),
             URI.create("fake://localhost/apple.config"),
             ImmutableMap.of("memory", 512));
 
-    private static final Installation BANANA_INSTALLATION = new Installation(BANANA_ASSIGNMENT,
+    private static final Installation BANANA_INSTALLATION = new Installation("banana",
+            BANANA_ASSIGNMENT,
             URI.create("fake://localhost/banana.tar.gz"),
             URI.create("fake://localhost/banana.config"),
             ImmutableMap.of("cpu", 1));

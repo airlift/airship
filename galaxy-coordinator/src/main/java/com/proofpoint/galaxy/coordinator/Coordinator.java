@@ -20,9 +20,9 @@ import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
@@ -144,6 +144,11 @@ public class Coordinator
         }, 0, (long) statusExpiration.toMillis(), TimeUnit.MILLISECONDS);
     }
 
+    public String getEnvironment()
+    {
+        return environment;
+    }
+
     public List<AgentStatus> getAllAgentStatus()
     {
         return ImmutableList.copyOf(Iterables.transform(agents.values(), new Function<RemoteAgent, AgentStatus>()
@@ -261,11 +266,19 @@ public class Coordinator
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
-        URI configFile= repository.getUri(assignment.getConfig());
+        // resolve assignment
+        assignment = new Assignment(repository.binaryResolve(assignment.getBinary()), repository.configResolve(assignment.getConfig()));
+
+        // load resources
         Map<String, Integer> resources = readResources(assignment);
 
-        assignment = new Assignment(repository.resolve(assignment.getBinary()), repository.resolve(assignment.getConfig()));
-        Installation installation = new Installation(assignment, repository.getUri(assignment.getBinary()), configFile, resources);
+        // create installation
+        Installation installation = new Installation(
+                repository.configShortName(assignment.getConfig()),
+                assignment,
+                repository.binaryToHttpUri(assignment.getBinary()),
+                repository.configToHttpUri(assignment.getConfig()),
+                resources);
 
         List<SlotStatus> slots = newArrayList();
         List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), Predicates.and(filterAgentsBy(filter), filterAgentsWithAssignment(assignment))));
@@ -311,7 +324,7 @@ public class Coordinator
 
     public static Map<String, Integer> getAvailableResources(AgentStatus agentStatus)
     {
-        Map<String,Integer> availableResources = new TreeMap<String, Integer>(agentStatus.getResources());
+        Map<String, Integer> availableResources = new TreeMap<String, Integer>(agentStatus.getResources());
         for (SlotStatus slotStatus : agentStatus.getSlotStatuses()) {
             for (Entry<String, Integer> entry : slotStatus.getResources().entrySet()) {
                 int value = Objects.firstNonNull(availableResources.get(entry.getKey()), 0);
@@ -332,7 +345,7 @@ public class Coordinator
                 Properties resources = new Properties();
                 resources.load(resourcesFile.getInput());
                 for (Entry<Object, Object> entry : resources.entrySet()) {
-                    builder.put((String) entry.getKey(), Integer.valueOf((String)entry.getValue()));
+                    builder.put((String) entry.getKey(), Integer.valueOf((String) entry.getValue()));
                 }
             }
             catch (IOException ignored) {
@@ -349,7 +362,7 @@ public class Coordinator
             SlotStatus status = slot.status();
             SlotLifecycleState state = status.getState();
             if (state != TERMINATED && state != UNKNOWN) {
-                Assignment assignment = upgradeVersions.upgradeAssignment(status.getAssignment());
+                Assignment assignment = upgradeVersions.upgradeAssignment(repository, status.getAssignment());
                 newAssignments.add(assignment);
                 slotsToUpgrade.add(slot);
             }
@@ -366,9 +379,13 @@ public class Coordinator
         }
         Assignment assignment = newAssignments.iterator().next();
 
-        URI configFile = repository.getUri(assignment.getConfig());
+        URI configFile = repository.configToHttpUri(assignment.getConfig());
 
-        final Installation installation = new Installation(assignment, repository.getUri(assignment.getBinary()), configFile, ImmutableMap.<String, Integer>of());
+        final Installation installation = new Installation(
+                repository.configShortName(assignment.getConfig()),
+                assignment,
+                repository.binaryToHttpUri(assignment.getBinary()),
+                configFile, ImmutableMap.<String, Integer>of());
 
         return ImmutableList.copyOf(transform(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
         {
@@ -577,7 +594,8 @@ public class Coordinator
             public boolean apply(RemoteAgent agent)
             {
                 for (RemoteSlot slot : agent.getSlots()) {
-                    if (assignment.equalsIgnoreVersion(slot.status().getAssignment())) {
+                    if (repository.binaryEqualsIgnoreVersion(assignment.getBinary(), slot.status().getAssignment().getBinary()) &&
+                            repository.configEqualsIgnoreVersion(assignment.getConfig(), slot.status().getAssignment().getConfig())) {
                         return false;
                     }
                 }

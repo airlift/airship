@@ -17,99 +17,104 @@ import com.proofpoint.testing.EquivalenceTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static java.util.Arrays.asList;
-import static com.proofpoint.galaxy.shared.BinarySpec.DEFAULT_BINARY_PACKAGING;
+import static com.proofpoint.galaxy.shared.MavenCoordinates.DEFAULT_BINARY_PACKAGING;
+import static com.proofpoint.galaxy.shared.MavenCoordinates.toBinaryGAV;
 
 public class TestBinarySpec
 {
     @Test
     public void fullBinarySpec()
     {
-        MavenCoordinates spec = BinarySpec.parseBinarySpec("my.groupId:artifactId:packaging:classifier:version");
+        MavenCoordinates spec = MavenCoordinates.fromBinaryGAV("my.groupId:artifactId:packaging:classifier:version");
         Assert.assertEquals(spec.getGroupId(), "my.groupId");
         Assert.assertEquals(spec.getArtifactId(), "artifactId");
         Assert.assertEquals(spec.getPackaging(), "packaging");
         Assert.assertEquals(spec.getClassifier(), "classifier");
         Assert.assertEquals(spec.getVersion(), "version");
+        Assert.assertEquals(spec.getFileVersion(), "version");
         Assert.assertEquals(spec, spec);
-        Assert.assertEquals(spec, BinarySpec.createBinarySpec("my.groupId", "artifactId", "version", "packaging", "classifier"));
-        Assert.assertEquals(BinarySpec.toBinaryGAV(spec), "my.groupId:artifactId:packaging:classifier:version");
+        Assert.assertEquals(spec, new MavenCoordinates("my.groupId", "artifactId", "version", "packaging", "classifier", null));
+        Assert.assertEquals(toBinaryGAV(spec), "my.groupId:artifactId:packaging:classifier:version");
         Assert.assertEquals(spec.toString(), "my.groupId:artifactId:packaging:classifier:version");
     }
 
     @Test
     public void packagingSpec()
     {
-        MavenCoordinates spec = BinarySpec.parseBinarySpec("my.groupId:artifactId:packaging:version");
+        MavenCoordinates spec = MavenCoordinates.fromBinaryGAV("my.groupId:artifactId:packaging:version");
         Assert.assertEquals(spec.getGroupId(), "my.groupId");
         Assert.assertEquals(spec.getArtifactId(), "artifactId");
         Assert.assertEquals(spec.getPackaging(), "packaging");
         Assert.assertNull(spec.getClassifier());
         Assert.assertEquals(spec.getVersion(), "version");
+        Assert.assertEquals(spec.getFileVersion(), "version");
         Assert.assertEquals(spec, spec);
-        Assert.assertEquals(spec, BinarySpec.createBinarySpec("my.groupId", "artifactId", "version", "packaging", null));
-        Assert.assertEquals(BinarySpec.toBinaryGAV(spec), "my.groupId:artifactId:packaging:version");
+        Assert.assertEquals(spec, new MavenCoordinates("my.groupId", "artifactId", "version", "packaging", null, null));
+        Assert.assertEquals(toBinaryGAV(spec), "my.groupId:artifactId:packaging:version");
         Assert.assertEquals(spec.toString(), "my.groupId:artifactId:packaging:version");
     }
 
     @Test
     public void simpleSpec()
     {
-        MavenCoordinates spec = BinarySpec.parseBinarySpec("my.groupId:artifactId:version");
+        MavenCoordinates spec = MavenCoordinates.fromBinaryGAV("my.groupId:artifactId:version");
         Assert.assertEquals(spec.getGroupId(), "my.groupId");
         Assert.assertEquals(spec.getArtifactId(), "artifactId");
         Assert.assertEquals(spec.getPackaging(), "tar.gz");
         Assert.assertNull(spec.getClassifier());
         Assert.assertEquals(spec.getVersion(), "version");
+        Assert.assertEquals(spec.getFileVersion(), "version");
         Assert.assertEquals(spec, spec);
-        Assert.assertEquals(spec, BinarySpec.createBinarySpec("my.groupId", "artifactId", "version", "tar.gz", null));
-        Assert.assertEquals(BinarySpec.toBinaryGAV(spec), "my.groupId:artifactId:version");
+        Assert.assertEquals(spec, new MavenCoordinates("my.groupId", "artifactId", "version", "tar.gz", null, null));
+        Assert.assertEquals(toBinaryGAV(spec), "my.groupId:artifactId:version");
         Assert.assertEquals(spec.toString(), "my.groupId:artifactId:tar.gz:version");
     }
 
     @Test
     public void shortSpec()
     {
-        MavenCoordinates spec = BinarySpec.parseBinarySpec("artifactId:version");
+        MavenCoordinates spec = MavenCoordinates.fromBinaryGAV("artifactId:version");
         Assert.assertNull(spec.getGroupId());
         Assert.assertEquals(spec.getArtifactId(), "artifactId");
         Assert.assertEquals(spec.getPackaging(), "tar.gz");
         Assert.assertNull(spec.getClassifier());
         Assert.assertEquals(spec.getVersion(), "version");
+        Assert.assertEquals(spec.getFileVersion(), "version");
         Assert.assertEquals(spec, spec);
-        Assert.assertEquals(spec, BinarySpec.createBinarySpec(null, "artifactId", "version", "tar.gz", null));
-        Assert.assertEquals(BinarySpec.toBinaryGAV(spec), "artifactId:version");
+        Assert.assertEquals(spec, new MavenCoordinates(null, "artifactId", "version", "tar.gz", null, null));
+        Assert.assertEquals(toBinaryGAV(spec), "artifactId:version");
         Assert.assertEquals(spec.toString(), "artifactId:tar.gz:version");
     }
 
     @Test
     public void fullBinarySpecWithDefaultPackage()
     {
-        MavenCoordinates spec = BinarySpec.parseBinarySpec("my.groupId:artifactId:tar.gz:classifier:version");
+        MavenCoordinates spec = MavenCoordinates.fromBinaryGAV("my.groupId:artifactId:tar.gz:classifier:version");
         Assert.assertEquals(spec.getGroupId(), "my.groupId");
         Assert.assertEquals(spec.getArtifactId(), "artifactId");
         Assert.assertEquals(spec.getPackaging(), "tar.gz");
         Assert.assertEquals(spec.getClassifier(), "classifier");
         Assert.assertEquals(spec.getVersion(), "version");
+        Assert.assertEquals(spec.getFileVersion(), "version");
         Assert.assertEquals(spec, spec);
-        Assert.assertEquals(spec, BinarySpec.createBinarySpec("my.groupId", "artifactId", "version", "tar.gz", "classifier"));
-        Assert.assertEquals(BinarySpec.toBinaryGAV(spec), "my.groupId:artifactId:tar.gz:classifier:version");
+        Assert.assertEquals(spec, new MavenCoordinates("my.groupId", "artifactId", "version", "tar.gz", "classifier", null));
+        Assert.assertEquals(toBinaryGAV(spec), "my.groupId:artifactId:tar.gz:classifier:version");
         Assert.assertEquals(spec.toString(), "my.groupId:artifactId:tar.gz:classifier:version");
     }
 
     @Test
     public void testEquivalence()
     {
-        EquivalenceTester.check(
-                asList(BinarySpec.parseBinarySpec("my.group:artifactId:version"),
-                        BinarySpec.createBinarySpec("my.group", "artifactId", "version"),
-                        BinarySpec.createBinarySpec("my.group", "artifactId", "version", DEFAULT_BINARY_PACKAGING, null)),
-                asList(BinarySpec.parseBinarySpec("my.group:artifactId:packaging:version"), BinarySpec.createBinarySpec("my.group",
-                        "artifactId",
-                        "version",
-                        "packaging",
-                        null)),
-                asList(BinarySpec.parseBinarySpec("my.group:artifactId:packaging:classifier:version"),
-                        BinarySpec.createBinarySpec("my.group", "artifactId", "version", "packaging", "classifier")));
+        EquivalenceTester.equivalenceTester()
+                .addEquivalentGroup(
+                        MavenCoordinates.fromBinaryGAV("my.group:artifactId:version"),
+                        new MavenCoordinates("my.group", "artifactId", "version", DEFAULT_BINARY_PACKAGING, null, null))
+                .addEquivalentGroup(
+                        MavenCoordinates.fromBinaryGAV("my.group:artifactId:packaging:version"),
+                        new MavenCoordinates("my.group", "artifactId", "version", "packaging", null, null))
+                .addEquivalentGroup(
+                        MavenCoordinates.fromBinaryGAV("my.group:artifactId:packaging:classifier:version"),
+                        new MavenCoordinates("my.group", "artifactId", "version", "packaging", "classifier", null))
+                .check();
     }
 }

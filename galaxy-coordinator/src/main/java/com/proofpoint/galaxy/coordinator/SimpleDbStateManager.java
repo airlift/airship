@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 
 public class SimpleDbStateManager implements StateManager
 {
@@ -86,8 +84,8 @@ public class SimpleDbStateManager implements StateManager
         List<ReplaceableAttribute> attributes = newArrayList();
         attributes.add(new ReplaceableAttribute("state", slotStatus.getStatus().toString(), true));
         if (slotStatus.getAssignment() != null) {
-            attributes.add(new ReplaceableAttribute("binary", toBinaryGAV(slotStatus.getAssignment().getBinary()), true));
-            attributes.add(new ReplaceableAttribute("config", toConfigGAV(slotStatus.getAssignment().getConfig()), true));
+            attributes.add(new ReplaceableAttribute("binary", slotStatus.getAssignment().getBinary(), true));
+            attributes.add(new ReplaceableAttribute("config", slotStatus.getAssignment().getConfig(), true));
         }
 
         try {

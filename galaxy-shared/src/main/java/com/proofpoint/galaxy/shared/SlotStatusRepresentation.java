@@ -20,17 +20,11 @@ import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.UUID;
-
-import static com.proofpoint.galaxy.shared.BinarySpec.BINARY_SPEC_REGEX;
-import static com.proofpoint.galaxy.shared.BinarySpec.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.ConfigSpec.CONFIG_SPEC_REGEX;
-import static com.proofpoint.galaxy.shared.ConfigSpec.toConfigGAV;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class SlotStatusRepresentation
@@ -87,8 +81,8 @@ public class SlotStatusRepresentation
         String binary = null;
         String config = null;
         if (slotStatus.getAssignment() != null) {
-            binary = toBinaryGAV(slotStatus.getAssignment().getBinary());
-            config = toConfigGAV(slotStatus.getAssignment().getConfig());
+            binary = slotStatus.getAssignment().getBinary();
+            config = slotStatus.getAssignment().getConfig();
         }
 
         return new SlotStatusRepresentation(slotStatus.getId(),
@@ -142,8 +136,8 @@ public class SlotStatusRepresentation
         String binary = null;
         String config = null;
         if (slotStatus.getAssignment() != null) {
-            binary = toBinaryGAV(slotStatus.getAssignment().getBinary());
-            config = toConfigGAV(slotStatus.getAssignment().getConfig());
+            binary = slotStatus.getAssignment().getBinary();
+            config = slotStatus.getAssignment().getConfig();
         }
 
         return new SlotStatusRepresentation(slotStatus.getId(),
@@ -235,7 +229,6 @@ public class SlotStatusRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    @Pattern(regexp = BINARY_SPEC_REGEX, message = "is malformed")
     public String getBinary()
     {
         return binary;
@@ -243,7 +236,6 @@ public class SlotStatusRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
-    @Pattern(regexp = CONFIG_SPEC_REGEX, message = "is malformed")
     public String getConfig()
     {
         return config;
