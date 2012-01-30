@@ -17,6 +17,7 @@ import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 
 public class TestingHttpRepository extends HttpRepository
 {
+    private static final String VERSION_PATTERN = "([0-9][0-9.]*[0-9](?:-SNAPSHOT)?)[^\\/]*$";
     private final File targetRepo;
 
     public TestingHttpRepository()
@@ -27,7 +28,7 @@ public class TestingHttpRepository extends HttpRepository
 
     public TestingHttpRepository(File targetRepo)
     {
-        super(ImmutableList.<URI>of(targetRepo.toURI()), "^(.*)-[0-9][0-9.]*[0-9](?:-SNAPSHOT)?.*$", "[0-9][0-9.]*[0-9](?:-SNAPSHOT)?", "[0-9][0-9.]*[0-9](?:-SNAPSHOT)?");
+        super(ImmutableList.<URI>of(targetRepo.toURI()), "^(.*)-[0-9][0-9.]*[0-9](?:-SNAPSHOT)?[^\\/]*$", VERSION_PATTERN, VERSION_PATTERN);
         this.targetRepo = targetRepo;
     }
 

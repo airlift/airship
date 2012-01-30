@@ -63,6 +63,7 @@ public class HttpRepository implements Repository
 
         if (configVersionPattern != null) {
             this.configVersionPattern = Pattern.compile(configVersionPattern);
+            Preconditions.checkArgument(this.configVersionPattern.matcher("").groupCount() >= 1, "configVersionPattern must have at least one capturing group");
         }
         else {
             this.configVersionPattern = null;
@@ -70,6 +71,7 @@ public class HttpRepository implements Repository
 
         if (binaryVersionPattern != null) {
             this.binaryVersionPattern = Pattern.compile(binaryVersionPattern);
+            Preconditions.checkArgument(this.configVersionPattern.matcher("").groupCount() >= 1, "configVersionPattern must have at least one capturing group");
         }
         else {
             this.binaryVersionPattern = null;
@@ -112,7 +114,7 @@ public class HttpRepository implements Repository
         version = version.substring(1);
         String upgrade = upgrade(config, version, configVersionPattern, DEFAULT_CONFIG_PACKAGING);
         if (upgrade != null) {
-            return "@" +upgrade;
+            return "@" + upgrade;
         }
         return null;
     }
@@ -167,13 +169,9 @@ public class HttpRepository implements Repository
     {
         // try to replace version in existing config
         if (versionPattern != null) {
-            Matcher matcher = versionPattern.matcher(path);
-            if (matcher.find()) {
-                String newConfig = matcher.replaceAll(version);
-                URI uri = toHttpUri(newConfig, defaultPackaging);
-                if (uri != null) {
-                    return newConfig;
-                }
+            String newConfig = upgradePath(path, version, versionPattern);
+            if (newConfig != null && toHttpUri(newConfig, defaultPackaging) != null) {
+                return newConfig;
             }
         }
 
@@ -192,14 +190,14 @@ public class HttpRepository implements Repository
         if (!matcher1.find()) {
             return false;
         }
-        path1NoVersion  = matcher1.replaceAll("");
+        path1NoVersion = matcher1.replaceAll("");
 
         String path2NoVersion;
         Matcher matcher2 = versionPattern.matcher(path2);
         if (!matcher2.find()) {
             return false;
         }
-        path2NoVersion  = matcher2.replaceAll("");
+        path2NoVersion = matcher2.replaceAll("");
 
         return path1NoVersion.equals(path2NoVersion);
     }
@@ -232,7 +230,8 @@ public class HttpRepository implements Repository
                 URI uri = append(baseUri, path);
                 if (isValidLocation(uri)) {
                     uris.add(uri);
-                } else {
+                }
+                else {
                     uri = uri.resolve("." + defaultExtension);
                     if (isValidLocation(uri)) {
                         uris.add(uri);
@@ -288,5 +287,25 @@ public class HttpRepository implements Repository
         catch (Exception ignored) {
         }
         return false;
+    }
+
+    public static String upgradePath(String spec, String version, Pattern versionPattern)
+    {
+        Matcher matcher = versionPattern.matcher(spec);
+
+        StringBuilder out = new StringBuilder();
+        int end = 0;
+        while (matcher.find()) {
+            for (int group = 0; group < matcher.groupCount(); group++) {
+                out.append(spec.substring(end, matcher.start(group + 1))).append(version);
+                end = matcher.end(group + 1);
+            }
+        }
+        // no matches
+        if (end == 0) {
+            return null;
+        }
+        out.append(spec.substring(end));
+        return out.toString();
     }
 }

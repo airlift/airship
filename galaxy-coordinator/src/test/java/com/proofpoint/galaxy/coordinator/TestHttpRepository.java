@@ -6,6 +6,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 public class TestHttpRepository
 {
@@ -69,10 +70,10 @@ public class TestHttpRepository
         Assert.assertEquals(repo.configUpgrade("@apple-1.0.tar.gz", "@banana-2.0-SNAPSHOT.tar.gz"), "@banana-2.0-SNAPSHOT.tar.gz");
         Assert.assertEquals(repo.binaryUpgrade("apple-1.0.tar.gz", "banana-2.0-SNAPSHOT.tar.gz"), "banana-2.0-SNAPSHOT.tar.gz");
 
-//        Assert.assertEquals(repo.configUpgrade(new File(repo.getTargetRepo(), "apple-1.0.tar.gz").toURI().toASCIIString(), "2.0"),
-//                new File(repo.getTargetRepo(), "apple-1.0.tar.gz").toURI().toASCIIString());
-//        Assert.assertEquals(repo.binaryUpgrade(new File(repo.getTargetRepo(), "apple-1.0.tar.gz").toURI().toASCIIString(), "2.0"),
-//                new File(repo.getTargetRepo(), "apple-1.0.tar.gz").toURI().toASCIIString());
+        Assert.assertEquals(repo.configUpgrade("@" + new File(repo.getTargetRepo(), "apple-1.0.tar.gz").toURI().toASCIIString(), "@2.0"),
+                "@" + new File(repo.getTargetRepo(), "apple-2.0.tar.gz").toURI().toASCIIString());
+        Assert.assertEquals(repo.binaryUpgrade(new File(repo.getTargetRepo(), "apple-1.0.tar.gz").toURI().toASCIIString(), "2.0"),
+                new File(repo.getTargetRepo(), "apple-2.0.tar.gz").toURI().toASCIIString());
     }
 
     @Test
@@ -84,5 +85,19 @@ public class TestHttpRepository
 
         Assert.assertFalse(repo.configEqualsIgnoreVersion("@apple-1.0.tar.gz", "@banana-1.0.tar.gz"));
         Assert.assertFalse(repo.binaryEqualsIgnoreVersion("apple-1.0.tar.gz", "banana-1.0.tar.gz"));
+    }
+
+    @Test
+    public void upgradeVersion()
+    {
+        Assert.assertEquals(HttpRepository.upgradePath("#", "X", Pattern.compile("(#)")), "X");
+        Assert.assertEquals(HttpRepository.upgradePath("##", "X", Pattern.compile("(#)")), "XX");
+        Assert.assertEquals(HttpRepository.upgradePath("a#b", "X", Pattern.compile("(#)")), "aXb");
+        Assert.assertEquals(HttpRepository.upgradePath("a#b#c#d", "X", Pattern.compile("(#)")), "aXbXcXd");
+
+        Assert.assertEquals(HttpRepository.upgradePath("#ooo@", "X", Pattern.compile("(#)ooo(@)")), "XoooX");
+        Assert.assertEquals(HttpRepository.upgradePath("#ooo@#ooo@", "X", Pattern.compile("(#)ooo(@)")), "XoooXXoooX");
+        Assert.assertEquals(HttpRepository.upgradePath("a#ooo@b", "X", Pattern.compile("(#)ooo(@)")), "aXoooXb");
+        Assert.assertEquals(HttpRepository.upgradePath("a#ooo@b#ooo@c", "X", Pattern.compile("(#)ooo(@)")), "aXoooXbXoooXc");
     }
 }
