@@ -26,9 +26,14 @@ import java.util.concurrent.TimeUnit;
 public class CoordinatorConfig
 {
     private String galaxyVersion;
-    private List<String> binaryRepoBases = ImmutableList.of();
-    private String defaultRepositoryGroupId;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
+
+    private List<String> mavenRepoBases = ImmutableList.of();
+    private String defaultRepositoryGroupId;
+
+    private List<String> httpRepoBases = ImmutableList.of();
+    private String httpRepoBinaryVersionPattern;
+    private String httpRepoConfigVersionPattern;
 
     @NotNull
     public String getGalaxyVersion()
@@ -44,16 +49,29 @@ public class CoordinatorConfig
     }
 
     @NotNull
-    public List<String> getBinaryRepoBases()
+    public Duration getStatusExpiration()
     {
-        return binaryRepoBases;
+        return statusExpiration;
     }
 
-    @Config("coordinator.repo")
-    @LegacyConfig("coordinator.binary-repo")
-    public CoordinatorConfig setBinaryRepoBases(String binaryRepoBases)
+    @Config("coordinator.status.expiration")
+    public CoordinatorConfig setStatusExpiration(Duration statusExpiration)
     {
-        this.binaryRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(binaryRepoBases));
+        this.statusExpiration = statusExpiration;
+        return this;
+    }
+
+    @NotNull
+    public List<String> getMavenRepoBases()
+    {
+        return mavenRepoBases;
+    }
+
+    @Config("coordinator.maven-repo")
+    @LegacyConfig("coordinator.binary-repo")
+    public CoordinatorConfig setMavenRepoBases(String mavenRepoBases)
+    {
+        this.mavenRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(mavenRepoBases));
         return this;
     }
 
@@ -64,21 +82,46 @@ public class CoordinatorConfig
     }
 
     @Config("coordinator.default-group-id")
-    public void setDefaultRepositoryGroupId(String defaultRepositoryGroupId)
+    public CoordinatorConfig setDefaultRepositoryGroupId(String defaultRepositoryGroupId)
     {
         this.defaultRepositoryGroupId = defaultRepositoryGroupId;
+        return this;
     }
 
     @NotNull
-    public Duration getStatusExpiration()
+    public List<String> getHttpRepoBases()
     {
-        return statusExpiration;
+        return httpRepoBases;
     }
 
-    @Config("coordinator.status.expiration")
-    public CoordinatorConfig setStatusExpiration(Duration statusExpiration)
+    @Config("coordinator.http-repo")
+    public CoordinatorConfig setHttpRepoBases(String httpRepoBases)
     {
-        this.statusExpiration = statusExpiration;
+        this.httpRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(httpRepoBases));
+        return this;
+    }
+
+    public String getHttpRepoBinaryVersionPattern()
+    {
+        return httpRepoBinaryVersionPattern;
+    }
+
+    @Config("coordinator.http-repo.binary-version-pattern")
+    public CoordinatorConfig setHttpRepoBinaryVersionPattern(String httpRepoBinaryVersionPattern)
+    {
+        this.httpRepoBinaryVersionPattern = httpRepoBinaryVersionPattern;
+        return this;
+    }
+
+    public String getHttpRepoConfigVersionPattern()
+    {
+        return httpRepoConfigVersionPattern;
+    }
+
+    @Config("coordinator.http-repo.config-version-pattern")
+    public CoordinatorConfig setHttpRepoConfigVersionPattern(String httpRepoConfigVersionPattern)
+    {
+        this.httpRepoConfigVersionPattern = httpRepoConfigVersionPattern;
         return this;
     }
 }

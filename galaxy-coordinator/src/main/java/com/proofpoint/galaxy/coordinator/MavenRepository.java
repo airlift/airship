@@ -50,7 +50,7 @@ public class MavenRepository implements Repository
 
         Builder<URI> builder = ImmutableList.builder();
 
-        for (String binaryRepoBase : config.getBinaryRepoBases()) {
+        for (String binaryRepoBase : config.getMavenRepoBases()) {
             if (!binaryRepoBase.endsWith("/")) {
                 binaryRepoBase = binaryRepoBase + "/";
             }
