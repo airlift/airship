@@ -83,6 +83,10 @@ public class MavenRepository implements Repository
     @Override
     public String configUpgrade(String config, String version)
     {
+        if (!version.startsWith("@")) {
+            return null;
+        }
+
         MavenCoordinates coordinates = MavenCoordinates.fromConfigGAV(config);
         if (coordinates == null) {
             return null;
@@ -90,13 +94,16 @@ public class MavenRepository implements Repository
 
         coordinates = new MavenCoordinates(coordinates.getGroupId(),
                 coordinates.getArtifactId(),
-                version,
+                version.substring(1),
                 coordinates.getPackaging(),
                 coordinates.getClassifier(),
                 null);
 
         coordinates = resolve(coordinates);
-        return MavenCoordinates.toConfigGAV(coordinates);
+        if (coordinates != null) {
+            return MavenCoordinates.toConfigGAV(coordinates);
+        }
+        return configResolve(version);
     }
 
     @Override
@@ -146,7 +153,10 @@ public class MavenRepository implements Repository
                 null);
 
         coordinates = resolve(coordinates);
-        return toBinaryGAV(coordinates);
+        if (coordinates != null) {
+            return MavenCoordinates.toBinaryGAV(coordinates);
+        }
+        return binaryResolve(version);
     }
 
     @Override

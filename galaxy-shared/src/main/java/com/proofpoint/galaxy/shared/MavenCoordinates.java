@@ -192,7 +192,7 @@ public class MavenCoordinates
         if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) {
             return false;
         }
-        if (!groupId.equals(that.groupId)) {
+        if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) {
             return false;
         }
         if (!packaging.equals(that.packaging)) {

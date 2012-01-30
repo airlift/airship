@@ -30,7 +30,7 @@ import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.coordinator.TestingRepository;
+import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
@@ -122,7 +122,7 @@ public class TestServerIntegration
             throws Exception
     {
         try {
-            binaryRepoDir = TestingRepository.createBinaryRepoDir();
+            binaryRepoDir = TestingMavenRepository.createBinaryRepoDir();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -310,7 +310,7 @@ public class TestServerIntegration
     public void testUpgrade()
             throws Exception
     {
-        UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2.0");
+        UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "@2.0");
         String json = upgradeVersionsCodec.toJson(upgradeVersions);
         Response response = client.preparePost(urlFor("/v1/slot/assignment?binary=*:apple:*"))
                 .setBody(json)

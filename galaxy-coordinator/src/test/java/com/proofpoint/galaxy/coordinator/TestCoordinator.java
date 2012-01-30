@@ -34,7 +34,7 @@ public class TestCoordinator
     private Coordinator coordinator;
     private Duration statusExpiration = new Duration(500, TimeUnit.MILLISECONDS);
     private LocalProvisioner provisioner;
-    private TestingRepository repository;
+    private TestingMavenRepository repository;
 
     @BeforeMethod
     public void setUp()
@@ -42,7 +42,7 @@ public class TestCoordinator
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
 
-        repository = new TestingRepository();
+        repository = new TestingMavenRepository();
 
         provisioner = new LocalProvisioner();
         coordinator = new Coordinator(nodeInfo.getEnvironment(),

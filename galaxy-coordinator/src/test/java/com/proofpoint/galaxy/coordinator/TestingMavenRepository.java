@@ -25,7 +25,7 @@ import static com.proofpoint.galaxy.shared.FileUtils.newFile;
 import static com.proofpoint.galaxy.shared.MavenCoordinates.toBinaryGAV;
 import static com.proofpoint.galaxy.shared.MavenCoordinates.toConfigGAV;
 
-public class TestingRepository extends MavenRepository
+public class TestingMavenRepository extends MavenRepository
 {
     public static final Repository MOCK_REPO = new Repository()
     {
@@ -109,16 +109,21 @@ public class TestingRepository extends MavenRepository
     };
     private final File targetRepo;
 
-    public TestingRepository()
+    public TestingMavenRepository()
             throws Exception
     {
         this(createBinaryRepoDir());
     }
 
-    public TestingRepository(File targetRepo)
+    public TestingMavenRepository(File targetRepo)
     {
         super(ImmutableList.<String>of("prod", "food.fruit"), targetRepo.toURI());
         this.targetRepo = targetRepo;
+    }
+
+    public File getTargetRepo()
+    {
+        return targetRepo;
     }
 
     public void destroy()
@@ -136,11 +141,11 @@ public class TestingRepository extends MavenRepository
             // copy maven-metadata.xml files
             File appleMavenMetadata = new File(targetRepo, "food/fruit/apple/maven-metadata.xml");
             appleMavenMetadata.getParentFile().mkdirs();
-            Files.copy(newInputStreamSupplier(getResource(TestingRepository.class, "apple-maven-metadata.xml")), appleMavenMetadata);
+            Files.copy(newInputStreamSupplier(getResource(TestingMavenRepository.class, "apple-maven-metadata.xml")), appleMavenMetadata);
 
             File bananaMavenMetadata = new File(targetRepo, "food/fruit/banana/2.0-SNAPSHOT/maven-metadata.xml");
             bananaMavenMetadata.getParentFile().mkdirs();
-            Files.copy(newInputStreamSupplier(getResource(TestingRepository.class, "banana-maven-metadata.xml")), bananaMavenMetadata);
+            Files.copy(newInputStreamSupplier(getResource(TestingMavenRepository.class, "banana-maven-metadata.xml")), bananaMavenMetadata);
 
             // tar up the archive and add them to the repository
             File appleArchiveV1 = new File(targetRepo, "food/fruit/apple/1.0/apple-1.0.tar.gz");

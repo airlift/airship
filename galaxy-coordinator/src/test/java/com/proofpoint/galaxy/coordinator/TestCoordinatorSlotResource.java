@@ -37,7 +37,7 @@ public class TestCoordinatorSlotResource
 {
     private CoordinatorSlotResource resource;
     private Coordinator coordinator;
-    private TestingRepository repository;
+    private TestingMavenRepository repository;
 
     @BeforeMethod
     public void setUp()
@@ -45,7 +45,7 @@ public class TestCoordinatorSlotResource
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
 
-        repository = new TestingRepository();
+        repository = new TestingMavenRepository();
 
         coordinator = new Coordinator(nodeInfo,
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),

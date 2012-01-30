@@ -39,7 +39,7 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.coordinator.TestingRepository.MOCK_REPO;
+import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;

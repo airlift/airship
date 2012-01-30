@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.coordinator.TestingRepository.MOCK_REPO;
+import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;

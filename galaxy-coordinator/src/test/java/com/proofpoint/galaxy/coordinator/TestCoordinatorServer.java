@@ -57,7 +57,7 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
-import static com.proofpoint.galaxy.coordinator.TestingRepository.MOCK_REPO;
+import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;

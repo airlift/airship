@@ -18,7 +18,7 @@ import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.experimental.testing.ValidationAssertions.assertValidates;
-import static com.proofpoint.galaxy.coordinator.TestingRepository.MOCK_REPO;
+import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
 import static org.testng.Assert.assertEquals;
 
 public class TestProvisionAgent
