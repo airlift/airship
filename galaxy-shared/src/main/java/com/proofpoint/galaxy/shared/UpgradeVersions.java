@@ -38,10 +38,12 @@ public class UpgradeVersions
         String binary = assignment.getBinary();
         if (binaryVersion != null) {
             binary = repository.binaryUpgrade(binary, binaryVersion);
+            Preconditions.checkArgument(binary != null, "Can not upgrade binary " + binary + " to " + binaryVersion);
         }
         String config = assignment.getConfig();
         if (configVersion != null) {
             config = repository.configUpgrade(config, configVersion);
+            Preconditions.checkArgument(binary != null, "Can not upgrade config " + config + " to " + configVersion);
         }
 
         return new Assignment(binary, config);
