@@ -42,6 +42,17 @@ public class Assignment
         return config;
     }
 
+    public Assignment resolve(Repository repository)
+    {
+        String resolvedBinary = repository.binaryResolve(binary);
+        Preconditions.checkArgument(resolvedBinary != null, "Unknown binary " + binary);
+
+        String resolvedConfig = repository.configResolve(config);
+        Preconditions.checkArgument(resolvedConfig != null, "Unknown config " + config);
+
+        return new Assignment(resolvedBinary, resolvedConfig);
+    }
+
     @Override
     public boolean equals(Object o)
     {

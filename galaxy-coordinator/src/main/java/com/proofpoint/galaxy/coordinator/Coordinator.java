@@ -267,7 +267,7 @@ public class Coordinator
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
         // resolve assignment
-        assignment = new Assignment(repository.binaryResolve(assignment.getBinary()), repository.configResolve(assignment.getConfig()));
+        assignment = assignment.resolve(repository);
 
         // load resources
         Map<String, Integer> resources = readResources(assignment);
