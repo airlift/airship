@@ -18,6 +18,7 @@ import org.iq80.cli.Option;
 import org.iq80.cli.ParseException;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -40,10 +42,12 @@ import static org.iq80.cli.Cli.buildCli;
 
 public class Galaxy
 {
+    private static final File CONFIG_FILE = new File(System.getProperty("user.home", "."), ".galaxyconfig");
+
     public static void main(String[] args)
             throws Exception
     {
-        CliBuilder<GalaxyCommand> builder = buildCli("galaxy", GalaxyCommand.class)
+        CliBuilder<Callable> builder = buildCli("galaxy", Callable.class)
                 .withDescription("cloud management system")
                 .withDefaultCommand(HelpCommand.class)
                 .withCommands(HelpCommand.class,
@@ -64,7 +68,17 @@ public class Galaxy
                         AgentAddCommand.class,
                         AgentTerminateCommand.class);
 
-        Cli<GalaxyCommand> galaxyParser = builder.build();
+
+        builder.withGroup("config")
+                .withDescription("Manage configuration")
+                .withDefaultCommand(Help.class)
+                .withCommands(ConfigGet.class,
+                        ConfigGetAll.class,
+                        ConfigSet.class,
+                        ConfigAdd.class,
+                        ConfigUnset.class);
+
+        Cli<Callable> galaxyParser = builder.build();
 
         galaxyParser.parse(args).call();
     }
@@ -504,6 +518,118 @@ public class Galaxy
             sb.append(", globalOptions=").append(globalOptions);
             sb.append('}');
             return sb.toString();
+        }
+    }
+
+    @Command(name = "get", description = "Get a configuration value")
+    public static class ConfigGet implements Callable<Void>
+    {
+        @Arguments(description = "Key to get")
+        public String key;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            Preconditions.checkNotNull(key, "You must specify a key.");
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            List<String> values = config.getAll(key);
+            Preconditions.checkArgument(values.size() < 2, "More than one value for the key %s", key);
+            if (!values.isEmpty()) {
+                System.out.println(values.get(0));
+            }
+            return null;
+        }
+    }
+
+    @Command(name = "get-all", description = "Get all values of configuration")
+    public static class ConfigGetAll implements Callable<Void>
+    {
+        @Arguments(description = "Key to get")
+        public String key;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            Preconditions.checkNotNull(key, "You must specify a key.");
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            List<String> values = config.getAll(key);
+            for (String value : values) {
+                System.out.println(value);
+            }
+            return null;
+        }
+    }
+
+    @Command(name = "set", description = "Set a configuration value")
+    public static class ConfigSet implements Callable<Void>
+    {
+        @Arguments(usage = "<key> <value>",
+                description = "Key-value pair to set")
+        public List<String> args;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            if (args.size() != 2) {
+                throw new ParseException("You must specify a key and a value.");
+            }
+
+            String key = args.get(0);
+            String value = args.get(1);
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            config.set(key, value);
+            config.save(CONFIG_FILE);
+            return null;
+        }
+    }
+
+    @Command(name = "add", description = "Add a configuration value")
+    public static class ConfigAdd implements Callable<Void>
+    {
+        @Arguments(usage = "<key> <value>",
+                description = "Key-value pair to add")
+        public List<String> args;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            if (args.size() != 2) {
+                throw new ParseException("You must specify a key and a value.");
+            }
+
+            String key = args.get(0);
+            String value = args.get(1);
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            config.add(key, value);
+            config.save(CONFIG_FILE);
+            return null;
+        }
+    }
+
+    @Command(name = "unset", description = "Unset a configuration value")
+    public static class ConfigUnset implements Callable<Void>
+    {
+        @Arguments(description = "Key to unset")
+        public String key;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            Preconditions.checkNotNull(key, "You must specify a key.");
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            config.unset(key);
+            config.save(CONFIG_FILE);
+            return null;
         }
     }
 }
