@@ -23,13 +23,18 @@ public class RepositorySet implements Repository
     @Override
     public String configShortName(String config)
     {
+        if (!config.startsWith("@")) {
+            return null;
+        }
+        String noAtSign = config.substring(1);
+
         for (Repository repository : repositories) {
             String shortName = repository.configShortName(config);
-            if (!shortName.equals(config)) {
+            if (!config.equals(shortName) && !noAtSign.endsWith(shortName)) {
                 return shortName;
             }
         }
-        return config;
+        return noAtSign.replaceAll("[:%/ !$]", "_");
     }
 
     @Override

@@ -76,6 +76,11 @@ public class MavenRepository implements Repository
     @Override
     public String configShortName(String config)
     {
+        if (!config.startsWith("@")) {
+            return null;
+        }
+        config = config.substring(1);
+
         MavenCoordinates coordinates = MavenCoordinates.fromConfigGAV(config);
         if (coordinates == null) {
             return config;

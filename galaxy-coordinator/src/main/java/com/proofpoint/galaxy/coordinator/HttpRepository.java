@@ -81,10 +81,15 @@ public class HttpRepository implements Repository
     @Override
     public String configShortName(String config)
     {
+        if (!config.startsWith("@")) {
+            return null;
+        }
+        config = config.substring(1);
+
         if (configShortNamePattern != null) {
             Matcher matcher = configShortNamePattern.matcher(config);
             if (matcher.matches()) {
-                return matcher.group(1);
+                return matcher.group(1).replaceAll("[:%/ !$]", "_");
             }
         }
 
