@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.agent.Agent;
@@ -13,11 +14,11 @@ import com.proofpoint.galaxy.agent.LauncherLifecycleManager;
 import com.proofpoint.galaxy.agent.LifecycleManager;
 import com.proofpoint.galaxy.agent.Slot;
 import com.proofpoint.galaxy.coordinator.Coordinator;
-import com.proofpoint.galaxy.coordinator.MavenRepository;
-import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
+import com.proofpoint.galaxy.coordinator.HttpRepository;
 import com.proofpoint.galaxy.coordinator.HttpServiceInventory;
 import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
 import com.proofpoint.galaxy.coordinator.Instance;
+import com.proofpoint.galaxy.coordinator.MavenRepository;
 import com.proofpoint.galaxy.coordinator.Provisioner;
 import com.proofpoint.galaxy.coordinator.RemoteAgent;
 import com.proofpoint.galaxy.coordinator.RemoteAgentFactory;
@@ -25,7 +26,10 @@ import com.proofpoint.galaxy.coordinator.RemoteSlot;
 import com.proofpoint.galaxy.coordinator.ServiceInventory;
 import com.proofpoint.galaxy.coordinator.StateManager;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.Repository;
+import com.proofpoint.galaxy.shared.RepositorySet;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.units.Duration;
@@ -49,6 +53,7 @@ public class CommanderFactory
     private String environment;
     private URI coordinatorUri;
     private final List<String> repositories = newArrayList();
+    private final List<String> mavenDefaultGroupIds = newArrayList();
 
     public CommanderFactory setEnvironment(String environment)
     {
@@ -69,6 +74,13 @@ public class CommanderFactory
         return this;
     }
 
+    public CommanderFactory setMavenDefaultGroupIds(List<String> mavenDefaultGroupIds)
+    {
+        this.mavenDefaultGroupIds.clear();
+        this.mavenDefaultGroupIds.addAll(mavenDefaultGroupIds);
+        return this;
+    }
+
     public Commander build()
             throws IOException
     {
@@ -77,7 +89,8 @@ public class CommanderFactory
         String scheme = coordinatorUri.getScheme();
         if ("http".equals(scheme)) {
             return new HttpCommander(coordinatorUri);
-        } else if ("file".equals(scheme) || scheme == null) {
+        }
+        else if ("file".equals(scheme) || scheme == null) {
             Coordinator coordinator = createLocalCoordinator();
 
             return new LocalCommander(coordinator);
@@ -91,7 +104,7 @@ public class CommanderFactory
         Preconditions.checkNotNull(environment, "environment is null");
         Preconditions.checkNotNull(this.repositories, "binaryRepositories is null");
 
-        List<URI> binaryRepoBases = ImmutableList.copyOf(Lists.transform(repositories, new ToUriFunction()));
+        List<URI> repoBases = ImmutableList.copyOf(Lists.transform(repositories, new ToUriFunction()));
 
         //
         // Create agent
@@ -118,7 +131,9 @@ public class CommanderFactory
         //
         // Create coordinator
         //
-        MavenRepository repository = new MavenRepository(ImmutableList.<String>of(), binaryRepoBases);
+        Repository repository = new RepositorySet(ImmutableSet.<Repository>of(
+                new MavenRepository(mavenDefaultGroupIds, repoBases),
+                new HttpRepository(repoBases, null, null, null)));
         ServiceInventory serviceInventory = new HttpServiceInventory(repository, JsonCodec.listJsonCodec(ServiceDescriptor.class));
 
         Provisioner provisioner = new StandaloneProvisioner();

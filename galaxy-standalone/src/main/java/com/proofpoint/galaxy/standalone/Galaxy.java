@@ -68,6 +68,11 @@ public class Galaxy
                         AgentAddCommand.class,
                         AgentTerminateCommand.class);
 
+        builder.withGroup("environment")
+                .withDescription("Manage environments")
+                .withDefaultCommand(Help.class)
+                .withCommands(EnvironmentProvisionLocal.class,
+                        EnvironmentAdd.class);
 
         builder.withGroup("config")
                 .withDescription("Manage configuration")
@@ -94,13 +99,24 @@ public class Galaxy
         {
             initializeLogging();
 
-            Preconditions.checkNotNull(globalOptions.coordinator, "globalOptions.coordinator is null");
-            URI coordinatorUri = new URI(globalOptions.coordinator);
+            Config config = Config.loadConfig(CONFIG_FILE);
+
+            String environment = globalOptions.environment;
+            if (environment == null) {
+                throw new RuntimeException("You must specify an environment.");
+            }
+            String coordinator = config.get("environment." + environment + ".coordinator");
+            if (coordinator == null) {
+                throw new RuntimeException("Unknown environment " + environment);
+            }
+
+            URI coordinatorUri = new URI(coordinator);
 
             Commander commander = new CommanderFactory()
-                    .setEnvironment(globalOptions.environment)
+                    .setEnvironment(environment)
                     .setCoordinatorUri(coordinatorUri)
-                    .setRepositories(globalOptions.repository)
+                    .setRepositories(config.getAll("environment." + environment + ".repository"))
+                    .setMavenDefaultGroupIds(config.getAll("environment." + environment + ".maven-group-id"))
                     .build();
 
             try {
@@ -518,6 +534,80 @@ public class Galaxy
             sb.append(", globalOptions=").append(globalOptions);
             sb.append('}');
             return sb.toString();
+        }
+    }
+
+    @Command(name = "provision-local", description = "Provision a local environment")
+    public static class EnvironmentProvisionLocal implements Callable<Void>
+    {
+        @Option(name = "--repository", description = "Repository for binaries and configurations")
+        public final List<String> repository = newArrayList();
+
+        @Option(name = "--maven-default-group-id", description = "Default maven group-id")
+        public final List<String> mavenDefaultGroupId = newArrayList();
+
+        @Arguments(usage = "<environment> <path>",
+                description = "Environment name and path for the environment")
+        public List<String> args;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            if (args.size() != 2) {
+                throw new ParseException("You must specify an environment and path.");
+            }
+
+            String environment = args.get(0);
+            String path = args.get(1);
+
+            String coordinatorProperty = "environment." + environment + ".coordinator";
+            String repositoryProperty = "environment." + environment + ".repository";
+            String mavenGroupIdProperty = "environment." + environment + ".maven-group-id";
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            if (config.get(coordinatorProperty) != null) {
+                throw new RuntimeException("Environment " + environment + " already exists");
+            }
+            config.set(coordinatorProperty, path);
+            for (String repo : repository) {
+                config.add(repositoryProperty, repo);
+            }
+            for (String groupId : mavenDefaultGroupId) {
+                config.add(mavenGroupIdProperty, groupId);
+            }
+            config.save(CONFIG_FILE);
+            return null;
+        }
+    }
+
+    @Command(name = "add", description = "Add an environment")
+    public static class EnvironmentAdd implements Callable<Void>
+    {
+        @Arguments(usage = "<environment> <coordinator-url>",
+                description = "Environment name and a coordinator url for the environment")
+        public List<String> args;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            if (args.size() != 2) {
+                throw new ParseException("You must specify an environment and a coordinator URL.");
+            }
+
+            String environment = args.get(0);
+            String coordinatorUrl = args.get(1);
+
+            String coordinatorProperty = "environment." + environment + ".coordinator";
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            if (config.get(coordinatorProperty) != null) {
+                throw new RuntimeException("Environment " + environment + " already exists");
+            }
+            config.set(coordinatorProperty, coordinatorUrl);
+            config.save(CONFIG_FILE);
+            return null;
         }
     }
 
