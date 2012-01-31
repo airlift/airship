@@ -35,7 +35,7 @@ public class ConfigurationResource
             @PathParam("version") final String version)
     {
         final File configDir = configurationStore.getConfigDir(environment, type, version, pool);
-        if (configDir == null) {
+        if (!configDir.isDirectory()) {
             return Response.status(Status.NOT_FOUND).build();
         }
 
@@ -45,7 +45,7 @@ public class ConfigurationResource
             public void write(OutputStream output)
                     throws IOException, WebApplicationException
             {
-                ConfigUtils.packConfig(configDir, output);
+                ConfigUtils.packConfig(configDir, "", output);
             }
         }).build();
     }

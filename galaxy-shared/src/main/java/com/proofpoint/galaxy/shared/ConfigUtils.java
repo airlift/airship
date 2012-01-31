@@ -23,26 +23,27 @@ import static com.google.common.base.Objects.firstNonNull;
 
 public class ConfigUtils
 {
-    public static void packConfig(File inputDir, File outputFile)
+    public static void packConfig(File inputDir, String rootPath,  File outputFile)
             throws IOException
     {
         FileOutputStream outputStream = new FileOutputStream(outputFile);
         try {
-            packConfig(inputDir, outputStream);
+            packConfig(inputDir, rootPath, outputStream);
         }
         catch (IOException e) {
             outputStream.close();
         }
     }
 
-    public static void packConfig(File inputDir, OutputStream outputStream)
+    public static void packConfig(File inputDir, String rootPath, OutputStream outputStream)
             throws IOException
     {
         ZipOutputStream out = new ZipOutputStream(outputStream);
         try {
-            zipDirectory(out, inputDir.getName(), inputDir);
+            zipDirectory(out, rootPath, inputDir);
         }
         finally {
+            out.finish();
             out.flush();
         }
     }
@@ -50,13 +51,14 @@ public class ConfigUtils
     private static void zipDirectory(ZipOutputStream out, String path, File dir)
             throws IOException
     {
-        if (!path.endsWith("/")) {
-            path = path + "/";
+        if (!path.isEmpty()) {
+            if (!path.endsWith("/")) {
+                path = path + "/";
+            }
+            ZipEntry dirEntry = new ZipEntry(path);
+            dirEntry.setTime(dir.lastModified());
+            out.putNextEntry(dirEntry);
         }
-
-        ZipEntry dirEntry = new ZipEntry(path);
-        dirEntry.setTime(dir.lastModified());
-        out.putNextEntry(dirEntry);
 
         for (File file : firstNonNull(dir.listFiles(), new File[0])) {
             String filePath = path + file.getName();
