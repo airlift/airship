@@ -81,9 +81,11 @@ public class HttpRepository implements Repository
     @Override
     public String configShortName(String config)
     {
-        Matcher matcher = configShortNamePattern.matcher(config);
-        if (matcher.matches()) {
-            return matcher.group(1);
+        if (configShortNamePattern != null) {
+            Matcher matcher = configShortNamePattern.matcher(config);
+            if (matcher.matches()) {
+                return matcher.group(1);
+            }
         }
 
         return config;

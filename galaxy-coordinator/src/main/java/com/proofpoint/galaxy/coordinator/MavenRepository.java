@@ -67,7 +67,10 @@ public class MavenRepository implements Repository
             return null;
         }
         coordinates = resolve(coordinates);
-        return toConfigGAV(coordinates);
+        if (coordinates != null) {
+            return toConfigGAV(coordinates);
+        }
+        return null;
     }
 
     @Override
@@ -135,7 +138,10 @@ public class MavenRepository implements Repository
             return null;
         }
         coordinates = resolve(coordinates);
-        return toBinaryGAV(coordinates);
+        if (coordinates != null) {
+            return toBinaryGAV(coordinates);
+        }
+        return null;
     }
 
     @Override
