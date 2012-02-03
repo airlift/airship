@@ -190,4 +190,14 @@ public class RepositorySet implements Repository
 
         return httpUris.iterator().next();
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("RepositorySet");
+        sb.append("{repositories=").append(repositories);
+        sb.append('}');
+        return sb.toString();
+    }
 }
