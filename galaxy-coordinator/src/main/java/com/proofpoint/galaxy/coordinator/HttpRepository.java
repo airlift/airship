@@ -34,7 +34,7 @@ public class HttpRepository implements Repository
     public HttpRepository(CoordinatorConfig config)
     {
         this(
-                Lists.transform(config.getHttpRepoBases(), new Function<String, URI>()
+                Lists.transform(config.getRepositories(), new Function<String, URI>()
                 {
                     @Override
                     public URI apply(@Nullable String uri)
@@ -42,7 +42,7 @@ public class HttpRepository implements Repository
                         return URI.create(uri);
                     }
                 }),
-                null,
+                config.getHttpShortNamePattern(),
                 config.getHttpRepoConfigVersionPattern(),
                 config.getHttpRepoBinaryVersionPattern());
     }
@@ -192,6 +192,10 @@ public class HttpRepository implements Repository
 
     private boolean equalsIgnoreVersion(String path1, String path2, Pattern versionPattern)
     {
+        if (versionPattern == null) {
+            return false;
+        }
+
         String path1NoVersion;
         Matcher matcher1 = versionPattern.matcher(path1);
         if (!matcher1.find()) {
@@ -314,5 +318,18 @@ public class HttpRepository implements Repository
         }
         out.append(spec.substring(end));
         return out.toString();
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("HttpRepository");
+        sb.append("{baseUris=").append(baseUris);
+        sb.append(", configShortNamePattern=").append(configShortNamePattern);
+        sb.append(", configVersionPattern=").append(configVersionPattern);
+        sb.append(", binaryVersionPattern=").append(binaryVersionPattern);
+        sb.append('}');
+        return sb.toString();
     }
 }
