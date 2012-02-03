@@ -59,6 +59,11 @@ public class GitConfigurationStore
         }
     }
 
+    public File getDefaultsDir(String environment)
+    {
+        return newFile(localRepository, environment, "defaults");
+    }
+
     public File getConfigDir(String environment, String type, String version, String pool)
     {
         return newFile(localRepository, environment, type, pool, version);

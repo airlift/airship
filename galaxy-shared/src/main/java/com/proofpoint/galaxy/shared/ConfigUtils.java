@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
@@ -15,32 +16,36 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.collect.Maps.newLinkedHashMap;
 
 public class ConfigUtils
 {
-    public static void packConfig(File inputDir, String rootPath,  File outputFile)
+    public static void packConfig(File outputFile, String rootPath, File... inputDirs)
             throws IOException
     {
         FileOutputStream outputStream = new FileOutputStream(outputFile);
         try {
-            packConfig(inputDir, rootPath, outputStream);
+            packConfig(outputStream, rootPath, inputDirs);
         }
         catch (IOException e) {
             outputStream.close();
         }
     }
 
-    public static void packConfig(File inputDir, String rootPath, OutputStream outputStream)
+    public static void packConfig(OutputStream outputStream, String rootPath, File... inputDirs)
             throws IOException
     {
         ZipOutputStream out = new ZipOutputStream(outputStream);
         try {
-            zipDirectory(out, rootPath, inputDir);
+            zipDirectory(out, rootPath, inputDirs);
         }
         finally {
             out.finish();
@@ -48,28 +53,46 @@ public class ConfigUtils
         }
     }
 
-    private static void zipDirectory(ZipOutputStream out, String path, File dir)
+    private static void zipDirectory(ZipOutputStream out, String rootPath, File... inputDirs)
             throws IOException
     {
-        if (!path.isEmpty()) {
-            if (!path.endsWith("/")) {
-                path = path + "/";
+        LinkedHashMap<String, File> files = newLinkedHashMap();
+        for (File inputDir : Lists.reverse(Arrays.asList(inputDirs))) {
+            listFilesRecursive(rootPath, files, inputDir);
+        }
+        for (Entry<String, File> entry : files.entrySet()) {
+            String path = entry.getKey();
+            File file = entry.getValue();
+            if (file.isDirectory()) {
+                if (!path.endsWith("/")) {
+                    path = path + "/";
+                }
+                ZipEntry dirEntry = new ZipEntry(path );
+                dirEntry.setTime(file.lastModified());
+                out.putNextEntry(dirEntry);
+            } else {
+                ZipEntry fileEntry = new ZipEntry(path);
+                fileEntry.setTime(file.lastModified());
+                out.putNextEntry(fileEntry);
+                Files.copy(file, out);
             }
-            ZipEntry dirEntry = new ZipEntry(path);
-            dirEntry.setTime(dir.lastModified());
-            out.putNextEntry(dirEntry);
+        }
+    }
+
+    private static void listFilesRecursive(String path, LinkedHashMap<String, File> files, File dir)
+    {
+        if (!path.isEmpty() && !path.endsWith("/")) {
+            path = path + "/";
         }
 
         for (File file : firstNonNull(dir.listFiles(), new File[0])) {
             String filePath = path + file.getName();
             if (file.isDirectory()) {
-                zipDirectory(out, filePath, file);
+                files.put(filePath, file);
+                listFilesRecursive(filePath, files, file);
             }
             else {
-                ZipEntry fileEntry = new ZipEntry(filePath);
-                fileEntry.setTime(file.lastModified());
-                out.putNextEntry(fileEntry);
-                Files.copy(file, out);
+                files.put(filePath, file);
             }
         }
     }
@@ -148,4 +171,5 @@ public class ConfigUtils
             }
         };
     }
+
 }

@@ -38,6 +38,7 @@ public class ConfigurationResource
         if (!configDir.isDirectory()) {
             return Response.status(Status.NOT_FOUND).build();
         }
+        final File defaultsDir = configurationStore.getDefaultsDir(environment);
 
         return Response.ok(new StreamingOutput()
         {
@@ -45,7 +46,11 @@ public class ConfigurationResource
             public void write(OutputStream output)
                     throws IOException, WebApplicationException
             {
-                ConfigUtils.packConfig(configDir, "", output);
+                if (defaultsDir != null) {
+                    ConfigUtils.packConfig(output, "", configDir, defaultsDir);
+                } else {
+                    ConfigUtils.packConfig(output, "", configDir);
+                }
             }
         }).build();
     }
