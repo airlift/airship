@@ -1,12 +1,22 @@
 package com.proofpoint.galaxy.standalone;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.NullOutputStream;
+import com.proofpoint.galaxy.coordinator.AwsProvisioner;
+import com.proofpoint.galaxy.coordinator.HttpRepository;
+import com.proofpoint.galaxy.coordinator.Instance;
+import com.proofpoint.galaxy.coordinator.MavenRepository;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.Repository;
+import com.proofpoint.galaxy.shared.RepositorySet;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.galaxy.standalone.CommanderFactory.ToUriFunction;
 import com.proofpoint.log.Logging;
 import com.proofpoint.log.LoggingConfiguration;
 import org.iq80.cli.Arguments;
@@ -32,7 +42,6 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.standalone.Column.binary;
 import static com.proofpoint.galaxy.standalone.Column.config;
-import static com.proofpoint.galaxy.standalone.Column.instanceType;
 import static com.proofpoint.galaxy.standalone.Column.ip;
 import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
@@ -43,6 +52,7 @@ import static org.iq80.cli.Cli.buildCli;
 public class Galaxy
 {
     private static final File CONFIG_FILE = new File(System.getProperty("user.home", "."), ".galaxyconfig");
+    private static final String GALAXY_VERSION = "0.8-SNAPSHOT";
 
     public static void main(String[] args)
             throws Exception
@@ -72,6 +82,8 @@ public class Galaxy
                 .withDescription("Manage environments")
                 .withDefaultCommand(Help.class)
                 .withCommands(EnvironmentProvisionLocal.class,
+                        EnvironmentProvisionAws.class,
+                        EnvironmentUse.class,
                         EnvironmentAdd.class);
 
         builder.withGroup("config")
@@ -101,13 +113,20 @@ public class Galaxy
 
             Config config = Config.loadConfig(CONFIG_FILE);
 
-            String environment = globalOptions.environment;
-            if (environment == null) {
+            String ref = globalOptions.environment;
+            if (ref == null) {
+                ref = config.get("environment.default");
+            }
+            if (ref == null) {
                 throw new RuntimeException("You must specify an environment.");
             }
-            String coordinator = config.get("environment." + environment + ".coordinator");
+            String environment = config.get("environment." + ref + ".name");
+            if (environment == null) {
+                throw new RuntimeException("Unknown environment " + ref);
+            }
+            String coordinator = config.get("environment." + ref + ".coordinator");
             if (coordinator == null) {
-                throw new RuntimeException("Unknown environment " + environment);
+                throw new RuntimeException("Environment " + ref + " does not have a coordinator url.  You can add a coordinator url with galaxy coordinator add <url>");
             }
 
             URI coordinatorUri = new URI(coordinator);
@@ -115,8 +134,8 @@ public class Galaxy
             Commander commander = new CommanderFactory()
                     .setEnvironment(environment)
                     .setCoordinatorUri(coordinatorUri)
-                    .setRepositories(config.getAll("environment." + environment + ".repository"))
-                    .setMavenDefaultGroupIds(config.getAll("environment." + environment + ".maven-group-id"))
+                    .setRepositories(config.getAll("environment." + ref + ".repository"))
+                    .setMavenDefaultGroupIds(config.getAll("environment." + ref + ".maven-group-id"))
                     .build();
 
             try {
@@ -180,7 +199,7 @@ public class Galaxy
                 System.out.println("No agents match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, instanceType, location);
+                TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, Column.instanceType, location);
                 tablePrinter.print(agents);
             }
         }
@@ -477,7 +496,7 @@ public class Galaxy
         }
     }
 
-    @Command(name = "add", description = "Provision a new agent")
+    @Command(name = "provision", description = "Provision a new agent")
     public static class AgentAddCommand extends GalaxyCommand
     {
         @Option(name = {"--count"}, description = "Number of agents to provision")
@@ -540,14 +559,17 @@ public class Galaxy
     @Command(name = "provision-local", description = "Provision a local environment")
     public static class EnvironmentProvisionLocal implements Callable<Void>
     {
+        @Option(name = "--name", description = "Environment name")
+        public String environment;
+
         @Option(name = "--repository", description = "Repository for binaries and configurations")
         public final List<String> repository = newArrayList();
 
         @Option(name = "--maven-default-group-id", description = "Default maven group-id")
         public final List<String> mavenDefaultGroupId = newArrayList();
 
-        @Arguments(usage = "<environment> <path>",
-                description = "Environment name and path for the environment")
+        @Arguments(usage = "<ref> <path>",
+                description = "Reference name and path for the environment")
         public List<String> args;
 
         @Override
@@ -555,26 +577,145 @@ public class Galaxy
                 throws Exception
         {
             if (args.size() != 2) {
-                throw new ParseException("You must specify an environment and path.");
+                throw new ParseException("You must specify a name and path.");
             }
 
-            String environment = args.get(0);
+            String ref = args.get(0);
             String path = args.get(1);
+            if (environment == null) {
+                environment = ref;
+            }
 
-            String coordinatorProperty = "environment." + environment + ".coordinator";
-            String repositoryProperty = "environment." + environment + ".repository";
-            String mavenGroupIdProperty = "environment." + environment + ".maven-group-id";
+            String nameProperty = "environment." + ref + ".name";
+            String coordinatorProperty = "environment." + ref + ".coordinator";
+            String repositoryProperty = "environment." + ref + ".repository";
+            String mavenGroupIdProperty = "environment." + ref + ".maven-group-id";
 
             Config config = Config.loadConfig(CONFIG_FILE);
-            if (config.get(coordinatorProperty) != null) {
-                throw new RuntimeException("Environment " + environment + " already exists");
+            if (config.get(nameProperty) != null) {
+                throw new RuntimeException("Environment " + ref + " already exists");
             }
+            config.set(nameProperty, environment);
             config.set(coordinatorProperty, path);
             for (String repo : repository) {
                 config.add(repositoryProperty, repo);
             }
             for (String groupId : mavenDefaultGroupId) {
                 config.add(mavenGroupIdProperty, groupId);
+            }
+            if (config.get("environment.default") == null) {
+                config.set("environment.default", ref);
+            }
+            config.save(CONFIG_FILE);
+            return null;
+        }
+    }
+
+    @Command(name = "provision-aws", description = "Provision an AWS environment")
+    public static class EnvironmentProvisionAws implements Callable<Void>
+    {
+        @Option(name = "--name", description = "Environment name")
+        public String environment;
+
+        @Option(name = "--aws-endpoint", description = "Amazon endpoint URL")
+        public String awsEndpoint;
+
+        @Option(name = "--ami", description = "Amazon Machine Image for EC2 instances")
+        public String ami = "ami-27b7744e";
+
+        @Option(name = "--key-pair", description = "Key pair for all EC2 instances")
+        public String keyPair = "keypair";
+
+        @Option(name = "--security-group", description = "Security group for all EC2 instances")
+        public String securityGroup = "default";
+
+        @Option(name = "--availability-zone", description = "EC2 availability zone for coordinator")
+        public String availabilityZone;
+
+        @Option(name = "--instance-type", description = "EC2 instance type for coordinator")
+        public String instanceType = "t1.micro";
+
+        @Option(name = "--coordinator-config", description = "Configuration for the coordinator")
+        public String coordinatorConfig;
+
+
+
+        @Option(name = "--repository", description = "Repository for binaries and configurations")
+        public final List<String> repository = newArrayList();
+
+        @Option(name = "--maven-default-group-id", description = "Default maven group-id")
+        public final List<String> mavenDefaultGroupId = newArrayList();
+
+        @Option(name = "--port", description = "Port for coordinator")
+        public int port = 64000;
+
+
+        @Arguments(description = "Reference name for the environment", required = true)
+        public String ref;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            Preconditions.checkNotNull(ref, "You must specify a name");
+
+            if (environment == null) {
+                environment = ref;
+            }
+
+            String nameProperty = "environment." + ref + ".name";
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            if (config.get(nameProperty) != null) {
+                throw new RuntimeException("Environment " + ref + " already exists");
+            }
+
+            String accessKey = config.get("aws.access-key");
+            Preconditions.checkNotNull(accessKey, "You must set the aws access-key with: galaxy config set aws.access-key <key>");
+            String secretKey = config.get("aws.secret-key");
+            Preconditions.checkNotNull(secretKey, "You must set the aws secret-key with: galaxy config set aws.secret-key <key>");
+
+
+            List<URI> repoBases = ImmutableList.copyOf(Lists.transform(repository, new ToUriFunction()));
+            Repository repository = new RepositorySet(ImmutableSet.<Repository>of(
+                    new MavenRepository(mavenDefaultGroupId, repoBases),
+                    new HttpRepository(repoBases, null, null, null)));
+
+            AmazonEC2Client ec2Client = new AmazonEC2Client(new BasicAWSCredentials(accessKey, secretKey));
+            if (awsEndpoint != null) {
+                ec2Client.setEndpoint(awsEndpoint);
+            }
+
+            AwsProvisioner provisioner = new AwsProvisioner(ec2Client,
+                    environment,
+                    GALAXY_VERSION,
+                    this.repository,
+                    awsEndpoint,
+                    accessKey,
+                    secretKey,
+                    ami,
+                    keyPair,
+                    securityGroup,
+                    instanceType,
+                    port,
+                    ami,
+                    keyPair,
+                    securityGroup,
+                    instanceType,
+                    port,
+                    repository);
+
+            List<Instance> instances = provisioner.provisionCoordinator(instanceType, availabilityZone);
+
+            config.set(nameProperty, environment);
+
+            String coordinatorProperty = "environment." + ref + ".coordinator";
+            for (Instance instance : instances) {
+//                config.set(coordinatorProperty, instance.getUri().toASCIIString());
+            }
+
+            if (config.get("environment.default") == null) {
+                config.set("environment.default", ref);
             }
             config.save(CONFIG_FILE);
             return null;
@@ -584,8 +725,11 @@ public class Galaxy
     @Command(name = "add", description = "Add an environment")
     public static class EnvironmentAdd implements Callable<Void>
     {
-        @Arguments(usage = "<environment> <coordinator-url>",
-                description = "Environment name and a coordinator url for the environment")
+        @Option(name = "--name", description = "Environment name")
+        public String environment;
+
+        @Arguments(usage = "<ref> <coordinator-url>",
+                description = "Reference name and a coordinator url for the environment")
         public List<String> args;
 
         @Override
@@ -596,16 +740,46 @@ public class Galaxy
                 throw new ParseException("You must specify an environment and a coordinator URL.");
             }
 
-            String environment = args.get(0);
+            String ref = args.get(0);
             String coordinatorUrl = args.get(1);
 
-            String coordinatorProperty = "environment." + environment + ".coordinator";
+            if (environment == null) {
+                environment = ref;
+            }
+
+            String nameProperty = "environment." + ref + ".name";
 
             Config config = Config.loadConfig(CONFIG_FILE);
-            if (config.get(coordinatorProperty) != null) {
-                throw new RuntimeException("Environment " + environment + " already exists");
+            if (config.get(nameProperty) != null) {
+                throw new RuntimeException("Environment " + ref + " already exists");
             }
-            config.set(coordinatorProperty, coordinatorUrl);
+
+            config.set(nameProperty, environment);
+            config.set("environment." + ref + ".coordinator", coordinatorUrl);
+            config.save(CONFIG_FILE);
+            return null;
+        }
+    }
+
+    @Command(name = "use", description = "Set the default environment")
+    public static class EnvironmentUse implements Callable<Void>
+    {
+        @Arguments(description = "Environment to make the default")
+        public String ref;
+
+        @Override
+        public Void call()
+                throws Exception
+        {
+            Preconditions.checkNotNull(ref, "You must specify an environment");
+
+            String nameProperty = "environment." + ref + ".name";
+
+            Config config = Config.loadConfig(CONFIG_FILE);
+            if (config.get(nameProperty) == null) {
+                throw new IllegalArgumentException("Unknown environment " + ref);
+            }
+            config.set("environment.default", ref);
             config.save(CONFIG_FILE);
             return null;
         }

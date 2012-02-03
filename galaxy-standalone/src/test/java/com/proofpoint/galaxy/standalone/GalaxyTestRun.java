@@ -1,64 +1,59 @@
 package com.proofpoint.galaxy.standalone;
 
-import com.google.common.collect.ObjectArrays;
-
 public class GalaxyTestRun
 {
-    private static final String[] LOCAL_GLOBAL_ARGS = {
-            // "--debug",
-            "--environment", "local"
-    };
-
-    private static final String[] REMOTE_GLOBAL_ARGS = {
-            // "--debug",
-            "--environment", "remote"
-    };
-
     public static void main(String[] args)
             throws Exception
     {
-        execute(new String[0], "environment", "provision-local", "local", "/tmp/local",
+//        execute(new String[0], "environment", "provision-aws", "prod",
+//                "--repository", "https://oss.sonatype.org/content/repositories/releases/",
+//                "--repository", "https://oss.sonatype.org/content/repositories/snapshots/",
+//                "--maven-default-group-id", "com.proofpoint.platform",
+//                "--key-pair", "dain");
+
+        execute("environment", "provision-local", "local", "/tmp/local",
+                "--name", "monkey",
                 "--repository", "https://oss.sonatype.org/content/repositories/releases/",
                 "--repository", "https://oss.sonatype.org/content/repositories/snapshots/",
                 "--repository", "http://localhost:64001/v1/config/test/",
                 "--maven-default-group-id", "com.proofpoint.platform"
         );
-        example(LOCAL_GLOBAL_ARGS);
+        execute("environment", "use", "local");
 
-//        execute(new String[0], "environment", "add", "remote", "http://localhost:64000");
-//        example(galaxyParser, REMOTE_GLOBAL_ARGS);
+        example();
+
     }
 
-    private static void example(String[] globalArgs)
+    private static void example()
             throws Exception
     {
-        execute(globalArgs, "show");
-        execute(globalArgs, "reset-to-actual", "-b", "*");
-        execute(globalArgs, "install", "sample-server:0.50", "@sample-server/general/1.0");
+        execute("show");
+        execute("reset-to-actual", "-b", "*");
+        execute("install", "sample-server:0.50", "@sample-server/general/1.0");
         Thread.sleep(2000);
-        execute(globalArgs, "show");
-        execute(globalArgs, "start", "-b", "*");
+        execute("show");
+        execute("start", "-b", "*");
         Thread.sleep(2000);
-        execute(globalArgs, "show");
-        execute(globalArgs, "upgrade", "-b", "*", "0.51");
+        execute("show");
+        execute("upgrade", "-b", "*", "0.51");
         Thread.sleep(2000);
-        execute(globalArgs, "show", "-b", "*");
-        execute(globalArgs, "restart", "-b", "*");
+        execute("show", "-b", "*");
+        execute("restart", "-b", "*");
         Thread.sleep(2000);
-        execute(globalArgs, "show", "-b", "*");
-        execute(globalArgs, "stop", "-b", "*");
+        execute("show", "-b", "*");
+        execute("stop", "-b", "*");
         Thread.sleep(2000);
-        execute(globalArgs, "show", "-b", "*");
-        execute(globalArgs, "terminate", "-b", "*");
+        execute("show", "-b", "*");
+        execute("terminate", "-b", "*");
         Thread.sleep(2000);
-        execute(globalArgs, "show", "-b", "*");
+        execute("show", "-b", "*");
     }
 
-    public static void execute(String[] defaultGlobalArgs, String... args)
+    public static void execute(String... args)
             throws Exception
     {
         System.out.println(args[0]);
-        Galaxy.main(ObjectArrays.concat(defaultGlobalArgs, args, String.class));
+        Galaxy.main(args);
         System.out.println();
         System.out.println();
     }

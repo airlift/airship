@@ -138,7 +138,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
+                            <!--<minimizeJar>true</minimizeJar>-->
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.proofpoint.galaxy.standalone.Galaxy</mainClass>

@@ -9,13 +9,25 @@ import java.util.concurrent.TimeUnit;
 
 public class AwsProvisionerConfig
 {
+    // todo move to credentials file
     private String awsAccessKey;
     private String awsSecretKey;
+
+    private String awsCoordinatorAmi;
+    private String awsCoordinatorKeypair;
+    private String awsCoordinatorSecurityGroup;
+    private String awsCoordinatorDefaultInstanceType;
+    // todo remove this
+    private int awsCoordinatorDefaultPort = 64000;
+
     private String awsAgentAmi;
     private String awsAgentKeypair;
     private String awsAgentSecurityGroup;
     private String awsAgentDefaultInstanceType;
+    // todo remove this
     private int awsAgentDefaultPort = 64002;
+
+    // todo add zone
     private String awsEndpoint;
     private String s3KeystoreBucket;
     private String s3KeystorePath;
@@ -47,6 +59,76 @@ public class AwsProvisionerConfig
     public String getAwsSecretKey()
     {
         return awsSecretKey;
+    }
+
+    @Config("coordinator.aws.coordinator.ami")
+    @ConfigDescription("AWS AMI for provisioned coordinators")
+    public AwsProvisionerConfig setAwsCoordinatorAmi(String awsCoordinatorAmi)
+    {
+        this.awsCoordinatorAmi = awsCoordinatorAmi;
+        return this;
+    }
+
+    @NotNull
+    public String getAwsCoordinatorAmi()
+    {
+        return awsCoordinatorAmi;
+    }
+
+    @Config("coordinator.aws.coordinator.keypair")
+    @ConfigDescription("AWS keypair for provisioned coordinators")
+    public AwsProvisionerConfig setAwsCoordinatorKeypair(String awsCoordinatorKeypair)
+    {
+        this.awsCoordinatorKeypair = awsCoordinatorKeypair;
+        return this;
+    }
+
+    @NotNull
+    public String getAwsCoordinatorKeypair()
+    {
+        return awsCoordinatorKeypair;
+    }
+
+    @Config("coordinator.aws.coordinator.security-group")
+    @ConfigDescription("AWS security group for provisioned coordinators")
+    public AwsProvisionerConfig setAwsCoordinatorSecurityGroup(String awsCoordinatorSecurityGroup)
+    {
+        this.awsCoordinatorSecurityGroup = awsCoordinatorSecurityGroup;
+        return this;
+    }
+
+    @NotNull
+    public String getAwsCoordinatorSecurityGroup()
+    {
+        return awsCoordinatorSecurityGroup;
+    }
+
+    @Config("coordinator.aws.coordinator.default-instance-type")
+    @ConfigDescription("AWS default instance type for provisioned coordinators")
+    public AwsProvisionerConfig setAwsCoordinatorDefaultInstanceType(String awsCoordinatorDefaultInstanceType)
+    {
+        this.awsCoordinatorDefaultInstanceType = awsCoordinatorDefaultInstanceType;
+        return this;
+    }
+
+    @NotNull
+    public String getAwsCoordinatorDefaultInstanceType()
+    {
+        return awsCoordinatorDefaultInstanceType;
+    }
+
+    @Config("coordinator.aws.coordinator.default-port")
+    @ConfigDescription("AWS default port for provisioned coordinators")
+    public AwsProvisionerConfig setAwsCoordinatorDefaultPort(int awsCoordinatorDefaultPort)
+    {
+        this.awsCoordinatorDefaultPort = awsCoordinatorDefaultPort;
+        return this;
+    }
+
+    @NotNull
+    public int getAwsCoordinatorDefaultPort()
+    {
+        return awsCoordinatorDefaultPort;
     }
 
     @Config("coordinator.aws.agent.ami")

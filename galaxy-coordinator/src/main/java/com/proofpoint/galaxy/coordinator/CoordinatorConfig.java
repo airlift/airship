@@ -25,15 +25,17 @@ import java.util.concurrent.TimeUnit;
 
 public class CoordinatorConfig
 {
+    private static final String DEFAULT_VERSION_PATTERN = "([0-9][0-9.]*[0-9](?:-SNAPSHOT)?)[^\\/]*$";
+
     private String galaxyVersion;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
-    private List<String> mavenRepoBases = ImmutableList.of();
-    private String defaultRepositoryGroupId;
+    private List<String> repositories = ImmutableList.of();
+    private List<String> defaultRepositoryGroupId = ImmutableList.of();
 
-    private List<String> httpRepoBases = ImmutableList.of();
-    private String httpRepoBinaryVersionPattern;
-    private String httpRepoConfigVersionPattern;
+    private String httpShortNamePattern = "([^\\/]+?)(?:-[0-9][0-9.]*(?:-SNAPSHOT)?)?(?:\\.config)?$";
+    private String httpRepoBinaryVersionPattern = DEFAULT_VERSION_PATTERN;
+    private String httpRepoConfigVersionPattern = DEFAULT_VERSION_PATTERN;
 
     @NotNull
     public String getGalaxyVersion()
@@ -62,21 +64,26 @@ public class CoordinatorConfig
     }
 
     @NotNull
-    public List<String> getMavenRepoBases()
+    public List<String> getRepositories()
     {
-        return mavenRepoBases;
+        return repositories;
     }
 
-    @Config("coordinator.maven-repo")
+    @Config("coordinator.repository")
     @LegacyConfig("coordinator.binary-repo")
-    public CoordinatorConfig setMavenRepoBases(String mavenRepoBases)
+    public CoordinatorConfig setRepositories(String repositories)
     {
-        this.mavenRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(mavenRepoBases));
+        this.repositories = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(repositories));
         return this;
     }
 
-    @NotNull
-    public String getDefaultRepositoryGroupId()
+    public CoordinatorConfig setRepositories(Iterable<String> repositories)
+    {
+        this.repositories = ImmutableList.copyOf(repositories);
+        return this;
+    }
+
+    public List<String> getDefaultRepositoryGroupId()
     {
         return defaultRepositoryGroupId;
     }
@@ -84,21 +91,25 @@ public class CoordinatorConfig
     @Config("coordinator.default-group-id")
     public CoordinatorConfig setDefaultRepositoryGroupId(String defaultRepositoryGroupId)
     {
-        this.defaultRepositoryGroupId = defaultRepositoryGroupId;
+        this.defaultRepositoryGroupId = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(defaultRepositoryGroupId));
         return this;
     }
 
-    @NotNull
-    public List<String> getHttpRepoBases()
+    public CoordinatorConfig setDefaultRepositoryGroupId(List<String> defaultRepositoryGroupId)
     {
-        return httpRepoBases;
+        this.defaultRepositoryGroupId = ImmutableList.copyOf(defaultRepositoryGroupId);
+        return this;
     }
 
-    @Config("coordinator.http-repo")
-    public CoordinatorConfig setHttpRepoBases(String httpRepoBases)
+    public String getHttpShortNamePattern()
     {
-        this.httpRepoBases = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(httpRepoBases));
-        return this;
+        return httpShortNamePattern;
+    }
+
+    @Config("coordinator.http-repo.short-name-pattern")
+    public void setHttpShortNamePattern(String httpShortNamePattern)
+    {
+        this.httpShortNamePattern = httpShortNamePattern;
     }
 
     public String getHttpRepoBinaryVersionPattern()

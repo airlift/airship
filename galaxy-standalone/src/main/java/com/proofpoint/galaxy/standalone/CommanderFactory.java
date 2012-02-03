@@ -14,6 +14,7 @@ import com.proofpoint.galaxy.agent.LauncherLifecycleManager;
 import com.proofpoint.galaxy.agent.LifecycleManager;
 import com.proofpoint.galaxy.agent.Slot;
 import com.proofpoint.galaxy.coordinator.Coordinator;
+import com.proofpoint.galaxy.coordinator.CoordinatorConfig;
 import com.proofpoint.galaxy.coordinator.HttpRepository;
 import com.proofpoint.galaxy.coordinator.HttpServiceInventory;
 import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
@@ -131,9 +132,12 @@ public class CommanderFactory
         //
         // Create coordinator
         //
+        CoordinatorConfig coordinatorConfig = new CoordinatorConfig()
+                .setRepositories(repositories)
+                .setDefaultRepositoryGroupId(mavenDefaultGroupIds);
         Repository repository = new RepositorySet(ImmutableSet.<Repository>of(
-                new MavenRepository(mavenDefaultGroupIds, repoBases),
-                new HttpRepository(repoBases, null, null, null)));
+                new MavenRepository(coordinatorConfig),
+                new HttpRepository(coordinatorConfig)));
         ServiceInventory serviceInventory = new HttpServiceInventory(repository, JsonCodec.listJsonCodec(ServiceDescriptor.class));
 
         Provisioner provisioner = new StandaloneProvisioner();
@@ -314,10 +318,13 @@ public class CommanderFactory
         }
     }
 
-    private static class ToUriFunction implements Function<String, URI>
+    public static class ToUriFunction implements Function<String, URI>
     {
         public URI apply(String uri)
         {
+            if (uri.endsWith("/")) {
+                uri = uri + "/";
+            }
             return URI.create(uri);
         }
     }

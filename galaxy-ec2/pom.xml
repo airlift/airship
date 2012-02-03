@@ -50,14 +50,14 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${basedir}/galaxy-cloudformation.json</file>
-                                    <type>json</type>
-                                    <classifier>cloudformation</classifier>
+                                    <file>${basedir}/galaxy-coordinator-install.sh</file>
+                                    <type>sh</type>
+                                    <classifier>coordinator-install</classifier>
                                 </artifact>
                                 <artifact>
-                                    <file>${basedir}/galaxy-install.rb</file>
-                                    <type>rb</type>
-                                    <classifier>install</classifier>
+                                    <file>${basedir}/galaxy-coordinator-install-prep.sh</file>
+                                    <type>sh</type>
+                                    <classifier>coordinator-install-prep</classifier>
                                 </artifact>
                                 <artifact>
                                     <file>${basedir}/galaxy-part-handler.py</file>
