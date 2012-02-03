@@ -273,11 +273,15 @@ public class Coordinator
         Map<String, Integer> resources = readResources(assignment);
 
         // create installation
+        URI binaryUri = repository.binaryToHttpUri(assignment.getBinary());
+        Preconditions.checkNotNull(binaryUri, "Unknown binary %s", binaryUri);
+        URI configUri = repository.configToHttpUri(assignment.getConfig());
+        Preconditions.checkNotNull(configUri, "Unknown config %s", configUri);
         Installation installation = new Installation(
                 repository.configShortName(assignment.getConfig()),
                 assignment,
-                repository.binaryToHttpUri(assignment.getBinary()),
-                repository.configToHttpUri(assignment.getConfig()),
+                binaryUri,
+                configUri,
                 resources);
 
         List<SlotStatus> slots = newArrayList();
