@@ -1,12 +1,12 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
-import com.google.common.base.Splitter;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.io.ByteProcessor;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
@@ -14,12 +14,18 @@ import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
 import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.galaxy.shared.Repository;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.MavenCoordinates.toBinaryGAV;
 import static com.proofpoint.galaxy.shared.MavenCoordinates.toConfigGAV;
@@ -32,25 +38,29 @@ public class MavenRepository implements Repository
 
     public MavenRepository(Iterable<String> defaultGroupIds, URI repositoryBase, URI... repositoryBases)
     {
-        this.defaultGroupIds = ImmutableList.copyOf(defaultGroupIds);
-        this.repositoryBases = ImmutableList.<URI>builder().add(repositoryBase).add(repositoryBases).build();
+        this(defaultGroupIds, ImmutableList.<URI>builder().add(repositoryBase).add(repositoryBases).build());
     }
 
     public MavenRepository(Iterable<String> defaultGroupIds, Iterable<URI> repositoryBases)
     {
         this.defaultGroupIds = ImmutableList.copyOf(defaultGroupIds);
+        for (URI uri : repositoryBases) {
+            Preconditions.checkArgument(uri.toASCIIString().endsWith("/"), "Uri must end with a '/' " + uri);
+        }
         this.repositoryBases = ImmutableList.copyOf(repositoryBases);
     }
 
     @Inject
     public MavenRepository(CoordinatorConfig config)
-            throws Exception
     {
-        this.defaultGroupIds = ImmutableList.copyOf(Splitter.on(",").trimResults().omitEmptyStrings().split(config.getDefaultRepositoryGroupId()));
+        if (config.getDefaultRepositoryGroupId() != null) {
+            this.defaultGroupIds = ImmutableList.copyOf(config.getDefaultRepositoryGroupId());
+        } else {
+            this.defaultGroupIds = ImmutableList.of();
+        }
 
         Builder<URI> builder = ImmutableList.builder();
-
-        for (String binaryRepoBase : config.getMavenRepoBases()) {
+        for (String binaryRepoBase : config.getRepositories()) {
             if (!binaryRepoBase.endsWith("/")) {
                 binaryRepoBase = binaryRepoBase + "/";
             }
@@ -79,11 +89,10 @@ public class MavenRepository implements Repository
         if (!config.startsWith("@")) {
             return null;
         }
-        config = config.substring(1);
 
         MavenCoordinates coordinates = MavenCoordinates.fromConfigGAV(config);
         if (coordinates == null) {
-            return config;
+            return config.substring(0).replaceAll(":", "_");
         }
         return coordinates.getArtifactId();
     }
@@ -194,7 +203,9 @@ public class MavenRepository implements Repository
     {
         // resolve binary spec groupId or snapshot version
         coordinates = resolve(coordinates);
-
+        if (coordinates == null) {
+            return null;
+        }
         List<URI> checkedUris = newArrayList();
         for (URI repositoryBase : repositoryBases) {
             // build the uri
@@ -302,7 +313,7 @@ public class MavenRepository implements Repository
                 builder.append(coordinates.getVersion()).append('/');
                 builder.append("maven-metadata.xml");
                 URI uri = repositoryBase.resolve(builder.toString());
-                MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(Resources.toString(uri.toURL(), Charsets.UTF_8));
+                MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(toString(uri));
 
                 for (SnapshotVersion snapshotVersion : metadata.versioning.snapshotVersions) {
                     if (coordinates.getPackaging().equals(snapshotVersion.extension) && Objects.equal(coordinates.getClassifier(), snapshotVersion.classifier)) {
@@ -322,6 +333,26 @@ public class MavenRepository implements Repository
             }
         }
         return null;
+    }
+
+    private String toString(URI uri)
+            throws IOException
+    {
+        final URL url = uri.toURL();
+        return CharStreams.toString(new InputSupplier<InputStreamReader>() {
+            @Override
+            public InputStreamReader getInput()
+                    throws IOException
+            {
+                URLConnection connection = url.openConnection();
+                if (connection instanceof HttpURLConnection) {
+                    HttpURLConnection httpConnection = (HttpURLConnection) connection;
+                    httpConnection.addRequestProperty("User-Agent", "User-Agent: Apache-Maven/3.0.3 (Java 1.6.0_29; Mac OS X 10.7.2)");
+                }
+                InputStream in = connection.getInputStream();
+                return new InputStreamReader(in, UTF_8);
+            }
+        });
     }
 
     private boolean isValidBinary(URI uri)
@@ -349,5 +380,16 @@ public class MavenRepository implements Repository
         catch (Exception ignored) {
         }
         return false;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("MavenRepository");
+        sb.append("{repositoryBases=").append(repositoryBases);
+        sb.append(", defaultGroupIds=").append(defaultGroupIds);
+        sb.append('}');
+        return sb.toString();
     }
 }
