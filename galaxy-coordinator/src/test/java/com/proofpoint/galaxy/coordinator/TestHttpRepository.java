@@ -31,7 +31,7 @@ public class TestHttpRepository
     public void configShortName()
             throws Exception
     {
-        Assert.assertEquals(repo.configShortName("apple-1.0.config"), "apple");
+        Assert.assertEquals(repo.configShortName("@apple-1.0.config"), "apple");
     }
 
     @Test
