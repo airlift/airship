@@ -8,5 +8,5 @@ mkdir -p /mnt/galaxy
 chown ubuntu:ubuntu /mnt/galaxy
 
 # run main installer as ubuntu
-chmod 755 /home/ubuntu/cloudconf/galaxy-coordinator-install.sh
-su -l -c /home/ubuntu/cloudconf/galaxy-coordinator-install.sh ubuntu
+chmod 755 /home/ubuntu/cloudconf/galaxy-install.sh
+su -l -c /home/ubuntu/cloudconf/galaxy-install.sh ubuntu

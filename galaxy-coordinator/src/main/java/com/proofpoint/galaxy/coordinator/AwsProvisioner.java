@@ -426,8 +426,8 @@ public class AwsProvisioner implements Provisioner
 
         URI partHandler = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler", null));
         URI galaxyCli = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-standalone", galaxyVersion, "jar", "executable", null));
-        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "coordinator-install-prep", null));
-        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "coordinator-install", null));
+        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "install", null));
+        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "install-prep", null));
 
         List<String> lines = newArrayList();
         addAll(lines,
@@ -452,17 +452,18 @@ public class AwsProvisioner implements Provisioner
                 boundaryLine,
 
                 contentTypeText, mimeVersion, encodingText, format(attachmentFormat, "installer.properties"), "",
-                property("galaxyVersion", galaxyVersion),
                 property("galaxyEnvironment", environment),
+                property("galaxyInstallBinary", "com.proofpoint.galaxy:galaxy-coordinator:" + galaxyVersion),
+                property("galaxyInstallConfig", "@galaxy-coordinator.config"),
                 "",
                 boundaryLine,
 
-                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-coordinator-install.sh"), "",
+                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-install.sh"), "",
                 coordinatorInstall.toASCIIString(),
                 "",
                 boundaryLine ,
 
-                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-coordinator-install-prep.sh"), "",
+                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-install-prep.sh"), "",
                 coordinatorInstallPrep.toASCIIString(),
                 "",
                 boundaryLine

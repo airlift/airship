@@ -5,7 +5,7 @@ public class GalaxyTestRun
     public static void main(String[] args)
             throws Exception
     {
-//        execute(new String[0], "environment", "provision-aws", "prod",
+//        execute("environment", "provision-aws", "prod",
 //                "--repository", "https://oss.sonatype.org/content/repositories/releases/",
 //                "--repository", "https://oss.sonatype.org/content/repositories/snapshots/",
 //                "--maven-default-group-id", "com.proofpoint.platform",

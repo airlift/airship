@@ -7,7 +7,8 @@ do
 done
 
 x=${galaxyEnvironment?install.properties does not contain a value for galaxyEnvironment}
-x=${galaxyVersion?install.properties does not contain a value for galaxyVersion}
+x=${galaxyInstallBinary?install.properties does not contain a value for galaxyInstallBinary}
+x=${galaxyInstallConfig?install.properties does not contain a value for galaxyInstallConfig}
 
 # install galaxy
 mkdir -p /home/ubuntu/bin
@@ -21,7 +22,7 @@ export PATH=$PATH:/home/ubuntu/bin
 
 # create local repository
 mkdir -p /home/ubuntu/local-repository
-cp /home/ubuntu/cloudconf/galaxy-coordinator.config /home/ubuntu/local-repository
+cp /home/ubuntu/cloudconf/*.config /home/ubuntu/local-repository
 
 # setup filesystem environment (must be named $targetEnvironment)
 galaxy environment provision-local galaxy /mnt/galaxy/ \
@@ -34,14 +35,15 @@ galaxy environment provision-local galaxy /mnt/galaxy/ \
 # use the filesystem environment as the default (should already be set, but be careful)
 galaxy environment use galaxy
 
-# todo add symlink to /mnt/galaxy
+# add symlink to /mnt/galaxy
+ln -n -f -s /mnt/galaxy /home/ubuntu/galaxy
 
-# install galaxy coordinator
-galaxy install galaxy-coordinator:${galaxyVersion} @galaxy-coordinator.config
+# install server
+galaxy install ${galaxyInstallBinary} ${galaxyInstallConfig}
 
-# start coordinator
-galaxy start -c '@galaxy-coordinator.config'
+# start server
+galaxy start -c ${galaxyInstallConfig}
 
-# add target evironment
+# add target environment
 galaxy environment add ${galaxyEnvironment} http://127.0.0.1:64000/
 galaxy environment use ${galaxyEnvironment}

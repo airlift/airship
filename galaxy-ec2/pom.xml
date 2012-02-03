@@ -50,14 +50,14 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${basedir}/galaxy-coordinator-install.sh</file>
+                                    <file>${basedir}/galaxy-install.sh</file>
                                     <type>sh</type>
-                                    <classifier>coordinator-install</classifier>
+                                    <classifier>install</classifier>
                                 </artifact>
                                 <artifact>
-                                    <file>${basedir}/galaxy-coordinator-install-prep.sh</file>
+                                    <file>${basedir}/galaxy-install-prep.sh</file>
                                     <type>sh</type>
-                                    <classifier>coordinator-install-prep</classifier>
+                                    <classifier>install-prep</classifier>
                                 </artifact>
                                 <artifact>
                                     <file>${basedir}/galaxy-part-handler.py</file>
