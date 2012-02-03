@@ -32,7 +32,7 @@ import static com.proofpoint.galaxy.shared.MavenCoordinates.toConfigGAV;
 
 public class MavenRepository implements Repository
 {
-    private static final Pattern TIMESTAMP_VERSION = Pattern.compile("^(.+)-[0-9]{8}\\.[0-9]{6}\\-[0-9]$");
+    private static final Pattern TIMESTAMP_VERSION = Pattern.compile("^(.+)-[0-9]{8}\\.[0-9]{6}\\-[0-9]+$");
     private final List<String> defaultGroupIds;
     private final List<URI> repositoryBases;
 
