@@ -39,7 +39,6 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentKeypair(null)
                 .setAwsAgentSecurityGroup(null)
                 .setAwsAgentDefaultInstanceType(null)
-                .setAwsAgentDefaultPort(64002)
                 .setS3KeystoreBucket(null)
                 .setS3KeystorePath(null)
                 .setS3KeystoreRefreshInterval(new Duration(10, TimeUnit.SECONDS))
@@ -60,7 +59,6 @@ public class TestAwsProvisionerConfig
                 .put("coordinator.aws.agent.keypair", "a-keypair")
                 .put("coordinator.aws.agent.security-group", "a-default")
                 .put("coordinator.aws.agent.default-instance-type", "a-t1.micro")
-                .put("coordinator.aws.agent.default-port", "99")
                 .put("coordinator.aws.s3-keystore.bucket", "bucket")
                 .put("coordinator.aws.s3-keystore.path", "path")
                 .put("coordinator.aws.s3-keystore.refresh", "30s")
@@ -77,7 +75,6 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentKeypair("a-keypair")
                 .setAwsAgentSecurityGroup("a-default")
                 .setAwsAgentDefaultInstanceType("a-t1.micro")
-                .setAwsAgentDefaultPort(99)
                 .setS3KeystoreBucket("bucket")
                 .setS3KeystorePath("path")
                 .setS3KeystoreRefreshInterval(new Duration(30, TimeUnit.SECONDS));

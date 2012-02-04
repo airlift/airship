@@ -17,29 +17,26 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
+import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.galaxy.shared.Repository;
+import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.shared.ConfigUtils.newConfigEntrySupplier;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.DEFAULT_CONFIG_PACKAGING;
+import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
 import static java.lang.String.format;
 import static java.util.Collections.addAll;
 
@@ -58,11 +55,12 @@ public class AwsProvisioner implements Provisioner
     private final String coordinatorSecurityGroup;
     private final String coordinatorDefaultInstanceType;
 
+    private final String agentDefaultConfig;
+
     private final String agentAmi;
     private final String agentKeypair;
     private final String agentSecurityGroup;
     private final String agentDefaultInstanceType;
-    private final int agentDefaultPort;
 
     private final Repository repository;
 
@@ -93,11 +91,12 @@ public class AwsProvisioner implements Provisioner
         coordinatorSecurityGroup = awsProvisionerConfig.getAwsCoordinatorSecurityGroup();
         coordinatorDefaultInstanceType = awsProvisionerConfig.getAwsCoordinatorDefaultInstanceType();
 
+        agentDefaultConfig = coordinatorConfig.getAgentDefaultConfig();
+
         agentAmi = awsProvisionerConfig.getAwsAgentAmi();
         agentKeypair = awsProvisionerConfig.getAwsAgentKeypair();
         agentSecurityGroup = awsProvisionerConfig.getAwsAgentSecurityGroup();
         agentDefaultInstanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
-        agentDefaultPort = awsProvisionerConfig.getAwsAgentDefaultPort();
 
         this.repository = checkNotNull(repository, "repository is null");
     }
@@ -217,12 +216,20 @@ public class AwsProvisioner implements Provisioner
     }
 
     @Override
-    public List<Instance> provisionAgents(int agentCount, String instanceType, String availabilityZone)
+    public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
             throws Exception
     {
         if (instanceType == null) {
             instanceType = agentDefaultInstanceType;
         }
+        if (agentConfig == null) {
+            agentConfig = agentDefaultConfig;
+
+        }
+        agentConfig = agentConfig.replaceAll(Pattern.quote("${instanceType}"), instanceType);
+
+        ConfigurationFactory configurationFactory = createConfigurationFactory(repository, agentConfig);
+        HttpServerConfig httpServerConfig = configurationFactory.build(HttpServerConfig.class);
 
         List<BlockDeviceMapping> blockDeviceMappings = ImmutableList.<BlockDeviceMapping>builder()
                 .add(new BlockDeviceMapping().withVirtualName("ephemeral0").withDeviceName("/dev/sdb"))
@@ -237,7 +244,7 @@ public class AwsProvisioner implements Provisioner
                 .withSecurityGroups(agentSecurityGroup)
                 .withInstanceType(instanceType)
                 .withPlacement(new Placement(availabilityZone))
-                .withUserData(getAgentUserData(instanceType))
+                .withUserData(getAgentUserData(instanceType, agentConfig, repositories))
                 .withBlockDeviceMappings(blockDeviceMappings)
                 .withMinCount(agentCount)
                 .withMaxCount(agentCount);
@@ -258,7 +265,7 @@ public class AwsProvisioner implements Provisioner
                 .add(new Tag("Name", format("galaxy-%s-agent", environment)))
                 .add(new Tag("galaxy:role", "agent"))
                 .add(new Tag("galaxy:environment", environment))
-                .add(new Tag("galaxy:port", String.valueOf(agentDefaultPort)))
+                .add(new Tag("galaxy:port", String.valueOf(httpServerConfig.getHttpPort())))
                 .build();
         createInstanceTagsWithRetry(instanceIds, tags);
 
@@ -286,24 +293,27 @@ public class AwsProvisioner implements Provisioner
         log.error(lastException, "failed to create tags for instances: %s", instanceIds);
     }
 
-    private String getAgentUserData(String instanceType)
+    private String getAgentUserData(String instanceType, String agentConfig, List<String> repositories)
     {
-        return encodeBase64(getRawAgentUserData(instanceType));
+        return encodeBase64(getRawAgentUserData(instanceType, agentConfig, repositories));
     }
 
     @VisibleForTesting
-    String getRawAgentUserData(String instanceType)
+    String getRawAgentUserData(String instanceType, String agentConfig, List<String> repositories)
     {
         String boundary = "===============884613ba9e744d0c851955611107553e==";
         String boundaryLine = "--" + boundary;
         String mimeVersion = "MIME-Version: 1.0";
-        String encoding = "Content-Transfer-Encoding: 7bit";
-        String contentTypeUrl = "Content-Type: text/x-include-url; charset=\"us-ascii\"";
+        String encodingText = "Content-Transfer-Encoding: 7bit";
+        String contentExecUrl = "Content-Type: text/x-include-url; charset=\"us-ascii\"";
+        String contentDownloadUrl = "Content-Type: text/x-url";
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
 
         URI partHandler = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler", null));
-        URI installScript = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "rb", "install", null));
+        URI galaxyCli = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-standalone", galaxyVersion, "jar", "executable", null));
+        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "install", null));
+        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "install-prep", null));
 
         List<String> lines = newArrayList();
         addAll(lines,
@@ -311,52 +321,35 @@ public class AwsProvisioner implements Provisioner
                 "",
                 boundaryLine,
 
-                contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-part-handler.py"), "",
+                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-part-handler.py"), "",
                 partHandler.toString(),
                 "",
                 boundaryLine,
 
-                contentTypeText, mimeVersion, encoding, format(attachmentFormat, "installer.properties"), "",
-                property("galaxy.version", galaxyVersion),
-                property("environment", environment),
-                "artifacts=galaxy-agent",
+                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy"), "",
+                galaxyCli.toASCIIString(),
                 "",
                 boundaryLine,
 
-                contentTypeText, mimeVersion, encoding, format(attachmentFormat, "galaxy-agent.properties"), "",
-                property("http-server.http.port", agentDefaultPort),
+                contentTypeText, mimeVersion, encodingText, format(attachmentFormat, "installer.properties"), "",
+                property("galaxyEnvironment", environment),
+                property("galaxyInstallBinary", "com.proofpoint.galaxy:galaxy-agent:" + galaxyVersion),
+                property("galaxyInstallConfig", agentConfig),
+                property("galaxyRepositoryUris", Joiner.on(',').join(repositories)),
                 "",
                 boundaryLine,
 
-                contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-install.rb"), "",
-                installScript.toString(),
+                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-install.sh"), "",
+                coordinatorInstall.toASCIIString(),
+                "",
+                boundaryLine ,
+
+                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-install-prep.sh"), "",
+                coordinatorInstallPrep.toASCIIString(),
                 "",
                 boundaryLine
         );
 
-
-        String configArtifactId = "agent";
-        if (instanceType != null) {
-            configArtifactId = configArtifactId + "-" + instanceType;
-        }
-        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(repository,
-                new MavenCoordinates(null, configArtifactId, galaxyVersion, DEFAULT_CONFIG_PACKAGING, null, null).toGAV(),
-                "etc/resources.properties");
-        if (resourcesFile != null) {
-            try {
-                String resourcesProperties = CharStreams.toString(CharStreams.newReaderSupplier(resourcesFile, Charsets.UTF_8));
-                addAll(lines,
-                        contentTypeUrl, mimeVersion, encoding, format(attachmentFormat, "galaxy-agent-resources.properties"), "",
-                        resourcesProperties,
-                        "",
-                        boundaryLine);
-            }
-            catch (FileNotFoundException ignored) {
-            }
-            catch (IOException e) {
-                throw new RuntimeException("Error reading agent resources file");
-            }
-        }
         return Joiner.on('\n').skipNulls().join(lines);
     }
 

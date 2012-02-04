@@ -167,7 +167,7 @@ public class CommanderFactory
         }
 
         @Override
-        public List<Instance> provisionAgents(int agentCount, String instanceType, String availabilityZone)
+        public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
                 throws Exception
         {
             throw new UnsupportedOperationException("Agents can not be provisioned in Galaxy standalone");

@@ -1,6 +1,5 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
@@ -71,7 +70,7 @@ public class StaticProvisioner implements Provisioner
     }
 
     @Override
-    public List<Instance> provisionAgents(int agentCount, String instanceType, String availabilityZone)
+    public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
             throws Exception
     {
         throw new UnsupportedOperationException("Static provisioner does not support agent provisioning");

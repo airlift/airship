@@ -92,6 +92,7 @@ public class TestCoordinatorServer
                 .put("galaxy.version", "123")
                 .put("coordinator.binary-repo", "http://localhost:9999/")
                 .put("coordinator.default-group-id", "prod")
+                .put("coordinator.agent.default-config", "@agent.config")
                 .put("coordinator.aws.access-key", "my-access-key")
                 .put("coordinator.aws.secret-key", "my-secret-key")
                 .put("coordinator.aws.agent.ami", "ami-0123abcd")

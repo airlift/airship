@@ -20,8 +20,6 @@ public class AwsProvisionerConfig
     private String awsAgentKeypair;
     private String awsAgentSecurityGroup;
     private String awsAgentDefaultInstanceType;
-    // todo remove this
-    private int awsAgentDefaultPort = 64002;
 
     // todo add zone
     private String awsEndpoint;
@@ -153,20 +151,6 @@ public class AwsProvisionerConfig
     public String getAwsAgentDefaultInstanceType()
     {
         return awsAgentDefaultInstanceType;
-    }
-
-    @Config("coordinator.aws.agent.default-port")
-    @ConfigDescription("AWS default port for provisioned agents")
-    public AwsProvisionerConfig setAwsAgentDefaultPort(int awsAgentDefaultPort)
-    {
-        this.awsAgentDefaultPort = awsAgentDefaultPort;
-        return this;
-    }
-
-    @NotNull
-    public int getAwsAgentDefaultPort()
-    {
-        return awsAgentDefaultPort;
     }
 
     @Config("coordinator.aws.endpoint")

@@ -11,7 +11,7 @@ import static org.iq80.cli.OptionType.GLOBAL;
 
 public class GlobalOptions
 {
-    @Option(type = GLOBAL, name = "--environment", description = "Galaxy environment")
+    @Option(type = GLOBAL, name = {"-e", "--environment"}, description = "Galaxy environment")
     public String environment;
 
     @Option(type = GLOBAL, name = "--debug", description = "Enable debug messages")

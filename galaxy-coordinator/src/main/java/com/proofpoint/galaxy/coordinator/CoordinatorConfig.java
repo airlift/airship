@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.proofpoint.configuration.Config;
+import com.proofpoint.configuration.ConfigDescription;
 import com.proofpoint.configuration.LegacyConfig;
 import com.proofpoint.units.Duration;
 
@@ -29,6 +30,8 @@ public class CoordinatorConfig
 
     private String galaxyVersion;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
+
+    private String agentDefaultConfig;
 
     private List<String> repositories = ImmutableList.of();
     private List<String> defaultRepositoryGroupId = ImmutableList.of();
@@ -67,6 +70,20 @@ public class CoordinatorConfig
     public List<String> getRepositories()
     {
         return repositories;
+    }
+
+    @Config("coordinator.agent.default-config")
+    @ConfigDescription("Default config for provisioned agents")
+    public CoordinatorConfig setAgentDefaultConfig(String agentDefaultConfig)
+    {
+        this.agentDefaultConfig = agentDefaultConfig;
+        return this;
+    }
+
+    @NotNull
+    public String getAgentDefaultConfig()
+    {
+        return agentDefaultConfig;
     }
 
     @Config("coordinator.repository")

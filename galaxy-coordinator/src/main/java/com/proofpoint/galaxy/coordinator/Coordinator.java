@@ -220,7 +220,7 @@ public class Coordinator
     public List<AgentStatus> addAgents(int count, String instanceType, String availabilityZone)
             throws Exception
     {
-        List<Instance> instances = provisioner.provisionAgents(count, instanceType, availabilityZone);
+        List<Instance> instances = provisioner.provisionAgents(null, count, instanceType, availabilityZone);
 
         List<AgentStatus> agents = newArrayList();
         for (Instance instance : instances) {

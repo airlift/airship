@@ -10,7 +10,10 @@ x=${galaxyEnvironment?install.properties does not contain a value for galaxyEnvi
 x=${galaxyInstallBinary?install.properties does not contain a value for galaxyInstallBinary}
 x=${galaxyInstallConfig?install.properties does not contain a value for galaxyInstallConfig}
 x=${galaxyRepositoryUris?install.properties does not contain a value for galaxyRepositoryUris}
-x=${galaxyAwsCredentialsFile?install.properties does not contain a value for galaxyAwsCredentialsFile}
+if [ -e /home/ubuntu/cloudconf/aws-credentials.properties ]
+then
+    x=${galaxyAwsCredentialsFile?install.properties does not contain a value for galaxyAwsCredentialsFile}
+fi
 
 repos=$(for i in $(echo $galaxyRepositoryUris | tr , ' '); do echo "--repository $i"; done)
 
@@ -39,12 +42,15 @@ ln -n -f -s /mnt/galaxy /home/ubuntu/galaxy
 # install server
 galaxy install ${galaxyInstallBinary} ${galaxyInstallConfig}
 
-# copy aws credentials to server
-# todo ssh is broken in aws
-#galaxy ssh -c @coordinator.config "mkdir -p $(dirname ${galaxyAwsCredentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${galaxyAwsCredentialsFile}"
+if [ -e /home/ubuntu/cloudconf/aws-credentials.properties ]
+then
+    # copy aws credentials to server
+    # todo ssh is broken in aws
+    #galaxy ssh -c @coordinator.config "mkdir -p $(dirname ${galaxyAwsCredentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${galaxyAwsCredentialsFile}"
 
-credentialsFile=/mnt/galaxy/coordinator/data/${galaxyAwsCredentialsFile}
-mkdir -p $(dirname ${credentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${credentialsFile}
+    credentialsFile=/mnt/galaxy/coordinator/data/${galaxyAwsCredentialsFile}
+    mkdir -p $(dirname ${credentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${credentialsFile}
+fi
 
 # start server
 galaxy start -c ${galaxyInstallConfig}

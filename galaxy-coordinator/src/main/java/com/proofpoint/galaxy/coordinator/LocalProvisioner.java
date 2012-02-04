@@ -50,7 +50,7 @@ public class LocalProvisioner implements Provisioner
     }
 
     @Override
-    public List<Instance> provisionAgents(int agentCount, String instanceType, String availabilityZone)
+    public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
             throws Exception
     {
         throw new UnsupportedOperationException("Agent provisioning not supported in local mode");

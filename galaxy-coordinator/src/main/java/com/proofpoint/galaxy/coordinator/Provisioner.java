@@ -6,7 +6,7 @@ public interface Provisioner
 {
     List<Instance> listAgents();
 
-    List<Instance> provisionAgents(int agentCount, String instanceType, String availabilityZone)
+    List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
             throws Exception;
 
     void terminateAgents(List<String> instanceIds);

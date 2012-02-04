@@ -138,6 +138,7 @@ public class TestServerIntegration
                 .put("coordinator.default-group-id", "prod")
                 .put("coordinator.binary-repo.local", localBinaryRepoDir.toString())
                 .put("coordinator.status.expiration", "100d")
+                .put("coordinator.agent.default-config", "@agent.config")
                 .put("coordinator.aws.access-key", "my-access-key")
                 .put("coordinator.aws.secret-key", "my-secret-key")
                 .put("coordinator.aws.agent.ami", "ami-0123abcd")

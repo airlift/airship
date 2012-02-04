@@ -1,10 +1,12 @@
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
+import com.proofpoint.configuration.ConfigurationFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -20,7 +22,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -197,4 +201,26 @@ public class ConfigUtils
         };
     }
 
+    public static ConfigurationFactory createConfigurationFactory(Repository repository, String config)
+            throws IOException
+    {
+        URI configUri = repository.configToHttpUri(config);
+        Preconditions.checkNotNull(configUri, "Unknown configuration: " + config);
+        return createConfigurationFactory(configUri);
+    }
+
+    public static ConfigurationFactory createConfigurationFactory(URI configUri)
+            throws IOException
+    {
+        Properties properties = new Properties();
+        InputSupplier<InputStream> configPropertiesStream = newConfigEntrySupplier(configUri, "etc/config.properties");
+        InputStream input = configPropertiesStream.getInput();
+        try {
+            properties.load(input);
+        } finally {
+            input.close();
+        }
+
+        return new ConfigurationFactory((Map<String,String>) (Object) properties);
+    }
 }

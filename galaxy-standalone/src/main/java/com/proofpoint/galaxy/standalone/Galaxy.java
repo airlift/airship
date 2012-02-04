@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.io.InputSupplier;
 import com.google.common.io.NullOutputStream;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.galaxy.coordinator.AwsProvisioner;
@@ -17,7 +16,6 @@ import com.proofpoint.galaxy.coordinator.HttpRepository;
 import com.proofpoint.galaxy.coordinator.Instance;
 import com.proofpoint.galaxy.coordinator.MavenRepository;
 import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.ConfigUtils;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.RepositorySet;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
@@ -37,16 +35,14 @@ import org.iq80.cli.ParseException;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -62,7 +58,6 @@ import static org.iq80.cli.Cli.buildCli;
 public class Galaxy
 {
     private static final File CONFIG_FILE = new File(System.getProperty("user.home", "."), ".galaxyconfig");
-    private static final String GALAXY_VERSION = "0.8-SNAPSHOT";
 
     public static void main(String[] args)
             throws Exception
@@ -685,13 +680,9 @@ public class Galaxy
                     new MavenRepository(mavenDefaultGroupId, repoBases),
                     new HttpRepository(repoBases, null, null, null)));
 
-            // find the coordinator configuration in the repository
-            URI configUri = repository.configToHttpUri(coordinatorConfig);
-            Preconditions.checkNotNull(configUri, "Unknown coordinator configuration: " + coordinatorConfig);
-
             // use the coordinator configuration to build the provisioner
             // This causes the defaults to be initialized using the new coordinator's configuration
-            ConfigurationFactory configurationFactory = createConfigurationFactory(configUri);
+            ConfigurationFactory configurationFactory = createConfigurationFactory(repository, coordinatorConfig);
 
             // todo print better error message here
             AwsProvisionerConfig awsProvisionerConfig = configurationFactory.build(AwsProvisionerConfig .class);
@@ -737,21 +728,6 @@ public class Galaxy
             }
             config.save(CONFIG_FILE);
             return null;
-        }
-
-        private ConfigurationFactory createConfigurationFactory(URI configUri)
-                throws IOException
-        {
-            Properties properties = new Properties();
-            InputSupplier<InputStream> configPropertiesStream = ConfigUtils.newConfigEntrySupplier(configUri, "etc/config.properties");
-            InputStream input = configPropertiesStream.getInput();
-            try {
-                properties.load(input);
-            } finally {
-                input.close();
-            }
-
-            return new ConfigurationFactory((Map<String,String>) (Object) properties);
         }
     }
 
