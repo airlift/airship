@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.BlockDeviceMapping;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
@@ -25,7 +26,6 @@ import com.proofpoint.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
@@ -49,21 +47,16 @@ public class AwsProvisioner implements Provisioner
 {
     private static final Logger log = Logger.get(AwsProvisioner.class);
 
+    private final AWSCredentials awsCredentials;
     private final AmazonEC2 ec2Client;
     private final String environment;
     private final String galaxyVersion;
     private List<String> repositories;
 
-    private String awsEndpoint;
-
-    private String accessKey;
-    private String secretKey;
-
     private final String coordinatorAmi;
     private final String coordinatorKeypair;
     private final String coordinatorSecurityGroup;
     private final String coordinatorDefaultInstanceType;
-    private final int coordinatorDefaultPort;
 
     private final String agentAmi;
     private final String agentKeypair;
@@ -76,12 +69,14 @@ public class AwsProvisioner implements Provisioner
     private final Set<String> invalidInstances = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     @Inject
-    public AwsProvisioner(AmazonEC2 ec2Client,
+    public AwsProvisioner(AWSCredentials awsCredentials,
+            AmazonEC2 ec2Client,
             NodeInfo nodeInfo,
             Repository repository,
             CoordinatorConfig coordinatorConfig,
             AwsProvisionerConfig awsProvisionerConfig)
     {
+        this.awsCredentials = checkNotNull(awsCredentials, "awsCredentials is null");
         this.ec2Client = checkNotNull(ec2Client, "ec2Client is null");
 
         checkNotNull(nodeInfo, "nodeInfo is null");
@@ -93,16 +88,10 @@ public class AwsProvisioner implements Provisioner
 
         checkNotNull(awsProvisionerConfig, "awsConfig is null");
 
-        awsEndpoint = awsProvisionerConfig.getAwsEndpoint();
-
-        accessKey = awsProvisionerConfig.getAwsAccessKey();
-        secretKey = awsProvisionerConfig.getAwsSecretKey();
-
         coordinatorAmi = awsProvisionerConfig.getAwsCoordinatorAmi();
         coordinatorKeypair = awsProvisionerConfig.getAwsCoordinatorKeypair();
         coordinatorSecurityGroup = awsProvisionerConfig.getAwsCoordinatorSecurityGroup();
         coordinatorDefaultInstanceType = awsProvisionerConfig.getAwsCoordinatorDefaultInstanceType();
-        coordinatorDefaultPort = awsProvisionerConfig.getAwsCoordinatorDefaultPort();
 
         agentAmi = awsProvisionerConfig.getAwsAgentAmi();
         agentKeypair = awsProvisionerConfig.getAwsAgentKeypair();
@@ -111,51 +100,6 @@ public class AwsProvisioner implements Provisioner
         agentDefaultPort = awsProvisionerConfig.getAwsAgentDefaultPort();
 
         this.repository = checkNotNull(repository, "repository is null");
-    }
-
-    public AwsProvisioner(AmazonEC2 ec2Client,
-            String environment,
-            String galaxyVersion,
-            List<String> repositories,
-            String awsEndpoint,
-            String accessKey,
-            String secretKey,
-            String coordinatorAmi,
-            String coordinatorKeypair,
-            String coordinatorSecurityGroup,
-            String coordinatorDefaultInstanceType,
-            int coordinatorDefaultPort,
-            String agentAmi,
-            String agentKeypair,
-            String agentSecurityGroup, String agentDefaultInstanceType, int agentDefaultPort, Repository repository)
-    {
-        Preconditions.checkNotNull(ec2Client, "ec2Client is null");
-        Preconditions.checkNotNull(environment, "environment is null");
-        Preconditions.checkNotNull(galaxyVersion, "galaxyVersion is null");
-
-        this.ec2Client = ec2Client;
-        this.environment = environment;
-        this.galaxyVersion = galaxyVersion;
-        this.repositories = repositories;
-
-        this.awsEndpoint = awsEndpoint;
-
-        this.accessKey = accessKey;
-        this.secretKey = secretKey;
-
-        this.coordinatorAmi = coordinatorAmi;
-        this.coordinatorKeypair = coordinatorKeypair;
-        this.coordinatorSecurityGroup = coordinatorSecurityGroup;
-        this.coordinatorDefaultInstanceType = coordinatorDefaultInstanceType;
-        this.coordinatorDefaultPort = coordinatorDefaultPort;
-
-        this.agentAmi = agentAmi;
-        this.agentKeypair = agentKeypair;
-        this.agentSecurityGroup = agentSecurityGroup;
-        this.agentDefaultInstanceType = agentDefaultInstanceType;
-        this.agentDefaultPort = agentDefaultPort;
-
-        this.repository = repository;
     }
 
     @Override
@@ -204,11 +148,28 @@ public class AwsProvisioner implements Provisioner
         return instances;
     }
 
-    public List<Instance> provisionCoordinator(String instanceType, String availabilityZone)
+    public List<Instance> provisionCoordinator(String coordinatorConfig,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup,
+            int coordinatorPort,
+            String awsCredentialsFile,
+            List<String> repositories)
             throws Exception
     {
         if (instanceType == null) {
             instanceType = coordinatorDefaultInstanceType;
+        }
+        if (ami == null) {
+            ami = coordinatorAmi;
+        }
+        if (keyPair == null) {
+            keyPair = coordinatorKeypair;
+        }
+        if (securityGroup == null) {
+            securityGroup = coordinatorSecurityGroup;
         }
 
         List<BlockDeviceMapping> blockDeviceMappings = ImmutableList.<BlockDeviceMapping>builder()
@@ -219,11 +180,11 @@ public class AwsProvisioner implements Provisioner
                 .build();
 
         RunInstancesRequest request = new RunInstancesRequest()
-                .withImageId(coordinatorAmi)
-                .withKeyName(coordinatorKeypair)
-                .withSecurityGroups(coordinatorSecurityGroup)
+                .withImageId(ami)
+                .withKeyName(keyPair)
+                .withSecurityGroups(securityGroup)
                 .withInstanceType(instanceType)
-                .withUserData(getCoordinatorUserData(instanceType))
+                .withUserData(getCoordinatorUserData(instanceType, coordinatorConfig, awsCredentialsFile, repositories))
                 .withBlockDeviceMappings(blockDeviceMappings)
                 .withMinCount(1)
                 .withMaxCount(1);
@@ -248,7 +209,7 @@ public class AwsProvisioner implements Provisioner
                 .add(new Tag("Name", format("galaxy-%s-coordinator", environment)))
                 .add(new Tag("galaxy:role", "coordinator"))
                 .add(new Tag("galaxy:environment", environment))
-                .add(new Tag("galaxy:port", String.valueOf(coordinatorDefaultPort)))
+                .add(new Tag("galaxy:port", String.valueOf(coordinatorPort)))
                 .build();
         createInstanceTagsWithRetry(instanceIds, tags);
 
@@ -399,18 +360,14 @@ public class AwsProvisioner implements Provisioner
         return Joiner.on('\n').skipNulls().join(lines);
     }
 
-    private String getCoordinatorUserData(String instanceType)
+    private String getCoordinatorUserData(String instanceType, String coordinatorConfig, String awsCredentialsFile, List<String> repositories)
     {
-        return encodeBase64(getRawCoordinatorUserData(instanceType));
+        return encodeBase64(getRawCoordinatorUserData(instanceType, coordinatorConfig, awsCredentialsFile, repositories));
     }
 
     @VisibleForTesting
-    String getRawCoordinatorUserData(String instanceType)
+    String getRawCoordinatorUserData(String instanceType, String coordinatorConfig, String awsCredentialsFile, List<String> repositories)
     {
-        // create coordinator config file
-        // todo this is only needed of a configuration is not provided for the coordinator
-        byte[] coordinatorConfig = createCoordinatorConfig();
-
         String boundary = "===============884613ba9e744d0c851955611107553e==";
         String boundaryLine = "--" + boundary;
         String mimeVersion = "MIME-Version: 1.0";
@@ -419,10 +376,6 @@ public class AwsProvisioner implements Provisioner
         String contentDownloadUrl = "Content-Type: text/x-url";
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
-
-        String contentTypeBinary = "Content-Type: application/octet-stream";
-        String encodingBase64 = "Content-Transfer-Encoding: base64";
-
 
         URI partHandler = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler", null));
         URI galaxyCli = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-standalone", galaxyVersion, "jar", "executable", null));
@@ -440,21 +393,23 @@ public class AwsProvisioner implements Provisioner
                 "",
                 boundaryLine,
 
-                contentTypeBinary, mimeVersion, encodingBase64, format(attachmentFormat, "galaxy-coordinator.config"), "",
-                Base64.encodeBase64String(coordinatorConfig),
-                "",
+                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy"), "",
+                galaxyCli.toASCIIString(),
                 "",
                 boundaryLine,
 
-                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy"), "",
-                galaxyCli.toASCIIString(),
+                contentTypeText, mimeVersion, encodingText, format(attachmentFormat, "aws-credentials.properties"), "",
+                property("aws.access-key", awsCredentials.getAWSAccessKeyId()),
+                property("aws.secret-key", awsCredentials.getAWSSecretKey()),
                 "",
                 boundaryLine,
 
                 contentTypeText, mimeVersion, encodingText, format(attachmentFormat, "installer.properties"), "",
                 property("galaxyEnvironment", environment),
                 property("galaxyInstallBinary", "com.proofpoint.galaxy:galaxy-coordinator:" + galaxyVersion),
-                property("galaxyInstallConfig", "@galaxy-coordinator.config"),
+                property("galaxyInstallConfig", coordinatorConfig),
+                property("galaxyRepositoryUris", Joiner.on(',').join(repositories)),
+                property("galaxyAwsCredentialsFile", awsCredentialsFile),
                 "",
                 boundaryLine,
 
@@ -504,60 +459,6 @@ public class AwsProvisioner implements Provisioner
             builder.put(tag.getKey(), tag.getValue());
         }
         return builder.build();
-    }
-
-    public byte[] createCoordinatorConfig()
-    {
-        try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ZipOutputStream out = new ZipOutputStream(byteArrayOutputStream);
-
-            ZipEntry entry = new ZipEntry("etc/");
-            out.putNextEntry(entry);
-
-            entry = new ZipEntry("etc/jvm.config");
-            out.putNextEntry(entry);
-
-            entry = new ZipEntry("etc/config.properties");
-            out.putNextEntry(entry);
-
-
-            List<String> lines = newArrayList();
-            addAll(lines,
-                    property("galaxy.version", galaxyVersion),
-                    property("http-server.http.port", coordinatorDefaultPort),
-                    "",
-                    property("coordinator.repository", Joiner.on(",").skipNulls().join(repositories)),
-                    "",
-                    "coordinator.provisioner=aws",
-                    property("coordinator.aws.endpoint", awsEndpoint),
-                    "",
-                    property("coordinator.aws.access-key", accessKey),
-                    property("coordinator.aws.secret-key", secretKey),
-                    "",
-                    property("coordinator.aws.coordinator.ami", coordinatorAmi),
-                    property("coordinator.aws.coordinator.keypair", coordinatorKeypair),
-                    property("coordinator.aws.coordinator.security-group", coordinatorSecurityGroup),
-                    property("coordinator.aws.coordinator.default-instance-type", coordinatorDefaultInstanceType),
-                    property("coordinator.aws.coordinator.default-port", coordinatorDefaultPort),
-                    "",
-                    property("coordinator.aws.agent.ami", agentAmi),
-                    property("coordinator.aws.agent.keypair", agentKeypair),
-                    property("coordinator.aws.agent.security-group", agentSecurityGroup),
-                    property("coordinator.aws.agent.default-instance-type", agentDefaultInstanceType),
-                    property("coordinator.aws.agent.default-port", agentDefaultPort),
-                    "");
-
-            String configFile = Joiner.on('\n').skipNulls().join(lines);
-            out.write(configFile.getBytes(Charsets.UTF_8));
-
-            out.close();
-
-            return byteArrayOutputStream.toByteArray();
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Error creating coordinator config", e);
-        }
     }
 
     private String property(String key, Object value)

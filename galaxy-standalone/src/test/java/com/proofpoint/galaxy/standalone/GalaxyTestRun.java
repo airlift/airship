@@ -8,8 +8,11 @@ public class GalaxyTestRun
 //        execute("environment", "provision-aws", "prod",
 //                "--repository", "https://oss.sonatype.org/content/repositories/releases/",
 //                "--repository", "https://oss.sonatype.org/content/repositories/snapshots/",
+//                "--repository", "https://s3.amazonaws.com/galaxy-cloud-formation/",
 //                "--maven-default-group-id", "com.proofpoint.platform",
-//                "--key-pair", "dain");
+//                "--key-pair", "dain",
+//                "--coordinator-config", "@coordinator.config"
+//                );
 
         execute("environment", "provision-local", "local", "/tmp/local",
                 "--name", "monkey",

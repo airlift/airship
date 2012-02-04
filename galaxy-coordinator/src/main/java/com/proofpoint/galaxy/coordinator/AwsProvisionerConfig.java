@@ -9,16 +9,12 @@ import java.util.concurrent.TimeUnit;
 
 public class AwsProvisionerConfig
 {
-    // todo move to credentials file
-    private String awsAccessKey;
-    private String awsSecretKey;
+    private String awsCredentialsFile = "etc/aws-credentials.properties";
 
     private String awsCoordinatorAmi;
     private String awsCoordinatorKeypair;
     private String awsCoordinatorSecurityGroup;
     private String awsCoordinatorDefaultInstanceType;
-    // todo remove this
-    private int awsCoordinatorDefaultPort = 64000;
 
     private String awsAgentAmi;
     private String awsAgentKeypair;
@@ -33,32 +29,18 @@ public class AwsProvisionerConfig
     private String s3KeystorePath;
     private Duration s3KeystoreRefreshInterval = new Duration(10, TimeUnit.SECONDS);
 
-    @Config("coordinator.aws.access-key")
-    @ConfigDescription("AWS access key for provisioning agents")
-    public AwsProvisionerConfig setAwsAccessKey(String awsAccessKey)
+    @Config("coordinator.aws.credentials-file")
+    @ConfigDescription("File containing aws credentials")
+    public AwsProvisionerConfig setAwsCredentialsFile(String awsCredentialsFile)
     {
-        this.awsAccessKey = awsAccessKey;
+        this.awsCredentialsFile = awsCredentialsFile;
         return this;
     }
 
     @NotNull
-    public String getAwsAccessKey()
+    public String getAwsCredentialsFile()
     {
-        return awsAccessKey;
-    }
-
-    @Config("coordinator.aws.secret-key")
-    @ConfigDescription("AWS secret key for provisioning agents")
-    public AwsProvisionerConfig setAwsSecretKey(String awsSecretKey)
-    {
-        this.awsSecretKey = awsSecretKey;
-        return this;
-    }
-
-    @NotNull
-    public String getAwsSecretKey()
-    {
-        return awsSecretKey;
+        return awsCredentialsFile;
     }
 
     @Config("coordinator.aws.coordinator.ami")
@@ -115,20 +97,6 @@ public class AwsProvisionerConfig
     public String getAwsCoordinatorDefaultInstanceType()
     {
         return awsCoordinatorDefaultInstanceType;
-    }
-
-    @Config("coordinator.aws.coordinator.default-port")
-    @ConfigDescription("AWS default port for provisioned coordinators")
-    public AwsProvisionerConfig setAwsCoordinatorDefaultPort(int awsCoordinatorDefaultPort)
-    {
-        this.awsCoordinatorDefaultPort = awsCoordinatorDefaultPort;
-        return this;
-    }
-
-    @NotNull
-    public int getAwsCoordinatorDefaultPort()
-    {
-        return awsCoordinatorDefaultPort;
     }
 
     @Config("coordinator.aws.agent.ami")

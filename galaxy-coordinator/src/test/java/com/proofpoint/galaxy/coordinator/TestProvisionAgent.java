@@ -33,8 +33,6 @@ public class TestProvisionAgent
         String awsSecretKey = map.get("private-key");
 
         AwsProvisionerConfig awsProvisionerConfig = new AwsProvisionerConfig()
-                .setAwsAccessKey(awsAccessKey)
-                .setAwsSecretKey(awsSecretKey)
                 .setAwsAgentAmi("ami-27b7744e")
                 .setAwsAgentKeypair("keypair")
                 .setAwsAgentSecurityGroup("default")
@@ -45,11 +43,11 @@ public class TestProvisionAgent
                 .setGalaxyVersion("0.7-SNAPSHOT");
         assertValidates(coordinatorConfig);
 
-        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsProvisionerConfig.getAwsAccessKey(), awsProvisionerConfig.getAwsSecretKey());
+        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
         AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
         NodeInfo nodeInfo = createTestNodeInfo();
 
-        AwsProvisioner provisioner = new AwsProvisioner(ec2Client, nodeInfo, MOCK_REPO, coordinatorConfig, awsProvisionerConfig);
+        AwsProvisioner provisioner = new AwsProvisioner(awsCredentials, ec2Client, nodeInfo, MOCK_REPO, coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 2;
         List<Instance> provisioned = provisioner.provisionAgents(agentCount, null, null);

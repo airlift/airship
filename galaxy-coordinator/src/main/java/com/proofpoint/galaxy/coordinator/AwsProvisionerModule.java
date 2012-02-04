@@ -21,6 +21,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
+import com.google.common.base.Preconditions;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -30,6 +31,10 @@ import com.proofpoint.galaxy.coordinator.auth.AuthorizedKeyStore;
 import com.proofpoint.galaxy.coordinator.auth.S3AuthorizedKeyStore;
 
 import javax.inject.Singleton;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 public class AwsProvisionerModule
         implements Module
@@ -76,7 +81,23 @@ public class AwsProvisionerModule
     @Provides
     @Singleton
     public AWSCredentials provideAwsCredentials(AwsProvisionerConfig provisionerConfig)
+            throws IOException
     {
-        return new BasicAWSCredentials(provisionerConfig.getAwsAccessKey(), provisionerConfig.getAwsSecretKey());
+        File credentialsFile = new File(provisionerConfig.getAwsCredentialsFile());
+        Properties properties = new Properties();
+        FileInputStream in = new FileInputStream(credentialsFile);
+        try {
+            properties.load(in);
+        }
+        finally {
+            in.close();
+        }
+
+        String accessKey = properties.getProperty("aws.access-key");
+        Preconditions.checkArgument(accessKey != null, "aws credentials file does not contain a value for aws.access-key");
+        String secretKey = properties.getProperty("aws.secret-key");
+        Preconditions.checkArgument(secretKey != null, "aws credentials file does not contain a value for aws.secret-key");
+
+        return new BasicAWSCredentials(accessKey, secretKey);
     }
 }

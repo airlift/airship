@@ -7,18 +7,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.io.InputSupplier;
 import com.google.common.io.NullOutputStream;
+import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.galaxy.coordinator.AwsProvisioner;
+import com.proofpoint.galaxy.coordinator.AwsProvisionerConfig;
+import com.proofpoint.galaxy.coordinator.CoordinatorConfig;
 import com.proofpoint.galaxy.coordinator.HttpRepository;
 import com.proofpoint.galaxy.coordinator.Instance;
 import com.proofpoint.galaxy.coordinator.MavenRepository;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.ConfigUtils;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.RepositorySet;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.galaxy.standalone.CommanderFactory.ToUriFunction;
+import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.log.Logging;
 import com.proofpoint.log.LoggingConfiguration;
+import com.proofpoint.node.NodeInfo;
 import org.iq80.cli.Arguments;
 import org.iq80.cli.Cli;
 import org.iq80.cli.Cli.CliBuilder;
@@ -30,9 +37,12 @@ import org.iq80.cli.ParseException;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
@@ -638,17 +648,11 @@ public class Galaxy
         @Option(name = "--coordinator-config", description = "Configuration for the coordinator")
         public String coordinatorConfig;
 
-
-
         @Option(name = "--repository", description = "Repository for binaries and configurations")
         public final List<String> repository = newArrayList();
 
         @Option(name = "--maven-default-group-id", description = "Default maven group-id")
         public final List<String> mavenDefaultGroupId = newArrayList();
-
-        @Option(name = "--port", description = "Port for coordinator")
-        public int port = 64000;
-
 
         @Arguments(description = "Reference name for the environment", required = true)
         public String ref;
@@ -675,40 +679,54 @@ public class Galaxy
             String secretKey = config.get("aws.secret-key");
             Preconditions.checkNotNull(secretKey, "You must set the aws secret-key with: galaxy config set aws.secret-key <key>");
 
-
+            // create the repository
             List<URI> repoBases = ImmutableList.copyOf(Lists.transform(repository, new ToUriFunction()));
             Repository repository = new RepositorySet(ImmutableSet.<Repository>of(
                     new MavenRepository(mavenDefaultGroupId, repoBases),
                     new HttpRepository(repoBases, null, null, null)));
 
-            AmazonEC2Client ec2Client = new AmazonEC2Client(new BasicAWSCredentials(accessKey, secretKey));
+            // find the coordinator configuration in the repository
+            URI configUri = repository.configToHttpUri(coordinatorConfig);
+            Preconditions.checkNotNull(configUri, "Unknown coordinator configuration: " + coordinatorConfig);
+
+            // use the coordinator configuration to build the provisioner
+            // This causes the defaults to be initialized using the new coordinator's configuration
+            ConfigurationFactory configurationFactory = createConfigurationFactory(configUri);
+
+            // todo print better error message here
+            AwsProvisionerConfig awsProvisionerConfig = configurationFactory.build(AwsProvisionerConfig .class);
+            CoordinatorConfig coordinatorConfig = configurationFactory.build(CoordinatorConfig.class);
+            HttpServerConfig httpServerConfig = configurationFactory.build(HttpServerConfig.class);
+
+            BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
+            AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
+            if (awsEndpoint == null) {
+                awsEndpoint= awsProvisionerConfig.getAwsEndpoint();
+            }
             if (awsEndpoint != null) {
                 ec2Client.setEndpoint(awsEndpoint);
             }
 
-            AwsProvisioner provisioner = new AwsProvisioner(ec2Client,
-                    environment,
-                    GALAXY_VERSION,
-                    this.repository,
-                    awsEndpoint,
-                    accessKey,
-                    secretKey,
+            AwsProvisioner provisioner = new AwsProvisioner(awsCredentials,
+                    ec2Client,
+                    new NodeInfo(environment),
+                    repository,
+                    coordinatorConfig,
+                    awsProvisionerConfig);
+
+            // provision the coordinator
+            List<Instance> instances = provisioner.provisionCoordinator(this.coordinatorConfig,
+                    instanceType,
+                    availabilityZone,
                     ami,
                     keyPair,
                     securityGroup,
-                    instanceType,
-                    port,
-                    ami,
-                    keyPair,
-                    securityGroup,
-                    instanceType,
-                    port,
-                    repository);
+                    httpServerConfig.getHttpPort(),
+                    awsProvisionerConfig.getAwsCredentialsFile(),
+                    this.repository);
 
-            List<Instance> instances = provisioner.provisionCoordinator(instanceType, availabilityZone);
-
+            // add the new environment to the command line configuration
             config.set(nameProperty, environment);
-
             String coordinatorProperty = "environment." + ref + ".coordinator";
             for (Instance instance : instances) {
 //                config.set(coordinatorProperty, instance.getUri().toASCIIString());
@@ -719,6 +737,21 @@ public class Galaxy
             }
             config.save(CONFIG_FILE);
             return null;
+        }
+
+        private ConfigurationFactory createConfigurationFactory(URI configUri)
+                throws IOException
+        {
+            Properties properties = new Properties();
+            InputSupplier<InputStream> configPropertiesStream = ConfigUtils.newConfigEntrySupplier(configUri, "etc/config.properties");
+            InputStream input = configPropertiesStream.getInput();
+            try {
+                properties.load(input);
+            } finally {
+                input.close();
+            }
+
+            return new ConfigurationFactory((Map<String,String>) (Object) properties);
         }
     }
 

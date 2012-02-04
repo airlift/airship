@@ -13,9 +13,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -67,10 +69,11 @@ public class ConfigUtils
                 if (!path.endsWith("/")) {
                     path = path + "/";
                 }
-                ZipEntry dirEntry = new ZipEntry(path );
+                ZipEntry dirEntry = new ZipEntry(path);
                 dirEntry.setTime(file.lastModified());
                 out.putNextEntry(dirEntry);
-            } else {
+            }
+            else {
                 ZipEntry fileEntry = new ZipEntry(path);
                 fileEntry.setTime(file.lastModified());
                 out.putNextEntry(fileEntry);
@@ -120,7 +123,7 @@ public class ConfigUtils
         }
     }
 
-    public static InputSupplier<? extends InputStream> newConfigEntrySupplier(Repository repository, String config, final String entryName)
+    public static InputSupplier<InputStream> newConfigEntrySupplier(Repository repository, String config, final String entryName)
     {
         URI uri = repository.configToHttpUri(config);
         if (uri == null) {
@@ -138,7 +141,29 @@ public class ConfigUtils
         return ConfigUtils.newConfigEntrySupplier(Resources.newInputStreamSupplier(configUrl), entryName);
     }
 
-    public static InputSupplier<? extends InputStream> newConfigEntrySupplier(final InputSupplier<? extends InputStream> configBundle, final String entryName)
+    public static InputSupplier<InputStream> newConfigEntrySupplier(final URI configBundle, String entryName)
+    {
+        InputSupplier<InputStream> configBundleInput = new InputSupplier<InputStream>()
+        {
+            @Override
+            public InputStream getInput()
+                    throws IOException
+            {
+                URL url = configBundle.toURL();
+
+                URLConnection connection = url.openConnection();
+                if (connection instanceof HttpURLConnection) {
+                    HttpURLConnection httpConnection = (HttpURLConnection) connection;
+                    httpConnection.addRequestProperty("User-Agent", "User-Agent: Apache-Maven/3.0.3 (Java 1.6.0_29; Mac OS X 10.7.2)");
+                }
+                InputStream in = connection.getInputStream();
+                return in;
+            }
+        };
+        return newConfigEntrySupplier(configBundleInput, entryName);
+    }
+
+    private static InputSupplier<InputStream> newConfigEntrySupplier(final InputSupplier<? extends InputStream> configBundle, final String entryName)
     {
         return new InputSupplier<InputStream>()
         {
