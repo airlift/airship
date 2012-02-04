@@ -28,7 +28,7 @@ public class Exec
     public static void execLocal(String command)
     {
         POSIX posix = POSIXFactory.getPOSIX();
-        String shell = firstNonNull(getenv("SHELL"), firstNonNull(findFileInPath(posix, "bash", null), "/bin/ssh"));
+        String shell = firstNonNull(getenv("SHELL"), firstNonNull(findFileInPath(posix, "bash", null), "/bin/bash"));
 
         String[] args;
         if (command == null) {
