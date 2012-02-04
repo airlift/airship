@@ -322,7 +322,7 @@ public class CommanderFactory
     {
         public URI apply(String uri)
         {
-            if (uri.endsWith("/")) {
+            if (!uri.endsWith("/")) {
                 uri = uri + "/";
             }
             return URI.create(uri);
