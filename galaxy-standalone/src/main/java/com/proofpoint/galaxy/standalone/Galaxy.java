@@ -1,12 +1,20 @@
 package com.proofpoint.galaxy.standalone;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Reservation;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.identitymanagement.model.AccessKey;
+import com.amazonaws.services.identitymanagement.model.CreateAccessKeyRequest;
+import com.amazonaws.services.identitymanagement.model.CreateAccessKeyResult;
+import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
+import com.amazonaws.services.identitymanagement.model.PutUserPolicyRequest;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -25,6 +33,7 @@ import com.proofpoint.galaxy.shared.RepositorySet;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.galaxy.standalone.CommanderFactory.ToUriFunction;
 import com.proofpoint.http.server.HttpServerConfig;
+import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logging;
 import com.proofpoint.log.LoggingConfiguration;
 import com.proofpoint.node.NodeInfo;
@@ -43,6 +52,7 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
@@ -60,6 +70,7 @@ import static com.proofpoint.galaxy.standalone.Column.shortId;
 import static com.proofpoint.galaxy.standalone.Column.status;
 import static com.proofpoint.galaxy.standalone.Column.statusMessage;
 import static java.lang.String.format;
+import static java.util.UUID.randomUUID;
 import static org.iq80.cli.Cli.buildCli;
 
 public class Galaxy
@@ -675,16 +686,28 @@ public class Galaxy
             CoordinatorConfig coordinatorConfig = configurationFactory.build(CoordinatorConfig.class);
             HttpServerConfig httpServerConfig = configurationFactory.build(HttpServerConfig.class);
 
-            BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
-            AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
             if (awsEndpoint == null) {
                 awsEndpoint = awsProvisionerConfig.getAwsEndpoint();
             }
+
+            // generate new keys for the cluster
+            AmazonIdentityManagementClient iamClient = new AmazonIdentityManagementClient(new BasicAWSCredentials(accessKey, secretKey));
+            if (awsEndpoint != null) {
+                iamClient.setEndpoint(awsEndpoint);
+            }
+            String username = createIamUserForEnvironment(iamClient, environment);
+
+            // save the environment since we just created a permanent resource
+            config.set(nameProperty, environment);
+            config.set("environment." + ref + ".iam-user", username);
+            AWSCredentials environmentCredentials = createIamAccessKey(iamClient, username);
+
+            // Create the provisioner
+            AmazonEC2Client ec2Client = new AmazonEC2Client(environmentCredentials);
             if (awsEndpoint != null) {
                 ec2Client.setEndpoint(awsEndpoint);
             }
-
-            AwsProvisioner provisioner = new AwsProvisioner(awsCredentials,
+            AwsProvisioner provisioner = new AwsProvisioner(environmentCredentials,
                     ec2Client,
                     new NodeInfo(environment),
                     repository,
@@ -708,11 +731,13 @@ public class Galaxy
             // wait for the instances to start
             instances = waitForInstancesToStart(ec2Client, instances, httpServerConfig.getHttpPort());
 
+            // add the coordinators to the config
             String coordinatorProperty = "environment." + ref + ".coordinator";
             for (Instance instance : instances) {
                 config.set(coordinatorProperty, instance.getUri().toASCIIString());
             }
 
+            // make this environment the default if there are no other environments
             if (config.get("environment.default") == null) {
                 config.set("environment.default", ref);
             }
@@ -767,6 +792,56 @@ public class Galaxy
                 catch (InterruptedException e) {
                 }
             }
+        }
+
+        private static AWSCredentials createIamAccessKey(AmazonIdentityManagementClient iamClient, String username)
+        {
+            CreateAccessKeyResult accessKeyResult = iamClient.createAccessKey(new CreateAccessKeyRequest().withUserName(username));
+            AccessKey accessKey = accessKeyResult.getAccessKey();
+            return new BasicAWSCredentials(accessKey.getAccessKeyId(), accessKey.getSecretAccessKey());
+        }
+
+        private static String createIamUserForEnvironment(AmazonIdentityManagementClient iamClient, String environment)
+        {
+            String username = format("galaxy-%s-%s", environment, randomUUID().toString().replace("-", ""));
+            String simpleDbName = format("galaxy-%s", environment);
+
+            iamClient.createUser(new CreateUserRequest(username));
+
+            Map<String, ImmutableList<Object>> policy =
+                    ImmutableMap.of("Statement", ImmutableList.builder()
+                            .add(ImmutableMap.builder()
+                                    .put("Action", ImmutableList.of(
+                                            "ec2:CreateTags",
+                                            "ec2:DeleteTags",
+                                            "ec2:DescribeAvailabilityZones",
+                                            "ec2:DescribeInstances",
+                                            "ec2:RunInstances",
+                                            "ec2:StartInstances",
+                                            "ec2:StopInstances",
+                                            "ec2:TerminateInstances"
+                                    ))
+                                    .put("Effect", "Allow")
+                                    .put("Resource", "*")
+                                    .build())
+                            .add(ImmutableMap.builder()
+                                    .put("Action", ImmutableList.of(
+                                            "sdb:CreateDomain",
+                                            "sdb:PutAttributes",
+                                            "sdb:BatchDeleteAttributes",
+                                            "sdb:DeleteAttributes",
+                                            "sdb:Select"
+                                    ))
+                                    .put("Effect", "Allow")
+                                    .put("Resource", "arn:aws:sdb:*:*:domain/" + simpleDbName)
+                                    .build())
+                            .build()
+                    );
+
+            String policyJson = JsonCodec.jsonCodec(Object.class).toJson(policy);
+
+            iamClient.putUserPolicy(new PutUserPolicyRequest(username, "policy", policyJson));
+            return username;
         }
 
         private static final int STATE_PENDING = 0;
