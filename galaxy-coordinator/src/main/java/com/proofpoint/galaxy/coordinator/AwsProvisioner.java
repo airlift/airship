@@ -428,12 +428,12 @@ public class AwsProvisioner implements Provisioner
         return uri;
     }
 
-    private Instance toInstance(com.amazonaws.services.ec2.model.Instance instance, URI uri)
+    public static Instance toInstance(com.amazonaws.services.ec2.model.Instance instance, URI uri)
     {
         return new Instance(instance.getInstanceId(), instance.getInstanceType(), getLocation(instance), uri);
     }
 
-    private static String getLocation(com.amazonaws.services.ec2.model.Instance instance)
+    public static String getLocation(com.amazonaws.services.ec2.model.Instance instance)
     {
         String zone = instance.getPlacement().getAvailabilityZone();
         String region = zone.substring(0, zone.length() - 1);

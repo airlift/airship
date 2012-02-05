@@ -2,12 +2,16 @@ package com.proofpoint.galaxy.standalone;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.Reservation;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.NullOutputStream;
+import com.google.common.io.Resources;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.galaxy.coordinator.AwsProvisioner;
 import com.proofpoint.galaxy.coordinator.AwsProvisionerConfig;
@@ -37,11 +41,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
 import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
@@ -53,6 +59,7 @@ import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
 import static com.proofpoint.galaxy.standalone.Column.status;
 import static com.proofpoint.galaxy.standalone.Column.statusMessage;
+import static java.lang.String.format;
 import static org.iq80.cli.Cli.buildCli;
 
 public class Galaxy
@@ -114,7 +121,7 @@ public class Galaxy
         public Void call()
                 throws Exception
         {
-            initializeLogging();
+            initializeLogging(globalOptions.debug);
 
             Config config = Config.loadConfig(CONFIG_FILE);
 
@@ -156,32 +163,6 @@ public class Galaxy
             }
 
             return null;
-        }
-
-        private void initializeLogging()
-                throws IOException
-        {
-            // unhook out and err while initializing logging or logger will print to them
-            PrintStream out = System.out;
-            PrintStream err = System.err;
-            try {
-                if (globalOptions.debug) {
-                    Logging logging = new Logging();
-                    logging.initialize(new LoggingConfiguration());
-                }
-                else {
-                    System.setOut(new PrintStream(new NullOutputStream()));
-                    System.setErr(new PrintStream(new NullOutputStream()));
-
-                    Logging logging = new Logging();
-                    logging.initialize(new LoggingConfiguration());
-                    logging.disableConsole();
-                }
-            }
-            finally {
-                System.setOut(out);
-                System.setErr(err);
-            }
         }
 
         public abstract void execute(Commander commander)
@@ -619,6 +600,9 @@ public class Galaxy
     @Command(name = "provision-aws", description = "Provision an AWS environment")
     public static class EnvironmentProvisionAws implements Callable<Void>
     {
+        @Inject
+        public GlobalOptions globalOptions = new GlobalOptions();
+
         @Option(name = "--name", description = "Environment name")
         public String environment;
 
@@ -656,6 +640,8 @@ public class Galaxy
         public Void call()
                 throws Exception
         {
+            initializeLogging(globalOptions.debug);
+
             Preconditions.checkNotNull(ref, "You must specify a name");
 
             if (environment == null) {
@@ -685,14 +671,14 @@ public class Galaxy
             ConfigurationFactory configurationFactory = createConfigurationFactory(repository, coordinatorConfig);
 
             // todo print better error message here
-            AwsProvisionerConfig awsProvisionerConfig = configurationFactory.build(AwsProvisionerConfig .class);
+            AwsProvisionerConfig awsProvisionerConfig = configurationFactory.build(AwsProvisionerConfig.class);
             CoordinatorConfig coordinatorConfig = configurationFactory.build(CoordinatorConfig.class);
             HttpServerConfig httpServerConfig = configurationFactory.build(HttpServerConfig.class);
 
             BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
             AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
             if (awsEndpoint == null) {
-                awsEndpoint= awsProvisionerConfig.getAwsEndpoint();
+                awsEndpoint = awsProvisionerConfig.getAwsEndpoint();
             }
             if (awsEndpoint != null) {
                 ec2Client.setEndpoint(awsEndpoint);
@@ -718,9 +704,13 @@ public class Galaxy
 
             // add the new environment to the command line configuration
             config.set(nameProperty, environment);
+
+            // wait for the instances to start
+            instances = waitForInstancesToStart(ec2Client, instances, httpServerConfig.getHttpPort());
+
             String coordinatorProperty = "environment." + ref + ".coordinator";
             for (Instance instance : instances) {
-//                config.set(coordinatorProperty, instance.getUri().toASCIIString());
+                config.set(coordinatorProperty, instance.getUri().toASCIIString());
             }
 
             if (config.get("environment.default") == null) {
@@ -728,6 +718,83 @@ public class Galaxy
             }
             config.save(CONFIG_FILE);
             return null;
+        }
+
+        private static List<Instance> waitForInstancesToStart(AmazonEC2Client ec2Client, List<Instance> instances, int port)
+        {
+            List<String> instanceIds = newArrayList();
+            for (Instance instance : instances) {
+                instanceIds.add(instance.getInstanceId());
+            }
+
+            for (int loop = 0; true; loop++) {
+                DescribeInstancesResult result = ec2Client.describeInstances(new DescribeInstancesRequest().withInstanceIds(instanceIds));
+                if (allInstancesStarted(result, port)) {
+                    List<Instance> resolvedInstances = newArrayList();
+                    for (Reservation reservation : result.getReservations()) {
+                        for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
+                            URI uri = null;
+                            if (instance.getPublicDnsName() != null) {
+                                uri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                            }
+                            resolvedInstances.add(toInstance(instance, uri));
+                        }
+                    }
+                    System.out.print("\r \n");
+                    return resolvedInstances;
+                }
+
+                switch (loop % 5) {
+                    case 0:
+                        System.out.print("\r ");
+                        break;
+                    case 1:
+                        System.out.print("\r1.");
+                        break;
+                    case 2:
+                        System.out.print(" 2.");
+                        break;
+                    case 3:
+                        System.out.print(" 3.");
+                        break;
+                    case 4:
+                        System.out.print("  GO!");
+                        break;
+                }
+                try {
+                    Thread.sleep(500);
+                }
+                catch (InterruptedException e) {
+                }
+            }
+        }
+
+        private static final int STATE_PENDING = 0;
+
+        private static boolean allInstancesStarted(DescribeInstancesResult describeInstancesResult, int port)
+        {
+            for (Reservation reservation : describeInstancesResult.getReservations()) {
+                for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
+                    if (instance.getState() == null || instance.getState().getCode() == null) {
+                        return false;
+                    }
+
+                    // is it running?
+                    int state = instance.getState().getCode();
+                    if (state == STATE_PENDING || instance.getPublicDnsName() == null) {
+                        return false;
+                    }
+
+                    // can we talk to it yet?
+                    try {
+                        Resources.toByteArray(new URL(format("http://%s:%s/v1/slot", instance.getPublicDnsName(), port)));
+                    }
+                    catch (Exception e) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 
@@ -903,6 +970,32 @@ public class Galaxy
             config.unset(key);
             config.save(CONFIG_FILE);
             return null;
+        }
+    }
+
+    public static void initializeLogging(boolean debug)
+            throws IOException
+    {
+        // unhook out and err while initializing logging or logger will print to them
+        PrintStream out = System.out;
+        PrintStream err = System.err;
+        try {
+            if (debug) {
+                Logging logging = new Logging();
+                logging.initialize(new LoggingConfiguration());
+            }
+            else {
+                System.setOut(new PrintStream(new NullOutputStream()));
+                System.setErr(new PrintStream(new NullOutputStream()));
+
+                Logging logging = new Logging();
+                logging.initialize(new LoggingConfiguration());
+                logging.disableConsole();
+            }
+        }
+        finally {
+            System.setOut(out);
+            System.setErr(err);
         }
     }
 }
