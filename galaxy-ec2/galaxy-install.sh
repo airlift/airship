@@ -15,7 +15,7 @@ then
     x=${galaxyAwsCredentialsFile?install.properties does not contain a value for galaxyAwsCredentialsFile}
 fi
 
-repos=$(for i in $(echo $galaxyRepositoryUris | tr , ' '); do echo "--repository $i"; done)
+REPOS=$(for i in $(echo $galaxyRepositoryUris | tr , ' '); do echo "--repository $i"; done)
 
 # install galaxy
 mkdir -p /home/ubuntu/bin
@@ -27,11 +27,23 @@ chmod 755 /home/ubuntu/bin/galaxy
 # add bin to path
 export PATH=$PATH:/home/ubuntu/bin
 
+# build location string
+ZONE=$(curl -s "http://169.254.169.254/latest/meta-data/placement/availability-zone")
+INSTANCE_ID=$(curl -s "http://169.254.169.254/latest/meta-data/instance-id")
+REGION=${ZONE[@]:0:$(( ${#ZONE} - 1 )) }
+LOCATION="/ec2/${REGION}/${ZONE}/${INSTANCE_ID}"
+
+# instance type
+INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
+
 # setup filesystem environment (must be named $targetEnvironment)
 galaxy environment provision-local galaxy /mnt/galaxy/ \
     --name ${galaxyEnvironment} \
-    ${repos} \
-    --maven-default-group-id com.proofpoint.galaxy
+    ${REPOS} \
+    --maven-default-group-id com.proofpoint.galaxy \
+    --agent-id $INSTANCE_ID \
+    --location $LOCATION \
+    --instance-type $INSTANCE_TYPE
 
 # use the filesystem environment as the default (should already be set, but be careful)
 galaxy environment use galaxy

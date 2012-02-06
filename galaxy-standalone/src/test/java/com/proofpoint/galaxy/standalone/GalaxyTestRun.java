@@ -5,6 +5,13 @@ public class GalaxyTestRun
     public static void main(String[] args)
             throws Exception
     {
+//        galaxy environment provision-aws prod \
+//                --repository https://oss.sonatype.org/content/repositories/releases/ \
+//                --repository https://oss.sonatype.org/content/repositories/snapshots/ \
+//                --repository https://s3.amazonaws.com/galaxy-cloud-formation/ \
+//                --key-pair dain \
+//                --coordinator-config @coordinator.config
+
 //        execute("environment", "provision-aws", "prod",
 //                "--repository", "https://oss.sonatype.org/content/repositories/releases/",
 //                "--repository", "https://oss.sonatype.org/content/repositories/snapshots/",

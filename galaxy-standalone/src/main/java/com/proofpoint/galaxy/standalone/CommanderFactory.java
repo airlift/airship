@@ -45,9 +45,6 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class CommanderFactory
 {
-    private static final String AGENT_ID = "standalone";
-    private static final String INSTANCE_TYPE = "standalone";
-    private static final String LOCATION = Joiner.on('/').join("localhost", AGENT_ID, "agent");
     private static final URI AGENT_URI = URI.create("java://localhost");
     private static final Duration COMMAND_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
 
@@ -55,6 +52,9 @@ public class CommanderFactory
     private URI coordinatorUri;
     private final List<String> repositories = newArrayList();
     private final List<String> mavenDefaultGroupIds = newArrayList();
+    private String agentId = "standalone";
+    private String location;
+    private String instanceType = "standalone";
 
     public CommanderFactory setEnvironment(String environment)
     {
@@ -82,6 +82,27 @@ public class CommanderFactory
         return this;
     }
 
+    public void setAgentId(String agentId)
+    {
+        Preconditions.checkNotNull(agentId, "agentId is null");
+        Preconditions.checkArgument(!agentId.isEmpty(), "agentId is empty");
+        this.agentId = agentId;
+    }
+
+    public void setLocation(String location)
+    {
+        Preconditions.checkNotNull(location, "location is null");
+        Preconditions.checkArgument(!location.isEmpty(), "location is empty");
+        this.location = location;
+    }
+
+    public void setInstanceType(String instanceType)
+    {
+        Preconditions.checkNotNull(instanceType, "instanceType is null");
+        Preconditions.checkArgument(!instanceType.isEmpty(), "instanceType is empty");
+        this.instanceType = instanceType;
+    }
+
     public Commander build()
             throws IOException
     {
@@ -107,11 +128,14 @@ public class CommanderFactory
 
         List<URI> repoBases = ImmutableList.copyOf(Lists.transform(repositories, new ToUriFunction()));
 
+        if (location == null) {
+            location = Joiner.on('/').join("localhost", agentId, "agent");
+        }
         //
         // Create agent
         //
         String slotsDir = coordinatorUri.getPath();
-        DeploymentManagerFactory deploymentManagerFactory = new DirectoryDeploymentManagerFactory(LOCATION, slotsDir, COMMAND_TIMEOUT);
+        DeploymentManagerFactory deploymentManagerFactory = new DirectoryDeploymentManagerFactory(location, slotsDir, COMMAND_TIMEOUT);
 
         LifecycleManager lifecycleManager = new LauncherLifecycleManager(
                 environment,
@@ -120,8 +144,8 @@ public class CommanderFactory
                 COMMAND_TIMEOUT,
                 COMMAND_TIMEOUT);
 
-        Agent agent = new Agent(AGENT_ID,
-                LOCATION,
+        Agent agent = new Agent(agentId,
+                location,
                 slotsDir,
                 AGENT_URI,
                 null,
@@ -158,12 +182,12 @@ public class CommanderFactory
                 new Duration(100, TimeUnit.DAYS));
     }
 
-    private static class StandaloneProvisioner implements Provisioner
+    private class StandaloneProvisioner implements Provisioner
     {
         @Override
         public List<Instance> listAgents()
         {
-            return ImmutableList.of(new Instance(AGENT_ID, INSTANCE_TYPE, LOCATION, AGENT_URI));
+            return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI));
         }
 
         @Override
@@ -180,7 +204,7 @@ public class CommanderFactory
         }
     }
 
-    private static class StandaloneRemoteAgentFactory implements RemoteAgentFactory
+    private class StandaloneRemoteAgentFactory implements RemoteAgentFactory
     {
         private final Agent agent;
 
@@ -192,14 +216,14 @@ public class CommanderFactory
         @Override
         public RemoteAgent createRemoteAgent(String instanceId, String instanceType, URI uri)
         {
-            Preconditions.checkArgument(AGENT_ID.equals(instanceId), "instanceId is not '" + AGENT_ID + "'");
+            Preconditions.checkArgument(agentId.equals(instanceId), "instanceId is not '" + agentId + "'");
             Preconditions.checkArgument(AGENT_URI.equals(uri), "uri is not '" + AGENT_URI + "'");
 
             return new StandaloneRemoteAgent(agent);
         }
     }
 
-    private static class StandaloneRemoteAgent implements RemoteAgent
+    private class StandaloneRemoteAgent implements RemoteAgent
     {
         private final Agent agent;
 
@@ -234,7 +258,7 @@ public class CommanderFactory
                     agentStatus.getState(),
                     agentStatus.getUri(),
                     agentStatus.getLocation(),
-                    INSTANCE_TYPE,
+                    instanceType,
                     agentStatus.getSlotStatuses(),
                     agentStatus.getResources());
         }

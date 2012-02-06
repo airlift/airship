@@ -64,6 +64,7 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.standalone.Column.binary;
 import static com.proofpoint.galaxy.standalone.Column.config;
+import static com.proofpoint.galaxy.standalone.Column.instanceType;
 import static com.proofpoint.galaxy.standalone.Column.ip;
 import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
@@ -154,12 +155,23 @@ public class Galaxy
 
             URI coordinatorUri = new URI(coordinator);
 
-            Commander commander = new CommanderFactory()
+            CommanderFactory commanderFactory = new CommanderFactory()
                     .setEnvironment(environment)
                     .setCoordinatorUri(coordinatorUri)
                     .setRepositories(config.getAll("environment." + ref + ".repository"))
-                    .setMavenDefaultGroupIds(config.getAll("environment." + ref + ".maven-group-id"))
-                    .build();
+                    .setMavenDefaultGroupIds(config.getAll("environment." + ref + ".maven-group-id"));
+
+            if (config.get("environment." + ref + ".agent-id") != null) {
+                commanderFactory.setAgentId(config.get("environment." + ref + ".agent-id"));
+            }
+            if (config.get("environment." + ref + ".location") != null) {
+                commanderFactory.setLocation(config.get("environment." + ref + ".location"));
+            }
+            if (config.get("environment." + ref + ".instance-type") != null) {
+                commanderFactory.setInstanceType(config.get("environment." + ref + ".instance-type"));
+            }
+
+            Commander commander = commanderFactory.build();
 
             try {
                 execute(commander);
@@ -565,6 +577,15 @@ public class Galaxy
         @Option(name = "--maven-default-group-id", description = "Default maven group-id")
         public final List<String> mavenDefaultGroupId = newArrayList();
 
+        @Option(name = "--agent-id", description = "Agent identifier")
+        public String agentId;
+
+        @Option(name = "--location", description = "Environment location")
+        public String location;
+
+        @Option(name = "--instance-type", description = "Instance type for the local environment")
+        public String instanceType;
+
         @Arguments(usage = "<ref> <path>",
                 description = "Reference name and path for the environment")
         public List<String> args;
@@ -599,6 +620,15 @@ public class Galaxy
             }
             for (String groupId : mavenDefaultGroupId) {
                 config.add(mavenGroupIdProperty, groupId);
+            }
+            if (agentId != null) {
+                config.set("environment." + ref + ".agent-id", agentId);
+            }
+            if (location != null) {
+                config.set("environment." + ref + ".location", location);
+            }
+            if (instanceType != null) {
+                config.set("environment." + ref + ".instance-type", instanceType);
             }
             if (config.get("environment.default") == null) {
                 config.set("environment.default", ref);
@@ -665,6 +695,8 @@ public class Galaxy
             if (config.get(nameProperty) != null) {
                 throw new RuntimeException("Environment " + ref + " already exists");
             }
+
+            Preconditions.checkNotNull(coordinatorConfig, "You must specify the coordinator config");
 
             String accessKey = config.get("aws.access-key");
             Preconditions.checkNotNull(accessKey, "You must set the aws access-key with: galaxy config set aws.access-key <key>");
@@ -771,7 +803,7 @@ public class Galaxy
 
                 switch (loop % 5) {
                     case 0:
-                        System.out.print("\r ");
+                        System.out.print("\r                            \r");
                         break;
                     case 1:
                         System.out.print("\r1.");
