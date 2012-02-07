@@ -2,9 +2,10 @@ package com.proofpoint.galaxy.standalone;
 
 import com.google.common.base.Preconditions;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import jnr.posix.FileStat;
 import jnr.posix.POSIX;
 import jnr.posix.util.Platform;
+
+import java.io.File;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static java.lang.System.getenv;
@@ -28,7 +29,7 @@ public class Exec
     public static void execLocal(String command)
     {
         POSIX posix = POSIXFactory.getPOSIX();
-        String shell = firstNonNull(getenv("SHELL"), firstNonNull(findFileInPath(posix, "bash", null), "/bin/bash"));
+        String shell = firstNonNull(getenv("SHELL"), firstNonNull(findFileInPath("bash", null), "/bin/bash"));
 
         String[] args;
         if (command == null) {
@@ -57,7 +58,7 @@ public class Exec
     public static void execRemote(String host, String command)
     {
         POSIX posix = POSIXFactory.getPOSIX();
-        String ssh = firstNonNull(getenv("GALAXY_SSH_COMMAND"), firstNonNull(findFileInPath(posix, "ssh", null), "/usr/bin/ssh"));
+        String ssh = firstNonNull(getenv("GALAXY_SSH_COMMAND"), firstNonNull(findFileInPath("ssh", null), "/usr/bin/ssh"));
 
         String[] args;
         if (command == null) {
@@ -75,7 +76,7 @@ public class Exec
         return command.replace("'", "\\\'");
     }
 
-    public static String findFileInPath(POSIX posix, String name, String path)
+    public static String findFileInPath(String name, String path)
     {
         if (path == null || path.length() == 0) {
             path = System.getenv("PATH");
@@ -89,10 +90,10 @@ public class Exec
             return name;
         }
 
-        return findFileCommon(posix, name, path, true);
+        return findFileCommon(name, path, true);
     }
 
-    public static String findFileCommon(POSIX posix, String name, String path, boolean executableOnly)
+    public static String findFileCommon(String name, String path, boolean executableOnly)
     {
         // No point looking for nothing...
         if (name == null || name.length() == 0) {
@@ -104,7 +105,7 @@ public class Exec
 
 
             if (length > 1 && Character.isLetter(name.charAt(0)) && name.charAt(1) == '/') {
-                if (isMatch(posix, executableOnly, name)) {
+                if (isMatch(executableOnly, name)) {
                     return name;
                 }
                 else {
@@ -126,7 +127,7 @@ public class Exec
 
                 String filename = currentPath + name;
 
-                if (isMatch(posix, executableOnly, filename)) {
+                if (isMatch(executableOnly, filename)) {
                     return filename;
                 }
             }
@@ -135,19 +136,9 @@ public class Exec
         return null;
     }
 
-    public static boolean isMatch(POSIX posix, boolean executableOnly, String filename)
+    public static boolean isMatch(boolean executableOnly, String filename)
     {
-        FileStat stat = posix.allocateStat();
-        int value = posix.libc().stat(filename, stat);
-        if (value >= 0) {
-            if (!executableOnly) {
-                return true;
-            }
-
-            if (!stat.isDirectory() && stat.isExecutable()) {
-                return true;
-            }
-        }
-        return false;
+        File file = new File(filename);
+        return file.isFile() && (!executableOnly || file.canExecute());
     }
 }
