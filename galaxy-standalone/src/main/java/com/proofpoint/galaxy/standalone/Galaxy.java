@@ -64,7 +64,6 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.standalone.Column.binary;
 import static com.proofpoint.galaxy.standalone.Column.config;
-import static com.proofpoint.galaxy.standalone.Column.instanceType;
 import static com.proofpoint.galaxy.standalone.Column.ip;
 import static com.proofpoint.galaxy.standalone.Column.location;
 import static com.proofpoint.galaxy.standalone.Column.shortId;
@@ -81,7 +80,7 @@ public class Galaxy
     public static void main(String[] args)
             throws Exception
     {
-        CliBuilder<Callable> builder = buildCli("galaxy", Callable.class)
+        CliBuilder<GalaxyCommand> builder = buildCli("galaxy", GalaxyCommand.class)
                 .withDescription("cloud management system")
                 .withDefaultCommand(HelpCommand.class)
                 .withCommands(HelpCommand.class,
@@ -104,7 +103,7 @@ public class Galaxy
 
         builder.withGroup("environment")
                 .withDescription("Manage environments")
-                .withDefaultCommand(Help.class)
+                .withDefaultCommand(HelpCommand.class)
                 .withCommands(EnvironmentProvisionLocal.class,
                         EnvironmentProvisionAws.class,
                         EnvironmentUse.class,
@@ -112,14 +111,14 @@ public class Galaxy
 
         builder.withGroup("config")
                 .withDescription("Manage configuration")
-                .withDefaultCommand(Help.class)
+                .withDefaultCommand(HelpCommand.class)
                 .withCommands(ConfigGet.class,
                         ConfigGetAll.class,
                         ConfigSet.class,
                         ConfigAdd.class,
                         ConfigUnset.class);
 
-        Cli<Callable> galaxyParser = builder.build();
+        Cli<GalaxyCommand> galaxyParser = builder.build();
 
         galaxyParser.parse(args).call();
     }
@@ -130,7 +129,32 @@ public class Galaxy
         public GlobalOptions globalOptions = new GlobalOptions();
 
         @Override
-        public Void call()
+        public final Void call()
+                throws Exception
+        {
+            initializeLogging(globalOptions.debug);
+
+            try {
+                execute();
+            }
+            catch (Exception e) {
+                if (globalOptions.debug) {
+                    throw e;
+                }
+                else {
+                    System.out.println(firstNonNull(e.getMessage(), "Unknown error"));
+                }
+            }
+            return null;
+        }
+
+        protected abstract void execute() throws Exception;
+    }
+
+    public static abstract class GalaxyCommanderCommand extends GalaxyCommand
+    {
+        @Override
+        public void execute()
                 throws Exception
         {
             initializeLogging(globalOptions.debug);
@@ -184,8 +208,6 @@ public class Galaxy
                     System.out.println(firstNonNull(e.getMessage(), "Unknown error"));
                 }
             }
-
-            return null;
         }
 
         public abstract void execute(Commander commander)
@@ -221,18 +243,10 @@ public class Galaxy
         public Help help;
 
         @Override
-        public Void call()
+        protected void execute()
                 throws Exception
         {
             help.call();
-            return null;
-        }
-
-        @Override
-        public void execute(Commander commander)
-                throws Exception
-        {
-            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -247,7 +261,7 @@ public class Galaxy
     }
 
     @Command(name = "show", description = "Show state of all slots")
-    public static class ShowCommand extends GalaxyCommand
+    public static class ShowCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -272,7 +286,7 @@ public class Galaxy
     }
 
     @Command(name = "install", description = "Install software in a new slot")
-    public static class InstallCommand extends GalaxyCommand
+    public static class InstallCommand extends GalaxyCommanderCommand
     {
         @Option(name = {"--count"}, description = "Number of instances to install")
         public int count = 1;
@@ -321,7 +335,7 @@ public class Galaxy
     }
 
     @Command(name = "upgrade", description = "Upgrade software in a slot")
-    public static class UpgradeCommand extends GalaxyCommand
+    public static class UpgradeCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -371,7 +385,7 @@ public class Galaxy
     }
 
     @Command(name = "terminate", description = "Terminate (remove) a slot")
-    public static class TerminateCommand extends GalaxyCommand
+    public static class TerminateCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -396,7 +410,7 @@ public class Galaxy
     }
 
     @Command(name = "start", description = "Start a server")
-    public static class StartCommand extends GalaxyCommand
+    public static class StartCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -410,7 +424,7 @@ public class Galaxy
     }
 
     @Command(name = "stop", description = "Stop a server")
-    public static class StopCommand extends GalaxyCommand
+    public static class StopCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -424,7 +438,7 @@ public class Galaxy
     }
 
     @Command(name = "restart", description = "Restart server")
-    public static class RestartCommand extends GalaxyCommand
+    public static class RestartCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -438,7 +452,7 @@ public class Galaxy
     }
 
     @Command(name = "reset-to-actual", description = "Reset slot expected state to actual")
-    public static class ResetToActualCommand extends GalaxyCommand
+    public static class ResetToActualCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -452,7 +466,7 @@ public class Galaxy
     }
 
     @Command(name = "ssh", description = "ssh to slot installation")
-    public static class SshCommand extends GalaxyCommand
+    public static class SshCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -480,7 +494,7 @@ public class Galaxy
     }
 
     @Command(name = "show", description = "Show agent details")
-    public static class AgentShowCommand extends GalaxyCommand
+    public static class AgentShowCommand extends GalaxyCommanderCommand
     {
         @Inject
         public final AgentFilter agentFilter = new AgentFilter();
@@ -506,7 +520,7 @@ public class Galaxy
     }
 
     @Command(name = "provision", description = "Provision a new agent")
-    public static class AgentAddCommand extends GalaxyCommand
+    public static class AgentAddCommand extends GalaxyCommanderCommand
     {
         @Option(name = {"--count"}, description = "Number of agents to provision")
         public int count = 1;
@@ -540,7 +554,7 @@ public class Galaxy
     }
 
     @Command(name = "terminate", description = "Terminate an agent")
-    public static class AgentTerminateCommand extends GalaxyCommand
+    public static class AgentTerminateCommand extends GalaxyCommanderCommand
     {
         @Arguments(title = "agent-id", description = "Agent to terminate", required = true)
         public String agentId;
@@ -566,7 +580,7 @@ public class Galaxy
     }
 
     @Command(name = "provision-local", description = "Provision a local environment")
-    public static class EnvironmentProvisionLocal implements Callable<Void>
+    public static class EnvironmentProvisionLocal extends GalaxyCommand
     {
         @Option(name = "--name", description = "Environment name")
         public String environment;
@@ -590,8 +604,7 @@ public class Galaxy
                 description = "Reference name and path for the environment")
         public List<String> args;
 
-        @Override
-        public Void call()
+        public void execute()
                 throws Exception
         {
             if (args.size() != 2) {
@@ -634,16 +647,12 @@ public class Galaxy
                 config.set("environment.default", ref);
             }
             config.save(CONFIG_FILE);
-            return null;
         }
     }
 
     @Command(name = "provision-aws", description = "Provision an AWS environment")
-    public static class EnvironmentProvisionAws implements Callable<Void>
+    public static class EnvironmentProvisionAws extends GalaxyCommand
     {
-        @Inject
-        public GlobalOptions globalOptions = new GlobalOptions();
-
         @Option(name = "--name", description = "Environment name")
         public String environment;
 
@@ -677,12 +686,9 @@ public class Galaxy
         @Arguments(description = "Reference name for the environment", required = true)
         public String ref;
 
-        @Override
-        public Void call()
+        public void execute()
                 throws Exception
         {
-            initializeLogging(globalOptions.debug);
-
             Preconditions.checkNotNull(ref, "You must specify a name");
 
             if (environment == null) {
@@ -774,7 +780,6 @@ public class Galaxy
                 config.set("environment.default", ref);
             }
             config.save(CONFIG_FILE);
-            return null;
         }
 
         private static List<Instance> waitForInstancesToStart(AmazonEC2Client ec2Client, List<Instance> instances, int port)
@@ -906,7 +911,7 @@ public class Galaxy
     }
 
     @Command(name = "add", description = "Add an environment")
-    public static class EnvironmentAdd implements Callable<Void>
+    public static class EnvironmentAdd extends GalaxyCommand
     {
         @Option(name = "--name", description = "Environment name")
         public String environment;
@@ -916,7 +921,7 @@ public class Galaxy
         public List<String> args;
 
         @Override
-        public Void call()
+        protected void execute()
                 throws Exception
         {
             if (args.size() != 2) {
@@ -940,18 +945,17 @@ public class Galaxy
             config.set(nameProperty, environment);
             config.set("environment." + ref + ".coordinator", coordinatorUrl);
             config.save(CONFIG_FILE);
-            return null;
         }
     }
 
     @Command(name = "use", description = "Set the default environment")
-    public static class EnvironmentUse implements Callable<Void>
+    public static class EnvironmentUse extends GalaxyCommand
     {
         @Arguments(description = "Environment to make the default")
         public String ref;
 
         @Override
-        public Void call()
+        protected void execute()
                 throws Exception
         {
             Preconditions.checkNotNull(ref, "You must specify an environment");
@@ -964,18 +968,17 @@ public class Galaxy
             }
             config.set("environment.default", ref);
             config.save(CONFIG_FILE);
-            return null;
         }
     }
 
     @Command(name = "get", description = "Get a configuration value")
-    public static class ConfigGet implements Callable<Void>
+    public static class ConfigGet extends GalaxyCommand
     {
         @Arguments(description = "Key to get")
         public String key;
 
         @Override
-        public Void call()
+        protected void execute()
                 throws Exception
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
@@ -986,18 +989,17 @@ public class Galaxy
             if (!values.isEmpty()) {
                 System.out.println(values.get(0));
             }
-            return null;
         }
     }
 
     @Command(name = "get-all", description = "Get all values of configuration")
-    public static class ConfigGetAll implements Callable<Void>
+    public static class ConfigGetAll extends GalaxyCommand
     {
         @Arguments(description = "Key to get")
         public String key;
 
         @Override
-        public Void call()
+        protected void execute()
                 throws Exception
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
@@ -1007,19 +1009,18 @@ public class Galaxy
             for (String value : values) {
                 System.out.println(value);
             }
-            return null;
         }
     }
 
     @Command(name = "set", description = "Set a configuration value")
-    public static class ConfigSet implements Callable<Void>
+    public static class ConfigSet extends GalaxyCommand
     {
         @Arguments(usage = "<key> <value>",
                 description = "Key-value pair to set")
         public List<String> args;
 
         @Override
-        public Void call()
+        protected void execute()
                 throws Exception
         {
             if (args.size() != 2) {
@@ -1032,19 +1033,18 @@ public class Galaxy
             Config config = Config.loadConfig(CONFIG_FILE);
             config.set(key, value);
             config.save(CONFIG_FILE);
-            return null;
         }
     }
 
     @Command(name = "add", description = "Add a configuration value")
-    public static class ConfigAdd implements Callable<Void>
+    public static class ConfigAdd extends GalaxyCommand
     {
         @Arguments(usage = "<key> <value>",
                 description = "Key-value pair to add")
         public List<String> args;
 
         @Override
-        public Void call()
+        protected void execute()
                 throws Exception
         {
             if (args.size() != 2) {
@@ -1057,18 +1057,17 @@ public class Galaxy
             Config config = Config.loadConfig(CONFIG_FILE);
             config.add(key, value);
             config.save(CONFIG_FILE);
-            return null;
         }
     }
 
     @Command(name = "unset", description = "Unset a configuration value")
-    public static class ConfigUnset implements Callable<Void>
+    public static class ConfigUnset extends GalaxyCommand
     {
         @Arguments(description = "Key to unset")
         public String key;
 
         @Override
-        public Void call()
+        protected void execute()
                 throws Exception
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
@@ -1076,7 +1075,6 @@ public class Galaxy
             Config config = Config.loadConfig(CONFIG_FILE);
             config.unset(key);
             config.save(CONFIG_FILE);
-            return null;
         }
     }
 
