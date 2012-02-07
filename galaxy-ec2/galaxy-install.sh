@@ -57,11 +57,7 @@ galaxy install ${galaxyInstallBinary} ${galaxyInstallConfig}
 if [ -e /home/ubuntu/cloudconf/aws-credentials.properties ]
 then
     # copy aws credentials to server
-    # todo ssh is broken in aws
-    #galaxy ssh -c @coordinator.config "mkdir -p $(dirname ${galaxyAwsCredentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${galaxyAwsCredentialsFile}"
-
-    credentialsFile=/mnt/galaxy/coordinator/data/${galaxyAwsCredentialsFile}
-    mkdir -p $(dirname ${credentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${credentialsFile}
+    galaxy ssh -c @coordinator.config "mkdir -p $(dirname ${galaxyAwsCredentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${galaxyAwsCredentialsFile}"
 fi
 
 # start server
