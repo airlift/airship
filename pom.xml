@@ -67,7 +67,7 @@
         <module>galaxy-coordinator</module>
         <module>galaxy-agent</module>
         <module>galaxy-integration-tests</module>
-        <module>galaxy-standalone</module>
+        <module>galaxy-cli</module>
         <module>galaxy-configuration-repository</module>
         <module>galaxy-ec2</module>
     </modules>
