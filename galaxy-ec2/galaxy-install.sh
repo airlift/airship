@@ -22,8 +22,6 @@ mkdir -p /home/ubuntu/bin
 cp /home/ubuntu/cloudconf/galaxy /home/ubuntu/bin
 chmod 755 /home/ubuntu/bin/galaxy
 
-# todo modify bashrc as in the ruby code
-
 # add bin to path
 export PATH=$PATH:/home/ubuntu/bin
 
@@ -35,6 +33,18 @@ LOCATION="/ec2/${REGION}/${ZONE}/${INSTANCE_ID}"
 
 # instance type
 INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
+
+# add to bashrc
+cat <<EOT > /home/ubuntu/.galaxy.bashrc
+export PATH=\$PATH:/home/ubuntu/bin
+
+YELLOW="\\[\\033[33m\\]"
+GREEN="\\[\\033[32m\\]"
+DEFAULT="\\[\\033[39m\\]"
+export PS1="[\$(date +%H:%M) \u@\${YELLOW}${INSTANCE_ID}\${DEFAULT}:\w \${GREEN}$(cat ~/.galaxyconfig | awk '/^environment\.default *=/ {print $3}')\${DEFAULT}] "
+EOT
+
+grep 'galaxy\.bashrc' /home/ubuntu/.bashrc || echo -e "\n. ~/.galaxy.bashrc\n" >> /home/ubuntu/.bashrc
 
 # setup filesystem environment (must be named $targetEnvironment)
 galaxy environment provision-local galaxy /mnt/galaxy/ \
