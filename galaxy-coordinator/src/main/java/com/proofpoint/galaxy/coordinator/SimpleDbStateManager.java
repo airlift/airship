@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.model.Attribute;
 import com.amazonaws.services.simpledb.model.CreateDomainRequest;
@@ -20,6 +21,7 @@ import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -28,32 +30,34 @@ public class SimpleDbStateManager implements StateManager
     private static final Logger log = Logger.get(SimpleDbStateManager.class);
     private final AmazonSimpleDB simpleDb;
     private final String domainName;
+    private boolean domainCreated;
 
     @Inject
     public SimpleDbStateManager(AmazonSimpleDB simpleDb, NodeInfo nodeInfo)
     {
         this.simpleDb = simpleDb;
         domainName = "galaxy-" + nodeInfo.getEnvironment();
-        simpleDb.createDomain(new CreateDomainRequest(domainName));
-
     }
 
     @Override
     public Collection<ExpectedSlotStatus> getAllExpectedStates()
     {
         List<ExpectedSlotStatus> slots = newArrayList();
-        try {
-            String query = String.format("select itemName, state, binary, config from `%s`", domainName);
-            SelectResult select = simpleDb.select(new SelectRequest(query, true));
-            for (Item item : select.getItems()) {
-                ExpectedSlotStatus expectedSlotStatus = loadSlotStatus(item);
-                if (expectedSlotStatus != null) {
-                    slots.add(expectedSlotStatus);
+        if (!isDomainCreate()) {
+            try {
+                String query = String.format("select itemName, state, binary, config from `%s`", domainName);
+                SelectResult select = simpleDb.select(new SelectRequest(query, true));
+                for (Item item : select.getItems()) {
+                    ExpectedSlotStatus expectedSlotStatus = loadSlotStatus(item);
+                    if (expectedSlotStatus != null) {
+                        slots.add(expectedSlotStatus);
+                    }
                 }
+                expectedStateStoreUp();
             }
-        }
-        catch (Exception e) {
-            log.error(e, "Error reading expected slot status");
+            catch (Exception e) {
+                expectedStateStoreDown(e);
+            }
         }
         return slots;
     }
@@ -63,16 +67,19 @@ public class SimpleDbStateManager implements StateManager
     {
         Preconditions.checkNotNull(slotId, "id is null");
 
-        List<Attribute> attributes = newArrayList();
-        attributes.add(new Attribute("state", null));
-        attributes.add(new Attribute("binary", null));
-        attributes.add(new Attribute("config", null));
+        if (!isDomainCreate()) {
+            List<Attribute> attributes = newArrayList();
+            attributes.add(new Attribute("state", null));
+            attributes.add(new Attribute("binary", null));
+            attributes.add(new Attribute("config", null));
 
-        try {
-            simpleDb.deleteAttributes(new DeleteAttributesRequest().withDomainName(domainName).withItemName(slotId.toString()).withAttributes(attributes));
-        }
-        catch (Exception e) {
-            log.error(e, "Error deleting expected slot status for slot %s", slotId);
+            try {
+                simpleDb.deleteAttributes(new DeleteAttributesRequest().withDomainName(domainName).withItemName(slotId.toString()).withAttributes(attributes));
+                expectedStateStoreUp();
+            }
+            catch (Exception e) {
+                expectedStateStoreDown(e);
+            }
         }
     }
 
@@ -81,18 +88,51 @@ public class SimpleDbStateManager implements StateManager
     {
         Preconditions.checkNotNull(slotStatus, "slotStatus is null");
 
-        List<ReplaceableAttribute> attributes = newArrayList();
-        attributes.add(new ReplaceableAttribute("state", slotStatus.getStatus().toString(), true));
-        if (slotStatus.getAssignment() != null) {
-            attributes.add(new ReplaceableAttribute("binary", slotStatus.getAssignment().getBinary(), true));
-            attributes.add(new ReplaceableAttribute("config", slotStatus.getAssignment().getConfig(), true));
-        }
+        if (!isDomainCreate()) {
+            List<ReplaceableAttribute> attributes = newArrayList();
+            attributes.add(new ReplaceableAttribute("state", slotStatus.getStatus().toString(), true));
+            if (slotStatus.getAssignment() != null) {
+                attributes.add(new ReplaceableAttribute("binary", slotStatus.getAssignment().getBinary(), true));
+                attributes.add(new ReplaceableAttribute("config", slotStatus.getAssignment().getConfig(), true));
+            }
 
-        try {
-            simpleDb.putAttributes(new PutAttributesRequest().withDomainName(domainName).withItemName(slotStatus.getId().toString()).withAttributes(attributes));
+            try {
+                simpleDb.putAttributes(new PutAttributesRequest().withDomainName(domainName).withItemName(slotStatus.getId().toString()).withAttributes(attributes));
+                expectedStateStoreUp();
+            }
+            catch (Exception e) {
+                expectedStateStoreDown(e);
+            }
         }
-        catch (Exception e) {
-            log.error(e, "Error writing expected slot status");
+    }
+
+    private synchronized boolean isDomainCreate()
+    {
+        if (!domainCreated) {
+            try {
+                simpleDb.createDomain(new CreateDomainRequest(domainName));
+            }
+            catch (AmazonClientException e) {
+                expectedStateStoreDown(e);
+            }
+            domainCreated = true;
+        }
+        return domainCreated;
+    }
+
+    private final AtomicBoolean storeUp = new AtomicBoolean(true);
+
+    private void expectedStateStoreDown(Exception e)
+    {
+        if (storeUp.compareAndSet(true, false)) {
+            log.error(e, "Expected state store is down");
+        }
+    }
+
+    private void expectedStateStoreUp()
+    {
+        if (storeUp.compareAndSet(false, true)) {
+            log.info("Expected state store is up");
         }
     }
 
@@ -106,9 +146,11 @@ public class SimpleDbStateManager implements StateManager
         for (Attribute attribute : item.getAttributes()) {
             if ("state".equals(attribute.getName())) {
                 state = attribute.getValue();
-            } else if ("binary".equals(attribute.getName())) {
+            }
+            else if ("binary".equals(attribute.getName())) {
                 binary = attribute.getValue();
-            } else if ("config".equals(attribute.getName())) {
+            }
+            else if ("config".equals(attribute.getName())) {
                 config = attribute.getValue();
             }
         }
@@ -122,7 +164,8 @@ public class SimpleDbStateManager implements StateManager
         try {
             if (binary == null || config == null) {
                 return new ExpectedSlotStatus(UUID.fromString(id), SlotLifecycleState.valueOf(state), null);
-            } else {
+            }
+            else {
                 return new ExpectedSlotStatus(UUID.fromString(id), SlotLifecycleState.valueOf(state), new Assignment(binary, config));
             }
         }
