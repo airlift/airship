@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.BlockDeviceMapping;
@@ -193,7 +194,21 @@ public class AwsProvisioner implements Provisioner
         }
 
         log.debug("launching instances: %s", request);
-        RunInstancesResult result = ec2Client.runInstances(request);
+        RunInstancesResult result = null;
+        AmazonClientException exception = null;
+        for (int i = 0; i < 5; i++) {
+            try {
+                result = ec2Client.runInstances(request);
+                break;
+            }
+            catch (AmazonClientException e) {
+                exception = e;
+                Thread.sleep(500);
+            }
+        }
+        if (result == null) {
+            throw exception;
+        }
         log.debug("launched instances: %s", result);
 
         List<Instance> instances = newArrayList();

@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.cli;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -54,6 +55,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
@@ -790,20 +792,24 @@ public class Galaxy
             }
 
             for (int loop = 0; true; loop++) {
-                DescribeInstancesResult result = ec2Client.describeInstances(new DescribeInstancesRequest().withInstanceIds(instanceIds));
-                if (allInstancesStarted(result, port)) {
-                    List<Instance> resolvedInstances = newArrayList();
-                    for (Reservation reservation : result.getReservations()) {
-                        for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
-                            URI uri = null;
-                            if (instance.getPublicDnsName() != null) {
-                                uri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                try {
+                    DescribeInstancesResult result = ec2Client.describeInstances(new DescribeInstancesRequest().withInstanceIds(instanceIds));
+                    if (allInstancesStarted(result, port)) {
+                        List<Instance> resolvedInstances = newArrayList();
+                        for (Reservation reservation : result.getReservations()) {
+                            for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
+                                URI uri = null;
+                                if (instance.getPublicDnsName() != null) {
+                                    uri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                                }
+                                resolvedInstances.add(toInstance(instance, uri));
                             }
-                            resolvedInstances.add(toInstance(instance, uri));
                         }
+                        System.out.print("\r \n");
+                        return resolvedInstances;
                     }
-                    System.out.print("\r \n");
-                    return resolvedInstances;
+                }
+                catch (AmazonClientException ignored) {
                 }
 
                 switch (loop % 5) {
