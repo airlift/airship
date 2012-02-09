@@ -55,7 +55,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.logging.Logger;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
@@ -100,7 +99,7 @@ public class Galaxy
                 .withDescription("Manage agents")
                 .withDefaultCommand(AgentShowCommand.class)
                 .withCommands(AgentShowCommand.class,
-                        AgentAddCommand.class,
+                        AgentProvisionCommand.class,
                         AgentTerminateCommand.class);
 
         builder.withGroup("environment")
@@ -522,7 +521,7 @@ public class Galaxy
     }
 
     @Command(name = "provision", description = "Provision a new agent")
-    public static class AgentAddCommand extends GalaxyCommanderCommand
+    public static class AgentProvisionCommand extends GalaxyCommanderCommand
     {
         @Option(name = {"--count"}, description = "Number of agents to provision")
         public int count = 1;
