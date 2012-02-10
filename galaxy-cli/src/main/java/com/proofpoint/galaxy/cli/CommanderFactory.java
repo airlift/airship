@@ -126,8 +126,6 @@ public class CommanderFactory
         Preconditions.checkNotNull(environment, "environment is null");
         Preconditions.checkNotNull(this.repositories, "binaryRepositories is null");
 
-        List<URI> repoBases = ImmutableList.copyOf(Lists.transform(repositories, new ToUriFunction()));
-
         if (location == null) {
             location = Joiner.on('/').join("localhost", agentId, "agent");
         }
@@ -185,13 +183,25 @@ public class CommanderFactory
     private class LocalProvisioner implements Provisioner
     {
         @Override
-        public List<Instance> listAgents()
+        public List<Instance> listCoordinators()
         {
             return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI));
         }
 
         @Override
-        public List<Instance> listCoordinators()
+        public List<Instance> provisionCoordinators(String coordinatorConfigSpec,
+                int coordinatorCount,
+                String instanceType,
+                String availabilityZone,
+                String ami,
+                String keyPair,
+                String securityGroup)
+        {
+            throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
+        }
+
+        @Override
+        public List<Instance> listAgents()
         {
             return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI));
         }

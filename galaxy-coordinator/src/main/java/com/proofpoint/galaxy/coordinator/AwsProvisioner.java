@@ -51,11 +51,6 @@ public class AwsProvisioner implements Provisioner
     private final String galaxyVersion;
     private List<String> repositories;
 
-    private final String coordinatorAmi;
-    private final String coordinatorKeypair;
-    private final String coordinatorSecurityGroup;
-    private final String coordinatorDefaultInstanceType;
-
     private final String agentDefaultConfig;
 
     private final String agentAmi;
@@ -86,11 +81,6 @@ public class AwsProvisioner implements Provisioner
         repositories = coordinatorConfig.getRepositories();
 
         checkNotNull(awsProvisionerConfig, "awsConfig is null");
-
-        coordinatorAmi = awsProvisionerConfig.getAwsCoordinatorAmi();
-        coordinatorKeypair = awsProvisionerConfig.getAwsCoordinatorKeypair();
-        coordinatorSecurityGroup = awsProvisionerConfig.getAwsCoordinatorSecurityGroup();
-        coordinatorDefaultInstanceType = awsProvisionerConfig.getAwsCoordinatorDefaultInstanceType();
 
         agentDefaultConfig = coordinatorConfig.getAgentDefaultConfig();
 
@@ -194,7 +184,52 @@ public class AwsProvisioner implements Provisioner
         return instances;
     }
 
+    @Override
+    public List<Instance> provisionCoordinators(String coordinatorConfigSpec,
+            int coordinatorCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup)
+    {
+        Preconditions.checkNotNull(coordinatorConfigSpec, "coordinatorConfigSpec is null");
+
+        ConfigurationFactory configurationFactory = createConfigurationFactory(repository, coordinatorConfigSpec);
+        AwsProvisionerConfig awsProvisionerConfig = configurationFactory.build(AwsProvisionerConfig.class);
+        HttpServerConfig httpServerConfig = configurationFactory.build(HttpServerConfig.class);
+
+        if (instanceType == null) {
+            instanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
+        }
+        if (availabilityZone == null) {
+            // todo default availability zone should be the same as the current coordinator
+        }
+        if (ami == null) {
+            ami = awsProvisionerConfig.getAwsCoordinatorAmi();
+        }
+        if (keyPair == null) {
+            keyPair = awsProvisionerConfig.getAwsCoordinatorKeypair();
+        }
+        if (securityGroup == null) {
+            securityGroup = awsProvisionerConfig.getAwsCoordinatorSecurityGroup();
+        }
+
+        List<Instance> instances = provisionCoordinator(coordinatorConfigSpec,
+                coordinatorCount,
+                instanceType,
+                availabilityZone,
+                ami,
+                keyPair,
+                securityGroup,
+                httpServerConfig.getHttpPort(),
+                awsProvisionerConfig.getAwsCredentialsFile(),
+                repositories);
+        return instances;
+    }
+
     public List<Instance> provisionCoordinator(String coordinatorConfig,
+            int coordinatorCount,
             String instanceType,
             String availabilityZone,
             String ami,
@@ -203,20 +238,12 @@ public class AwsProvisioner implements Provisioner
             int coordinatorPort,
             String awsCredentialsFile,
             List<String> repositories)
-            throws Exception
     {
-        if (instanceType == null) {
-            instanceType = coordinatorDefaultInstanceType;
-        }
-        if (ami == null) {
-            ami = coordinatorAmi;
-        }
-        if (keyPair == null) {
-            keyPair = coordinatorKeypair;
-        }
-        if (securityGroup == null) {
-            securityGroup = coordinatorSecurityGroup;
-        }
+        Preconditions.checkNotNull(coordinatorConfig, "coordinatorConfig is null");
+        Preconditions.checkNotNull(instanceType, "instanceType is null");
+        Preconditions.checkNotNull(ami, "ami is null");
+        Preconditions.checkNotNull(keyPair, "keyPair is null");
+        Preconditions.checkNotNull(securityGroup, "securityGroup is null");
 
         List<BlockDeviceMapping> blockDeviceMappings = ImmutableList.<BlockDeviceMapping>builder()
                 .add(new BlockDeviceMapping().withVirtualName("ephemeral0").withDeviceName("/dev/sdb"))
@@ -232,8 +259,8 @@ public class AwsProvisioner implements Provisioner
                 .withInstanceType(instanceType)
                 .withUserData(getCoordinatorUserData(instanceType, coordinatorConfig, awsCredentialsFile, repositories))
                 .withBlockDeviceMappings(blockDeviceMappings)
-                .withMinCount(1)
-                .withMaxCount(1);
+                .withMinCount(coordinatorCount)
+                .withMaxCount(coordinatorCount);
 
         if (availabilityZone != null) {
             request.withPlacement(new Placement(availabilityZone));
@@ -249,7 +276,13 @@ public class AwsProvisioner implements Provisioner
             }
             catch (AmazonClientException e) {
                 exception = e;
-                Thread.sleep(500);
+                try {
+                    Thread.sleep(500);
+                }
+                catch (InterruptedException interruptedException) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted waiting for instances to provision", e);
+                }
             }
         }
         if (result == null) {

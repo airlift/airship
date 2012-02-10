@@ -24,6 +24,14 @@ public interface Commander
 
     List<Record> showCoordinators(CoordinatorFilter coordinatorFilter);
 
+    List<Record> provisionCoordinators(String coordinatorConfig,
+            int coordinatorCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup);
+
     List<Record> showAgents(AgentFilter agentFilter)
             throws Exception;
 
@@ -31,5 +39,4 @@ public interface Commander
                     throws Exception;
 
     Record terminateAgent(String agentId);
-
 }

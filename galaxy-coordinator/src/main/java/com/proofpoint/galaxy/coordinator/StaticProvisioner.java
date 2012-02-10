@@ -46,6 +46,18 @@ public class StaticProvisioner implements Provisioner
     }
 
     @Override
+    public List<Instance> provisionCoordinators(String coordinatorConfigSpec,
+            int coordinatorCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup)
+    {
+        throw new UnsupportedOperationException("Static provisioner does not support coordinator provisioning");
+    }
+
+    @Override
     public List<Instance> listAgents()
     {
         ImmutableList.Builder<Instance> instances = ImmutableList.builder();

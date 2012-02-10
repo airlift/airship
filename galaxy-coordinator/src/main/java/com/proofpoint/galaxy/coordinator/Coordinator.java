@@ -11,7 +11,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.InputSupplier;
@@ -33,7 +32,6 @@ import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
-import com.sun.mail.imap.protocol.Status;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -49,11 +47,11 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
@@ -72,8 +70,8 @@ public class Coordinator
 {
     private static final Logger log = Logger.get(Coordinator.class);
 
-    private final AtomicReference<Map<String, CoordinatorStatus>> coordinators = new AtomicReference<Map<String, CoordinatorStatus>>(ImmutableMap.<String, CoordinatorStatus>of());
-    private final ConcurrentMap<String, RemoteAgent> agents;
+    private final ConcurrentMap<String, CoordinatorStatus> coordinators = new ConcurrentHashMap<String, CoordinatorStatus>();
+    private final ConcurrentMap<String, RemoteAgent> agents = new ConcurrentHashMap<String, RemoteAgent>();
 
     private final String environment;
     private final Repository repository;
@@ -126,8 +124,6 @@ public class Coordinator
         this.serviceInventory = serviceInventory;
         this.statusExpiration = statusExpiration;
 
-        agents = new MapMaker().makeMap();
-
         timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
 
         updateAllAgents();
@@ -164,7 +160,40 @@ public class Coordinator
 
     public List<CoordinatorStatus> getCoordinators(Predicate<CoordinatorStatus> coordinatorFilter)
     {
-        return ImmutableList.copyOf(filter(this.coordinators.get().values(), coordinatorFilter));
+        return ImmutableList.copyOf(filter(this.coordinators.values(), coordinatorFilter));
+    }
+
+    public List<CoordinatorStatus> provisionCoordinators(String coordinatorConfigSpec,
+            int coordinatorCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup)
+    {
+        List<Instance> instances = provisioner.provisionCoordinators(coordinatorConfigSpec,
+                coordinatorCount,
+                instanceType,
+                availabilityZone,
+                ami,
+                keyPair,
+                securityGroup);
+
+        List<CoordinatorStatus> coordinators = newArrayList();
+        for (Instance instance : instances) {
+            String instanceId = instance.getInstanceId();
+
+            CoordinatorStatus coordinatorStatus = new CoordinatorStatus(
+                    instanceId,
+                    CoordinatorLifecycleState.PROVISIONING,
+                    null,
+                    instance.getLocation(),
+                    instance.getInstanceType());
+
+            this.coordinators.put(instanceId, coordinatorStatus);
+            coordinators.add(coordinatorStatus);
+        }
+        return coordinators;
     }
 
     public List<AgentStatus> getAllAgentStatus()
@@ -210,14 +239,17 @@ public class Coordinator
     {
         Builder<String,CoordinatorStatus> builder = ImmutableMap.builder();
         for (Instance instance : this.provisioner.listCoordinators()) {
+            // todo machine or process may still be starting (provisioning)
             CoordinatorStatus coordinatorStatus = new CoordinatorStatus(instance.getInstanceId(),
                     CoordinatorLifecycleState.ONLINE,
                     instance.getUri(),
                     instance.getLocation(),
                     instance.getInstanceType());
+
+            // todo remove terminated coordinators?
+            coordinators.put(instance.getInstanceId(), coordinatorStatus);
             builder.put(coordinatorStatus.getCoordinatorId(), coordinatorStatus);
         }
-        coordinators.set(builder.build());
     }
 
     @VisibleForTesting

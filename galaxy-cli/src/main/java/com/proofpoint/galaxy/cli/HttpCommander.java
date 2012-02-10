@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.galaxy.coordinator.AgentProvisioningRepresentation;
+import com.proofpoint.galaxy.coordinator.CoordinatorProvisioningRepresentation;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
@@ -35,7 +36,8 @@ public class HttpCommander implements Commander
     private static final JsonCodec<UpgradeVersions> UPGRADE_VERSIONS_CODEC = JsonCodec.jsonCodec(UpgradeVersions.class);
 
     private static final JsonCodec<List<CoordinatorStatusRepresentation>> COORDINATORS_CODEC = JsonCodec.listJsonCodec(CoordinatorStatusRepresentation.class);
-
+    private static final JsonCodec<CoordinatorProvisioningRepresentation> COORDINATOR_PROVISIONING_CODEC = JsonCodec.jsonCodec(CoordinatorProvisioningRepresentation.class);
+    
     private static final JsonCodec<AgentStatusRepresentation> AGENT_CODEC = JsonCodec.jsonCodec(AgentStatusRepresentation.class);
     private static final JsonCodec<List<AgentStatusRepresentation>> AGENTS_CODEC = JsonCodec.listJsonCodec(AgentStatusRepresentation.class);
     private static final JsonCodec<AgentProvisioningRepresentation> AGENT_PROVISIONING_CODEC = JsonCodec.jsonCodec(AgentProvisioningRepresentation.class);
@@ -162,6 +164,37 @@ public class HttpCommander implements Commander
         return records;
     }
 
+    @Override
+    public List<Record> provisionCoordinators(String coordinatorConfig,
+            int coordinatorCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup)
+    {
+        URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator").build();
+
+        CoordinatorProvisioningRepresentation coordinatorProvisioning = new CoordinatorProvisioningRepresentation(
+                coordinatorConfig,
+                coordinatorCount,
+                instanceType,
+                availabilityZone,
+                ami,
+                keyPair,
+                securityGroup);
+
+        Request request = RequestBuilder.preparePost()
+                .setUri(uri)
+                .setHeader("Content-Type", "application/json")
+                .setBodyGenerator(jsonBodyGenerator(COORDINATOR_PROVISIONING_CODEC, coordinatorProvisioning))
+                .build();
+
+        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+        ImmutableList<Record> records = CoordinatorRecord.toCoordinatorRecords(coordinators);
+        return records;
+    }
+    
     @Override
     public List<Record> showAgents(AgentFilter agentFilter)
             throws Exception

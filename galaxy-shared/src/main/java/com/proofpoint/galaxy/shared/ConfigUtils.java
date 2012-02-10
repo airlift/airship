@@ -202,11 +202,15 @@ public class ConfigUtils
     }
 
     public static ConfigurationFactory createConfigurationFactory(Repository repository, String config)
-            throws IOException
     {
-        URI configUri = repository.configToHttpUri(config);
-        Preconditions.checkNotNull(configUri, "Unknown configuration: " + config);
-        return createConfigurationFactory(configUri);
+        try {
+            URI configUri = repository.configToHttpUri(config);
+            Preconditions.checkNotNull(configUri, "Unknown configuration: " + config);
+            return createConfigurationFactory(configUri);
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Unable to read configuration " + config);
+        }
     }
 
     public static ConfigurationFactory createConfigurationFactory(URI configUri)

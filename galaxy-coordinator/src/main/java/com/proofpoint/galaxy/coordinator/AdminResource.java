@@ -44,6 +44,26 @@ public class AdminResource
         return Response.ok(transform(coordinators, fromCoordinatorStatus())).build();
     }
 
+    @POST
+    @Path("/coordinator")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response provisionCoordinator(
+            CoordinatorProvisioningRepresentation provisioning,
+            @Context UriInfo uriInfo)
+            throws Exception
+    {
+        List<CoordinatorStatus> coordinators = coordinator.provisionCoordinators(
+                provisioning.getCoordinatorConfig(),
+                provisioning.getCoordinatorCount(),
+                provisioning.getInstanceType(),
+                provisioning.getAvailabilityZone(),
+                provisioning.getAmi(),
+                provisioning.getKeyPair(),
+                provisioning.getSecurityGroup());
+
+        return Response.ok(transform(coordinators, fromCoordinatorStatus())).build();
+    }
+
     @GET
     @Path("/agent")
     @Produces(MediaType.APPLICATION_JSON)

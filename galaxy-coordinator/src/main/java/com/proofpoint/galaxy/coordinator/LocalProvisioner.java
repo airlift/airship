@@ -47,6 +47,18 @@ public class LocalProvisioner implements Provisioner
         return ImmutableList.copyOf(coordinators.values());
     }
 
+    @Override
+    public List<Instance> provisionCoordinators(String coordinatorConfigSpec,
+            int coordinatorCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup)
+    {
+        throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
+    }
+
     public void addAgent(Instance instance)
     {
         agents.put(instance.getInstanceId(), instance);
@@ -67,12 +79,12 @@ public class LocalProvisioner implements Provisioner
     public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
             throws Exception
     {
-        throw new UnsupportedOperationException("Agent provisioning not supported in local mode");
+        throw new UnsupportedOperationException("Agents can not be provisioned in local mode");
     }
 
     @Override
     public void terminateAgents(List<String> instanceIds)
     {
-        throw new UnsupportedOperationException("Agent termination not supported in local mode");
+        throw new UnsupportedOperationException("Agents can not be termination in local mode");
     }
 }

@@ -98,7 +98,8 @@ public class Galaxy
         builder.withGroup("coordinator")
                 .withDescription("Manage coordinators")
                 .withDefaultCommand(CoordinatorShowCommand.class)
-                .withCommands(CoordinatorShowCommand.class);
+                .withCommands(CoordinatorShowCommand.class,
+                        CoordinatorProvisionCommand.class);
 
         builder.withGroup("agent")
                 .withDescription("Manage agents")
@@ -536,6 +537,55 @@ public class Galaxy
         }
     }
 
+    @Command(name = "provision", description = "Provision a new coordinator")
+    public static class CoordinatorProvisionCommand extends GalaxyCommanderCommand
+    {
+        @Option(name = "--coordinator-config", description = "Configuration for the coordinator")
+        public String coordinatorConfig;
+
+        @Option(name = {"--count"}, description = "Number of coordinators to provision")
+        public int count = 1;
+
+        @Option(name = "--ami", description = "Amazon Machine Image for coordinator")
+        public String ami = "ami-27b7744e";
+
+        @Option(name = "--key-pair", description = "Key pair for coordinator")
+        public String keyPair = "keypair";
+
+        @Option(name = "--security-group", description = "Security group for coordinator")
+        public String securityGroup = "default";
+
+        @Option(name = "--availability-zone", description = "EC2 availability zone for coordinator")
+        public String availabilityZone;
+
+        @Option(name = "--instance-type", description = "Instance type to provision")
+        public String instanceType = "t1.micro";
+
+        @Override
+        public void execute(Commander commander)
+                throws Exception
+        {
+            List<Record> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup);
+            displayCoordinators(coordinators);
+        }
+
+        @Override
+        public String toString()
+        {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("CoordinatorProvisionCommand");
+            sb.append("{coordinatorConfig='").append(coordinatorConfig).append('\'');
+            sb.append(", count=").append(count);
+            sb.append(", ami='").append(ami).append('\'');
+            sb.append(", keyPair='").append(keyPair).append('\'');
+            sb.append(", securityGroup='").append(securityGroup).append('\'');
+            sb.append(", availabilityZone='").append(availabilityZone).append('\'');
+            sb.append(", instanceType='").append(instanceType).append('\'');
+            sb.append('}');
+            return sb.toString();
+        }
+    }
+
     @Command(name = "show", description = "Show agent details")
     public static class AgentShowCommand extends GalaxyCommanderCommand
     {
@@ -797,6 +847,7 @@ public class Galaxy
 
             // provision the coordinator
             List<Instance> instances = provisioner.provisionCoordinator(this.coordinatorConfig,
+                    1,
                     instanceType,
                     availabilityZone,
                     ami,

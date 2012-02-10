@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
@@ -133,6 +132,18 @@ public class LocalCommander implements Commander
     }
 
     @Override
+    public List<Record> provisionCoordinators(String coordinatorConfigSpec,
+            int coordinatorCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup)
+    {
+        throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
+    }
+
+    @Override
     public List<Record> showAgents(AgentFilter agentFilter)
             throws Exception
     {
@@ -145,15 +156,13 @@ public class LocalCommander implements Commander
     public List<Record> provisionAgents(int count, String instanceType, String availabilityZone)
             throws Exception
     {
-        List<AgentStatus> agentStatuses = coordinator.provisionAgents(count, instanceType, availabilityZone);
-        return toAgentRecords(toAgentStatusRepresentations(agentStatuses));
+        throw new UnsupportedOperationException("Agents can not be provisioned in local mode");
     }
 
     @Override
     public Record terminateAgent(String agentId)
     {
-        AgentStatus agentStatus = coordinator.terminateAgent(agentId);
-        return new AgentRecord(AgentStatusRepresentation.from(agentStatus));
+        throw new UnsupportedOperationException("Agents can not be treminated in local mode");
     }
 
     public static int getPrefixSize(List<UUID> uuids)
