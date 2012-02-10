@@ -11,7 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalProvisioner implements Provisioner
 {
-    private final Map<String, Instance> instances = new ConcurrentHashMap<String, Instance>();
+    private final Map<String, Instance> coordinators = new ConcurrentHashMap<String, Instance>();
+    private final Map<String, Instance> agents = new ConcurrentHashMap<String, Instance>();
 
     public LocalProvisioner()
     {
@@ -27,26 +28,39 @@ public class LocalProvisioner implements Provisioner
     {
         Preconditions.checkNotNull(localAgentUris, "localAgentUri is null");
         for (String localAgentUri : localAgentUris) {
-            addAgent(new Instance("local", "unknown", "loation", URI.create(localAgentUri)));
+            addAgent(new Instance("local", "unknown", "location", URI.create(localAgentUri)));
         }
         addAgent(new Instance("bad", "unknown", "location", null));
-
     }
 
-    public void addAgent(Instance location)
+    public void addCoordinator(Instance instance) {
+        coordinators.put(instance.getInstanceId(), instance);
+    }
+
+    public void removeCoordinator(String coordinatorId) {
+        coordinators.remove(coordinatorId);
+    }
+
+    @Override
+    public List<Instance> listCoordinators()
     {
-        instances.put(location.getInstanceId(), location);
+        return ImmutableList.copyOf(coordinators.values());
+    }
+
+    public void addAgent(Instance instance)
+    {
+        agents.put(instance.getInstanceId(), instance);
     }
 
     public void removeAgent(String agentId)
     {
-        instances.remove(agentId);
+        agents.remove(agentId);
     }
 
     @Override
     public List<Instance> listAgents()
     {
-        return ImmutableList.copyOf(instances.values());
+        return ImmutableList.copyOf(agents.values());
     }
 
     @Override

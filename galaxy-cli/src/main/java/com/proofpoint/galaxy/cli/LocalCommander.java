@@ -7,6 +7,7 @@ import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.CoordinatorStatus;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -17,12 +18,14 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
+import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
 import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.toAgentStatusRepresentations;
 import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
 import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
 import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecordsWithExpectedState;
+import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.toCoordinatorStatusRepresentations;
 import static java.lang.Math.max;
 
 public class LocalCommander implements Commander
@@ -119,6 +122,14 @@ public class LocalCommander implements Commander
         }
         Exec.execLocal(SlotStatusRepresentation.from(slots.get(0)), command);
         return true;
+    }
+
+    @Override
+    public List<Record> showCoordinators(CoordinatorFilter coordinatorFilter)
+    {
+        Predicate<CoordinatorStatus> coordinatorPredicate = coordinatorFilter.toCoordinatorPredicate();
+        List<CoordinatorStatus> coordinatorStatuses = coordinator.getCoordinators(coordinatorPredicate);
+        return toCoordinatorRecords(toCoordinatorStatusRepresentations(coordinatorStatuses));
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
@@ -20,6 +21,8 @@ import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
+import com.proofpoint.galaxy.shared.CoordinatorStatus;
 import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.Repository;
@@ -30,6 +33,7 @@ import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
+import com.sun.mail.imap.protocol.Status;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -49,6 +53,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
@@ -66,6 +71,8 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 public class Coordinator
 {
     private static final Logger log = Logger.get(Coordinator.class);
+
+    private final AtomicReference<Map<String, CoordinatorStatus>> coordinators = new AtomicReference<Map<String, CoordinatorStatus>>(ImmutableMap.<String, CoordinatorStatus>of());
     private final ConcurrentMap<String, RemoteAgent> agents;
 
     private final String environment;
@@ -135,6 +142,12 @@ public class Coordinator
             public void run()
             {
                 try {
+                    updateAllCoordinators();
+                }
+                catch (Throwable e) {
+                    log.error(e, "Unexpected exception updating coordinators");
+                }
+                try {
                     updateAllAgents();
                 }
                 catch (Throwable e) {
@@ -147,6 +160,11 @@ public class Coordinator
     public String getEnvironment()
     {
         return environment;
+    }
+
+    public List<CoordinatorStatus> getCoordinators(Predicate<CoordinatorStatus> coordinatorFilter)
+    {
+        return ImmutableList.copyOf(filter(this.coordinators.get().values(), coordinatorFilter));
     }
 
     public List<AgentStatus> getAllAgentStatus()
@@ -185,6 +203,21 @@ public class Coordinator
             return null;
         }
         return agent.status();
+    }
+
+    @VisibleForTesting
+    public void updateAllCoordinators()
+    {
+        Builder<String,CoordinatorStatus> builder = ImmutableMap.builder();
+        for (Instance instance : this.provisioner.listCoordinators()) {
+            CoordinatorStatus coordinatorStatus = new CoordinatorStatus(instance.getInstanceId(),
+                    CoordinatorLifecycleState.ONLINE,
+                    instance.getUri(),
+                    instance.getLocation(),
+                    instance.getInstanceType());
+            builder.put(coordinatorStatus.getCoordinatorId(), coordinatorStatus);
+        }
+        coordinators.set(builder.build());
     }
 
     @VisibleForTesting

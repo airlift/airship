@@ -40,6 +40,12 @@ public class StaticProvisioner implements Provisioner
     }
 
     @Override
+    public List<Instance> listCoordinators()
+    {
+        return ImmutableList.of();
+    }
+
+    @Override
     public List<Instance> listAgents()
     {
         ImmutableList.Builder<Instance> instances = ImmutableList.builder();

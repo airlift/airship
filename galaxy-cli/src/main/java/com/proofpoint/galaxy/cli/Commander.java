@@ -22,6 +22,8 @@ public interface Commander
 
     boolean ssh(SlotFilter slotFilter, String command);
 
+    List<Record> showCoordinators(CoordinatorFilter coordinatorFilter);
+
     List<Record> showAgents(AgentFilter agentFilter)
             throws Exception;
 
@@ -29,4 +31,5 @@ public interface Commander
                     throws Exception;
 
     Record terminateAgent(String agentId);
+
 }

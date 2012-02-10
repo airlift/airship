@@ -4,6 +4,8 @@ import java.util.List;
 
 public interface Provisioner
 {
+    List<Instance> listCoordinators();
+
     List<Instance> listAgents();
 
     List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)

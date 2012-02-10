@@ -103,6 +103,52 @@ public class AwsProvisioner implements Provisioner
     }
 
     @Override
+    public List<Instance> listCoordinators()
+    {
+        DescribeInstancesResult describeInstancesResult = ec2Client.describeInstances();
+        List<Reservation> reservations = describeInstancesResult.getReservations();
+        List<Instance> instances = newArrayList();
+
+        for (Reservation reservation : reservations) {
+            for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
+                // skip terminated instances
+                if ("terminated".equalsIgnoreCase(instance.getState().getName())) {
+                    continue;
+                }
+                Map<String, String> tags = toMap(instance.getTags());
+                if ("coordinator".equals(tags.get("galaxy:role")) && environment.equals(tags.get("galaxy:environment"))) {
+                    String portTag = tags.get("galaxy:port");
+                    if (portTag == null) {
+                        if (invalidInstances.add(instance.getInstanceId())) {
+                            log.error("Instance %s does not have a galaxy:port tag", instance.getInstanceId());
+                        }
+                        continue;
+                    }
+
+                    int port;
+                    try {
+                        port = Integer.parseInt(portTag);
+                    }
+                    catch (Exception e) {
+                        if (invalidInstances.add(instance.getInstanceId())) {
+                            log.error("Instance %s galaxy:port tag is not a number", instance.getInstanceId());
+                        }
+                        continue;
+                    }
+
+                    URI uri = null;
+                    if (instance.getPrivateIpAddress() != null) {
+                        uri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
+                    }
+                    instances.add(toInstance(instance, uri, "coordinator"));
+                    invalidInstances.remove(instance.getInstanceId());
+                }
+            }
+        }
+        return instances;
+    }
+    
+    @Override
     public List<Instance> listAgents()
     {
         DescribeInstancesResult describeInstancesResult = ec2Client.describeInstances();
@@ -140,7 +186,7 @@ public class AwsProvisioner implements Provisioner
                     if (instance.getPrivateIpAddress() != null) {
                         uri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
                     }
-                    instances.add(toInstance(instance, uri));
+                    instances.add(toInstance(instance, uri, "agent"));
                     invalidInstances.remove(instance.getInstanceId());
                 }
             }
@@ -215,7 +261,7 @@ public class AwsProvisioner implements Provisioner
         List<String> instanceIds = newArrayList();
 
         for (com.amazonaws.services.ec2.model.Instance instance : result.getReservation().getInstances()) {
-            instances.add(toInstance(instance, null));
+            instances.add(toInstance(instance, null, "coordinator"));
             instanceIds.add(instance.getInstanceId());
         }
 
@@ -272,7 +318,7 @@ public class AwsProvisioner implements Provisioner
         List<String> instanceIds = newArrayList();
 
         for (com.amazonaws.services.ec2.model.Instance instance : result.getReservation().getInstances()) {
-            instances.add(toInstance(instance, null));
+            instances.add(toInstance(instance, null, "agent"));
             instanceIds.add(instance.getInstanceId());
         }
 
@@ -443,16 +489,16 @@ public class AwsProvisioner implements Provisioner
         return uri;
     }
 
-    public static Instance toInstance(com.amazonaws.services.ec2.model.Instance instance, URI uri)
+    public static Instance toInstance(com.amazonaws.services.ec2.model.Instance instance, URI uri, String role)
     {
-        return new Instance(instance.getInstanceId(), instance.getInstanceType(), getLocation(instance), uri);
+        return new Instance(instance.getInstanceId(), instance.getInstanceType(), getLocation(instance, role), uri);
     }
 
-    public static String getLocation(com.amazonaws.services.ec2.model.Instance instance)
+    public static String getLocation(com.amazonaws.services.ec2.model.Instance instance, String role)
     {
         String zone = instance.getPlacement().getAvailabilityZone();
         String region = zone.substring(0, zone.length() - 1);
-        return Joiner.on('/').join("ec2", region, zone, instance.getInstanceId(), "agent");
+        return Joiner.on('/').join("ec2", region, zone, instance.getInstanceId(), role);
     }
 
     private static String encodeBase64(String s)

@@ -8,6 +8,7 @@ import com.proofpoint.galaxy.coordinator.AgentProvisioningRepresentation;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
+import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
 import com.proofpoint.galaxy.shared.JsonResponseHandler;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -32,6 +33,8 @@ public class HttpCommander implements Commander
     private static final JsonCodec<List<SlotStatusRepresentation>> SLOTS_CODEC = JsonCodec.listJsonCodec(SlotStatusRepresentation.class);
     private static final JsonCodec<AssignmentRepresentation> ASSIGNMENT_CODEC = JsonCodec.jsonCodec(AssignmentRepresentation.class);
     private static final JsonCodec<UpgradeVersions> UPGRADE_VERSIONS_CODEC = JsonCodec.jsonCodec(UpgradeVersions.class);
+
+    private static final JsonCodec<List<CoordinatorStatusRepresentation>> COORDINATORS_CODEC = JsonCodec.listJsonCodec(CoordinatorStatusRepresentation.class);
 
     private static final JsonCodec<AgentStatusRepresentation> AGENT_CODEC = JsonCodec.jsonCodec(AgentStatusRepresentation.class);
     private static final JsonCodec<List<AgentStatusRepresentation>> AGENTS_CODEC = JsonCodec.listJsonCodec(AgentStatusRepresentation.class);
@@ -144,6 +147,19 @@ public class HttpCommander implements Commander
         }
         Exec.execRemote(slots.get(0), command);
         return true;
+    }
+
+    @Override
+    public List<Record> showCoordinators(CoordinatorFilter coordinatorFilter)
+    {
+        URI uri = coordinatorFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator"));
+        Request request = RequestBuilder.prepareGet()
+                .setUri(uri)
+                .build();
+
+        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+        ImmutableList<Record> records = CoordinatorRecord.toCoordinatorRecords(coordinators);
+        return records;
     }
 
     @Override

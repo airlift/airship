@@ -191,6 +191,12 @@ public class CommanderFactory
         }
 
         @Override
+        public List<Instance> listCoordinators()
+        {
+            return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI));
+        }
+
+        @Override
         public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
                 throws Exception
         {

@@ -95,6 +95,11 @@ public class Galaxy
                         SshCommand.class,
                         ResetToActualCommand.class);
 
+        builder.withGroup("coordinator")
+                .withDescription("Manage coordinators")
+                .withDefaultCommand(CoordinatorShowCommand.class)
+                .withCommands(CoordinatorShowCommand.class);
+
         builder.withGroup("agent")
                 .withDescription("Manage agents")
                 .withDefaultCommand(AgentShowCommand.class)
@@ -233,6 +238,17 @@ public class Galaxy
             else {
                 TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, Column.instanceType, location);
                 tablePrinter.print(agents);
+            }
+        }
+
+        public void displayCoordinators(Iterable<Record> coordinators)
+        {
+            if (Iterables.isEmpty(coordinators)) {
+                System.out.println("No coordinators match the provided filters.");
+            }
+            else {
+                TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, Column.instanceType, location);
+                tablePrinter.print(coordinators);
             }
         }
     }
@@ -489,6 +505,32 @@ public class Galaxy
             sb.append("{slotFilter=").append(slotFilter);
             sb.append(", args=").append(command);
             sb.append(", globalOptions=").append(globalOptions);
+            sb.append('}');
+            return sb.toString();
+        }
+    }
+
+    @Command(name = "show", description = "Show coordinator details")
+    public static class CoordinatorShowCommand extends GalaxyCommanderCommand
+    {
+        @Inject
+        public final CoordinatorFilter coordinatorFilter = new CoordinatorFilter();
+
+        @Override
+        public void execute(Commander commander)
+                throws Exception
+        {
+            List<Record> coordinators = commander.showCoordinators(coordinatorFilter);
+            displayCoordinators(coordinators);
+        }
+
+        @Override
+        public String toString()
+        {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("CoordinatorShowCommand");
+            sb.append("{globalOptions=").append(globalOptions);
+            sb.append(", coordinatorFilter=").append(coordinatorFilter);
             sb.append('}');
             return sb.toString();
         }
@@ -801,7 +843,7 @@ public class Galaxy
                                 if (instance.getPublicDnsName() != null) {
                                     uri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
                                 }
-                                resolvedInstances.add(toInstance(instance, uri));
+                                resolvedInstances.add(toInstance(instance, uri, "coordinator"));
                             }
                         }
                         System.out.print("\r \n");
