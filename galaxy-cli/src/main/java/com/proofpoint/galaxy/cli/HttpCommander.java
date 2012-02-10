@@ -177,7 +177,7 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<Record> addAgents(int count, String instanceType, String availabilityZone)
+    public List<Record> provisionAgents(int count, String instanceType, String availabilityZone)
             throws Exception
     {
         URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").replaceParameter("count", Integer.toString(count)).build();

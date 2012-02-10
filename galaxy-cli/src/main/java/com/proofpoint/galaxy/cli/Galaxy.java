@@ -578,7 +578,7 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
-            List<Record> agents = commander.addAgents(count, availabilityZone, instanceType);
+            List<Record> agents = commander.provisionAgents(count, availabilityZone, instanceType);
             displayAgents(agents);
         }
 

@@ -27,7 +27,7 @@ public interface Commander
     List<Record> showAgents(AgentFilter agentFilter)
             throws Exception;
 
-    List<Record> addAgents(int count, String instanceType, String availabilityZone)
+    List<Record> provisionAgents(int count, String instanceType, String availabilityZone)
                     throws Exception;
 
     Record terminateAgent(String agentId);

@@ -142,10 +142,10 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<Record> addAgents(int count, String instanceType, String availabilityZone)
+    public List<Record> provisionAgents(int count, String instanceType, String availabilityZone)
             throws Exception
     {
-        List<AgentStatus> agentStatuses = coordinator.addAgents(count, instanceType, availabilityZone);
+        List<AgentStatus> agentStatuses = coordinator.provisionAgents(count, instanceType, availabilityZone);
         return toAgentRecords(toAgentStatusRepresentations(agentStatuses));
     }
 

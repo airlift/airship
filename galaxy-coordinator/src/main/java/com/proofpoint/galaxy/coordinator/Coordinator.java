@@ -250,7 +250,7 @@ public class Coordinator
         remoteAgent.setStatus(status);
     }
 
-    public List<AgentStatus> addAgents(int count, String instanceType, String availabilityZone)
+    public List<AgentStatus> provisionAgents(int count, String instanceType, String availabilityZone)
             throws Exception
     {
         List<Instance> instances = provisioner.provisionAgents(null, count, instanceType, availabilityZone);

@@ -62,7 +62,7 @@ public class AdminResource
             @Context UriInfo uriInfo)
             throws Exception
     {
-        List<AgentStatus> agents = coordinator.addAgents(count, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
+        List<AgentStatus> agents = coordinator.provisionAgents(count, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
 
         return Response.ok(transform(agents, fromAgentStatus())).build();
     }
