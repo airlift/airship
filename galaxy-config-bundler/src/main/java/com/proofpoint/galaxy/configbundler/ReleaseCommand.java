@@ -48,27 +48,19 @@ public class ReleaseCommand
     @Arguments
     public String component;
 
-    @Option(name = "--repository")
-    public String repositoryUri;
-
-    @Option(name = "-u")
-    public String user;
-
-    @Option(name = "-p")
-    public String password;
+    @Option(name = "--repository", description = "Repository id")
+    public String repositoryId;
 
     @Option(name = "--groupId")
     public String groupId;
 
     @Override
     public Void call()
-            throws Exception, NoHeadException, ConcurrentRefUpdateException, InvalidTagNameException
+            throws Exception, ConcurrentRefUpdateException, InvalidTagNameException
     {
         // TODO: rely on cli 'required' feature for these
-        Preconditions.checkNotNull(repositoryUri, "repositoryUri is null");
+        Preconditions.checkNotNull(repositoryId, "repositoryUri is null");
         Preconditions.checkNotNull(groupId, "groupId is null");
-        Preconditions.checkNotNull(user, "user is null");
-        Preconditions.checkNotNull(password, "password is null");
 
         Git git = Git.open(new File("."));
 
@@ -119,8 +111,8 @@ public class ReleaseCommand
         // get entries from tag
         final Map<String, ObjectId> entries = getEntries(repository, headCommit.getTree());
 
-        MavenUploader uploader = new MavenUploader(URI.create(repositoryUri), user, password);
-
+        // TODO: handle errors getting uploader (e.g., repo does not exist, does not have credentials)
+        MavenUploader uploader = new Maven().getUploader(repositoryId);
         URI uri = uploader.upload(groupId, component, Integer.toString(version), "zip", new BodyGenerator()
         {
             public void write(OutputStream out)
