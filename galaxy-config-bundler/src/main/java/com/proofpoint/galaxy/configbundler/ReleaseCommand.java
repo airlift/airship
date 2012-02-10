@@ -11,9 +11,6 @@ import com.google.common.io.InputSupplier;
 import com.proofpoint.http.client.BodyGenerator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
-import org.eclipse.jgit.api.errors.InvalidTagNameException;
-import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -56,11 +53,18 @@ public class ReleaseCommand
 
     @Override
     public Void call()
-            throws Exception, ConcurrentRefUpdateException, InvalidTagNameException
+            throws Exception
     {
-        // TODO: rely on cli 'required' feature for these
-        Preconditions.checkNotNull(repositoryId, "repositoryUri is null");
-        Preconditions.checkNotNull(groupId, "groupId is null");
+        Metadata metadata = Metadata.load(new File(".metadata"));
+
+        if (groupId == null) {
+            groupId = metadata.getGroupId();
+        }
+        if (repositoryId == null) {
+            repositoryId = metadata.getRepository();
+        }
+
+        Preconditions.checkNotNull(repositoryId, "Repository missing and no default repository configured");
 
         Git git = Git.open(new File("."));
 
