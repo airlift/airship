@@ -59,6 +59,7 @@ import java.util.concurrent.Callable;
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.cli.Column.externalHost;
+import static com.proofpoint.galaxy.cli.Column.internalHost;
 import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
 import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
@@ -160,6 +161,7 @@ public class Galaxy
     public static abstract class GalaxyCommanderCommand extends GalaxyCommand
     {
         protected Config config;
+        protected String environmentRef;
 
         @Override
         public void execute()
@@ -169,20 +171,20 @@ public class Galaxy
 
             config = Config.loadConfig(CONFIG_FILE);
 
-            String ref = globalOptions.environment;
-            if (ref == null) {
-                ref = config.get("environment.default");
+            environmentRef = globalOptions.environment;
+            if (environmentRef == null) {
+                environmentRef = config.get("environment.default");
             }
-            if (ref == null) {
+            if (environmentRef == null) {
                 throw new RuntimeException("You must specify an environment.");
             }
-            String environment = config.get("environment." + ref + ".name");
+            String environment = config.get("environment." + environmentRef + ".name");
             if (environment == null) {
-                throw new RuntimeException("Unknown environment " + ref);
+                throw new RuntimeException("Unknown environment " + environmentRef);
             }
-            String coordinator = config.get("environment." + ref + ".coordinator");
+            String coordinator = config.get("environment." + environmentRef + ".coordinator");
             if (coordinator == null) {
-                throw new RuntimeException("Environment " + ref + " does not have a coordinator url.  You can add a coordinator url with galaxy coordinator add <url>");
+                throw new RuntimeException("Environment " + environmentRef + " does not have a coordinator url.  You can add a coordinator url with galaxy coordinator add <url>");
             }
 
             URI coordinatorUri = new URI(coordinator);
@@ -190,23 +192,23 @@ public class Galaxy
             CommanderFactory commanderFactory = new CommanderFactory()
                     .setEnvironment(environment)
                     .setCoordinatorUri(coordinatorUri)
-                    .setRepositories(config.getAll("environment." + ref + ".repository"))
-                    .setMavenDefaultGroupIds(config.getAll("environment." + ref + ".maven-group-id"));
+                    .setRepositories(config.getAll("environment." + environmentRef + ".repository"))
+                    .setMavenDefaultGroupIds(config.getAll("environment." + environmentRef + ".maven-group-id"));
 
-            if (config.get("environment." + ref + ".agent-id") != null) {
-                commanderFactory.setAgentId(config.get("environment." + ref + ".agent-id"));
+            if (config.get("environment." + environmentRef + ".agent-id") != null) {
+                commanderFactory.setAgentId(config.get("environment." + environmentRef + ".agent-id"));
             }
-            if (config.get("environment." + ref + ".location") != null) {
-                commanderFactory.setLocation(config.get("environment." + ref + ".location"));
+            if (config.get("environment." + environmentRef + ".location") != null) {
+                commanderFactory.setLocation(config.get("environment." + environmentRef + ".location"));
             }
-            if (config.get("environment." + ref + ".instance-type") != null) {
-                commanderFactory.setInstanceType(config.get("environment." + ref + ".instance-type"));
+            if (config.get("environment." + environmentRef + ".instance-type") != null) {
+                commanderFactory.setInstanceType(config.get("environment." + environmentRef + ".instance-type"));
             }
-            if (config.get("environment." + ref + ".internal-ip") != null) {
-                commanderFactory.setInternalIp(config.get("environment." + ref + ".internal-ip"));
+            if (config.get("environment." + environmentRef + ".internal-ip") != null) {
+                commanderFactory.setInternalIp(config.get("environment." + environmentRef + ".internal-ip"));
             }
-            if (config.get("environment." + ref + ".external-address") != null) {
-                commanderFactory.setExternalAddress(config.get("environment." + ref + ".external-address"));
+            if (config.get("environment." + environmentRef + ".external-address") != null) {
+                commanderFactory.setExternalAddress(config.get("environment." + environmentRef + ".external-address"));
             }
 
             Commander commander = commanderFactory.build();
@@ -233,7 +235,7 @@ public class Galaxy
                 System.out.println("No slots match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, externalHost, status, binary, Column.config, statusMessage);
+                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, binary, Column.config, statusMessage);
                 tablePrinter.print(slots);
             }
         }
@@ -244,7 +246,7 @@ public class Galaxy
                 System.out.println("No agents match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, externalHost, status, Column.instanceType, location);
+                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, Column.instanceType, location);
                 tablePrinter.print(agents);
             }
         }
@@ -255,8 +257,17 @@ public class Galaxy
                 System.out.println("No coordinators match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, externalHost, status, Column.instanceType, location);
+                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, Column.instanceType, location);
                 tablePrinter.print(coordinators);
+            }
+        }
+
+        private Column getHostColumn()
+        {
+            if ("true".equalsIgnoreCase(config.get("environment." + environmentRef + ".use-internal-address"))) {
+                return internalHost;
+            } else {
+                return externalHost;
             }
         }
     }
@@ -575,7 +586,7 @@ public class Galaxy
             List<Record> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup);
 
             // add the new coordinators to the config
-            String coordinatorProperty = "environment." + globalOptions.environment + ".coordinator";
+            String coordinatorProperty = "environment." + environmentRef + ".coordinator";
             for (Record coordinator : coordinators) {
                 String url = coordinator.getValue(Column.externalUri);
                 if (url != null && !url.isEmpty()) {

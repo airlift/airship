@@ -66,6 +66,9 @@ galaxy environment provision-local galaxy /mnt/galaxy/ \
 # use the filesystem environment as the default (should already be set, but be careful)
 galaxy environment use galaxy
 
+# local environment should show internal addresses
+galaxy config set environment.galaxy.use-internal-address true
+
 # add symlink to /mnt/galaxy
 ln -n -f -s /mnt/galaxy /home/ubuntu/galaxy
 
@@ -84,3 +87,6 @@ galaxy start -c ${galaxyInstallConfig}
 # add target environment
 galaxy environment add ${galaxyEnvironment} http://127.0.0.1:64000/
 galaxy environment use ${galaxyEnvironment}
+
+# target environment should show internal addresses
+galaxy config set environment.${galaxyEnvironment}.use-internal-address true
