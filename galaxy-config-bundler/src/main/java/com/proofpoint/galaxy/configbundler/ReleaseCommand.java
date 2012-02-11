@@ -117,7 +117,7 @@ public class ReleaseCommand
 
         // TODO: handle errors getting uploader (e.g., repo does not exist, does not have credentials)
         MavenUploader uploader = new Maven().getUploader(repositoryId);
-        URI uri = uploader.upload(groupId, component, Integer.toString(version), "zip", new BodyGenerator()
+        URI uri = uploader.upload(groupId, component, Integer.toString(version), "config", new BodyGenerator()
         {
             public void write(OutputStream out)
                     throws Exception
