@@ -65,7 +65,6 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.cli.Column.binary;
-import static com.proofpoint.galaxy.cli.Column.config;
 import static com.proofpoint.galaxy.cli.Column.location;
 import static com.proofpoint.galaxy.cli.Column.shortId;
 import static com.proofpoint.galaxy.cli.Column.status;
@@ -160,13 +159,15 @@ public class Galaxy
 
     public static abstract class GalaxyCommanderCommand extends GalaxyCommand
     {
+        protected Config config;
+
         @Override
         public void execute()
                 throws Exception
         {
             initializeLogging(globalOptions.debug);
 
-            Config config = Config.loadConfig(CONFIG_FILE);
+            config = Config.loadConfig(CONFIG_FILE);
 
             String ref = globalOptions.environment;
             if (ref == null) {
@@ -211,7 +212,7 @@ public class Galaxy
             Commander commander = commanderFactory.build();
 
             try {
-                execute(config, commander);
+                execute(commander);
             }
             catch (Exception e) {
                 if (globalOptions.debug) {
@@ -223,7 +224,7 @@ public class Galaxy
             }
         }
 
-        public abstract void execute(Config cliConfig, Commander commander)
+        public abstract void execute(Commander commander)
                 throws Exception;
 
         public void displaySlots(Iterable<Record> slots)
@@ -232,7 +233,7 @@ public class Galaxy
                 System.out.println("No slots match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, externalHost, status, binary, config, statusMessage);
+                TablePrinter tablePrinter = new TablePrinter(shortId, externalHost, status, binary, Column.config, statusMessage);
                 tablePrinter.print(slots);
             }
         }
@@ -291,7 +292,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             List<Record> slots = commander.show(slotFilter);
             displaySlots(slots);
@@ -323,7 +324,7 @@ public class Galaxy
         public final List<String> assignment = Lists.newArrayList();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             if (assignment.size() != 2) {
                 throw new ParseException("You must specify a binary and config to install.");
@@ -369,7 +370,7 @@ public class Galaxy
         public final List<String> versions = Lists.newArrayList();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             if (versions.size() != 1 && versions.size() != 2) {
                 throw new ParseException("You must specify a binary version or a config version for upgrade.");
@@ -415,7 +416,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             List<Record> slots = commander.terminate(slotFilter);
             displaySlots(slots);
@@ -440,7 +441,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             List<Record> slots = commander.setState(slotFilter, RUNNING);
             displaySlots(slots);
@@ -454,7 +455,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             List<Record> slots = commander.setState(slotFilter, STOPPED);
             displaySlots(slots);
@@ -468,7 +469,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             List<Record> slots = commander.setState(slotFilter, RESTARTING);
             displaySlots(slots);
@@ -482,7 +483,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             List<Record> slots = commander.resetExpectedState(slotFilter);
             displaySlots(slots);
@@ -499,7 +500,7 @@ public class Galaxy
         public String command;
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
         {
             commander.ssh(slotFilter, command);
         }
@@ -524,7 +525,7 @@ public class Galaxy
         public final CoordinatorFilter coordinatorFilter = new CoordinatorFilter();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
                 throws Exception
         {
             List<Record> coordinators = commander.showCoordinators(coordinatorFilter);
@@ -568,7 +569,7 @@ public class Galaxy
         public String instanceType = "t1.micro";
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
                 throws Exception
         {
             List<Record> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup);
@@ -578,10 +579,10 @@ public class Galaxy
             for (Record coordinator : coordinators) {
                 String url = coordinator.getValue(Column.externalUri);
                 if (url != null && !url.isEmpty()) {
-                    cliConfig.set(coordinatorProperty, url);
+                    config.set(coordinatorProperty, url);
                 }
             }
-            cliConfig.save(CONFIG_FILE);
+            config.save(CONFIG_FILE);
 
             displayCoordinators(coordinators);
         }
@@ -610,7 +611,7 @@ public class Galaxy
         public final AgentFilter agentFilter = new AgentFilter();
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
                 throws Exception
         {
             List<Record> agents = commander.showAgents(agentFilter);
@@ -642,7 +643,7 @@ public class Galaxy
         public String instanceType;
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
                 throws Exception
         {
             List<Record> agents = commander.provisionAgents(count, availabilityZone, instanceType);
@@ -670,7 +671,7 @@ public class Galaxy
         public String agentId;
 
         @Override
-        public void execute(Config cliConfig, Commander commander)
+        public void execute(Commander commander)
                 throws Exception
         {
             Record agent = commander.terminateAgent(agentId);
