@@ -6,10 +6,10 @@ import org.eclipse.jgit.revwalk.RevTag;
 import java.util.Comparator;
 
 class VersionTagComparator
-        implements Comparator<RevTag>
+        implements Comparator<String>
 {
     @Override
-    public int compare(RevTag tag1, RevTag tag2)
+    public int compare(String tag1, String tag2)
     {
         return Ints.compare(ReleaseCommand.extractVersion(tag1), ReleaseCommand.extractVersion(tag2));
     }

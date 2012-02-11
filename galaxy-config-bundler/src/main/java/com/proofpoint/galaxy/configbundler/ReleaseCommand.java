@@ -3,6 +3,8 @@ package com.proofpoint.galaxy.configbundler;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
@@ -32,6 +34,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.find;
 import static java.lang.String.format;
@@ -94,15 +97,15 @@ public class ReleaseCommand
         RevCommit headCommit = new RevWalk(repository).parseCommit(branch.getObjectId());
 
         int version = 0;
-        RevTag latestTag = getLatestTag(git, component);
+        Ref latestTag = getLatestTag(repository, component);
         if (latestTag != null) {
-            version = extractVersion(latestTag);
+            version = extractVersion(latestTag.getName());
         }
 
         MavenRepository mavenRepository = new Maven().getRepository(repositoryId);
         // TODO: handle errors getting uploader (e.g., repo does not exist, does not have credentials)
 
-        if (latestTag != null && latestTag.getObject().equals(headCommit)) {
+        if (latestTag != null && getCommit(repository, latestTag).equals(headCommit)) {
             // check if artifact exists in repo
             if (mavenRepository.contains(groupId, component, Integer.toString(version), ARTIFACT_TYPE)) {
                 throw new RuntimeException(format("%s-%s has already been released", component, version));
@@ -135,13 +138,28 @@ public class ReleaseCommand
         return null;
     }
 
-    private RevTag getLatestTag(Git git, String component)
+
+    private RevCommit getCommit(Repository repository, Ref tag)
     {
-        Iterable<RevTag> tags = filter(git.tagList().call(), nameStartsWith(component + "-"));
-        return Ordering.from(new VersionTagComparator()).max(tags);
+        RevWalk revWalk = new RevWalk(repository);
+        try {
+            return revWalk.parseCommit(firstNonNull(tag.getPeeledObjectId(), tag.getObjectId()));
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            revWalk.release();
+        }
     }
-    
-    
+
+    private Ref getLatestTag(Repository repository, String component)
+    {
+        Map<String, Ref> forComponent = Maps.filterKeys(repository.getTags(), startsWith(component + "-"));
+        String latest = Ordering.from(new VersionTagComparator()).max(forComponent.keySet());
+        return forComponent.get(latest);
+    }
+
     private Function<? super ObjectId, InputSupplier<InputStream>> getInputStreamSupplier(final Repository repository)
     {
         return new Function<ObjectId, InputSupplier<InputStream>>()
@@ -197,22 +215,21 @@ public class ReleaseCommand
         };
     }
 
-    public static int extractVersion(RevTag tag)
+    public static int extractVersion(String tagName)
     {
-        String tagName = tag.getTagName();
         int dash = tagName.lastIndexOf("-");
         Preconditions.checkArgument(dash != -1, "Tag does not follow <component>-<version> convention");
 
         return Integer.parseInt(tagName.substring(dash + 1));
     }
 
-    private Predicate<? super RevTag> nameStartsWith(final String prefix)
+    private Predicate<String> startsWith(final String prefix)
     {
-        return new Predicate<RevTag>()
+        return new Predicate<String>()
         {
-            public boolean apply(RevTag input)
+            public boolean apply(String input)
             {
-                return input.getTagName().startsWith(prefix);
+                return input.startsWith(prefix);
             }
         };
     }
