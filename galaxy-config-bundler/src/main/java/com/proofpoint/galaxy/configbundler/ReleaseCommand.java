@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.io.InputSupplier;
@@ -42,6 +41,8 @@ import static java.lang.String.format;
 public class ReleaseCommand
         implements Callable<Void>
 {
+    private static final String ARTIFACT_TYPE = "config";
+
     @Arguments
     public String component;
 
@@ -92,32 +93,35 @@ public class ReleaseCommand
 
         RevCommit headCommit = new RevWalk(repository).parseCommit(branch.getObjectId());
 
-        Iterable<RevTag> tags = filter(git.tagList().call(), nameStartsWith(component + "-"));
-
-        // pick next version
-        int version = 1;
-        if (!Iterables.isEmpty(tags)) {
-            RevTag latestTag = Ordering.from(new VersionTagComparator()).max(tags);
-
-            // TODO: check if artifact exists in repo
-            // if it doesn't, re-package existing tag and deploy
-            // if it does, raise error
-            Preconditions.checkState(!latestTag.getObject().equals(headCommit), "%s already released as %s", component, latestTag.getTagName());
-
-            version = extractVersion(latestTag) + 1;
+        int version = 0;
+        RevTag latestTag = getLatestTag(git, component);
+        if (latestTag != null) {
+            version = extractVersion(latestTag);
         }
 
-        // tag <component>@HEAD with <component>-(<version> + 1)
-        git.tag().setObjectId(headCommit)
-                .setName(component + "-" + version)
-                .call();
+        MavenRepository mavenRepository = new Maven().getRepository(repositoryId);
+        // TODO: handle errors getting uploader (e.g., repo does not exist, does not have credentials)
+
+        if (latestTag != null && latestTag.getObject().equals(headCommit)) {
+            // check if artifact exists in repo
+            if (mavenRepository.contains(groupId, component, Integer.toString(version), ARTIFACT_TYPE)) {
+                throw new RuntimeException(format("%s-%s has already been released", component, version));
+            }
+        }
+        else {
+            ++version;
+
+            // tag <component>@HEAD with <component>-(<version> + 1)
+            git.tag().setObjectId(headCommit)
+                    .setName(component + "-" + version)
+                    .call();
+        }
+
 
         // get entries from tag
         final Map<String, ObjectId> entries = getEntries(repository, headCommit.getTree());
 
-        // TODO: handle errors getting uploader (e.g., repo does not exist, does not have credentials)
-        MavenUploader uploader = new Maven().getUploader(repositoryId);
-        URI uri = uploader.upload(groupId, component, Integer.toString(version), "config", new BodyGenerator()
+        URI uri = mavenRepository.upload(groupId, component, Integer.toString(version), ARTIFACT_TYPE, new BodyGenerator()
         {
             public void write(OutputStream out)
                     throws Exception
@@ -131,6 +135,13 @@ public class ReleaseCommand
         return null;
     }
 
+    private RevTag getLatestTag(Git git, String component)
+    {
+        Iterable<RevTag> tags = filter(git.tagList().call(), nameStartsWith(component + "-"));
+        return Ordering.from(new VersionTagComparator()).max(tags);
+    }
+    
+    
     private Function<? super ObjectId, InputSupplier<InputStream>> getInputStreamSupplier(final Repository repository)
     {
         return new Function<ObjectId, InputSupplier<InputStream>>()

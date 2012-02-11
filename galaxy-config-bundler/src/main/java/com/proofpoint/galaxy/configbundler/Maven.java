@@ -45,7 +45,7 @@ public class Maven
                 .getEffectiveSettings();
     }
 
-    public MavenUploader getUploader(String repositoryId)
+    public MavenRepository getRepository(String repositoryId)
     {
         Repository repository = find(getActiveRepositories(), matchesId(repositoryId), null);
         Preconditions.checkArgument(repository != null, "Repository '%s' not found", repositoryId);
@@ -53,7 +53,7 @@ public class Maven
         Server server = settings.getServer(repository.getId());
         Preconditions.checkArgument(server != null && server.getPassword() != null, "No credentials found for repository '%s'", repositoryId);
 
-        return new MavenUploader(URI.create(repository.getUrl()), server.getUsername(), server.getPassword());
+        return new MavenRepository(URI.create(repository.getUrl()), server.getUsername(), server.getPassword());
     }
 
     private List<Repository> getActiveRepositories()
