@@ -33,6 +33,7 @@ public class CoordinatorStatusRepresentation
 
     private final String coordinatorId;
     private final URI self;
+    private final URI externalUri;
     private final CoordinatorLifecycleState state;
     private final String location;
     private final String instanceType;
@@ -54,7 +55,8 @@ public class CoordinatorStatusRepresentation
         return new CoordinatorStatusRepresentation(
                 status.getCoordinatorId(),
                 status.getState(),
-                status.getUri(),
+                status.getInternalUri(),
+                status.getExternalUri(),
                 status.getLocation(),
                 status.getInstanceType(),
                 status.getVersion());
@@ -65,6 +67,7 @@ public class CoordinatorStatusRepresentation
             @JsonProperty("coordinatorId") String coordinatorId,
             @JsonProperty("state") CoordinatorLifecycleState state,
             @JsonProperty("self") URI self,
+            @JsonProperty("externalUri") URI externalUri,
             @JsonProperty("location") String location,
             @JsonProperty("instanceType") String instanceType,
             @JsonProperty("version") String version)
@@ -72,6 +75,7 @@ public class CoordinatorStatusRepresentation
         this.coordinatorId = coordinatorId;
         this.self = self;
         this.state = state;
+        this.externalUri = externalUri;
         this.location = location;
         this.instanceType = instanceType;
         this.version = version;
@@ -89,6 +93,13 @@ public class CoordinatorStatusRepresentation
     public URI getSelf()
     {
         return self;
+    }
+
+    @JsonProperty
+    @NotNull
+    public URI getExternalUri()
+    {
+        return externalUri;
     }
 
     @JsonProperty
@@ -115,7 +126,15 @@ public class CoordinatorStatusRepresentation
         return version;
     }
 
-    public String getHost()
+    public String getExternalHost()
+    {
+        if (externalUri == null) {
+            return null;
+        }
+        return externalUri.getHost();
+    }
+
+    public String getInternalHost()
     {
         if (self == null) {
             return null;
@@ -123,9 +142,9 @@ public class CoordinatorStatusRepresentation
         return self.getHost();
     }
 
-    public String getIp()
+    public String getInternalIp()
     {
-        String host = getHost();
+        String host = getInternalHost();
         if (host == null) {
             return null;
         }
@@ -144,7 +163,7 @@ public class CoordinatorStatusRepresentation
 
     public CoordinatorStatus toCoordinatorStatus()
     {
-        return new CoordinatorStatus(coordinatorId, CoordinatorLifecycleState.ONLINE, self, location, instanceType);
+        return new CoordinatorStatus(coordinatorId, CoordinatorLifecycleState.ONLINE, self, externalUri, location, instanceType);
     }
 
     @Override
@@ -177,11 +196,13 @@ public class CoordinatorStatusRepresentation
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("CoordinatorStatusRepresentation");
-        sb.append("{coordinatorId=").append(coordinatorId);
+        sb.append("{coordinatorId='").append(coordinatorId).append('\'');
+        sb.append(", self=").append(self);
+        sb.append(", externalUri=").append(externalUri);
         sb.append(", state=").append(state);
-        sb.append(", location=").append(location);
-        sb.append(", instanceType=").append(instanceType);
-        sb.append(", version=").append(version);
+        sb.append(", location='").append(location).append('\'');
+        sb.append(", instanceType='").append(instanceType).append('\'');
+        sb.append(", version='").append(version).append('\'');
         sb.append('}');
         return sb.toString();
     }

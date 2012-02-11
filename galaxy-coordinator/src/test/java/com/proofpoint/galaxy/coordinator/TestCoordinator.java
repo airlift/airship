@@ -80,6 +80,7 @@ public class TestCoordinator
         AgentStatus status = new AgentStatus(agentId,
                 AgentLifecycleState.ONLINE,
                 agentUri,
+                agentUri,
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
@@ -99,7 +100,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://agent/" + agentId);
 
         // provision the agent
-        provisioner.addAgent(new Instance(agentId, "test.type", Joiner.on('/').join("ec2", "region", "zone", agentId, "agent"), agentUri));
+        provisioner.addAgent(new Instance(agentId, "test.type", Joiner.on('/').join("ec2", "region", "zone", agentId, "agent"), agentUri, agentUri));
 
         // coordinator won't see it until it update is called
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
@@ -122,6 +123,7 @@ public class TestCoordinator
         final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://appleServer1/"),
+                URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
@@ -141,6 +143,7 @@ public class TestCoordinator
     {
         final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
+                URI.create("fake://appleServer1/"),
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
@@ -162,6 +165,7 @@ public class TestCoordinator
         final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
                 URI.create("fake://appleServer1/"),
+                URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
@@ -177,6 +181,7 @@ public class TestCoordinator
     {
         final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
+                URI.create("fake://appleServer1/"),
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",

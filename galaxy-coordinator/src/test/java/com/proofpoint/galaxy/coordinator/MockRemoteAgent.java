@@ -29,33 +29,46 @@ public class MockRemoteAgent implements RemoteAgent
     private final ConcurrentMap<UUID, SlotStatus> slots = new ConcurrentHashMap<UUID, SlotStatus>();
     private final String agentId;
     private AgentLifecycleState state;
-    private URI uri;
+    private URI internalUri;
+    private URI externalUri;
     private Map<String,Integer> resources = ImmutableMap.of();
 
-    public MockRemoteAgent(String agentId, URI uri)
+    public MockRemoteAgent(String agentId)
     {
         this.agentId = checkNotNull(agentId, "agentId is null");
-        this.uri = uri;
-        this.uri = URI.create("fake://agent/" + agentId);
+        this.internalUri = URI.create("internal://agent/" + agentId);
+        this.externalUri = URI.create("external://agent/" + agentId);
         state = ONLINE;
     }
 
     @Override
     public AgentStatus status()
     {
-        return new AgentStatus(agentId, state, uri, "unknown/location", "instance.type", ImmutableList.copyOf(slots.values()), resources);
+        return new AgentStatus(agentId, state, internalUri, externalUri, "unknown/location", "instance.type", ImmutableList.copyOf(slots.values()), resources);
     }
 
     @Override
-    public URI getUri()
+    public URI getInternalUri()
     {
-        return uri;
+        return internalUri;
     }
 
     @Override
-    public void setUri(URI uri)
+    public void setInternalUri(URI uri)
     {
-        this.uri = uri;
+        this.internalUri = uri;
+    }
+
+    @Override
+    public URI getExternalUri()
+    {
+        return externalUri;
+    }
+
+    @Override
+    public void setExternalUri(URI externalUri)
+    {
+        this.externalUri = externalUri;
     }
 
     @Override
@@ -89,7 +102,7 @@ public class MockRemoteAgent implements RemoteAgent
         slots.keySet().retainAll(updatedSlots);
 
         state = status.getState();
-        uri = status.getUri();
+        internalUri = status.getInternalUri();
         if (status.getResources() != null) {
             resources = ImmutableMap.copyOf(status.getResources());
         }
@@ -115,7 +128,15 @@ public class MockRemoteAgent implements RemoteAgent
         Preconditions.checkState(state != OFFLINE, "agent is offline");
 
         UUID slotId = UUID.randomUUID();
-        SlotStatus slotStatus = new SlotStatus(slotId, "", uri.resolve("slot/" + slotId), "location", SlotLifecycleState.STOPPED, installation.getAssignment(), "/" + slotId, installation.getResources());
+        SlotStatus slotStatus = new SlotStatus(slotId,
+                "",
+                internalUri.resolve("slot/" + slotId),
+                externalUri.resolve("slot/" + slotId),
+                "location",
+                SlotLifecycleState.STOPPED,
+                installation.getAssignment(),
+                "/" + slotId,
+                installation.getResources());
         slots.put(slotId, slotStatus);
 
         return slotStatus;

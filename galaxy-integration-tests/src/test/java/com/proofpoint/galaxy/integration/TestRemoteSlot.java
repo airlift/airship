@@ -123,6 +123,7 @@ public class TestRemoteSlot
                 agent.getAgentId(),
                 "instance.type",
                 server.getBaseUrl(),
+                server.getBaseUrl(),
                 client,
                 JsonCodec.jsonCodec(InstallationRepresentation.class),
                 JsonCodec.jsonCodec(AgentStatusRepresentation.class),
@@ -199,7 +200,15 @@ public class TestRemoteSlot
         SlotStatus actual = remoteSlot.terminate();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.getId(), slot.getName(), slot.getSelf(), slot.status().getLocation(), TERMINATED, null, null, ImmutableMap.<String, Integer>of());
+        SlotStatus expected = new SlotStatus(slot.getId(),
+                slot.getName(),
+                slot.getSelf(),
+                slot.getExternalUri(),
+                slot.status().getLocation(),
+                TERMINATED,
+                null,
+                null,
+                ImmutableMap.<String, Integer>of());
         assertEquals(actual, expected);
     }
 

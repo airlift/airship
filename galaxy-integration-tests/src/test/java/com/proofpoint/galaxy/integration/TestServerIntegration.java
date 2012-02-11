@@ -248,7 +248,7 @@ public class TestServerIntegration
                 repository.configToHttpUri(BANANA_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
 
-        agentInstance = new Instance(agent.getAgentId(), "test.type", "location", agentServer.getBaseUrl());
+        agentInstance = new Instance(agent.getAgentId(), "test.type", "location", agentServer.getBaseUrl(), agentServer.getBaseUrl());
         provisioner.addAgent(agentInstance);
         coordinator.updateAllAgents();
 

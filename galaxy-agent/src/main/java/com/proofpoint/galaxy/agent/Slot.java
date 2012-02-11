@@ -14,6 +14,8 @@ public interface Slot
 
     URI getSelf();
 
+    URI getExternalUri();
+
     SlotStatus terminate();
 
     SlotStatus assign(Installation installation);

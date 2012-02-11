@@ -31,6 +31,8 @@ public class LauncherLifecycleManager implements LifecycleManager
     private static final Logger log = Logger.get(LauncherLifecycleManager.class);
 
     private final Executor executor;
+    private final InetAddress internalIp;
+    private final String externalAddress;
     private final Duration launcherTimeout;
     private final Duration stopTimeout;
     private final String environment;
@@ -42,19 +44,23 @@ public class LauncherLifecycleManager implements LifecycleManager
     {
         this(nodeInfo.getEnvironment(),
                 (httpServerInfo.getHttpsUri() != null ? httpServerInfo.getHttpsUri() : httpServerInfo.getHttpUri()),
+                nodeInfo.getInternalIp(),
+                nodeInfo.getExternalAddress(),
                 nodeInfo.getBindIp(),
                 config.getLauncherTimeout(),
                 config.getLauncherStopTimeout()
         );
     }
 
-    public LauncherLifecycleManager(String environment, URI baseUri, InetAddress bindIp, Duration launcherTimeout, Duration launcherStopTimeout)
+    public LauncherLifecycleManager(String environment, URI baseUri, InetAddress internalIp, String externalAddress, InetAddress bindIp, Duration launcherTimeout, Duration launcherStopTimeout)
     {
         this.launcherTimeout = launcherTimeout;
         stopTimeout = launcherStopTimeout;
 
         executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("launcher-command-%s").build());
         this.environment = environment;
+        this.internalIp = internalIp;
+        this.externalAddress = externalAddress;
         this.bindIp = bindIp;
 
         serviceInventoryUri = baseUri.resolve("/v1/serviceInventory");
@@ -145,6 +151,8 @@ public class LauncherLifecycleManager implements LifecycleManager
         map.put("node.data-dir", deployment.getDataDir().getAbsolutePath());
         map.put("node.binary-spec", deployment.getAssignment().getBinary());
         map.put("node.config-spec", deployment.getAssignment().getConfig());
+        map.put("node.ip", InetAddresses.toAddrString(internalIp));
+        map.put("node.external-address", externalAddress);
 
         // add ip only if explicitly set on the agent
         if (bindIp != null && InetAddresses.coerceToInteger(bindIp) != 0) {

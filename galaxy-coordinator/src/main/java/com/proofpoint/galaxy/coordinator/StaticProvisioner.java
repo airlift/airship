@@ -73,15 +73,15 @@ public class StaticProvisioner implements Provisioner
                 instances.add(new Instance(agent.getAgentId(),
                         firstNonNull(agent.getInstanceType(), "unknown"),
                         firstNonNull(agent.getLocation(), "unknown"),
-                        agent.getSelf()
-                ));
+                        agent.getSelf(),
+                        agent.getExternalUri()));
             }
             catch (Exception e) {
                 instances.add(new Instance(localAgentUri,
                         "unknown",
                         "unknown",
-                        uri
-                ));
+                        uri,
+                        uri));
             }
         }
         return ImmutableList.copyOf(instances.build());

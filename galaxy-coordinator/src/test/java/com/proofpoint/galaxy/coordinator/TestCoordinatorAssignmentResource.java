@@ -75,6 +75,7 @@ public class TestCoordinatorAssignmentResource
         SlotStatus appleSlotStatus1 = new SlotStatus(apple1SlotId,
                 "apple1",
                 URI.create("fake://appleServer1/v1/agent/slot/apple1"),
+                URI.create("fake://appleServer1/v1/agent/slot/apple1"),
                 "location",
                 STOPPED,
                 APPLE_ASSIGNMENT,
@@ -83,6 +84,7 @@ public class TestCoordinatorAssignmentResource
         apple2SlotId = UUID.randomUUID();
         SlotStatus appleSlotStatus2 = new SlotStatus(apple2SlotId,
                 "apple2",
+                URI.create("fake://appleServer2/v1/agent/slot/apple1"),
                 URI.create("fake://appleServer2/v1/agent/slot/apple1"),
                 "location",
                 STOPPED,
@@ -93,6 +95,7 @@ public class TestCoordinatorAssignmentResource
         SlotStatus bananaSlotStatus = new SlotStatus(bananaSlotId,
                 "banana",
                 URI.create("fake://bananaServer/v1/agent/slot/banana"),
+                URI.create("fake://bananaServer/v1/agent/slot/banana"),
                 "location",
                 STOPPED,
                 BANANA_ASSIGNMENT,
@@ -102,6 +105,7 @@ public class TestCoordinatorAssignmentResource
         agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
+                URI.create("fake://appleServer1/"),
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
                 "instance.type",

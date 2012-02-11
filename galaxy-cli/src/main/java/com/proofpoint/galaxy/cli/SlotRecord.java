@@ -64,10 +64,10 @@ public class SlotRecord implements Record
                 return slotStatus.getShortId();
             case uuid:
                 return slotStatus.getId().toString();
-            case host:
-                return slotStatus.getHost();
-            case ip:
-                return slotStatus.getIp();
+            case internalHost:
+                return slotStatus.getInternalHost();
+            case internalIp:
+                return slotStatus.getInternalIp();
             case status:
                 return slotStatus.getStatus();
             case binary:

@@ -32,6 +32,7 @@ public class SlotStatus
     private final UUID id;
     private final String name;
     private final URI self;
+    private final URI externalUri;
     private final String location;
     private final Assignment assignment;
     private final SlotLifecycleState state;
@@ -42,7 +43,7 @@ public class SlotStatus
 
     private final Map<String, Integer> resources;
 
-    public SlotStatus(UUID id, String name, URI self, String location, SlotLifecycleState state, Assignment assignment, String installPath, Map<String, Integer> resources)
+    public SlotStatus(UUID id, String name, URI self, URI externalUri, String location, SlotLifecycleState state, Assignment assignment, String installPath, Map<String, Integer> resources)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
@@ -56,6 +57,7 @@ public class SlotStatus
         this.id = id;
         this.name = name;
         this.self = self;
+        this.externalUri = externalUri;
         this.location = location;
         this.assignment = assignment;
         this.state = state;
@@ -74,6 +76,7 @@ public class SlotStatus
         this.id = status.id;
         this.name = status.name;
         this.self = status.self;
+        this.externalUri = status.externalUri;
         this.location = status.location;
         this.assignment = assignment;
         this.state = state;
@@ -91,6 +94,7 @@ public class SlotStatus
         this.id = status.id;
         this.name = status.name;
         this.self = status.self;
+        this.externalUri = status.externalUri;
         this.location = status.location;
         if (state != TERMINATED) {
             this.assignment = status.assignment;
@@ -120,6 +124,11 @@ public class SlotStatus
     public URI getSelf()
     {
         return self;
+    }
+
+    public URI getExternalUri()
+    {
+        return externalUri;
     }
 
     public String getLocation()
@@ -199,7 +208,10 @@ public class SlotStatus
         if (!location.equals(that.location)) {
             return false;
         }
-        if (!self.equals(that.self)) {
+        if (self != null ? !self.equals(that.self) : that.self != null) {
+            return false;
+        }
+        if (externalUri != null ? !externalUri.equals(that.externalUri) : that.externalUri != null) {
             return false;
         }
         if (state != that.state) {
@@ -221,6 +233,7 @@ public class SlotStatus
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + self.hashCode();
+        result = 31 * result + externalUri.hashCode();
         result = 31 * result + location.hashCode();
         result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
         result = 31 * result + state.hashCode();
@@ -236,6 +249,7 @@ public class SlotStatus
         return "SlotStatus{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", externalUri=" + externalUri +
                 ", self=" + self +
                 ", location=" + location +
                 ", assignment=" + assignment +

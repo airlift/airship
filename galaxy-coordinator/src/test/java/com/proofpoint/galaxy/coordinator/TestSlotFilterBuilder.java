@@ -33,7 +33,9 @@ public class TestSlotFilterBuilder
     private final SlotStatus status = new SlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
             "slotName",
             URI.create("fake://localhost"),
-            "location", UNKNOWN,
+            URI.create("fake://localhost"),
+            "location",
+            UNKNOWN,
             APPLE_ASSIGNMENT,
             "/slotName",
             ImmutableMap.<String, Integer>of());
@@ -143,7 +145,9 @@ public class TestSlotFilterBuilder
         SlotStatus status = new SlotStatus(UUID.randomUUID(),
                 "slotName",
                 URI.create("fake://localhost"),
-                "location", UNKNOWN,
+                URI.create("fake://localhost"),
+                "location",
+                UNKNOWN,
                 new Assignment("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT", APPLE_ASSIGNMENT.getConfig()),
                 "/slotName",
                 ImmutableMap.<String, Integer>of());

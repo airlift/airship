@@ -126,11 +126,15 @@ public class AwsProvisioner implements Provisioner
                         continue;
                     }
 
-                    URI uri = null;
+                    URI internalUri = null;
                     if (instance.getPrivateIpAddress() != null) {
-                        uri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
+                        internalUri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
                     }
-                    instances.add(toInstance(instance, uri, "coordinator"));
+                    URI externalUri = null;
+                    if (instance.getPublicDnsName() != null) {
+                        externalUri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                    }
+                    instances.add(toInstance(instance, internalUri, externalUri, "coordinator"));
                     invalidInstances.remove(instance.getInstanceId());
                 }
             }
@@ -172,11 +176,15 @@ public class AwsProvisioner implements Provisioner
                         continue;
                     }
 
-                    URI uri = null;
+                    URI internalUri = null;
                     if (instance.getPrivateIpAddress() != null) {
-                        uri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
+                        internalUri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
                     }
-                    instances.add(toInstance(instance, uri, "agent"));
+                    URI externalUri = null;
+                    if (instance.getPublicDnsName() != null) {
+                        externalUri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                    }
+                    instances.add(toInstance(instance, internalUri, externalUri, "agent"));
                     invalidInstances.remove(instance.getInstanceId());
                 }
             }
@@ -294,7 +302,7 @@ public class AwsProvisioner implements Provisioner
         List<String> instanceIds = newArrayList();
 
         for (com.amazonaws.services.ec2.model.Instance instance : result.getReservation().getInstances()) {
-            instances.add(toInstance(instance, null, "coordinator"));
+            instances.add(toInstance(instance, null, null, "coordinator"));
             instanceIds.add(instance.getInstanceId());
         }
 
@@ -351,7 +359,7 @@ public class AwsProvisioner implements Provisioner
         List<String> instanceIds = newArrayList();
 
         for (com.amazonaws.services.ec2.model.Instance instance : result.getReservation().getInstances()) {
-            instances.add(toInstance(instance, null, "agent"));
+            instances.add(toInstance(instance, null, null, "agent"));
             instanceIds.add(instance.getInstanceId());
         }
 
@@ -522,9 +530,9 @@ public class AwsProvisioner implements Provisioner
         return uri;
     }
 
-    public static Instance toInstance(com.amazonaws.services.ec2.model.Instance instance, URI uri, String role)
+    public static Instance toInstance(com.amazonaws.services.ec2.model.Instance instance, URI internalUri, URI externalUri, String role)
     {
-        return new Instance(instance.getInstanceId(), instance.getInstanceType(), getLocation(instance, role), uri);
+        return new Instance(instance.getInstanceId(), instance.getInstanceType(), getLocation(instance, role), internalUri, externalUri);
     }
 
     public static String getLocation(com.amazonaws.services.ec2.model.Instance instance, String role)

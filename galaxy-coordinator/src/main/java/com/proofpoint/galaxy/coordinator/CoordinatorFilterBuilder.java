@@ -107,9 +107,9 @@ public class CoordinatorFilterBuilder
         public boolean apply(@Nullable CoordinatorStatus coordinatorStatus)
         {
             return coordinatorStatus != null &&
-                    coordinatorStatus.getUri() != null &&
-                    coordinatorStatus.getUri().getHost() != null &&
-                    predicate.apply(coordinatorStatus.getUri().getHost().toLowerCase());
+                    coordinatorStatus.getInternalUri() != null &&
+                    coordinatorStatus.getInternalUri().getHost() != null &&
+                    predicate.apply(coordinatorStatus.getInternalUri().getHost().toLowerCase());
         }
     }
 
@@ -127,9 +127,9 @@ public class CoordinatorFilterBuilder
         {
             try {
                 return coordinatorStatus != null &&
-                        coordinatorStatus.getUri() != null &&
-                        coordinatorStatus.getUri().getHost() != null &&
-                        predicate.apply(InetAddress.getByName(coordinatorStatus.getUri().getHost()));
+                        coordinatorStatus.getInternalUri() != null &&
+                        coordinatorStatus.getInternalUri().getHost() != null &&
+                        predicate.apply(InetAddress.getByName(coordinatorStatus.getInternalUri().getHost()));
             }
             catch (UnknownHostException e) {
                 return false;

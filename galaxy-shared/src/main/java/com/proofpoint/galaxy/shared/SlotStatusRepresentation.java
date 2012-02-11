@@ -35,6 +35,7 @@ public class SlotStatusRepresentation
     private final String shortId;
     private final String name;
     private final URI self;
+    private final URI externalUri;
     private final String location;
     private final String binary;
     private final String config;
@@ -89,6 +90,7 @@ public class SlotStatusRepresentation
                 slotStatus.getId().toString().substring(0, shortIdPrefixSize),
                 slotStatus.getName(),
                 slotStatus.getSelf(),
+                slotStatus.getExternalUri(),
                 slotStatus.getLocation(),
                 binary,
                 config,
@@ -144,6 +146,7 @@ public class SlotStatusRepresentation
                 slotStatus.getId().toString().substring(0, shortIdPrefixSize),
                 slotStatus.getName(),
                 slotStatus.getSelf(),
+                slotStatus.getExternalUri(),
                 slotStatus.getLocation(),
                 binary,
                 config,
@@ -163,6 +166,7 @@ public class SlotStatusRepresentation
             @JsonProperty("shortId") String shortId,
             @JsonProperty("name") String name,
             @JsonProperty("self") URI self,
+            @JsonProperty("externalUri") URI externalUri,
             @JsonProperty("location") String location,
             @JsonProperty("binary") String binary,
             @JsonProperty("config") String config,
@@ -179,6 +183,7 @@ public class SlotStatusRepresentation
         this.shortId = shortId;
         this.name = name;
         this.self = self;
+        this.externalUri = externalUri;
         this.location = location;
         this.binary = binary;
         this.config = config;
@@ -218,6 +223,13 @@ public class SlotStatusRepresentation
     public URI getSelf()
     {
         return self;
+    }
+
+    @JsonProperty
+    @NotNull(message = "is missing")
+    public URI getExternalUri()
+    {
+        return externalUri;
     }
 
     @JsonProperty
@@ -292,23 +304,30 @@ public class SlotStatusRepresentation
     public SlotStatus toSlotStatus()
     {
         if (binary != null) {
-            return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), new Assignment(binary, config), installPath, resources);
+            return new SlotStatus(id, name, self, externalUri, location, SlotLifecycleState.valueOf(status), new Assignment(binary, config), installPath, resources);
         }
         else {
-            return new SlotStatus(id, name, self, location, SlotLifecycleState.valueOf(status), null, installPath, resources);
+            return new SlotStatus(id, name, self, externalUri, location, SlotLifecycleState.valueOf(status), null, installPath, resources);
         }
     }
 
-    public String getHost() {
+    public String getExternalHost() {
+        if (externalUri == null) {
+            return null;
+        }
+        return externalUri.getHost();
+    }
+
+    public String getInternalHost() {
         if (self == null) {
             return null;
         }
         return self.getHost();
     }
 
-    public String getIp()
+    public String getInternalIp()
     {
-        String host = getHost();
+        String host = getInternalHost();
         if (host == null) {
             return null;
         }
@@ -355,6 +374,9 @@ public class SlotStatusRepresentation
         if (self != null ? !self.equals(that.self) : that.self != null) {
             return false;
         }
+        if (externalUri != null ? !externalUri.equals(that.externalUri) : that.externalUri != null) {
+            return false;
+        }
         if (location != null ? !location.equals(that.location) : that.location != null) {
             return false;
         }
@@ -394,6 +416,7 @@ public class SlotStatusRepresentation
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (version != null ? version.hashCode() : 0);
         result = 31 * result + (self != null ? self.hashCode() : 0);
+        result = 31 * result + (externalUri != null ? externalUri.hashCode() : 0);
         result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
         result = 31 * result + (resources != null ? resources.hashCode() : 0);
@@ -412,6 +435,7 @@ public class SlotStatusRepresentation
         sb.append(", name='").append(name).append('\'');
         sb.append(", shortId='").append(shortId).append('\'');
         sb.append(", self=").append(self);
+        sb.append(", externalUri=").append(externalUri);
         sb.append(", location=").append(location);
         sb.append(", binary='").append(binary).append('\'');
         sb.append(", config='").append(config).append('\'');

@@ -21,20 +21,29 @@ public class AgentStatus
 {
     private final String agentId;
     private final AgentLifecycleState state;
-    private final URI uri;
+    private final URI internalUri;
+    private final URI externalUri;
     private final Map<UUID, SlotStatus> slots;
     private final String location;
     private final String instanceType;
     private final Map<String, Integer> resources;
     private final String version;
 
-    public AgentStatus(String agentId, AgentLifecycleState state, URI uri, String location, String instanceType, List<SlotStatus> slots, Map<String, Integer> resources)
+    public AgentStatus(String agentId,
+            AgentLifecycleState state,
+            URI internalUri,
+            URI externalUri,
+            String location,
+            String instanceType,
+            List<SlotStatus> slots,
+            Map<String, Integer> resources)
     {
         Preconditions.checkNotNull(agentId, "agentId is null");
         Preconditions.checkNotNull(slots, "slots is null");
         Preconditions.checkNotNull(resources, "resources is null");
 
-        this.uri = uri;
+        this.internalUri = internalUri;
+        this.externalUri = externalUri;
         this.state = state;
         this.agentId = agentId;
         this.location = location;
@@ -49,7 +58,8 @@ public class AgentStatus
         Preconditions.checkNotNull(agentStatus, "agentStatus is null");
         Preconditions.checkNotNull(state, "state is null");
 
-        this.uri = agentStatus.uri;
+        this.internalUri = agentStatus.internalUri;
+        this.externalUri = agentStatus.externalUri;
         this.state = state;
         this.agentId = agentStatus.agentId;
         this.location = agentStatus.location;
@@ -74,9 +84,14 @@ public class AgentStatus
         return new AgentStatus(this, state);
     }
 
-    public URI getUri()
+    public URI getInternalUri()
     {
-        return uri;
+        return internalUri;
+    }
+
+    public URI getExternalUri()
+    {
+        return externalUri;
     }
 
     public String getLocation()
@@ -141,7 +156,8 @@ public class AgentStatus
         sb.append("AgentStatus");
         sb.append("{agentId=").append(agentId);
         sb.append(", state=").append(state);
-        sb.append(", uri=").append(uri);
+        sb.append(", internalUri=").append(internalUri);
+        sb.append(", externalUri=").append(externalUri);
         sb.append(", slots=").append(slots.values());
         sb.append(", resources=").append(resources);
         sb.append(", version=").append(version);

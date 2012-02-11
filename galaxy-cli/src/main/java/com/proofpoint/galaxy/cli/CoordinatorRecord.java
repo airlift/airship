@@ -40,16 +40,22 @@ public class CoordinatorRecord implements Record
                 return coordinatorStatus.getCoordinatorId();
             case uuid:
                 return coordinatorStatus.getCoordinatorId();
-            case host:
-                return coordinatorStatus.getHost();
-            case ip:
-                return coordinatorStatus.getIp();
+            case internalHost:
+                return coordinatorStatus.getInternalHost();
+            case internalIp:
+                return coordinatorStatus.getInternalIp();
+            case externalHost:
+                return coordinatorStatus.getExternalHost();
             case status:
                 return coordinatorStatus.getState();
             case location:
                 return coordinatorStatus.getLocation();
             case instanceType:
                 return coordinatorStatus.getInstanceType();
+            case internalUri:
+                return coordinatorStatus.getSelf();
+            case externalUri:
+                return coordinatorStatus.getExternalUri();
             default:
                 return null;
         }

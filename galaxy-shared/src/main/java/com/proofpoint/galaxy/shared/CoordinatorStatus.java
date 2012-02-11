@@ -14,16 +14,18 @@ public class CoordinatorStatus
 {
     private final String coordinatorId;
     private final CoordinatorLifecycleState state;
-    private final URI uri;
+    private final URI internalUri;
+    private final URI externalUri;
     private final String location;
     private final String instanceType;
     private final String version;
 
-    public CoordinatorStatus(String coordinatorId, CoordinatorLifecycleState state, URI uri, String location, String instanceType)
+    public CoordinatorStatus(String coordinatorId, CoordinatorLifecycleState state, URI internalUri, URI externalUri, String location, String instanceType)
     {
         Preconditions.checkNotNull(coordinatorId, "coordinatorId is null");
 
-        this.uri = uri;
+        this.internalUri = internalUri;
+        this.externalUri = externalUri;
         this.state = state;
         this.coordinatorId = coordinatorId;
         this.location = location;
@@ -36,7 +38,8 @@ public class CoordinatorStatus
         Preconditions.checkNotNull(coordinatorStatus, "coordinatorStatus is null");
         Preconditions.checkNotNull(state, "state is null");
 
-        this.uri = coordinatorStatus.uri;
+        this.internalUri = coordinatorStatus.internalUri;
+        this.externalUri = coordinatorStatus.externalUri;
         this.state = state;
         this.coordinatorId = coordinatorStatus.coordinatorId;
         this.location = coordinatorStatus.location;
@@ -59,9 +62,14 @@ public class CoordinatorStatus
         return new CoordinatorStatus(this, state);
     }
 
-    public URI getUri()
+    public URI getInternalUri()
     {
-        return uri;
+        return internalUri;
+    }
+
+    public URI getExternalUri()
+    {
+        return externalUri;
     }
 
     public String getLocation()
@@ -111,7 +119,7 @@ public class CoordinatorStatus
         sb.append("CoordinatorStatus");
         sb.append("{coordinatorId=").append(coordinatorId);
         sb.append(", state=").append(state);
-        sb.append(", uri=").append(uri);
+        sb.append(", uri=").append(internalUri);
         sb.append(", version=").append(version);
         sb.append('}');
         return sb.toString();

@@ -43,7 +43,7 @@ public class Exec
 
     public static void execRemote(SlotStatusRepresentation slot, String command)
     {
-        String host = slot.getHost();
+        String host = slot.getInternalHost();
         command = firstNonNull(command, "exec -l $0");
 
         Preconditions.checkNotNull(host, "host is null");

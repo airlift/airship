@@ -31,14 +31,16 @@ public class Instance
     private final String instanceId;
     private final String instanceType;
     private String location;
-    private final URI uri;
+    private final URI internalUri;
+    private final URI externalUri;
 
-    public Instance(String instanceId, String instanceType, String location, URI uri)
+    public Instance(String instanceId, String instanceType, String location, URI internalUri, URI externalUri)
     {
-        this.uri = uri;
         this.instanceId = checkNotNull(instanceId, "instanceId is null");
         this.instanceType = checkNotNull(instanceType, "instanceType is null");
         this.location = location;
+        this.internalUri = internalUri;
+        this.externalUri = externalUri;
     }
 
     public String getInstanceId()
@@ -56,9 +58,14 @@ public class Instance
         return location;
     }
 
-    public URI getUri()
+    public URI getInternalUri()
     {
-        return uri;
+        return internalUri;
+    }
+
+    public URI getExternalUri()
+    {
+        return externalUri;
     }
 
     @Override
@@ -87,7 +94,8 @@ public class Instance
                 .add("instanceId", instanceId)
                 .add("instanceType", instanceType)
                 .add("location", location)
-                .add("uri", uri)
+                .add("internalUri", internalUri)
+                .add("externalUri", externalUri)
                 .toString();
     }
 }

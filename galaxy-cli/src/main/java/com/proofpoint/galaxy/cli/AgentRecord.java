@@ -40,16 +40,22 @@ public class AgentRecord implements Record
                 return agentStatus.getAgentId();
             case uuid:
                 return agentStatus.getAgentId();
-            case host:
-                return agentStatus.getHost();
-            case ip:
-                return agentStatus.getIp();
+            case internalHost:
+                return agentStatus.getInternalHost();
+            case internalIp:
+                return agentStatus.getInternalIp();
+            case externalHost:
+                return agentStatus.getExternalHost();
             case status:
                 return agentStatus.getState();
             case location:
                 return agentStatus.getLocation();
             case instanceType:
                 return agentStatus.getInstanceType();
+            case internalUri:
+                return agentStatus.getSelf();
+            case externalUri:
+                return agentStatus.getExternalUri();
             default:
                 return null;
         }

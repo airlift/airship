@@ -5,7 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import com.google.common.net.InetAddresses;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.DeploymentManagerFactory;
@@ -36,6 +36,7 @@ import com.proofpoint.json.JsonCodec;
 import com.proofpoint.units.Duration;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -55,6 +56,8 @@ public class CommanderFactory
     private String agentId = "local";
     private String location;
     private String instanceType = "local";
+    private InetAddress internalIp;
+    private String externalAddress;
 
     public CommanderFactory setEnvironment(String environment)
     {
@@ -103,6 +106,20 @@ public class CommanderFactory
         this.instanceType = instanceType;
     }
 
+    public void setInternalIp(String internalIp)
+    {
+        Preconditions.checkNotNull(internalIp, "internalIp is null");
+        Preconditions.checkArgument(!internalIp.isEmpty(), "internalIp is empty");
+        this.internalIp = InetAddresses.forString(internalIp);
+    }
+
+    public void setExternalAddress(String externalAddress)
+    {
+        Preconditions.checkNotNull(externalAddress, "externalAddress is null");
+        Preconditions.checkArgument(!externalAddress.isEmpty(), "externalAddress is empty");
+        this.externalAddress = externalAddress;
+    }
+
     public Commander build()
             throws IOException
     {
@@ -138,6 +155,8 @@ public class CommanderFactory
         LifecycleManager lifecycleManager = new LauncherLifecycleManager(
                 environment,
                 AGENT_URI,
+                internalIp,
+                externalAddress,
                 null,
                 COMMAND_TIMEOUT,
                 COMMAND_TIMEOUT);
@@ -145,6 +164,7 @@ public class CommanderFactory
         Agent agent = new Agent(agentId,
                 location,
                 slotsDir,
+                AGENT_URI,
                 AGENT_URI,
                 null,
                 deploymentManagerFactory,
@@ -185,7 +205,7 @@ public class CommanderFactory
         @Override
         public List<Instance> listCoordinators()
         {
-            return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI));
+            return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI, AGENT_URI));
         }
 
         @Override
@@ -203,7 +223,7 @@ public class CommanderFactory
         @Override
         public List<Instance> listAgents()
         {
-            return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI));
+            return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI, AGENT_URI));
         }
 
         @Override
@@ -230,10 +250,11 @@ public class CommanderFactory
         }
 
         @Override
-        public RemoteAgent createRemoteAgent(String instanceId, String instanceType, URI uri)
+        public RemoteAgent createRemoteAgent(String instanceId, String instanceType, URI internalUri, URI externalUri)
         {
             Preconditions.checkArgument(agentId.equals(instanceId), "instanceId is not '" + agentId + "'");
-            Preconditions.checkArgument(AGENT_URI.equals(uri), "uri is not '" + AGENT_URI + "'");
+            Preconditions.checkArgument(AGENT_URI.equals(internalUri), "internalUri is not '" + AGENT_URI + "'");
+            Preconditions.checkArgument(AGENT_URI.equals(externalUri), "externalUri is not '" + AGENT_URI + "'");
 
             return new LocalRemoteAgent(agent);
         }
@@ -249,13 +270,25 @@ public class CommanderFactory
         }
 
         @Override
-        public URI getUri()
+        public URI getInternalUri()
         {
             return AGENT_URI;
         }
 
         @Override
-        public void setUri(URI uri)
+        public void setInternalUri(URI uri)
+        {
+            Preconditions.checkArgument(AGENT_URI.equals(uri), "uri is not '" + AGENT_URI + "'");
+        }
+
+        @Override
+        public URI getExternalUri()
+        {
+            return AGENT_URI;
+        }
+
+        @Override
+        public void setExternalUri(URI uri)
         {
             Preconditions.checkArgument(AGENT_URI.equals(uri), "uri is not '" + AGENT_URI + "'");
         }
@@ -272,7 +305,8 @@ public class CommanderFactory
             AgentStatus agentStatus = agent.getAgentStatus();
             return new AgentStatus(agentStatus.getAgentId(),
                     agentStatus.getState(),
-                    agentStatus.getUri(),
+                    agentStatus.getInternalUri(),
+                    agentStatus.getExternalUri(),
                     agentStatus.getLocation(),
                     instanceType,
                     agentStatus.getSlotStatuses(),

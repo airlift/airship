@@ -4,8 +4,9 @@ public enum Column
 {
     shortId("uuid"),
     uuid,
-    ip,
-    host,
+    internalIp("ip"),
+    internalHost("host"),
+    externalHost("host"),
     status,
     binary,
     config,
@@ -14,7 +15,9 @@ public enum Column
     expectedConfig("expected-config"),
     statusMessage(""),
     location,
-    instanceType("type");
+    instanceType("type"),
+    internalUri("uri"),
+    externalUri("uri");
 
 
     private final String header;

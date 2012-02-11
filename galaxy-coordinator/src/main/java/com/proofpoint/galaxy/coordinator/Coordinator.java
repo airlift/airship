@@ -187,6 +187,7 @@ public class Coordinator
                     instanceId,
                     CoordinatorLifecycleState.PROVISIONING,
                     null,
+                    null,
                     instance.getLocation(),
                     instance.getInstanceType());
 
@@ -242,7 +243,8 @@ public class Coordinator
             // todo machine or process may still be starting (provisioning)
             CoordinatorStatus coordinatorStatus = new CoordinatorStatus(instance.getInstanceId(),
                     CoordinatorLifecycleState.ONLINE,
-                    instance.getUri(),
+                    instance.getInternalUri(),
+                    instance.getExternalUri(),
                     instance.getLocation(),
                     instance.getInstanceType());
 
@@ -256,10 +258,10 @@ public class Coordinator
     public void updateAllAgents()
     {
         for (Instance instance : this.provisioner.listAgents()) {
-            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance.getInstanceId(), instance.getInstanceType(), instance.getUri());
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance.getInstanceId(), instance.getInstanceType(), instance.getInternalUri(), instance.getExternalUri());
             RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgent);
             if (existing != null) {
-                existing.setUri(instance.getUri());
+                existing.setInternalUri(instance.getInternalUri());
             }
         }
 
@@ -276,7 +278,7 @@ public class Coordinator
 
         RemoteAgent remoteAgent = agents.get(status.getAgentId());
         if (remoteAgent == null) {
-            remoteAgent = remoteAgentFactory.createRemoteAgent(status.getAgentId(), status.getInstanceType(), status.getUri());
+            remoteAgent = remoteAgentFactory.createRemoteAgent(status.getAgentId(), status.getInstanceType(), status.getInternalUri(), status.getExternalUri());
             agents.put(status.getAgentId(), remoteAgent);
         }
         remoteAgent.setStatus(status);
@@ -295,12 +297,13 @@ public class Coordinator
                     instanceId,
                     AgentLifecycleState.PROVISIONING,
                     null,
+                    null,
                     instance.getLocation(),
                     instance.getInstanceType(),
                     ImmutableList.<SlotStatus>of(),
                     ImmutableMap.<String, Integer>of());
 
-            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instanceId, instance.getInstanceType(), null);
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instanceId, instance.getInstanceType(), null, null);
             remoteAgent.setStatus(agentStatus);
             this.agents.put(instanceId, remoteAgent);
 
@@ -553,7 +556,7 @@ public class Coordinator
             SlotStatus actualState = actualStates.get(uuid);
             ExpectedSlotStatus expectedState = expectedStates.get(uuid);
             if (actualState == null) {
-                actualState = new SlotStatus(uuid, "unknown", null, "unknown", UNKNOWN, expectedState.getAssignment(), null, ImmutableMap.<String, Integer>of());
+                actualState = new SlotStatus(uuid, "unknown", null, null, "unknown", UNKNOWN, expectedState.getAssignment(), null, ImmutableMap.<String, Integer>of());
             }
             if (slotFilter.apply(actualState)) {
                 stats.add(actualState);
@@ -576,7 +579,7 @@ public class Coordinator
                 if (expectedState == null || expectedState.getStatus() == SlotLifecycleState.TERMINATED)  {
                     continue;
                 }
-                actualState = new SlotStatus(uuid, "unknown", null, "unknown", UNKNOWN, expectedState.getAssignment(), null, ImmutableMap.<String, Integer>of());
+                actualState = new SlotStatus(uuid, "unknown", null, null, "unknown", UNKNOWN, expectedState.getAssignment(), null, ImmutableMap.<String, Integer>of());
                 actualState = actualState.updateState(UNKNOWN, "Slot is missing; Expected slot to be " + expectedState.getStatus());
             }
             else if (expectedState == null) {

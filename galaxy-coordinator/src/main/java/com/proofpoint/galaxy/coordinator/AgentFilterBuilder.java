@@ -141,9 +141,9 @@ public class AgentFilterBuilder
         public boolean apply(@Nullable AgentStatus agentStatus)
         {
             return agentStatus != null &&
-                    agentStatus.getUri() != null &&
-                    agentStatus.getUri().getHost() != null &&
-                    predicate.apply(agentStatus.getUri().getHost().toLowerCase());
+                    agentStatus.getInternalUri() != null &&
+                    agentStatus.getInternalUri().getHost() != null &&
+                    predicate.apply(agentStatus.getInternalUri().getHost().toLowerCase());
         }
     }
 
@@ -161,9 +161,9 @@ public class AgentFilterBuilder
         {
             try {
                 return agentStatus != null &&
-                        agentStatus.getUri() != null &&
-                        agentStatus.getUri().getHost() != null &&
-                        predicate.apply(InetAddress.getByName(agentStatus.getUri().getHost()));
+                        agentStatus.getInternalUri() != null &&
+                        agentStatus.getInternalUri().getHost() != null &&
+                        predicate.apply(InetAddress.getByName(agentStatus.getInternalUri().getHost()));
             }
             catch (UnknownHostException e) {
                 return false;

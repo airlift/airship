@@ -145,7 +145,9 @@ public class TestCoordinatorServer
         SlotStatus appleSlotStatus1 = new SlotStatus(apple1SotId,
                 "apple1",
                 URI.create("fake://appleServer1/v1/agent/slot/apple1"),
-                "location", STOPPED,
+                URI.create("fake://appleServer1/v1/agent/slot/apple1"),
+                "location",
+                STOPPED,
                 APPLE_ASSIGNMENT,
                 "/apple1",
                 ImmutableMap.<String, Integer>of());
@@ -153,7 +155,9 @@ public class TestCoordinatorServer
         SlotStatus appleSlotStatus2 = new SlotStatus(apple2SlotId,
                 "apple2",
                 URI.create("fake://appleServer2/v1/agent/slot/apple1"),
-                "location", STOPPED,
+                URI.create("fake://appleServer2/v1/agent/slot/apple1"),
+                "location",
+                STOPPED,
                 APPLE_ASSIGNMENT,
                 "/apple2",
                 ImmutableMap.<String, Integer>of());
@@ -161,7 +165,9 @@ public class TestCoordinatorServer
         SlotStatus bananaSlotStatus = new SlotStatus(bananaSlotId,
                 "banana",
                 URI.create("fake://bananaServer/v1/agent/slot/banana"),
-                "location", STOPPED,
+                URI.create("fake://bananaServer/v1/agent/slot/banana"),
+                "location",
+                STOPPED,
                 BANANA_ASSIGNMENT,
                 "/banana",
                 ImmutableMap.<String, Integer>of());
@@ -169,6 +175,7 @@ public class TestCoordinatorServer
         agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
+                URI.create("fake://foo/"),
                 URI.create("fake://foo/"),
                 "unknown/location",
                 "instance.type",

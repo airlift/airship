@@ -34,6 +34,12 @@ LOCATION="/ec2/${REGION}/${ZONE}/${INSTANCE_ID}"
 # instance type
 INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
 
+# external address
+EXTERNAL_ADDRESS=$(curl -s "http://169.254.169.254/latest/meta-data/public-hostname")
+
+# internal ip
+INTERNAL_IP=$(curl -s "http://169.254.169.254/latest/meta-data/local-ipv4")
+
 # add to bashrc
 cat <<EOT > /home/ubuntu/.galaxy.bashrc
 export PATH=\$PATH:/home/ubuntu/bin
@@ -44,7 +50,7 @@ DEFAULT="\\[\\033[39m\\]"
 export PS1="[\$(date +%H:%M) \u@\${YELLOW}${INSTANCE_ID}\${DEFAULT}:\w \${GREEN}$(cat ~/.galaxyconfig | awk '/^environment\.default *=/ {print $3}')\${DEFAULT}] "
 EOT
 
-grep 'galaxy\.bashrc' /home/ubuntu/.bashrc || echo -e "\n. ~/.galaxy.bashrc\n" >> /home/ubuntu/.bashrc
+(grep 'galaxy\.bashrc' /home/ubuntu/.bashrc >> /dev/null) || echo -e "\n. ~/.galaxy.bashrc\n" >> /home/ubuntu/.bashrc
 
 # setup filesystem environment (must be named $targetEnvironment)
 galaxy environment provision-local galaxy /mnt/galaxy/ \
@@ -53,7 +59,9 @@ galaxy environment provision-local galaxy /mnt/galaxy/ \
     --maven-default-group-id com.proofpoint.galaxy \
     --agent-id $INSTANCE_ID \
     --location $LOCATION \
-    --instance-type $INSTANCE_TYPE
+    --instance-type $INSTANCE_TYPE \
+    --external-address $EXTERNAL_ADDRESS \
+    --internal-ip $INTERNAL_IP
 
 # use the filesystem environment as the default (should already be set, but be careful)
 galaxy environment use galaxy

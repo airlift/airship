@@ -58,6 +58,7 @@ import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.cli.Column.externalHost;
 import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
 import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
@@ -65,7 +66,6 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.cli.Column.binary;
 import static com.proofpoint.galaxy.cli.Column.config;
-import static com.proofpoint.galaxy.cli.Column.ip;
 import static com.proofpoint.galaxy.cli.Column.location;
 import static com.proofpoint.galaxy.cli.Column.shortId;
 import static com.proofpoint.galaxy.cli.Column.status;
@@ -201,11 +201,17 @@ public class Galaxy
             if (config.get("environment." + ref + ".instance-type") != null) {
                 commanderFactory.setInstanceType(config.get("environment." + ref + ".instance-type"));
             }
+            if (config.get("environment." + ref + ".internal-ip") != null) {
+                commanderFactory.setInternalIp(config.get("environment." + ref + ".internal-ip"));
+            }
+            if (config.get("environment." + ref + ".external-address") != null) {
+                commanderFactory.setExternalAddress(config.get("environment." + ref + ".external-address"));
+            }
 
             Commander commander = commanderFactory.build();
 
             try {
-                execute(commander);
+                execute(config, commander);
             }
             catch (Exception e) {
                 if (globalOptions.debug) {
@@ -217,7 +223,7 @@ public class Galaxy
             }
         }
 
-        public abstract void execute(Commander commander)
+        public abstract void execute(Config cliConfig, Commander commander)
                 throws Exception;
 
         public void displaySlots(Iterable<Record> slots)
@@ -226,7 +232,7 @@ public class Galaxy
                 System.out.println("No slots match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, binary, config, statusMessage);
+                TablePrinter tablePrinter = new TablePrinter(shortId, externalHost, status, binary, config, statusMessage);
                 tablePrinter.print(slots);
             }
         }
@@ -237,7 +243,7 @@ public class Galaxy
                 System.out.println("No agents match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, Column.instanceType, location);
+                TablePrinter tablePrinter = new TablePrinter(shortId, externalHost, status, Column.instanceType, location);
                 tablePrinter.print(agents);
             }
         }
@@ -248,7 +254,7 @@ public class Galaxy
                 System.out.println("No coordinators match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, ip, status, Column.instanceType, location);
+                TablePrinter tablePrinter = new TablePrinter(shortId, externalHost, status, Column.instanceType, location);
                 tablePrinter.print(coordinators);
             }
         }
@@ -285,7 +291,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             List<Record> slots = commander.show(slotFilter);
             displaySlots(slots);
@@ -317,7 +323,7 @@ public class Galaxy
         public final List<String> assignment = Lists.newArrayList();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             if (assignment.size() != 2) {
                 throw new ParseException("You must specify a binary and config to install.");
@@ -363,7 +369,7 @@ public class Galaxy
         public final List<String> versions = Lists.newArrayList();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             if (versions.size() != 1 && versions.size() != 2) {
                 throw new ParseException("You must specify a binary version or a config version for upgrade.");
@@ -409,7 +415,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             List<Record> slots = commander.terminate(slotFilter);
             displaySlots(slots);
@@ -434,7 +440,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             List<Record> slots = commander.setState(slotFilter, RUNNING);
             displaySlots(slots);
@@ -448,7 +454,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             List<Record> slots = commander.setState(slotFilter, STOPPED);
             displaySlots(slots);
@@ -462,7 +468,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             List<Record> slots = commander.setState(slotFilter, RESTARTING);
             displaySlots(slots);
@@ -476,7 +482,7 @@ public class Galaxy
         public final SlotFilter slotFilter = new SlotFilter();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             List<Record> slots = commander.resetExpectedState(slotFilter);
             displaySlots(slots);
@@ -493,7 +499,7 @@ public class Galaxy
         public String command;
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
         {
             commander.ssh(slotFilter, command);
         }
@@ -518,7 +524,7 @@ public class Galaxy
         public final CoordinatorFilter coordinatorFilter = new CoordinatorFilter();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
                 throws Exception
         {
             List<Record> coordinators = commander.showCoordinators(coordinatorFilter);
@@ -562,10 +568,21 @@ public class Galaxy
         public String instanceType = "t1.micro";
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
                 throws Exception
         {
             List<Record> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup);
+
+            // add the new coordinators to the config
+            String coordinatorProperty = "environment." + globalOptions.environment + ".coordinator";
+            for (Record coordinator : coordinators) {
+                String url = coordinator.getValue(Column.externalUri);
+                if (url != null && !url.isEmpty()) {
+                    cliConfig.set(coordinatorProperty, url);
+                }
+            }
+            cliConfig.save(CONFIG_FILE);
+
             displayCoordinators(coordinators);
         }
 
@@ -593,7 +610,7 @@ public class Galaxy
         public final AgentFilter agentFilter = new AgentFilter();
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
                 throws Exception
         {
             List<Record> agents = commander.showAgents(agentFilter);
@@ -625,7 +642,7 @@ public class Galaxy
         public String instanceType;
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
                 throws Exception
         {
             List<Record> agents = commander.provisionAgents(count, availabilityZone, instanceType);
@@ -653,7 +670,7 @@ public class Galaxy
         public String agentId;
 
         @Override
-        public void execute(Commander commander)
+        public void execute(Config cliConfig, Commander commander)
                 throws Exception
         {
             Record agent = commander.terminateAgent(agentId);
@@ -692,6 +709,12 @@ public class Galaxy
 
         @Option(name = "--instance-type", description = "Instance type for the local environment")
         public String instanceType;
+
+        @Option(name = "--internal-ip", description = "Internal IP address type for the local environment")
+        public String internalIp;
+
+        @Option(name = "--external-address", description = "External address type for the local environment")
+        public String externalAddress;
 
         @Arguments(usage = "<ref> <path>",
                 description = "Reference name and path for the environment")
@@ -735,6 +758,12 @@ public class Galaxy
             }
             if (instanceType != null) {
                 config.set("environment." + ref + ".instance-type", instanceType);
+            }
+            if (internalIp != null) {
+                config.set("environment." + ref + ".internal-ip", internalIp);
+            }
+            if (externalAddress != null) {
+                config.set("environment." + ref + ".external-address", externalAddress);
             }
             if (config.get("environment.default") == null) {
                 config.set("environment.default", ref);
@@ -866,7 +895,7 @@ public class Galaxy
             // add the coordinators to the config
             String coordinatorProperty = "environment." + ref + ".coordinator";
             for (Instance instance : instances) {
-                config.set(coordinatorProperty, instance.getUri().toASCIIString());
+                config.set(coordinatorProperty, instance.getExternalUri().toASCIIString());
             }
 
             // make this environment the default if there are no other environments
@@ -890,11 +919,15 @@ public class Galaxy
                         List<Instance> resolvedInstances = newArrayList();
                         for (Reservation reservation : result.getReservations()) {
                             for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
-                                URI uri = null;
-                                if (instance.getPublicDnsName() != null) {
-                                    uri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                                URI internalUri = null;
+                                if (instance.getPrivateIpAddress() != null) {
+                                    internalUri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
                                 }
-                                resolvedInstances.add(toInstance(instance, uri, "coordinator"));
+                                URI externalUri = null;
+                                if (instance.getPublicDnsName() != null) {
+                                    externalUri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                                }
+                                resolvedInstances.add(toInstance(instance, internalUri, externalUri, "coordinator"));
                             }
                         }
                         System.out.print("\r \n");

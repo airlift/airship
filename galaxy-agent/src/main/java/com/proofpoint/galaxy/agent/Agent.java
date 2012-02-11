@@ -54,7 +54,8 @@ public class Agent
     private final String location;
     private final Map<String, Integer> resources;
     private final Duration maxLockWait;
-    private final URI baseUri;
+    private final URI internalUri;
+    private final URI externalUri;
 
     @Inject
     public Agent(AgentConfig config,
@@ -67,6 +68,7 @@ public class Agent
                 nodeInfo.getLocation(),
                 config.getSlotsDir(),
                 httpServerInfo.getHttpUri(),
+                httpServerInfo.getHttpExternalUri(),
                 config.getResourcesFile(),
                 deploymentManagerFactory,
                 lifecycleManager,
@@ -78,17 +80,25 @@ public class Agent
             String agentId,
             String location,
             String slotsDir,
-            URI baseUri,
+            URI internalUri,
+            URI externalUri,
             String resourcesFilename,
             DeploymentManagerFactory deploymentManagerFactory,
             LifecycleManager lifecycleManager,
             Duration maxLockWait)
     {
+        Preconditions.checkNotNull(agentId, "agentId is null");
+        Preconditions.checkNotNull(location, "location is null");
+        Preconditions.checkNotNull(slotsDir, "slotsDir is null");
+        Preconditions.checkNotNull(internalUri, "internalUri is null");
+        Preconditions.checkNotNull(externalUri, "externalUri is null");
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
+        Preconditions.checkNotNull(maxLockWait, "maxLockWait is null");
 
         this.agentId = agentId;
-        this.baseUri = baseUri;
+        this.internalUri = internalUri;
+        this.externalUri = externalUri;
         this.maxLockWait = maxLockWait;
         this.location = location;
 
@@ -119,8 +129,9 @@ public class Agent
                 // todo bad slot
             }
             else {
-                URI slotUri = baseUri.resolve("/v1/agent/slot/").resolve(slotName);
-                Slot slot = new DeploymentSlot(slotUri, deploymentManager, lifecycleManager, maxLockWait);
+                URI slotInternalUri = internalUri.resolve("/v1/agent/slot/").resolve(slotName);
+                URI slotExternalUri = externalUri.resolve("/v1/agent/slot/").resolve(slotName);
+                Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManager, lifecycleManager, maxLockWait);
                 slots.put(slotName, slot);
             }
         }
@@ -175,7 +186,7 @@ public class Agent
             SlotStatus slotStatus = slot.status();
             builder.add(slotStatus);
         }
-        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, baseUri, location, null, builder.build(), resources);
+        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, internalUri, externalUri, location, null, builder.build(), resources);
         return agentStatus;
     }
 
@@ -192,8 +203,9 @@ public class Agent
         // todo name selection is not thread safe
         // create slot
         String slotName = getNextSlotName(installation.getShortName());
-        URI slotUri = baseUri.resolve("/v1/agent/slot/").resolve(slotName);
-        Slot slot = new DeploymentSlot(slotUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, maxLockWait);
+        URI slotInternalUri = internalUri.resolve("/v1/agent/slot/").resolve(slotName);
+        URI slotExternalUri = externalUri.resolve("/v1/agent/slot/").resolve(slotName);
+        Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, maxLockWait);
         slots.put(slotName, slot);
 
         // return last slot status

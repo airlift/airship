@@ -158,6 +158,7 @@ public class TestServer
         expected.put("shortId", slotStatus.getId().toString());
         expected.put("name", slotStatus.getName());
         expected.put("self", urlFor(slotStatus));
+        expected.put("externalUri", urlFor(slotStatus));
         expected.put("version", slotStatus.getVersion());
         expected.put("location", slotStatus.getLocation());
         expected.put("installPath", slotStatus.getInstallPath());
@@ -199,6 +200,7 @@ public class TestServer
         expected.get(0).put("name", appleSlotStatus.getName());
         expected.get(0).put("version", appleSlotStatus.getVersion());
         expected.get(0).put("self", urlFor(appleSlotStatus));
+        expected.get(0).put("externalUri", urlFor(appleSlotStatus));
         expected.get(0).put("location", appleSlotStatus.getLocation());
         expected.get(0).put("installPath", appleSlotStatus.getInstallPath());
         expected.get(0).put("resources", ImmutableMap.<String,Integer>of("memory", 512));
@@ -207,6 +209,7 @@ public class TestServer
         expected.get(1).put("name", bananaSlotStatus.getName());
         expected.get(1).put("version", bananaSlotStatus.getVersion());
         expected.get(1).put("self", urlFor(bananaSlotStatus));
+        expected.get(1).put("externalUri", urlFor(bananaSlotStatus));
         expected.get(1).put("location", bananaSlotStatus.getLocation());
         expected.get(1).put("installPath", bananaSlotStatus.getInstallPath());
         expected.get(1).put("resources", ImmutableMap.<String,Integer>of("cpu", 1));
@@ -238,6 +241,7 @@ public class TestServer
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
                 .put("self", urlFor(slot))
+                .put("externalUri", urlFor(slot))
                 .put("location", slot.status().getLocation())
                 .put("status", STOPPED.toString())
                 .put("version", slot.status().getVersion())
@@ -268,6 +272,7 @@ public class TestServer
                 .put("shortId", slotStatus.getId().toString())
                 .put("name", slotStatus.getName())
                 .put("self", urlFor(slotStatus))
+                .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", TERMINATED.toString())
                 .put("version", SlotStatus.createVersion(slotStatus.getId(), TERMINATED, null))
@@ -327,6 +332,7 @@ public class TestServer
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
                 .put("self", urlFor(slotStatus))
+                .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", STOPPED.toString())
                 .put("version", slotStatus.getVersion())
@@ -359,6 +365,7 @@ public class TestServer
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
                 .put("self", urlFor(slotStatus))
+                .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", RUNNING.toString())
                 .put("version", SlotStatus.createVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
@@ -392,6 +399,7 @@ public class TestServer
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
                 .put("self", urlFor(slotStatus))
+                .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", STOPPED.toString())
                 .put("version", slotStatus.getVersion())
@@ -424,6 +432,7 @@ public class TestServer
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
                 .put("self", urlFor(slotStatus))
+                .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", RUNNING.toString())
                 .put("version", SlotStatus.createVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))

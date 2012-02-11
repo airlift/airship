@@ -11,9 +11,13 @@ import java.util.UUID;
 
 public interface RemoteAgent
 {
-    URI getUri();
+    URI getInternalUri();
 
-    void setUri(URI uri);
+    void setInternalUri(URI uri);
+
+    URI getExternalUri();
+
+    void setExternalUri(URI uri);
 
     SlotStatus install(Installation installation);
 

@@ -37,6 +37,7 @@ public class AgentStatusRepresentation
     private final String agentId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
+    private final URI externalUri;
     private final AgentLifecycleState state;
     private final String location;
     private final String instanceType;
@@ -62,7 +63,8 @@ public class AgentStatusRepresentation
         return new AgentStatusRepresentation(
                 status.getAgentId(),
                 status.getState(),
-                status.getUri(),
+                status.getInternalUri(),
+                status.getExternalUri(),
                 status.getLocation(),
                 status.getInstanceType(),
                 builder.build(),
@@ -75,6 +77,7 @@ public class AgentStatusRepresentation
             @JsonProperty("agentId") String agentId,
             @JsonProperty("state") AgentLifecycleState state,
             @JsonProperty("self") URI self,
+            @JsonProperty("externalUri") URI externalUri,
             @JsonProperty("location") String location,
             @JsonProperty("instanceType") String instanceType,
             @JsonProperty("slots") List<SlotStatusRepresentation> slots,
@@ -84,6 +87,7 @@ public class AgentStatusRepresentation
         this.agentId = agentId;
         this.slots = slots;
         this.self = self;
+        this.externalUri = externalUri;
         this.state = state;
         this.location = location;
         this.instanceType = instanceType;
@@ -118,6 +122,13 @@ public class AgentStatusRepresentation
     }
 
     @JsonProperty
+    @NotNull
+    public URI getExternalUri()
+    {
+        return externalUri;
+    }
+
+    @JsonProperty
     public AgentLifecycleState getState()
     {
         return state;
@@ -147,16 +158,16 @@ public class AgentStatusRepresentation
         return version;
     }
 
-    public String getHost() {
+    public String getInternalHost() {
         if (self == null) {
             return null;
         }
         return self.getHost();
     }
 
-    public String getIp()
+    public String getInternalIp()
     {
-        String host = getHost();
+        String host = getInternalHost();
         if (host == null) {
             return null;
         }
@@ -173,13 +184,20 @@ public class AgentStatusRepresentation
         }
     }
 
+    public String getExternalHost() {
+        if (externalUri == null) {
+            return null;
+        }
+        return externalUri.getHost();
+    }
+
     public AgentStatus toAgentStatus()
     {
         Builder<SlotStatus> builder = ImmutableList.builder();
         for (SlotStatusRepresentation slot : slots) {
             builder.add(slot.toSlotStatus());
         }
-        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, self, location, instanceType, builder.build(), resources);
+        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, self, externalUri, location, instanceType, builder.build(), resources);
     }
 
     @Override
@@ -212,13 +230,15 @@ public class AgentStatusRepresentation
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("AgentStatusRepresentation");
-        sb.append("{agentId=").append(agentId);
-        sb.append(", state=").append(state);
-        sb.append(", location=").append(location);
-        sb.append(", instanceType=").append(instanceType);
+        sb.append("{agentId='").append(agentId).append('\'');
         sb.append(", slots=").append(slots);
+        sb.append(", self=").append(self);
+        sb.append(", externalUri=").append(externalUri);
+        sb.append(", state=").append(state);
+        sb.append(", location='").append(location).append('\'');
+        sb.append(", instanceType='").append(instanceType).append('\'');
         sb.append(", resources=").append(resources);
-        sb.append(", version=").append(version);
+        sb.append(", version='").append(version).append('\'');
         sb.append('}');
         return sb.toString();
     }

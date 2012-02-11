@@ -71,13 +71,13 @@
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>http-client-experimental</artifactId>
-            <version>0.51</version>
+            <version>0.52-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>units</artifactId>
-            <version>0.51</version>
+            <version>0.52-SNAPSHOT</version>
         </dependency>
 
         <!-- for testing -->
@@ -91,14 +91,14 @@
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>testing</artifactId>
-            <version>0.51</version>
+            <version>0.52-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.proofpoint.platform</groupId>
             <artifactId>experimental</artifactId>
-            <version>0.51</version>
+            <version>0.52-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

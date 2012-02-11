@@ -41,6 +41,7 @@ public class DeploymentSlot implements Slot
     private final String name;
     private final String location;
     private final URI self;
+    private final URI externalUri;
     private final Duration lockWait;
     private final DeploymentManager deploymentManager;
     private final LifecycleManager lifecycleManager;
@@ -52,11 +53,13 @@ public class DeploymentSlot implements Slot
     private volatile List<StackTraceElement> lockAcquisitionLocation;
 
     public DeploymentSlot(URI self,
+            URI externalUri,
             DeploymentManager deploymentManager,
             LifecycleManager lifecycleManager,
             Duration maxLockWait)
     {
         Preconditions.checkNotNull(self, "self is null");
+        Preconditions.checkNotNull(externalUri, "externalUri is null");
         Preconditions.checkNotNull(deploymentManager, "deploymentManager is null");
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
         Preconditions.checkNotNull(maxLockWait, "maxLockWait is null");
@@ -69,6 +72,7 @@ public class DeploymentSlot implements Slot
         lockWait = maxLockWait;
         id = deploymentManager.getSlotId();
         this.self = self;
+        this.externalUri = externalUri;
 
         Deployment deployment = deploymentManager.getDeployment();
         Preconditions.checkState(deployment != null, "No deployment for slot %s", name);
@@ -77,6 +81,7 @@ public class DeploymentSlot implements Slot
         SlotStatus slotStatus = new SlotStatus(id,
                 name,
                 self,
+                externalUri,
                 location,
                 state,
                 deployment.getAssignment(),
@@ -86,6 +91,7 @@ public class DeploymentSlot implements Slot
     }
 
     public DeploymentSlot(URI self,
+            URI externalUri,
             DeploymentManager deploymentManager,
             LifecycleManager lifecycleManager,
             Installation installation,
@@ -104,6 +110,7 @@ public class DeploymentSlot implements Slot
         this.lockWait = maxLockWait;
         this.id = deploymentManager.getSlotId();
         this.self = self;
+        this.externalUri = externalUri;
 
         // install the software
         try {
@@ -115,7 +122,16 @@ public class DeploymentSlot implements Slot
             lifecycleManager.updateNodeConfig(deployment);
 
             // set initial status
-            lastSlotStatus.set(new SlotStatus(id, name, self, location, STOPPED, installation.getAssignment(), deployment.getDataDir().getAbsolutePath(), deployment.getResources()));
+            lastSlotStatus.set(new SlotStatus(
+                    id,
+                    name,
+                    self,
+                    externalUri,
+                    location,
+                    STOPPED,
+                    installation.getAssignment(),
+                    deployment.getDataDir().getAbsolutePath(),
+                    deployment.getResources()));
         }
         catch (Exception e) {
             terminate();
@@ -139,6 +155,12 @@ public class DeploymentSlot implements Slot
     public URI getSelf()
     {
         return self;
+    }
+
+    @Override
+    public URI getExternalUri()
+    {
+        return externalUri;
     }
 
     @Override
@@ -173,7 +195,9 @@ public class DeploymentSlot implements Slot
             SlotStatus slotStatus = new SlotStatus(id,
                     name,
                     self,
-                    location, STOPPED,
+                    externalUri,
+                    location,
+                    STOPPED,
                     installation.getAssignment(),
                     deployment.getDataDir().getAbsolutePath(),
                     deployment.getResources());
@@ -201,7 +225,7 @@ public class DeploymentSlot implements Slot
                 deploymentManager.terminate();
                 terminated = true;
             }
-            SlotStatus slotStatus = new SlotStatus(id, name, self, location, TERMINATED, null, null, ImmutableMap.<String, Integer>of());
+            SlotStatus slotStatus = new SlotStatus(id, name, self, externalUri, location, TERMINATED, null, null, ImmutableMap.<String, Integer>of());
             lastSlotStatus.set(slotStatus);
             return slotStatus;
         }
@@ -230,18 +254,19 @@ public class DeploymentSlot implements Slot
         }
         try {
             if (terminated) {
-                return new SlotStatus(id, name, self, location, TERMINATED, null, null, ImmutableMap.<String, Integer>of());
+                return new SlotStatus(id, name, self, externalUri, location, TERMINATED, null, null, ImmutableMap.<String, Integer>of());
             }
 
             Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
-                return new SlotStatus(id, name, self, location, SlotLifecycleState.UNKNOWN, null, null, ImmutableMap.<String, Integer>of());
+                return new SlotStatus(id, name, self, externalUri, location, SlotLifecycleState.UNKNOWN, null, null, ImmutableMap.<String, Integer>of());
             }
 
             SlotLifecycleState state = lifecycleManager.status(activeDeployment);
             SlotStatus slotStatus = new SlotStatus(id,
                     name,
                     self,
+                    externalUri,
                     location,
                     state,
                     activeDeployment.getAssignment(),
@@ -272,6 +297,7 @@ public class DeploymentSlot implements Slot
             SlotStatus slotStatus = new SlotStatus(id,
                     name,
                     self,
+                    externalUri,
                     location,
                     state,
                     activeDeployment.getAssignment(),
@@ -303,6 +329,7 @@ public class DeploymentSlot implements Slot
             SlotStatus slotStatus = new SlotStatus(id,
                     name,
                     self,
+                    externalUri,
                     location,
                     state,
                     activeDeployment.getAssignment(),
@@ -334,6 +361,7 @@ public class DeploymentSlot implements Slot
             SlotStatus slotStatus = new SlotStatus(id,
                     name,
                     self,
+                    externalUri,
                     location,
                     state,
                     activeDeployment.getAssignment(),

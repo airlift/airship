@@ -41,7 +41,12 @@ public class TestSlot
         MockDeploymentManager deploymentManager = new MockDeploymentManager("slot");
 
         // create slot with initial apple assignment
-        Slot slot = new DeploymentSlot(URI.create("fake://localhost"), deploymentManager, lifecycleManager, APPLE_INSTALLATION, new Duration(1, SECONDS));
+        Slot slot = new DeploymentSlot(URI.create("fake://localhost"),
+                URI.create("fake://localhost"),
+                deploymentManager,
+                lifecycleManager,
+                APPLE_INSTALLATION,
+                new Duration(1, SECONDS));
         assertEquals(slot.getName(), "slot");
         SlotStatus status = slot.status();
         assertNotNull(status);
@@ -73,7 +78,12 @@ public class TestSlot
     public void testLifecycle()
             throws Exception
     {
-        Slot slot = new DeploymentSlot(URI.create("fake://localhost"), new MockDeploymentManager("slot"), new MockLifecycleManager(), APPLE_INSTALLATION, new Duration(1, SECONDS));
+        Slot slot = new DeploymentSlot(URI.create("fake://localhost"),
+                URI.create("fake://localhost"),
+                new MockDeploymentManager("slot"),
+                new MockLifecycleManager(),
+                APPLE_INSTALLATION,
+                new Duration(1, SECONDS));
         SlotStatus running = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
         SlotStatus stopped = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
 
