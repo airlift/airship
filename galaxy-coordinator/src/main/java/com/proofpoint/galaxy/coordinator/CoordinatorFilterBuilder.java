@@ -5,16 +5,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
-import com.google.common.net.InetAddresses;
 import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
 import com.proofpoint.galaxy.shared.HttpUriBuilder;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
-import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -29,19 +26,14 @@ public class CoordinatorFilterBuilder
     {
         CoordinatorFilterBuilder builder = new CoordinatorFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
-            if ("state" .equals(entry.getKey())) {
+            if ("state".equals(entry.getKey())) {
                 for (String stateFilter : entry.getValue()) {
                     builder.addStateFilter(stateFilter);
                 }
             }
-            else if ("host" .equals(entry.getKey())) {
+            else if ("host".equals(entry.getKey())) {
                 for (String hostGlob : entry.getValue()) {
                     builder.addHostGlobFilter(hostGlob);
-                }
-            }
-            else if ("ip" .equals(entry.getKey())) {
-                for (String ipFilter : entry.getValue()) {
-                    builder.addIpFilter(ipFilter);
                 }
             }
         }
@@ -50,7 +42,6 @@ public class CoordinatorFilterBuilder
 
     private final List<CoordinatorLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
-    private final List<String> ipFilters = Lists.newArrayListWithCapacity(6);
 
     public void addStateFilter(String stateFilter)
     {
@@ -64,12 +55,6 @@ public class CoordinatorFilterBuilder
     {
         Preconditions.checkNotNull(hostGlob, "hostGlob is null");
         hostGlobs.add(hostGlob);
-    }
-
-    public void addIpFilter(String ipFilter)
-    {
-        Preconditions.checkNotNull(ipFilter, "ipFilter is null");
-        ipFilters.add(ipFilter);
     }
 
     public Predicate<CoordinatorStatus> buildPredicate()
@@ -98,17 +83,6 @@ public class CoordinatorFilterBuilder
             }));
             andPredicates.add(predicate);
         }
-        if (!ipFilters.isEmpty()) {
-            Predicate<CoordinatorStatus> predicate = Predicates.or(Lists.transform(ipFilters, new Function<String, IpPredicate>()
-            {
-                @Override
-                public IpPredicate apply(String ipFilter)
-                {
-                    return new IpPredicate(ipFilter);
-                }
-            }));
-            andPredicates.add(predicate);
-        }
         if (!andPredicates.isEmpty()) {
             return Predicates.and(andPredicates);
         }
@@ -128,9 +102,6 @@ public class CoordinatorFilterBuilder
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
         }
-        for (String ipFilter : ipFilters) {
-            uriBuilder.addParameter("ip", ipFilter);
-        }
         for (CoordinatorLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
         }
@@ -139,44 +110,18 @@ public class CoordinatorFilterBuilder
 
     public static class HostPredicate implements Predicate<CoordinatorStatus>
     {
-        private final Predicate<CharSequence> predicate;
+        private final UriHostPredicate predicate;
 
         public HostPredicate(String hostGlob)
         {
-            predicate = new GlobPredicate(hostGlob.toLowerCase());
+            predicate = new UriHostPredicate(hostGlob.toLowerCase());
         }
 
         @Override
         public boolean apply(@Nullable CoordinatorStatus coordinatorStatus)
         {
             return coordinatorStatus != null &&
-                    coordinatorStatus.getInternalUri() != null &&
-                    coordinatorStatus.getInternalUri().getHost() != null &&
-                    predicate.apply(coordinatorStatus.getInternalUri().getHost().toLowerCase());
-        }
-    }
-
-    public static class IpPredicate implements Predicate<CoordinatorStatus>
-    {
-        private final Predicate<InetAddress> predicate;
-
-        public IpPredicate(String ipFilter)
-        {
-            predicate = Predicates.equalTo(InetAddresses.forString(ipFilter));
-        }
-
-        @Override
-        public boolean apply(@Nullable CoordinatorStatus coordinatorStatus)
-        {
-            try {
-                return coordinatorStatus != null &&
-                        coordinatorStatus.getInternalUri() != null &&
-                        coordinatorStatus.getInternalUri().getHost() != null &&
-                        predicate.apply(InetAddress.getByName(coordinatorStatus.getInternalUri().getHost()));
-            }
-            catch (UnknownHostException e) {
-                return false;
-            }
+                    (predicate.apply(coordinatorStatus.getExternalUri()) || predicate.apply(coordinatorStatus.getInternalUri()));
         }
     }
 

@@ -9,7 +9,6 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.BinarySpecPredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.ConfigSpecPredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.HostPredicate;
-import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.IpPredicate;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.StatePredicate;
 import org.testng.annotations.Test;
 
@@ -91,15 +90,11 @@ public class TestSlotFilterBuilder
         assertTrue(buildFilter("host", "LocAL*").apply(status));
         assertFalse(new HostPredicate("foo").apply(status));
         assertFalse(buildFilter("host", "foo").apply(status));
-    }
 
-    @Test
-    public void testIpSpecPredicate()
-    {
-        assertTrue(new IpPredicate("127.0.0.1").apply(status));
-        assertTrue(buildFilter("ip", "127.0.0.1").apply(status));
-        assertFalse(new IpPredicate("10.1.2.3").apply(status));
-        assertFalse(buildFilter("ip", "10.1.2.3").apply(status));
+        assertTrue(new HostPredicate("127.0.0.1").apply(status));
+        assertTrue(buildFilter("host", "127.0.0.1").apply(status));
+        assertFalse(new HostPredicate("10.1.2.3").apply(status));
+        assertFalse(buildFilter("host", "10.1.2.3").apply(status));
     }
 
     @Test

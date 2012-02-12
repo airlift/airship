@@ -51,12 +51,11 @@ public class LocalCommander implements Commander
     @Override
     public List<Record> install(AgentFilter agentFilter, int count, Assignment assignment)
     {
-        Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate();
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate(uuids);
         List<SlotStatus> slots = coordinator.install(agentPredicate, count, assignment);
 
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         int prefixSize = getPrefixSize(uuids);
-
         return toSlotRecords(prefixSize, slots);
     }
 
@@ -148,7 +147,8 @@ public class LocalCommander implements Commander
     public List<Record> showAgents(AgentFilter agentFilter)
             throws Exception
     {
-        Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate();
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate(uuids);
         List<AgentStatus> agentStatuses = coordinator.getAgents(agentPredicate);
         return toAgentRecords(toAgentStatusRepresentations(agentStatuses));
     }

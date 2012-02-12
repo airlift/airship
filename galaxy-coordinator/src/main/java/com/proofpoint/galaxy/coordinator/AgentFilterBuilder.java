@@ -5,18 +5,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
-import com.google.common.net.InetAddresses;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.HttpUriBuilder;
+import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
-import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 public class AgentFilterBuilder
 {
@@ -25,7 +24,7 @@ public class AgentFilterBuilder
         return new AgentFilterBuilder();
     }
 
-    public static Predicate<AgentStatus> build(UriInfo uriInfo)
+    public static Predicate<AgentStatus> build(UriInfo uriInfo, List<UUID> allUuids)
     {
         AgentFilterBuilder builder = new AgentFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
@@ -44,19 +43,13 @@ public class AgentFilterBuilder
                     builder.addSlotUuidGlobFilter(uuidGlob);
                 }
             }
-            else if ("ip" .equals(entry.getKey())) {
-                for (String ipFilter : entry.getValue()) {
-                    builder.addIpFilter(ipFilter);
-                }
-            }
         }
-        return builder.build();
+        return builder.build(allUuids);
     }
 
     private final List<AgentLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> slotUuidGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
-    private final List<String> ipFilters = Lists.newArrayListWithCapacity(6);
 
     public void addStateFilter(String stateFilter)
     {
@@ -78,13 +71,7 @@ public class AgentFilterBuilder
         hostGlobs.add(hostGlob);
     }
 
-    public void addIpFilter(String ipFilter)
-    {
-        Preconditions.checkNotNull(ipFilter, "ipFilter is null");
-        ipFilters.add(ipFilter);
-    }
-
-    public Predicate<AgentStatus> build()
+    public Predicate<AgentStatus> build(final List<UUID> allUuids)
     {
         // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<AgentStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
@@ -105,7 +92,7 @@ public class AgentFilterBuilder
                 @Override
                 public SlotUuidPredicate apply(String slotUuidGlob)
                 {
-                    return new SlotUuidPredicate(slotUuidGlob);
+                    return new SlotUuidPredicate(slotUuidGlob, allUuids);
                 }
             }));
             andPredicates.add(predicate);
@@ -117,17 +104,6 @@ public class AgentFilterBuilder
                 public HostPredicate apply(String hostGlob)
                 {
                     return new HostPredicate(hostGlob);
-                }
-            }));
-            andPredicates.add(predicate);
-        }
-        if (!ipFilters.isEmpty()) {
-            Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(ipFilters, new Function<String, IpPredicate>()
-            {
-                @Override
-                public IpPredicate apply(String ipFilter)
-                {
-                    return new IpPredicate(ipFilter);
                 }
             }));
             andPredicates.add(predicate);
@@ -151,9 +127,6 @@ public class AgentFilterBuilder
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
         }
-        for (String ipFilter : ipFilters) {
-            uriBuilder.addParameter("ip", ipFilter);
-        }
         for (AgentLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
         }
@@ -165,62 +138,47 @@ public class AgentFilterBuilder
 
     public static class SlotUuidPredicate implements Predicate<AgentStatus>
     {
-        private final Predicate<CharSequence> predicate;
+        private final SlotFilterBuilder.SlotUuidPredicate predicate;
 
-        public SlotUuidPredicate(String slotUuidGlobGlob)
+        public SlotUuidPredicate(UUID slotUuid)
         {
-            predicate = new GlobPredicate(slotUuidGlobGlob.toLowerCase());
+            predicate = new SlotFilterBuilder.SlotUuidPredicate(slotUuid);
+        }
+
+        public SlotUuidPredicate(String slotUuidGlobGlob, List<UUID> allUuids)
+        {
+            predicate = new SlotFilterBuilder.SlotUuidPredicate(slotUuidGlobGlob, allUuids);
         }
 
         @Override
         public boolean apply(@Nullable AgentStatus agentStatus)
         {
-            return agentStatus != null &&
-                    agentStatus.getAgentId() != null &&
-                    predicate.apply(agentStatus.getAgentId().toLowerCase());
+            if (agentStatus == null) {
+                return false;
+            }
+            for (SlotStatus slotStatus : agentStatus.getSlotStatuses()) {
+                if (predicate.apply(slotStatus)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
     public static class HostPredicate implements Predicate<AgentStatus>
     {
-        private final Predicate<CharSequence> predicate;
+        private final UriHostPredicate predicate;
 
         public HostPredicate(String hostGlob)
         {
-            predicate = new GlobPredicate(hostGlob.toLowerCase());
+            predicate = new UriHostPredicate(hostGlob.toLowerCase());
         }
 
         @Override
         public boolean apply(@Nullable AgentStatus agentStatus)
         {
             return agentStatus != null &&
-                    agentStatus.getInternalUri() != null &&
-                    agentStatus.getInternalUri().getHost() != null &&
-                    predicate.apply(agentStatus.getInternalUri().getHost().toLowerCase());
-        }
-    }
-
-    public static class IpPredicate implements Predicate<AgentStatus>
-    {
-        private final Predicate<InetAddress> predicate;
-
-        public IpPredicate(String ipFilter)
-        {
-            predicate = Predicates.equalTo(InetAddresses.forString(ipFilter));
-        }
-
-        @Override
-        public boolean apply(@Nullable AgentStatus agentStatus)
-        {
-            try {
-                return agentStatus != null &&
-                        agentStatus.getInternalUri() != null &&
-                        agentStatus.getInternalUri().getHost() != null &&
-                        predicate.apply(InetAddress.getByName(agentStatus.getInternalUri().getHost()));
-            }
-            catch (UnknownHostException e) {
-                return false;
-            }
+                    (predicate.apply(agentStatus.getExternalUri()) || predicate.apply(agentStatus.getInternalUri()));
         }
     }
 

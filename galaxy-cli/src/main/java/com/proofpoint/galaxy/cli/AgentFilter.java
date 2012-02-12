@@ -8,16 +8,14 @@ import org.iq80.cli.Option;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
 
 public class AgentFilter
 {
-    @Option(name = {"-i", "--host"}, description = "Select agent on the given host")
+    @Option(name = {"-h", "--host"}, description = "Select agent on the given host")
     public final List<String> host = newArrayList();
-
-    @Option(name = {"-I", "--ip"}, description = "Select agent at the given IP address")
-    public final List<String> ip = newArrayList();
 
     @Option(name = {"-u", "--uuid"}, description = "Select agent containing a slot the given UUID")
     public final List<String> uuid = newArrayList();
@@ -25,9 +23,9 @@ public class AgentFilter
     @Option(name = {"-s", "--state"}, description = "Select agent containing 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
 
-    public Predicate<AgentStatus> toAgentPredicate()
+    public Predicate<AgentStatus> toAgentPredicate(List<UUID> allUuids)
     {
-        return createFilterBuilder().build();
+        return createFilterBuilder().build(allUuids);
     }
 
     public URI toUri(URI baseUri)
@@ -46,9 +44,6 @@ public class AgentFilter
         for (String hostGlob : host) {
             agentFilterBuilder.addHostGlobFilter(hostGlob);
         }
-        for (String ipFilter : ip) {
-            agentFilterBuilder.addIpFilter(ipFilter);
-        }
         for (String stateFilter : state) {
             agentFilterBuilder.addStateFilter(stateFilter);
         }
@@ -64,7 +59,6 @@ public class AgentFilter
         final StringBuilder sb = new StringBuilder();
         sb.append("Filter");
         sb.append("{host=").append(host);
-        sb.append(", ip=").append(ip);
         sb.append(", uuid=").append(uuid);
         sb.append(", state=").append(state);
         sb.append('}');

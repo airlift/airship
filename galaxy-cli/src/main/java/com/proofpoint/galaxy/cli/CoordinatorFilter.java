@@ -13,11 +13,8 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class CoordinatorFilter
 {
-    @Option(name = {"-i", "--host"}, description = "Select coordinator on the given host")
+    @Option(name = {"-h", "--host"}, description = "Select coordinator on the given host or IP address")
     public final List<String> host = newArrayList();
-
-    @Option(name = {"-I", "--ip"}, description = "Select coordinator at the given IP address")
-    public final List<String> ip = newArrayList();
 
     @Option(name = {"-s", "--state"}, description = "Select coordinator containing 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
@@ -43,9 +40,6 @@ public class CoordinatorFilter
         for (String hostGlob : host) {
             coordinatorFilterBuilder.addHostGlobFilter(hostGlob);
         }
-        for (String ipFilter : ip) {
-            coordinatorFilterBuilder.addIpFilter(ipFilter);
-        }
         for (String stateFilter : state) {
             coordinatorFilterBuilder.addStateFilter(stateFilter);
         }
@@ -58,7 +52,6 @@ public class CoordinatorFilter
         final StringBuilder sb = new StringBuilder();
         sb.append("Filter");
         sb.append("{host=").append(host);
-        sb.append(", ip=").append(ip);
         sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();

@@ -20,11 +20,8 @@ public class SlotFilter
     @Option(name = {"-c", "--config"}, description = "Select slots with a given configuration")
     public final List<String> config = newArrayList();
 
-    @Option(name = {"-i", "--host"}, description = "Select slots on the given host")
+    @Option(name = {"-h", "--host"}, description = "Select slots on the given host")
     public final List<String> host = newArrayList();
-
-    @Option(name = {"-I", "--ip"}, description = "Select slots at the given IP address")
-    public final List<String> ip = newArrayList();
 
     @Option(name = {"-u", "--uuid"}, description = "Select slot with the given UUID")
     public final List<String> uuid = newArrayList();
@@ -59,9 +56,6 @@ public class SlotFilter
         for (String hostGlob : host) {
             slotFilterBuilder.addHostGlobFilter(hostGlob);
         }
-        for (String ipFilter : ip) {
-            slotFilterBuilder.addIpFilter(ipFilter);
-        }
         for (String stateFilter : state) {
             slotFilterBuilder.addStateFilter(stateFilter);
         }
@@ -79,7 +73,6 @@ public class SlotFilter
         sb.append("{binary=").append(binary);
         sb.append(", config=").append(config);
         sb.append(", host=").append(host);
-        sb.append(", ip=").append(ip);
         sb.append(", uuid=").append(uuid);
         sb.append(", state=").append(state);
         sb.append('}');

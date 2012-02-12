@@ -6,21 +6,17 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
-import com.google.common.net.InetAddresses;
 import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
-import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import static com.google.common.base.Functions.compose;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.startsWith;
@@ -52,11 +48,6 @@ public class SlotFilterBuilder
                     builder.addSlotUuidFilter(shortId);
                 }
             }
-            else if ("ip" .equals(entry.getKey())) {
-                for (String ipFilter : entry.getValue()) {
-                    builder.addIpFilter(ipFilter);
-                }
-            }
             else if ("binary" .equals(entry.getKey())) {
                 for (String binaryGlob : entry.getValue()) {
                     builder.addBinaryGlobFilter(binaryGlob);
@@ -74,7 +65,6 @@ public class SlotFilterBuilder
     private final List<SlotLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> slotUuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
-    private final List<String> ipFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> binaryGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> configGlobs = Lists.newArrayListWithCapacity(6);
 
@@ -102,12 +92,6 @@ public class SlotFilterBuilder
         hostGlobs.add(hostGlob);
     }
 
-    public void addIpFilter(String ipFilter)
-    {
-        Preconditions.checkNotNull(ipFilter, "ipFilter is null");
-        ipFilters.add(ipFilter);
-    }
-
     public void addBinaryGlobFilter(String binaryGlob)
     {
         Preconditions.checkNotNull(binaryGlob, "binaryGlob is null");
@@ -130,19 +114,7 @@ public class SlotFilterBuilder
                 @Override
                 public Predicate<SlotStatus> apply(String shortId)
                 {
-                    Predicate<UUID> startsWithPrefix = Predicates.compose(startsWith(shortId.toLowerCase()), compose(toLowerCase(), StringFunctions.<UUID>toStringFunction()));
-                    Collection<UUID> matches = Collections2.filter(allUuids, startsWithPrefix);
-
-                    if (matches.size() > 1) {
-                        throw new IllegalArgumentException(format("Ambiguous expansion for id '%s': %s", shortId, matches));
-                    }
-
-                    if (matches.isEmpty()) {
-                        return Predicates.alwaysFalse();
-                    }
-                    else {
-                        return new SlotUuidPredicate(matches.iterator().next());
-                    }
+                    return new SlotUuidPredicate(shortId, allUuids);
                 }
             }));
             andPredicates.add(predicate);
@@ -167,17 +139,6 @@ public class SlotFilterBuilder
                 public HostPredicate apply(String hostGlob)
                 {
                     return new HostPredicate(hostGlob);
-                }
-            }));
-            andPredicates.add(predicate);
-        }
-        if (!ipFilters.isEmpty()) {
-            Predicate<SlotStatus> predicate = Predicates.or(Lists.transform(ipFilters, new Function<String, IpPredicate>()
-            {
-                @Override
-                public IpPredicate apply(String ipFilter)
-                {
-                    return new IpPredicate(ipFilter);
                 }
             }));
             andPredicates.add(predicate);
@@ -232,9 +193,6 @@ public class SlotFilterBuilder
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
         }
-        for (String ipFilter : ipFilters) {
-            uriBuilder.addParameter("ip", ipFilter);
-        }
         for (SlotLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
         }
@@ -248,6 +206,23 @@ public class SlotFilterBuilder
     {
         private final UUID uuid;
 
+        public SlotUuidPredicate(String shortId, List<UUID> allUuids)
+        {
+            Predicate<UUID> startsWithPrefix = Predicates.compose(startsWith(shortId.toLowerCase()), compose(toLowerCase(), StringFunctions.<UUID>toStringFunction()));
+            Collection<UUID> matches = Collections2.filter(allUuids, startsWithPrefix);
+
+            if (matches.size() > 1) {
+                throw new IllegalArgumentException(format("Ambiguous expansion for id '%s': %s", shortId, matches));
+            }
+
+            if (matches.isEmpty()) {
+                uuid = null;
+            }
+            else {
+                uuid = matches.iterator().next();
+            }
+        }
+
         public SlotUuidPredicate(UUID uuid)
         {
             this.uuid = uuid;
@@ -258,50 +233,25 @@ public class SlotFilterBuilder
         {
             return slotStatus != null &&
                     slotStatus.getId() != null &&
+                    uuid != null &&
                     uuid.equals(slotStatus.getId());
         }
     }
 
     public static class HostPredicate implements Predicate<SlotStatus>
     {
-        private final Predicate<CharSequence> predicate;
+        private final UriHostPredicate predicate;
 
         public HostPredicate(String hostGlob)
         {
-            predicate = new GlobPredicate(hostGlob.toLowerCase());
+            predicate = new UriHostPredicate(hostGlob.toLowerCase());
         }
 
         @Override
         public boolean apply(@Nullable SlotStatus slotStatus)
         {
             return slotStatus != null &&
-                    slotStatus.getSelf() != null &&
-                    slotStatus.getSelf().getHost() != null &&
-                    predicate.apply(slotStatus.getSelf().getHost().toLowerCase());
-        }
-    }
-
-    public static class IpPredicate implements Predicate<SlotStatus>
-    {
-        private final Predicate<InetAddress> predicate;
-
-        public IpPredicate(String ipFilter)
-        {
-            predicate = Predicates.equalTo(InetAddresses.forString(ipFilter));
-        }
-
-        @Override
-        public boolean apply(@Nullable SlotStatus slotStatus)
-        {
-            try {
-                return slotStatus != null &&
-                        slotStatus.getSelf() != null &&
-                        slotStatus.getSelf().getHost() != null &&
-                        predicate.apply(InetAddress.getByName(slotStatus.getSelf().getHost()));
-            }
-            catch (UnknownHostException e) {
-                return false;
-            }
+                    (predicate.apply(slotStatus.getExternalUri()) || predicate.apply(slotStatus.getSelf()));
         }
     }
 

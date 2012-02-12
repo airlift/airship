@@ -91,10 +91,10 @@ public class CoordinatorSlotResource
 
         Assignment assignment = assignmentRepresentation.toAssignment();
 
-        Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo);
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo, uuids);
         List<SlotStatus> results = coordinator.install(agentFilter, limit, assignment);
 
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         int uniquePrefixSize = max(Strings.shortestUniquePrefix(transform(uuids, toStringFunction())), MIN_PREFIX_SIZE);
 
         return Response.ok(transform(results, fromSlotStatusWithShortIdPrefixSize(uniquePrefixSize))).build();
