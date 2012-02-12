@@ -30,12 +30,13 @@ public interface Commander
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup);
+            String securityGroup,
+            boolean waitForStartup);
 
     List<Record> showAgents(AgentFilter agentFilter)
             throws Exception;
 
-    List<Record> provisionAgents(int count, String instanceType, String availabilityZone)
+    List<Record> provisionAgents(int count, String instanceType, String availabilityZone, boolean waitForStartup)
                     throws Exception;
 
     Record terminateAgent(String agentId);

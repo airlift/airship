@@ -579,18 +579,21 @@ public class Galaxy
         @Option(name = "--instance-type", description = "Instance type to provision")
         public String instanceType = "t1.micro";
 
+        @Option(name = "--no-wait", description = "Do not wait for coordinator to start")
+        public boolean noWait;
+
         @Override
         public void execute(Commander commander)
                 throws Exception
         {
-            List<Record> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup);
+            List<Record> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, !noWait);
 
             // add the new coordinators to the config
             String coordinatorProperty = "environment." + environmentRef + ".coordinator";
             for (Record coordinator : coordinators) {
                 String url = coordinator.getValue(Column.externalUri);
                 if (url != null && !url.isEmpty()) {
-                    config.set(coordinatorProperty, url);
+                    config.add(coordinatorProperty, url);
                 }
             }
             config.save(CONFIG_FILE);
@@ -653,11 +656,14 @@ public class Galaxy
         @Arguments(usage = "[<instance-type>]", description = "Instance type to provision")
         public String instanceType;
 
+        @Option(name = "--no-wait", description = "Do not wait for coordinator to start")
+        public boolean noWait;
+
         @Override
         public void execute(Commander commander)
                 throws Exception
         {
-            List<Record> agents = commander.provisionAgents(count, availabilityZone, instanceType);
+            List<Record> agents = commander.provisionAgents(count, availabilityZone, instanceType, !noWait);
             displayAgents(agents);
         }
 
@@ -907,7 +913,7 @@ public class Galaxy
             // add the coordinators to the config
             String coordinatorProperty = "environment." + ref + ".coordinator";
             for (Instance instance : instances) {
-                config.set(coordinatorProperty, instance.getExternalUri().toASCIIString());
+                config.add(coordinatorProperty, instance.getExternalUri().toASCIIString());
             }
 
             // make this environment the default if there are no other environments
@@ -942,35 +948,14 @@ public class Galaxy
                                 resolvedInstances.add(toInstance(instance, internalUri, externalUri, "coordinator"));
                             }
                         }
-                        System.out.print("\r \n");
+                        WaitUtils.clearWaitMessage();
                         return resolvedInstances;
                     }
                 }
                 catch (AmazonClientException ignored) {
                 }
 
-                switch (loop % 5) {
-                    case 0:
-                        System.out.print("\r                            \r");
-                        break;
-                    case 1:
-                        System.out.print("\r1.");
-                        break;
-                    case 2:
-                        System.out.print(" 2.");
-                        break;
-                    case 3:
-                        System.out.print(" 3.");
-                        break;
-                    case 4:
-                        System.out.print("  GO!");
-                        break;
-                }
-                try {
-                    Thread.sleep(500);
-                }
-                catch (InterruptedException e) {
-                }
+                WaitUtils.wait(loop);
             }
         }
 

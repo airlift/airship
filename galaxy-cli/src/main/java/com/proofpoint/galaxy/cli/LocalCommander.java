@@ -138,7 +138,8 @@ public class LocalCommander implements Commander
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            boolean waitForStartup)
     {
         throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
     }
@@ -153,8 +154,7 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<Record> provisionAgents(int count, String instanceType, String availabilityZone)
-            throws Exception
+    public List<Record> provisionAgents(int count, String instanceType, String availabilityZone, boolean waitForStartup)
     {
         throw new UnsupportedOperationException("Agents can not be provisioned in local mode");
     }
@@ -162,7 +162,7 @@ public class LocalCommander implements Commander
     @Override
     public Record terminateAgent(String agentId)
     {
-        throw new UnsupportedOperationException("Agents can not be treminated in local mode");
+        throw new UnsupportedOperationException("Agents can not be terminated in local mode");
     }
 
     public static int getPrefixSize(List<UUID> uuids)

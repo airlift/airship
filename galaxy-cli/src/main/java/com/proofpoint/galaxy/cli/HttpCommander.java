@@ -6,9 +6,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.galaxy.coordinator.AgentProvisioningRepresentation;
 import com.proofpoint.galaxy.coordinator.CoordinatorProvisioningRepresentation;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
+import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
 import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
 import com.proofpoint.galaxy.shared.JsonResponseHandler;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
@@ -23,8 +25,11 @@ import com.proofpoint.json.JsonCodec;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
 import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.cli.HttpCommander.TextBodyGenerator.textBodyGenerator;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
@@ -37,7 +42,7 @@ public class HttpCommander implements Commander
 
     private static final JsonCodec<List<CoordinatorStatusRepresentation>> COORDINATORS_CODEC = JsonCodec.listJsonCodec(CoordinatorStatusRepresentation.class);
     private static final JsonCodec<CoordinatorProvisioningRepresentation> COORDINATOR_PROVISIONING_CODEC = JsonCodec.jsonCodec(CoordinatorProvisioningRepresentation.class);
-    
+
     private static final JsonCodec<AgentStatusRepresentation> AGENT_CODEC = JsonCodec.jsonCodec(AgentStatusRepresentation.class);
     private static final JsonCodec<List<AgentStatusRepresentation>> AGENTS_CODEC = JsonCodec.listJsonCodec(AgentStatusRepresentation.class);
     private static final JsonCodec<AgentProvisioningRepresentation> AGENT_PROVISIONING_CODEC = JsonCodec.jsonCodec(AgentProvisioningRepresentation.class);
@@ -171,7 +176,8 @@ public class HttpCommander implements Commander
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            boolean waitForStartup)
     {
         URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator").build();
 
@@ -191,10 +197,46 @@ public class HttpCommander implements Commander
                 .build();
 
         List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+        if (waitForStartup) {
+            List<String> instanceIds = newArrayList();
+            for (CoordinatorStatusRepresentation coordinator : coordinators) {
+                instanceIds.add(coordinator.getCoordinatorId());
+            }
+            coordinators = waitForCoordinatorsToStart(instanceIds);
+        }
         ImmutableList<Record> records = CoordinatorRecord.toCoordinatorRecords(coordinators);
         return records;
     }
-    
+
+    private List<CoordinatorStatusRepresentation> waitForCoordinatorsToStart(List<String> instanceIds)
+    {
+        for (int loop = 0; true; loop++) {
+            try {
+                URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator").build();
+                Request request = RequestBuilder.prepareGet()
+                        .setUri(uri)
+                        .build();
+                List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+
+                Map<String, CoordinatorStatusRepresentation> runningCoordinators = newHashMap();
+                for (CoordinatorStatusRepresentation coordinator : coordinators) {
+                    if (coordinator.getState() == CoordinatorLifecycleState.ONLINE) {
+                        runningCoordinators.put(coordinator.getCoordinatorId(), coordinator);
+                    }
+                }
+                if (runningCoordinators.keySet().containsAll(instanceIds)) {
+                    WaitUtils.clearWaitMessage();
+                    runningCoordinators.keySet().retainAll(instanceIds);
+                    return ImmutableList.copyOf(runningCoordinators.values());
+                }
+            }
+            catch (Exception ignored) {
+            }
+
+            WaitUtils.wait(loop);
+        }
+    }
+
     @Override
     public List<Record> showAgents(AgentFilter agentFilter)
             throws Exception
@@ -210,7 +252,7 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<Record> provisionAgents(int count, String instanceType, String availabilityZone)
+    public List<Record> provisionAgents(int count, String instanceType, String availabilityZone, boolean waitForStartup)
             throws Exception
     {
         URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").replaceParameter("count", Integer.toString(count)).build();
@@ -224,8 +266,44 @@ public class HttpCommander implements Commander
                 .build();
 
         List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
+        if (waitForStartup) {
+            List<String> instanceIds = newArrayList();
+            for (AgentStatusRepresentation agent : agents) {
+                instanceIds.add(agent.getAgentId());
+            }
+            agents = waitForAgentsToStart(instanceIds);
+        }
         ImmutableList<Record> records = AgentRecord.toAgentRecords(agents);
         return records;
+    }
+
+    private List<AgentStatusRepresentation> waitForAgentsToStart(List<String> instanceIds)
+    {
+        for (int loop = 0; true; loop++) {
+            try {
+                URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").build();
+                Request request = RequestBuilder.prepareGet()
+                        .setUri(uri)
+                        .build();
+                List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
+
+                Map<String, AgentStatusRepresentation> runningAgents = newHashMap();
+                for (AgentStatusRepresentation agent : agents) {
+                    if (agent.getState() == AgentLifecycleState.ONLINE) {
+                        runningAgents.put(agent.getAgentId(), agent);
+                    }
+                }
+                if (runningAgents.keySet().containsAll(instanceIds)) {
+                    WaitUtils.clearWaitMessage();
+                    runningAgents.keySet().retainAll(instanceIds);
+                    return ImmutableList.copyOf(runningAgents.values());
+                }
+            }
+            catch (Exception ignored) {
+            }
+
+            WaitUtils.wait(loop);
+        }
     }
 
     @Override
@@ -264,5 +342,4 @@ public class HttpCommander implements Commander
             out.write(text);
         }
     }
-
 }
