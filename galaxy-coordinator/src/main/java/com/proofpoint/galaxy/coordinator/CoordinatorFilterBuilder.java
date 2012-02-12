@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -7,10 +8,12 @@ import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
 import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
+import com.proofpoint.galaxy.shared.HttpUriBuilder;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map.Entry;
@@ -43,47 +46,68 @@ public class CoordinatorFilterBuilder
                 }
             }
         }
-        return builder.build();
+        return builder.buildPredicate();
     }
 
-    private final List<StatePredicate> stateFilters = Lists.newArrayListWithCapacity(6);
-    private final List<HostPredicate> hostFilters = Lists.newArrayListWithCapacity(6);
-    private final List<IpPredicate> ipFilters = Lists.newArrayListWithCapacity(6);
+    private final List<CoordinatorLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
+    private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> ipFilters = Lists.newArrayListWithCapacity(6);
 
     public void addStateFilter(String stateFilter)
     {
         Preconditions.checkNotNull(stateFilter, "stateFilter is null");
         CoordinatorLifecycleState state = CoordinatorLifecycleState.valueOf(stateFilter.toUpperCase());
         Preconditions.checkArgument(state != null, "unknown state " + stateFilter);
-        stateFilters.add(new StatePredicate(state));
+        stateFilters.add(state);
     }
 
     public void addHostGlobFilter(String hostGlob)
     {
         Preconditions.checkNotNull(hostGlob, "hostGlob is null");
-        hostFilters.add(new HostPredicate(hostGlob));
+        hostGlobs.add(hostGlob);
     }
 
     public void addIpFilter(String ipFilter)
     {
         Preconditions.checkNotNull(ipFilter, "ipFilter is null");
-        ipFilters.add(new IpPredicate(ipFilter));
+        ipFilters.add(ipFilter);
     }
 
-    public Predicate<CoordinatorStatus> build()
+    public Predicate<CoordinatorStatus> buildPredicate()
     {
         // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<CoordinatorStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
         if (!stateFilters.isEmpty()) {
-            Predicate<CoordinatorStatus> predicate = Predicates.or(stateFilters);
+            Predicate<CoordinatorStatus> predicate = Predicates.or(Lists.transform(stateFilters, new Function<CoordinatorLifecycleState, StatePredicate>()
+            {
+                @Override
+                public StatePredicate apply(CoordinatorLifecycleState state)
+                {
+                    return new StatePredicate(state);
+                }
+            }));
             andPredicates.add(predicate);
         }
-        if (!hostFilters.isEmpty()) {
-            Predicate<CoordinatorStatus> predicate = Predicates.or(hostFilters);
+        if (!hostGlobs.isEmpty()) {
+            Predicate<CoordinatorStatus> predicate = Predicates.or(Lists.transform(hostGlobs, new Function<String, HostPredicate>()
+            {
+                @Override
+                public HostPredicate apply(String hostGlob)
+                {
+                    return new HostPredicate(hostGlob);
+                }
+            }));
             andPredicates.add(predicate);
         }
         if (!ipFilters.isEmpty()) {
-            Predicate<CoordinatorStatus> predicate = Predicates.or(ipFilters);
+            Predicate<CoordinatorStatus> predicate = Predicates.or(Lists.transform(ipFilters, new Function<String, IpPredicate>()
+            {
+                @Override
+                public IpPredicate apply(String ipFilter)
+                {
+                    return new IpPredicate(ipFilter);
+                }
+            }));
             andPredicates.add(predicate);
         }
         if (!andPredicates.isEmpty()) {
@@ -92,6 +116,26 @@ public class CoordinatorFilterBuilder
         else {
             return Predicates.alwaysTrue();
         }
+    }
+
+    public URI buildUri(URI baseUri)
+    {
+        HttpUriBuilder uriBuilder = HttpUriBuilder.uriBuilderFrom(baseUri);
+        return buildUri(uriBuilder);
+    }
+
+    public URI buildUri(HttpUriBuilder uriBuilder)
+    {
+        for (String hostGlob : hostGlobs) {
+            uriBuilder.addParameter("host", hostGlob);
+        }
+        for (String ipFilter : ipFilters) {
+            uriBuilder.addParameter("ip", ipFilter);
+        }
+        for (CoordinatorLifecycleState stateFilter : stateFilters) {
+            uriBuilder.addParameter("state", stateFilter.name());
+        }
+        return uriBuilder.build();
     }
 
     public static class HostPredicate implements Predicate<CoordinatorStatus>

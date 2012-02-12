@@ -34,7 +34,22 @@ public class SlotFilter
 
     public Predicate<SlotStatus> toSlotPredicate(boolean filterRequired, List<UUID> allUuids)
     {
-        SlotFilterBuilder slotFilterBuilder = SlotFilterBuilder.builder(filterRequired);
+        return createFilterBuilder().buildPredicate(filterRequired, allUuids);
+    }
+
+    public URI toUri(URI baseUri)
+    {
+        return createFilterBuilder().buildUri(baseUri);
+    }
+
+    public URI toUri(HttpUriBuilder uriBuilder)
+    {
+        return createFilterBuilder().buildUri(uriBuilder);
+    }
+
+    private SlotFilterBuilder createFilterBuilder()
+    {
+        SlotFilterBuilder slotFilterBuilder = SlotFilterBuilder.builder();
         for (String binaryGlob : binary) {
             slotFilterBuilder.addBinaryGlobFilter(binaryGlob);
         }
@@ -51,38 +66,9 @@ public class SlotFilter
             slotFilterBuilder.addStateFilter(stateFilter);
         }
         for (String shortId : uuid) {
-            slotFilterBuilder.addSlotUuidFilter(shortId, allUuids);
+            slotFilterBuilder.addSlotUuidFilter(shortId);
         }
-        return slotFilterBuilder.build();
-    }
-
-    public URI toUri(URI baseUri)
-    {
-        HttpUriBuilder uriBuilder = HttpUriBuilder.uriBuilderFrom(baseUri);
-        return toUri(uriBuilder);
-    }
-
-    public URI toUri(HttpUriBuilder uriBuilder)
-    {
-        for (String binaryGlob : binary) {
-            uriBuilder.addParameter("binary", binaryGlob);
-        }
-        for (String configGlob : config) {
-            uriBuilder.addParameter("config", configGlob);
-        }
-        for (String hostGlob : host) {
-            uriBuilder.addParameter("host", hostGlob);
-        }
-        for (String ipFilter : ip) {
-            uriBuilder.addParameter("ip", ipFilter);
-        }
-        for (String stateFilter : state) {
-            uriBuilder.addParameter("state", stateFilter);
-        }
-        for (String shortId : uuid) {
-            uriBuilder.addParameter("uuid", shortId);
-        }
-        return uriBuilder.build();
+        return slotFilterBuilder;
     }
 
     @Override

@@ -27,6 +27,21 @@ public class AgentFilter
 
     public Predicate<AgentStatus> toAgentPredicate()
     {
+        return createFilterBuilder().build();
+    }
+
+    public URI toUri(URI baseUri)
+    {
+        return createFilterBuilder().buildUri(baseUri);
+    }
+
+    public URI toUri(HttpUriBuilder uriBuilder)
+    {
+        return createFilterBuilder().buildUri(uriBuilder);
+    }
+
+    private AgentFilterBuilder createFilterBuilder()
+    {
         AgentFilterBuilder agentFilterBuilder = AgentFilterBuilder.builder();
         for (String hostGlob : host) {
             agentFilterBuilder.addHostGlobFilter(hostGlob);
@@ -40,7 +55,7 @@ public class AgentFilter
         for (String uuidGlob : uuid) {
             agentFilterBuilder.addSlotUuidGlobFilter(uuidGlob);
         }
-        return agentFilterBuilder.build();
+        return agentFilterBuilder;
     }
 
     @Override
@@ -54,29 +69,6 @@ public class AgentFilter
         sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();
-    }
-
-    public URI toUri(URI baseUri)
-    {
-        HttpUriBuilder uriBuilder = HttpUriBuilder.uriBuilderFrom(baseUri);
-        return toUri(uriBuilder);
-    }
-
-    public URI toUri(HttpUriBuilder uriBuilder)
-    {
-        for (String hostGlob : host) {
-            uriBuilder.addParameter("host", hostGlob);
-        }
-        for (String ipFilter : ip) {
-            uriBuilder.addParameter("ip", ipFilter);
-        }
-        for (String stateFilter : state) {
-            uriBuilder.addParameter("state", stateFilter);
-        }
-        for (String shortId : uuid) {
-            uriBuilder.addParameter("uuid", shortId);
-        }
-        return uriBuilder.build();
     }
 
 }

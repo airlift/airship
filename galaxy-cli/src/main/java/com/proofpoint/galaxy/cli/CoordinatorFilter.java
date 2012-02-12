@@ -24,6 +24,21 @@ public class CoordinatorFilter
 
     public Predicate<CoordinatorStatus> toCoordinatorPredicate()
     {
+        return createFilterBuilder().buildPredicate();
+    }
+
+    public URI toUri(URI baseUri)
+    {
+        return createFilterBuilder().buildUri(baseUri);
+    }
+
+    public URI toUri(HttpUriBuilder uriBuilder)
+    {
+        return createFilterBuilder().buildUri(uriBuilder);
+    }
+
+    private CoordinatorFilterBuilder createFilterBuilder()
+    {
         CoordinatorFilterBuilder coordinatorFilterBuilder = CoordinatorFilterBuilder.builder();
         for (String hostGlob : host) {
             coordinatorFilterBuilder.addHostGlobFilter(hostGlob);
@@ -34,7 +49,7 @@ public class CoordinatorFilter
         for (String stateFilter : state) {
             coordinatorFilterBuilder.addStateFilter(stateFilter);
         }
-        return coordinatorFilterBuilder.build();
+        return coordinatorFilterBuilder;
     }
 
     @Override
@@ -47,26 +62,6 @@ public class CoordinatorFilter
         sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();
-    }
-
-    public URI toUri(URI baseUri)
-    {
-        HttpUriBuilder uriBuilder = HttpUriBuilder.uriBuilderFrom(baseUri);
-        return toUri(uriBuilder);
-    }
-
-    public URI toUri(HttpUriBuilder uriBuilder)
-    {
-        for (String hostGlob : host) {
-            uriBuilder.addParameter("host", hostGlob);
-        }
-        for (String ipFilter : ip) {
-            uriBuilder.addParameter("ip", ipFilter);
-        }
-        for (String stateFilter : state) {
-            uriBuilder.addParameter("state", stateFilter);
-        }
-        return uriBuilder.build();
     }
 
 }

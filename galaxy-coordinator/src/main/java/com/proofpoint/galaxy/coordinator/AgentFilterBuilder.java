@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -7,10 +8,12 @@ import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.HttpUriBuilder;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map.Entry;
@@ -51,35 +54,35 @@ public class AgentFilterBuilder
         return builder.build();
     }
 
-    private final List<StatePredicate> stateFilters = Lists.newArrayListWithCapacity(6);
-    private final List<SlotUuidPredicate> slotUuidFilters = Lists.newArrayListWithCapacity(6);
-    private final List<HostPredicate> hostFilters = Lists.newArrayListWithCapacity(6);
-    private final List<IpPredicate> ipFilters = Lists.newArrayListWithCapacity(6);
+    private final List<AgentLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
+    private final List<String> slotUuidGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> ipFilters = Lists.newArrayListWithCapacity(6);
 
     public void addStateFilter(String stateFilter)
     {
         Preconditions.checkNotNull(stateFilter, "stateFilter is null");
         AgentLifecycleState state = AgentLifecycleState.valueOf(stateFilter.toUpperCase());
         Preconditions.checkArgument(state != null, "unknown state " + stateFilter);
-        stateFilters.add(new StatePredicate(state));
+        stateFilters.add(state);
     }
 
     public void addSlotUuidGlobFilter(String slotUuidGlob)
     {
         Preconditions.checkNotNull(slotUuidGlob, "slotUuidGlob is null");
-        slotUuidFilters.add(new SlotUuidPredicate(slotUuidGlob));
+        slotUuidGlobs.add(slotUuidGlob);
     }
 
     public void addHostGlobFilter(String hostGlob)
     {
         Preconditions.checkNotNull(hostGlob, "hostGlob is null");
-        hostFilters.add(new HostPredicate(hostGlob));
+        hostGlobs.add(hostGlob);
     }
 
     public void addIpFilter(String ipFilter)
     {
         Preconditions.checkNotNull(ipFilter, "ipFilter is null");
-        ipFilters.add(new IpPredicate(ipFilter));
+        ipFilters.add(ipFilter);
     }
 
     public Predicate<AgentStatus> build()
@@ -87,19 +90,47 @@ public class AgentFilterBuilder
         // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<AgentStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
         if (!stateFilters.isEmpty()) {
-            Predicate<AgentStatus> predicate = Predicates.or(stateFilters);
+            Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(stateFilters, new Function<AgentLifecycleState, StatePredicate>()
+            {
+                @Override
+                public StatePredicate apply(AgentLifecycleState state)
+                {
+                    return new StatePredicate(state);
+                }
+            }));
             andPredicates.add(predicate);
         }
-        if (!slotUuidFilters.isEmpty()) {
-            Predicate<AgentStatus> predicate = Predicates.or(slotUuidFilters);
+        if (!slotUuidGlobs.isEmpty()) {
+            Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(slotUuidGlobs, new Function<String, SlotUuidPredicate>()
+            {
+                @Override
+                public SlotUuidPredicate apply(String slotUuidGlob)
+                {
+                    return new SlotUuidPredicate(slotUuidGlob);
+                }
+            }));
             andPredicates.add(predicate);
         }
-        if (!hostFilters.isEmpty()) {
-            Predicate<AgentStatus> predicate = Predicates.or(hostFilters);
+        if (!hostGlobs.isEmpty()) {
+            Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(hostGlobs, new Function<String, HostPredicate>()
+            {
+                @Override
+                public HostPredicate apply(String hostGlob)
+                {
+                    return new HostPredicate(hostGlob);
+                }
+            }));
             andPredicates.add(predicate);
         }
         if (!ipFilters.isEmpty()) {
-            Predicate<AgentStatus> predicate = Predicates.or(ipFilters);
+            Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(ipFilters, new Function<String, IpPredicate>()
+            {
+                @Override
+                public IpPredicate apply(String ipFilter)
+                {
+                    return new IpPredicate(ipFilter);
+                }
+            }));
             andPredicates.add(predicate);
         }
         if (!andPredicates.isEmpty()) {
@@ -108,6 +139,29 @@ public class AgentFilterBuilder
         else {
             return Predicates.alwaysTrue();
         }
+    }
+
+    public URI buildUri(URI baseUri)
+    {
+        HttpUriBuilder uriBuilder = HttpUriBuilder.uriBuilderFrom(baseUri);
+        return buildUri(uriBuilder);
+    }
+
+    public URI buildUri(HttpUriBuilder uriBuilder)
+    {
+        for (String hostGlob : hostGlobs) {
+            uriBuilder.addParameter("host", hostGlob);
+        }
+        for (String ipFilter : ipFilters) {
+            uriBuilder.addParameter("ip", ipFilter);
+        }
+        for (AgentLifecycleState stateFilter : stateFilters) {
+            uriBuilder.addParameter("state", stateFilter.name());
+        }
+        for (String shortId : slotUuidGlobs) {
+            uriBuilder.addParameter("uuid", shortId);
+        }
+        return uriBuilder.build();
     }
 
     public static class SlotUuidPredicate implements Predicate<AgentStatus>
@@ -124,7 +178,7 @@ public class AgentFilterBuilder
         {
             return agentStatus != null &&
                     agentStatus.getAgentId() != null &&
-                    predicate.apply(agentStatus.getAgentId().toString().toLowerCase());
+                    predicate.apply(agentStatus.getAgentId().toLowerCase());
         }
     }
 
