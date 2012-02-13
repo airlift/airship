@@ -1,5 +1,7 @@
 package com.proofpoint.galaxy.cli;
 
+import com.google.common.base.Joiner;
+
 public class GalaxyTestRun
 {
     public static void main(String[] args)
@@ -62,7 +64,7 @@ public class GalaxyTestRun
     public static void execute(String... args)
             throws Exception
     {
-        System.out.println(args[0]);
+        System.out.println(Joiner.on(" ").join(args));
         Galaxy.main(args);
         System.out.println();
         System.out.println();

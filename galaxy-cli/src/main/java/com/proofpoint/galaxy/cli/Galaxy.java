@@ -832,6 +832,9 @@ public class Galaxy
             if (config.get(nameProperty) != null) {
                 throw new RuntimeException("Environment " + ref + " already exists");
             }
+
+            new File(path).getAbsoluteFile().mkdirs();
+
             config.set(nameProperty, environment);
             config.set(coordinatorProperty, path);
             for (String repo : repository) {

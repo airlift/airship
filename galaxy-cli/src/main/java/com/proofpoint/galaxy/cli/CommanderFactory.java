@@ -35,6 +35,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.units.Duration;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -130,14 +131,12 @@ public class CommanderFactory
             return new HttpCommander(coordinatorUri);
         }
         else if ("file".equals(scheme) || scheme == null) {
-            Coordinator coordinator = createLocalCoordinator();
-
-            return new LocalCommander(coordinator);
+            return createLocalCommander();
         }
         throw new IllegalAccessError("Unsupported coordinator protocol " + scheme);
     }
 
-    private Coordinator createLocalCoordinator()
+    private LocalCommander createLocalCommander()
     {
         Preconditions.checkNotNull(coordinatorUri, "coordinatorUri is null");
         Preconditions.checkNotNull(environment, "environment is null");
@@ -154,12 +153,12 @@ public class CommanderFactory
 
         LifecycleManager lifecycleManager = new LauncherLifecycleManager(
                 environment,
-                AGENT_URI,
                 internalIp,
                 externalAddress,
                 null,
                 COMMAND_TIMEOUT,
-                COMMAND_TIMEOUT);
+                COMMAND_TIMEOUT,
+                new File(slotsDir, "service-inventory.json").toURI());
 
         Agent agent = new Agent(agentId,
                 location,
@@ -191,13 +190,15 @@ public class CommanderFactory
 
         RemoteAgentFactory remoteAgentFactory = new LocalRemoteAgentFactory(agent);
 
-        return new Coordinator(environment,
+        Coordinator coordinator = new Coordinator(environment,
                 remoteAgentFactory,
                 repository,
                 provisioner,
                 stateManager,
                 serviceInventory,
                 new Duration(100, TimeUnit.DAYS));
+
+        return new LocalCommander(new File(slotsDir), coordinator, serviceInventory);
     }
 
     private class LocalProvisioner implements Provisioner

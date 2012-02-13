@@ -1,8 +1,13 @@
 package com.proofpoint.galaxy.cli;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import com.proofpoint.discovery.client.ServiceDescriptor;
+import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
 import com.proofpoint.galaxy.coordinator.Coordinator;
+import com.proofpoint.galaxy.coordinator.ServiceInventory;
 import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
@@ -12,7 +17,10 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.json.JsonCodec;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,11 +37,17 @@ import static java.lang.Math.max;
 
 public class LocalCommander implements Commander
 {
-    private final Coordinator coordinator;
+    private static final JsonCodec<ServiceDescriptorsRepresentation> SERVICE_DESCRIPTORS_CODEC = JsonCodec.jsonCodec(ServiceDescriptorsRepresentation.class);
 
-    public LocalCommander(Coordinator coordinator)
+    private final File localDirectory;
+    private final Coordinator coordinator;
+    private final ServiceInventory serviceInventory;
+
+    public LocalCommander(File localDirectory, Coordinator coordinator, ServiceInventory serviceInventory)
     {
+        this.localDirectory = localDirectory;
         this.coordinator = coordinator;
+        this.serviceInventory = serviceInventory;
     }
 
     @Override
@@ -45,6 +59,10 @@ public class LocalCommander implements Commander
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
         Iterable<SlotStatusWithExpectedState> slots = coordinator.getAllSlotStatusWithExpectedState(slotPredicate);
+
+        // update just in case something changed
+        updateServiceInventory();
+
         return toSlotRecordsWithExpectedState(prefixSize, slots);
     }
 
@@ -55,9 +73,13 @@ public class LocalCommander implements Commander
         Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate(uuids);
         List<SlotStatus> slots = coordinator.install(agentPredicate, count, assignment);
 
+        // update to latest state
+        updateServiceInventory();
+
         int prefixSize = getPrefixSize(uuids);
         return toSlotRecords(prefixSize, slots);
     }
+
 
     @Override
     public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions)
@@ -67,6 +89,9 @@ public class LocalCommander implements Commander
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
         List<SlotStatus> slots = coordinator.upgrade(slotPredicate, upgradeVersions);
+
+        // update to latest state
+        updateServiceInventory();
 
         return toSlotRecords(prefixSize, slots);
     }
@@ -79,7 +104,14 @@ public class LocalCommander implements Commander
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
+        // before changing state (like starting) update just in case something changed
+        updateServiceInventory();
+
         Iterable<SlotStatus> slots = coordinator.setState(state, slotPredicate);
+
+        // update to latest state
+        updateServiceInventory();
+
         return toSlotRecords(prefixSize, slots);
     }
 
@@ -92,6 +124,10 @@ public class LocalCommander implements Commander
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
         Iterable<SlotStatus> slots = coordinator.terminate(slotPredicate);
+
+        // update to latest state
+        updateServiceInventory();
+
         return toSlotRecords(prefixSize, slots);
     }
 
@@ -104,6 +140,10 @@ public class LocalCommander implements Commander
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
         Iterable<SlotStatus> slots = coordinator.resetExpectedState(slotPredicate);
+
+        // update just in case something changed
+        updateServiceInventory();
+
         return toSlotRecords(prefixSize, slots);
     }
 
@@ -115,6 +155,10 @@ public class LocalCommander implements Commander
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
         List<SlotStatusWithExpectedState> slots = coordinator.getAllSlotStatusWithExpectedState(slotPredicate);
+
+        // update just in case something changed
+        updateServiceInventory();
+
         if (slots.isEmpty()) {
             return false;
         }
@@ -127,6 +171,10 @@ public class LocalCommander implements Commander
     {
         Predicate<CoordinatorStatus> coordinatorPredicate = coordinatorFilter.toCoordinatorPredicate();
         List<CoordinatorStatus> coordinatorStatuses = coordinator.getCoordinators(coordinatorPredicate);
+
+        // update just in case something changed
+        updateServiceInventory();
+
         return toCoordinatorRecords(toCoordinatorStatusRepresentations(coordinatorStatuses));
     }
 
@@ -156,6 +204,10 @@ public class LocalCommander implements Commander
         List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate(uuids);
         List<AgentStatus> agentStatuses = coordinator.getAgents(agentPredicate);
+
+        // update just in case something changed
+        updateServiceInventory();
+
         return toAgentRecords(toAgentStatusRepresentations(agentStatuses));
     }
 
@@ -182,6 +234,20 @@ public class LocalCommander implements Commander
     public boolean sshAgent(AgentFilter agentFilter, String command)
     {
         throw new UnsupportedOperationException("Agent ssh no supported in local mode");
+    }
+
+    private void updateServiceInventory()
+    {
+        List<ServiceDescriptor> inventory = serviceInventory.getServiceInventory(coordinator.getAllSlotStatus());
+        ServiceDescriptorsRepresentation serviceDescriptors = new ServiceDescriptorsRepresentation(coordinator.getEnvironment(), inventory);
+
+        File serviceInventoryFile = new File(localDirectory, "service-inventory.json");
+        try {
+            Files.write(SERVICE_DESCRIPTORS_CODEC.toJson(serviceDescriptors), serviceInventoryFile, Charsets.UTF_8);
+        }
+        catch (IOException e) {
+            System.out.println("Unable to write " + serviceInventoryFile);
+        }
     }
 
     public static int getPrefixSize(List<UUID> uuids)
