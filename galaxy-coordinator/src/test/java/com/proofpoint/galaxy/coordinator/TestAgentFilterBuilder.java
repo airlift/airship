@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.HostPredicate;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.SlotUuidPredicate;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.StatePredicate;
+import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.UuidPredicate;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -55,6 +56,15 @@ public class TestAgentFilterBuilder
     }
 
     @Test
+    public void testUuidPredicate()
+    {
+        assertTrue(new UuidPredicate("agent-id").apply(status));
+        assertTrue(buildFilter("uuid", "agent-id").apply(status));
+        assertFalse(new UuidPredicate("unknown").apply(status));
+        assertFalse(buildFilter("uuid", "unknown").apply(status));
+    }
+
+    @Test
     public void testStateSpecPredicate()
     {
         assertTrue(new StatePredicate(ONLINE).apply(status));
@@ -67,9 +77,9 @@ public class TestAgentFilterBuilder
     public void testSlotUuidPredicate()
     {
         assertTrue(new SlotUuidPredicate(UUID.fromString("12345678-1234-1234-1234-123456789012")).apply(status));
-        assertTrue(buildFilter("uuid", "12345678-1234-1234-1234-123456789012", asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
+        assertTrue(buildFilter("slotUuid", "12345678-1234-1234-1234-123456789012", asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
         assertFalse(new SlotUuidPredicate(UUID.fromString("00000000-0000-0000-0000-000000000000")).apply(status));
-        assertFalse(buildFilter("uuid", "00000000-0000-0000-0000-000000000000").apply(status));
+        assertFalse(buildFilter("slotUuid", "00000000-0000-0000-0000-000000000000").apply(status));
     }
 
     @Test

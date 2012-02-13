@@ -3,6 +3,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Predicate;
 import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.HostPredicate;
 import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.StatePredicate;
+import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.UuidPredicate;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import org.testng.annotations.Test;
@@ -26,6 +27,15 @@ public class TestCoordinatorFilterBuilder
     private Predicate<CoordinatorStatus> buildFilter(String key, String value)
     {
         return CoordinatorFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value));
+    }
+
+    @Test
+    public void testUuidPredicate()
+    {
+        assertTrue(new UuidPredicate("coordinator-id").apply(status));
+        assertTrue(buildFilter("uuid", "coordinator-id").apply(status));
+        assertFalse(new UuidPredicate("unknown").apply(status));
+        assertFalse(buildFilter("uuid", "unknown").apply(status));
     }
 
     @Test

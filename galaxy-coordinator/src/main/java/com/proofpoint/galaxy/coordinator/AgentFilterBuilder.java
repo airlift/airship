@@ -28,6 +28,11 @@ public class AgentFilterBuilder
     {
         AgentFilterBuilder builder = new AgentFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
+            if ("uuid" .equals(entry.getKey())) {
+                for (String uuidFilter : entry.getValue()) {
+                    builder.addUuidFilter(uuidFilter);
+                }
+            }
             if ("state" .equals(entry.getKey())) {
                 for (String stateFilter : entry.getValue()) {
                     builder.addStateFilter(stateFilter);
@@ -38,7 +43,7 @@ public class AgentFilterBuilder
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
-            else if ("uuid" .equals(entry.getKey())) {
+            else if ("slotUuid" .equals(entry.getKey())) {
                 for (String uuidGlob : entry.getValue()) {
                     builder.addSlotUuidGlobFilter(uuidGlob);
                 }
@@ -47,9 +52,16 @@ public class AgentFilterBuilder
         return builder.build(allUuids);
     }
 
+    private final List<String> uuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<AgentLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> slotUuidGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+
+    public void addUuidFilter(String uuid)
+    {
+        Preconditions.checkNotNull(uuid, "uuid is null");
+        uuidFilters.add(uuid);
+    }
 
     public void addStateFilter(String stateFilter)
     {
@@ -75,6 +87,17 @@ public class AgentFilterBuilder
     {
         // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<AgentStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
+        if (!uuidFilters.isEmpty()) {
+            Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(uuidFilters, new Function<String, UuidPredicate>()
+            {
+                @Override
+                public UuidPredicate apply(String uuid)
+                {
+                    return new UuidPredicate(uuid);
+                }
+            }));
+            andPredicates.add(predicate);
+        }
         if (!stateFilters.isEmpty()) {
             Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(stateFilters, new Function<AgentLifecycleState, StatePredicate>()
             {
@@ -124,6 +147,9 @@ public class AgentFilterBuilder
 
     public URI buildUri(HttpUriBuilder uriBuilder)
     {
+        for (String uuidFilter : uuidFilters) {
+            uriBuilder.addParameter("uuid", uuidFilter);
+        }
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
         }
@@ -131,9 +157,25 @@ public class AgentFilterBuilder
             uriBuilder.addParameter("state", stateFilter.name());
         }
         for (String shortId : slotUuidGlobs) {
-            uriBuilder.addParameter("uuid", shortId);
+            uriBuilder.addParameter("slotUuid", shortId);
         }
         return uriBuilder.build();
+    }
+
+    public static class UuidPredicate implements Predicate<AgentStatus>
+    {
+        private final String uuid;
+
+        public UuidPredicate(String uuid)
+        {
+            this.uuid = uuid;
+        }
+
+        @Override
+        public boolean apply(@Nullable AgentStatus agentStatus)
+        {
+            return uuid.equals(agentStatus.getAgentId());
+        }
     }
 
     public static class SlotUuidPredicate implements Predicate<AgentStatus>

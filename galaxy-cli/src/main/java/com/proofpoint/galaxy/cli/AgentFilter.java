@@ -14,11 +14,14 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class AgentFilter
 {
+    @Option(name = {"-u", "--uuid"}, description = "Select agent with the given UUID")
+    public final List<String> uuid = newArrayList();
+
     @Option(name = {"-h", "--host"}, description = "Select agent on the given host")
     public final List<String> host = newArrayList();
 
-    @Option(name = {"-u", "--uuid"}, description = "Select agent containing a slot the given UUID")
-    public final List<String> uuid = newArrayList();
+    @Option(name = { "--slot-uuid"}, description = "Select agent containing a slot the given UUID")
+    public final List<String> slotUuid = newArrayList();
 
     @Option(name = {"-s", "--state"}, description = "Select agent containing 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
@@ -41,14 +44,17 @@ public class AgentFilter
     private AgentFilterBuilder createFilterBuilder()
     {
         AgentFilterBuilder agentFilterBuilder = AgentFilterBuilder.builder();
+        for (String id : uuid) {
+            agentFilterBuilder.addUuidFilter(id);
+        }
         for (String hostGlob : host) {
             agentFilterBuilder.addHostGlobFilter(hostGlob);
         }
         for (String stateFilter : state) {
             agentFilterBuilder.addStateFilter(stateFilter);
         }
-        for (String uuidGlob : uuid) {
-            agentFilterBuilder.addSlotUuidGlobFilter(uuidGlob);
+        for (String slotUuidGlob : slotUuid) {
+            agentFilterBuilder.addSlotUuidGlobFilter(slotUuidGlob);
         }
         return agentFilterBuilder;
     }
@@ -57,12 +63,12 @@ public class AgentFilter
     public String toString()
     {
         final StringBuilder sb = new StringBuilder();
-        sb.append("Filter");
-        sb.append("{host=").append(host);
-        sb.append(", uuid=").append(uuid);
+        sb.append("AgentFilter");
+        sb.append("{uuid=").append(uuid);
+        sb.append(", host=").append(host);
+        sb.append(", slotUuid=").append(slotUuid);
         sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();
     }
-
 }

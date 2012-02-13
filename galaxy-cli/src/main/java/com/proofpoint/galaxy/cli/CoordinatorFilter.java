@@ -13,6 +13,9 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class CoordinatorFilter
 {
+    @Option(name = {"-u", "--uuid"}, description = "Select coordinator with the given UUID")
+    public final List<String> uuid = newArrayList();
+
     @Option(name = {"-h", "--host"}, description = "Select coordinator on the given host or IP address")
     public final List<String> host = newArrayList();
 
@@ -37,6 +40,9 @@ public class CoordinatorFilter
     private CoordinatorFilterBuilder createFilterBuilder()
     {
         CoordinatorFilterBuilder coordinatorFilterBuilder = CoordinatorFilterBuilder.builder();
+        for (String id : uuid) {
+            coordinatorFilterBuilder.addUuidFilter(id);
+        }
         for (String hostGlob : host) {
             coordinatorFilterBuilder.addHostGlobFilter(hostGlob);
         }
@@ -50,11 +56,11 @@ public class CoordinatorFilter
     public String toString()
     {
         final StringBuilder sb = new StringBuilder();
-        sb.append("Filter");
-        sb.append("{host=").append(host);
+        sb.append("CoordinatorFilter");
+        sb.append("{uuid=").append(uuid);
+        sb.append(", host=").append(host);
         sb.append(", state=").append(state);
         sb.append('}');
         return sb.toString();
     }
-
 }

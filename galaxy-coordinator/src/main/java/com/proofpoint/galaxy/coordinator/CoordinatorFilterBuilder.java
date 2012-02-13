@@ -26,7 +26,12 @@ public class CoordinatorFilterBuilder
     {
         CoordinatorFilterBuilder builder = new CoordinatorFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
-            if ("state".equals(entry.getKey())) {
+            if ("uuid" .equals(entry.getKey())) {
+                for (String uuidFilter : entry.getValue()) {
+                    builder.addUuidFilter(uuidFilter);
+                }
+            }
+            else if ("state".equals(entry.getKey())) {
                 for (String stateFilter : entry.getValue()) {
                     builder.addStateFilter(stateFilter);
                 }
@@ -40,8 +45,15 @@ public class CoordinatorFilterBuilder
         return builder.buildPredicate();
     }
 
+    private final List<String> uuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<CoordinatorLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+
+    public void addUuidFilter(String uuid)
+    {
+        Preconditions.checkNotNull(uuid, "uuid is null");
+        uuidFilters.add(uuid);
+    }
 
     public void addStateFilter(String stateFilter)
     {
@@ -61,6 +73,17 @@ public class CoordinatorFilterBuilder
     {
         // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<CoordinatorStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
+        if (!uuidFilters.isEmpty()) {
+            Predicate<CoordinatorStatus> predicate = Predicates.or(Lists.transform(uuidFilters, new Function<String, UuidPredicate>()
+            {
+                @Override
+                public UuidPredicate apply(String uuid)
+                {
+                    return new UuidPredicate(uuid);
+                }
+            }));
+            andPredicates.add(predicate);
+        }
         if (!stateFilters.isEmpty()) {
             Predicate<CoordinatorStatus> predicate = Predicates.or(Lists.transform(stateFilters, new Function<CoordinatorLifecycleState, StatePredicate>()
             {
@@ -99,6 +122,9 @@ public class CoordinatorFilterBuilder
 
     public URI buildUri(HttpUriBuilder uriBuilder)
     {
+        for (String uuidFilter : uuidFilters) {
+            uriBuilder.addParameter("uuid", uuidFilter);
+        }
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
         }
@@ -106,6 +132,22 @@ public class CoordinatorFilterBuilder
             uriBuilder.addParameter("state", stateFilter.name());
         }
         return uriBuilder.build();
+    }
+
+    public static class UuidPredicate implements Predicate<CoordinatorStatus>
+    {
+        private final String uuid;
+
+        public UuidPredicate(String uuid)
+        {
+            this.uuid = uuid;
+        }
+
+        @Override
+        public boolean apply(@Nullable CoordinatorStatus coordinatorStatus)
+        {
+            return uuid.equals(coordinatorStatus.getCoordinatorId());
+        }
     }
 
     public static class HostPredicate implements Predicate<CoordinatorStatus>
@@ -140,4 +182,5 @@ public class CoordinatorFilterBuilder
             return coordinatorStatus.getState() == state;
         }
     }
+
 }
