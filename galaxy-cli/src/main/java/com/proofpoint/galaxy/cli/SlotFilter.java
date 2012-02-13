@@ -29,6 +29,9 @@ public class SlotFilter
     @Option(name = {"-s", "--state"}, description = "Select 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
 
+    @Option(name = "--all", description = "Select all slots")
+    public boolean selectAll;
+
     public Predicate<SlotStatus> toSlotPredicate(boolean filterRequired, List<UUID> allUuids)
     {
         return createFilterBuilder().buildPredicate(filterRequired, allUuids);
@@ -62,6 +65,9 @@ public class SlotFilter
         for (String shortId : uuid) {
             slotFilterBuilder.addSlotUuidFilter(shortId);
         }
+        if (selectAll) {
+            slotFilterBuilder.selectAll();
+        }
         return slotFilterBuilder;
     }
 
@@ -75,6 +81,7 @@ public class SlotFilter
         sb.append(", host=").append(host);
         sb.append(", uuid=").append(uuid);
         sb.append(", state=").append(state);
+        sb.append(", selectAll=").append(selectAll);
         sb.append('}');
         return sb.toString();
     }

@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.SlotUuidPredicate;
 import com.proofpoint.galaxy.shared.Assignment;
@@ -50,7 +51,15 @@ public class TestSlotFilterBuilder
     @Test(expectedExceptions = InvalidSlotFilterException.class)
     public void testEmptyFilter()
     {
-        SlotFilterBuilder.build(MockUriInfo.from("fake://localhost"), true, Collections.<UUID>emptyList()).apply(status);
+        SlotFilterBuilder.build(MockUriInfo.from("fake://localhost"), true, ImmutableList.<UUID>of()).apply(status);
+    }
+
+    @Test
+    public void testAll()
+    {
+        assertTrue(SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=unknown"), true, ImmutableList.<UUID>of()).apply(status));
+        assertTrue(SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=running"), true, ImmutableList.<UUID>of()).apply(status));
+        assertTrue(SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?all&host=host"), true, ImmutableList.<UUID>of()).apply(status));
     }
 
     @Test

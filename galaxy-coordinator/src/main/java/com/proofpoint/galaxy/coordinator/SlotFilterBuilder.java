@@ -33,30 +33,33 @@ public class SlotFilterBuilder
     {
         SlotFilterBuilder builder = new SlotFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
-            if ("state" .equals(entry.getKey())) {
+            if ("state".equals(entry.getKey())) {
                 for (String stateFilter : entry.getValue()) {
                     builder.addStateFilter(stateFilter);
                 }
             }
-            else if ("host" .equals(entry.getKey())) {
+            else if ("host".equals(entry.getKey())) {
                 for (String hostGlob : entry.getValue()) {
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
-            else if ("uuid" .equals(entry.getKey())) {
+            else if ("uuid".equals(entry.getKey())) {
                 for (String shortId : entry.getValue()) {
                     builder.addSlotUuidFilter(shortId);
                 }
             }
-            else if ("binary" .equals(entry.getKey())) {
+            else if ("binary".equals(entry.getKey())) {
                 for (String binaryGlob : entry.getValue()) {
                     builder.addBinaryGlobFilter(binaryGlob);
                 }
             }
-            else if ("config" .equals(entry.getKey())) {
+            else if ("config".equals(entry.getKey())) {
                 for (String configGlob : entry.getValue()) {
                     builder.addConfigGlobFilter(configGlob);
                 }
+            }
+            else if ("all".equals(entry.getKey())) {
+                builder.selectAll();
             }
         }
         return builder.buildPredicate(filterRequired, allUuids);
@@ -67,6 +70,7 @@ public class SlotFilterBuilder
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> binaryGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> configGlobs = Lists.newArrayListWithCapacity(6);
+    private boolean selectAll;
 
     private SlotFilterBuilder()
     {
@@ -102,6 +106,11 @@ public class SlotFilterBuilder
     {
         Preconditions.checkNotNull(configGlob, "configGlob is null");
         configGlobs.add(configGlob);
+    }
+
+    public void selectAll()
+    {
+        this.selectAll = true;
     }
 
     public Predicate<SlotStatus> buildPredicate(boolean filterRequired, final List<UUID> allUuids)
@@ -165,7 +174,11 @@ public class SlotFilterBuilder
             }));
             andPredicates.add(predicate);
         }
-        if (!andPredicates.isEmpty()) {
+
+        if (selectAll) {
+            return Predicates.alwaysTrue();
+        }
+        else if (!andPredicates.isEmpty()) {
             return Predicates.and(andPredicates);
         }
         else if (!filterRequired) {
@@ -198,6 +211,9 @@ public class SlotFilterBuilder
         }
         for (String shortId : slotUuidFilters) {
             uriBuilder.addParameter("uuid", shortId);
+        }
+        if (selectAll) {
+            uriBuilder.addParameter("all");
         }
         return uriBuilder.build();
     }

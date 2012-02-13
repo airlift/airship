@@ -56,6 +56,14 @@ public class TestAgentFilterBuilder
     }
 
     @Test
+    public void testAll()
+    {
+        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=online"), ImmutableList.<UUID>of()).apply(status));
+        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=offline"), ImmutableList.<UUID>of()).apply(status));
+        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&host=host"), ImmutableList.<UUID>of()).apply(status));
+    }
+
+    @Test
     public void testUuidPredicate()
     {
         assertTrue(new UuidPredicate("agent-id").apply(status));

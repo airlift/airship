@@ -28,25 +28,28 @@ public class AgentFilterBuilder
     {
         AgentFilterBuilder builder = new AgentFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
-            if ("uuid" .equals(entry.getKey())) {
+            if ("uuid".equals(entry.getKey())) {
                 for (String uuidFilter : entry.getValue()) {
                     builder.addUuidFilter(uuidFilter);
                 }
             }
-            if ("state" .equals(entry.getKey())) {
+            if ("state".equals(entry.getKey())) {
                 for (String stateFilter : entry.getValue()) {
                     builder.addStateFilter(stateFilter);
                 }
             }
-            else if ("host" .equals(entry.getKey())) {
+            else if ("host".equals(entry.getKey())) {
                 for (String hostGlob : entry.getValue()) {
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
-            else if ("slotUuid" .equals(entry.getKey())) {
+            else if ("slotUuid".equals(entry.getKey())) {
                 for (String uuidGlob : entry.getValue()) {
                     builder.addSlotUuidGlobFilter(uuidGlob);
                 }
+            }
+            else if ("all".equals(entry.getKey())) {
+                builder.selectAll();
             }
         }
         return builder.build(allUuids);
@@ -56,6 +59,7 @@ public class AgentFilterBuilder
     private final List<AgentLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> slotUuidGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private boolean selectAll;
 
     public void addUuidFilter(String uuid)
     {
@@ -81,6 +85,11 @@ public class AgentFilterBuilder
     {
         Preconditions.checkNotNull(hostGlob, "hostGlob is null");
         hostGlobs.add(hostGlob);
+    }
+
+    public void selectAll()
+    {
+        this.selectAll = true;
     }
 
     public Predicate<AgentStatus> build(final List<UUID> allUuids)
@@ -131,7 +140,11 @@ public class AgentFilterBuilder
             }));
             andPredicates.add(predicate);
         }
-        if (!andPredicates.isEmpty()) {
+
+        if (selectAll) {
+            return Predicates.alwaysTrue();
+        }
+        else if (!andPredicates.isEmpty()) {
             return Predicates.and(andPredicates);
         }
         else {
@@ -158,6 +171,9 @@ public class AgentFilterBuilder
         }
         for (String shortId : slotUuidGlobs) {
             uriBuilder.addParameter("slotUuid", shortId);
+        }
+        if (selectAll) {
+            uriBuilder.addParameter("all");
         }
         return uriBuilder.build();
     }

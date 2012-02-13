@@ -30,6 +30,14 @@ public class TestCoordinatorFilterBuilder
     }
 
     @Test
+    public void testAll()
+    {
+        assertTrue(CoordinatorFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=online")).apply(status));
+        assertTrue(CoordinatorFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=offline")).apply(status));
+        assertTrue(CoordinatorFilterBuilder.build(MockUriInfo.from("fake://localhost?all&host=host")).apply(status));
+    }
+
+    @Test
     public void testUuidPredicate()
     {
         assertTrue(new UuidPredicate("coordinator-id").apply(status));

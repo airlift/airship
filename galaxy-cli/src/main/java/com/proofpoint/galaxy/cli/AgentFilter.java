@@ -26,6 +26,9 @@ public class AgentFilter
     @Option(name = {"-s", "--state"}, description = "Select agent containing 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
 
+    @Option(name = "--all", description = "Select all agents")
+    public boolean selectAll;
+
     public Predicate<AgentStatus> toAgentPredicate(List<UUID> allUuids)
     {
         return createFilterBuilder().build(allUuids);
@@ -56,6 +59,9 @@ public class AgentFilter
         for (String slotUuidGlob : slotUuid) {
             agentFilterBuilder.addSlotUuidGlobFilter(slotUuidGlob);
         }
+        if (selectAll) {
+            agentFilterBuilder.selectAll();
+        }
         return agentFilterBuilder;
     }
 
@@ -68,6 +74,7 @@ public class AgentFilter
         sb.append(", host=").append(host);
         sb.append(", slotUuid=").append(slotUuid);
         sb.append(", state=").append(state);
+        sb.append(", selectAll=").append(selectAll);
         sb.append('}');
         return sb.toString();
     }

@@ -22,6 +22,9 @@ public class CoordinatorFilter
     @Option(name = {"-s", "--state"}, description = "Select coordinator containing 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
 
+    @Option(name = "--all", description = "Select all coordinators")
+    public boolean selectAll;
+
     public Predicate<CoordinatorStatus> toCoordinatorPredicate()
     {
         return createFilterBuilder().buildPredicate();
@@ -49,6 +52,9 @@ public class CoordinatorFilter
         for (String stateFilter : state) {
             coordinatorFilterBuilder.addStateFilter(stateFilter);
         }
+        if (selectAll) {
+            coordinatorFilterBuilder.selectAll();
+        }
         return coordinatorFilterBuilder;
     }
 
@@ -60,6 +66,7 @@ public class CoordinatorFilter
         sb.append("{uuid=").append(uuid);
         sb.append(", host=").append(host);
         sb.append(", state=").append(state);
+        sb.append(", selectAll=").append(selectAll);
         sb.append('}');
         return sb.toString();
     }

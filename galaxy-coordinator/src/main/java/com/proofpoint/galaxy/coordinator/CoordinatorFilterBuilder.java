@@ -41,6 +41,9 @@ public class CoordinatorFilterBuilder
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
+            else if ("all".equals(entry.getKey())) {
+                builder.selectAll();
+            }
         }
         return builder.buildPredicate();
     }
@@ -48,6 +51,7 @@ public class CoordinatorFilterBuilder
     private final List<String> uuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<CoordinatorLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private boolean selectAll;
 
     public void addUuidFilter(String uuid)
     {
@@ -67,6 +71,11 @@ public class CoordinatorFilterBuilder
     {
         Preconditions.checkNotNull(hostGlob, "hostGlob is null");
         hostGlobs.add(hostGlob);
+    }
+
+    public void selectAll()
+    {
+        this.selectAll = true;
     }
 
     public Predicate<CoordinatorStatus> buildPredicate()
@@ -106,7 +115,10 @@ public class CoordinatorFilterBuilder
             }));
             andPredicates.add(predicate);
         }
-        if (!andPredicates.isEmpty()) {
+        if (selectAll) {
+            return Predicates.alwaysTrue();
+        }
+        else if (!andPredicates.isEmpty()) {
             return Predicates.and(andPredicates);
         }
         else {
@@ -130,6 +142,9 @@ public class CoordinatorFilterBuilder
         }
         for (CoordinatorLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
+        }
+        if (selectAll) {
+            uriBuilder.addParameter("all");
         }
         return uriBuilder.build();
     }
