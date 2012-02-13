@@ -18,14 +18,43 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 public class AgentProvisioningRepresentation
 {
+    private final String agentConfig;
+    private final int agentCount;
     private final String instanceType;
     private final String availabilityZone;
+    private final String ami;
+    private final String keyPair;
+    private final String securityGroup;
 
     @JsonCreator
-    public AgentProvisioningRepresentation(@JsonProperty("instanceType") String instanceType, @JsonProperty("availabilityZone") String availabilityZone)
+    public AgentProvisioningRepresentation(
+            @JsonProperty("agentConfig") String agentConfig,
+            @JsonProperty("agentCount") int agentCount,
+            @JsonProperty("instanceType") String instanceType,
+            @JsonProperty("availabilityZone") String availabilityZone,
+            @JsonProperty("ami") String ami,
+            @JsonProperty("keyPair") String keyPair,
+            @JsonProperty("securityGroup") String securityGroup)
     {
-        this.availabilityZone = availabilityZone;
+        this.agentConfig = agentConfig;
+        this.agentCount = agentCount;
         this.instanceType = instanceType;
+        this.availabilityZone = availabilityZone;
+        this.ami = ami;
+        this.keyPair = keyPair;
+        this.securityGroup = securityGroup;
+    }
+
+    @JsonProperty
+    public String getAgentConfig()
+    {
+        return agentConfig;
+    }
+
+    @JsonProperty
+    public int getAgentCount()
+    {
+        return agentCount;
     }
 
     @JsonProperty
@@ -40,13 +69,36 @@ public class AgentProvisioningRepresentation
         return availabilityZone;
     }
 
+    @JsonProperty
+    public String getAmi()
+    {
+        return ami;
+    }
+
+    @JsonProperty
+    public String getKeyPair()
+    {
+        return keyPair;
+    }
+
+    @JsonProperty
+    public String getSecurityGroup()
+    {
+        return securityGroup;
+    }
+
     @Override
     public String toString()
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("AgentProvisioningRepresentation");
-        sb.append("{instanceType='").append(instanceType).append('\'');
+        sb.append("{agentConfigSpec='").append(agentConfig).append('\'');
+        sb.append(", agentCount=").append(agentCount);
+        sb.append(", instanceType='").append(instanceType).append('\'');
         sb.append(", availabilityZone='").append(availabilityZone).append('\'');
+        sb.append(", ami='").append(ami).append('\'');
+        sb.append(", keyPair='").append(keyPair).append('\'');
+        sb.append(", securityGroup='").append(securityGroup).append('\'');
         sb.append('}');
         return sb.toString();
     }

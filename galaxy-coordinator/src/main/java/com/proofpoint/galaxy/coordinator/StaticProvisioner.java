@@ -88,8 +88,13 @@ public class StaticProvisioner implements Provisioner
     }
 
     @Override
-    public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
-            throws Exception
+    public List<Instance> provisionAgents(String agentConfig,
+            int agentCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup)
     {
         throw new UnsupportedOperationException("Static provisioner does not support agent provisioning");
     }

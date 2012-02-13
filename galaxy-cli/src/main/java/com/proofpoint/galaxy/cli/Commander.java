@@ -36,8 +36,14 @@ public interface Commander
     List<Record> showAgents(AgentFilter agentFilter)
             throws Exception;
 
-    List<Record> provisionAgents(int count, String instanceType, String availabilityZone, boolean waitForStartup)
-                    throws Exception;
+    List<Record> provisionAgents(String agentConfig,
+            int agentCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup,
+            boolean waitForStartup);
 
     Record terminateAgent(String agentId);
 }

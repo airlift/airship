@@ -252,12 +252,25 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<Record> provisionAgents(int count, String instanceType, String availabilityZone, boolean waitForStartup)
-            throws Exception
+    public List<Record> provisionAgents(String agentConfig,
+            int agentCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup,
+            boolean waitForStartup)
     {
-        URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").replaceParameter("count", Integer.toString(count)).build();
+        URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").build();
 
-        AgentProvisioningRepresentation agentProvisioning = new AgentProvisioningRepresentation(instanceType, availabilityZone);
+        AgentProvisioningRepresentation agentProvisioning = new AgentProvisioningRepresentation(
+                agentConfig,
+                agentCount,
+                instanceType,
+                availabilityZone,
+                ami,
+                keyPair,
+                securityGroup);
 
         Request request = RequestBuilder.preparePost()
                 .setUri(uri)

@@ -16,8 +16,13 @@ public interface Provisioner
 
     List<Instance> listAgents();
 
-    List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
-            throws Exception;
+    List<Instance> provisionAgents(String agentConfig,
+            int agentCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup);
 
     void terminateAgents(List<String> instanceIds);
 }

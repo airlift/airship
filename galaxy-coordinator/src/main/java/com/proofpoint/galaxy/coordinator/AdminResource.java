@@ -78,11 +78,17 @@ public class AdminResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response provisionAgent(
             AgentProvisioningRepresentation provisioning,
-            @DefaultValue("1") @QueryParam("count") int count,
             @Context UriInfo uriInfo)
             throws Exception
     {
-        List<AgentStatus> agents = coordinator.provisionAgents(count, provisioning.getInstanceType(), provisioning.getAvailabilityZone());
+        List<AgentStatus> agents = coordinator.provisionAgents(
+                provisioning.getAgentConfig(),
+                provisioning.getAgentCount(),
+                provisioning.getInstanceType(),
+                provisioning.getAvailabilityZone(),
+                provisioning.getAmi(),
+                provisioning.getKeyPair(),
+                provisioning.getSecurityGroup());
 
         return Response.ok(transform(agents, fromAgentStatus())).build();
     }

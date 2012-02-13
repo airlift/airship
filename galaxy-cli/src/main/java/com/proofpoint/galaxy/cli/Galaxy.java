@@ -647,23 +647,35 @@ public class Galaxy
     @Command(name = "provision", description = "Provision a new agent")
     public static class AgentProvisionCommand extends GalaxyCommanderCommand
     {
-        @Option(name = {"--count"}, description = "Number of agents to provision")
+        @Option(name = "--agent-config", description = "Agent for the coordinator")
+        public String agentConfig;
+
+        @Option(name = {"--count"}, description = "Number of agent to provision")
         public int count = 1;
 
-        @Option(name = {"--availability-zone"}, description = "Availability zone to provision")
+        @Option(name = "--ami", description = "Amazon Machine Image for agent")
+        public String ami = "ami-27b7744e";
+
+        @Option(name = "--key-pair", description = "Key pair for agent")
+        public String keyPair = "keypair";
+
+        @Option(name = "--security-group", description = "Security group for agent")
+        public String securityGroup = "default";
+
+        @Option(name = "--availability-zone", description = "EC2 availability zone for agent")
         public String availabilityZone;
 
-        @Arguments(usage = "[<instance-type>]", description = "Instance type to provision")
-        public String instanceType;
+        @Option(name = "--instance-type", description = "Instance type to provision")
+        public String instanceType = "t1.micro";
 
-        @Option(name = "--no-wait", description = "Do not wait for coordinator to start")
+        @Option(name = "--no-wait", description = "Do not wait for agent to start")
         public boolean noWait;
 
         @Override
         public void execute(Commander commander)
                 throws Exception
         {
-            List<Record> agents = commander.provisionAgents(count, availabilityZone, instanceType, !noWait);
+            List<Record> agents = commander.provisionAgents(agentConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, !noWait);
             displayAgents(agents);
         }
 
@@ -671,11 +683,15 @@ public class Galaxy
         public String toString()
         {
             final StringBuilder sb = new StringBuilder();
-            sb.append("AgentAddCommand");
-            sb.append("{count=").append(count);
+            sb.append("AgentProvisionCommand");
+            sb.append("{agentConfig='").append(agentConfig).append('\'');
+            sb.append(", count=").append(count);
+            sb.append(", ami='").append(ami).append('\'');
+            sb.append(", keyPair='").append(keyPair).append('\'');
+            sb.append(", securityGroup='").append(securityGroup).append('\'');
             sb.append(", availabilityZone='").append(availabilityZone).append('\'');
-            sb.append(", instanceType=").append(instanceType);
-            sb.append(", globalOptions=").append(globalOptions);
+            sb.append(", instanceType='").append(instanceType).append('\'');
+            sb.append(", noWait=").append(noWait);
             sb.append('}');
             return sb.toString();
         }

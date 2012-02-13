@@ -154,7 +154,14 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<Record> provisionAgents(int count, String instanceType, String availabilityZone, boolean waitForStartup)
+    public List<Record> provisionAgents(String agentConfig,
+            int agentCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup,
+            boolean waitForStartup)
     {
         throw new UnsupportedOperationException("Agents can not be provisioned in local mode");
     }

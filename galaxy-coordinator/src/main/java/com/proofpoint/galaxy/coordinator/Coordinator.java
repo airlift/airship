@@ -284,10 +284,21 @@ public class Coordinator
         remoteAgent.setStatus(status);
     }
 
-    public List<AgentStatus> provisionAgents(int count, String instanceType, String availabilityZone)
-            throws Exception
+    public List<AgentStatus> provisionAgents(String agentConfigSpec,
+            int agentCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup)
     {
-        List<Instance> instances = provisioner.provisionAgents(null, count, instanceType, availabilityZone);
+        List<Instance> instances = provisioner.provisionAgents(agentConfigSpec,
+                agentCount,
+                instanceType,
+                availabilityZone,
+                ami,
+                keyPair,
+                securityGroup);
 
         List<AgentStatus> agents = newArrayList();
         for (Instance instance : instances) {

@@ -50,7 +50,7 @@ public class TestProvisionAgent
         AwsProvisioner provisioner = new AwsProvisioner(awsCredentials, ec2Client, nodeInfo, MOCK_REPO, coordinatorConfig, awsProvisionerConfig);
 
         int agentCount = 2;
-        List<Instance> provisioned = provisioner.provisionAgents(null, agentCount, null, null);
+        List<Instance> provisioned = provisioner.provisionAgents(null, agentCount, null, null, null, null, null);
         assertEquals(provisioned.size(), agentCount);
         System.err.println("provisioned instances: " + provisioned);
 

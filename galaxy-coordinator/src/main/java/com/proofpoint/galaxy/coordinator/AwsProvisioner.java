@@ -318,16 +318,25 @@ public class AwsProvisioner implements Provisioner
     }
 
     @Override
-    public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone)
-            throws Exception
+    public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone, String ami, String keyPair, String securityGroup)
     {
-        if (instanceType == null) {
-            instanceType = agentDefaultInstanceType;
-        }
         if (agentConfig == null) {
             agentConfig = agentDefaultConfig;
 
         }
+        if (instanceType == null) {
+            instanceType = agentDefaultInstanceType;
+        }
+        if (ami == null) {
+            ami = agentAmi;
+        }
+        if (keyPair == null) {
+            keyPair = agentKeypair;
+        }
+        if (securityGroup == null) {
+            securityGroup = agentSecurityGroup;
+        }
+
         agentConfig = agentConfig.replaceAll(Pattern.quote("${instanceType}"), instanceType);
 
         ConfigurationFactory configurationFactory = createConfigurationFactory(repository, agentConfig);
@@ -341,9 +350,9 @@ public class AwsProvisioner implements Provisioner
                 .build();
 
         RunInstancesRequest request = new RunInstancesRequest()
-                .withImageId(agentAmi)
-                .withKeyName(agentKeypair)
-                .withSecurityGroups(agentSecurityGroup)
+                .withImageId(ami)
+                .withKeyName(keyPair)
+                .withSecurityGroups(securityGroup)
                 .withInstanceType(instanceType)
                 .withPlacement(new Placement(availabilityZone))
                 .withUserData(getAgentUserData(instanceType, agentConfig, repositories))
