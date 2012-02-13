@@ -144,6 +144,12 @@ public class LocalCommander implements Commander
     }
 
     @Override
+    public boolean sshCoordinator(CoordinatorFilter coordinatorFilter, String command)
+    {
+        throw new UnsupportedOperationException("Coordinator ssh no supported in local mode");
+    }
+
+    @Override
     public List<Record> showAgents(AgentFilter agentFilter)
             throws Exception
     {
@@ -170,6 +176,12 @@ public class LocalCommander implements Commander
     public Record terminateAgent(String agentId)
     {
         throw new UnsupportedOperationException("Agents can not be terminated in local mode");
+    }
+
+    @Override
+    public boolean sshAgent(AgentFilter agentFilter, String command)
+    {
+        throw new UnsupportedOperationException("Agent ssh no supported in local mode");
     }
 
     public static int getPrefixSize(List<UUID> uuids)

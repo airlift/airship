@@ -238,6 +238,22 @@ public class HttpCommander implements Commander
     }
 
     @Override
+    public boolean sshCoordinator(CoordinatorFilter coordinatorFilter, String command)
+    {
+        URI uri = coordinatorFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator"));
+        Request request = RequestBuilder.prepareGet()
+                .setUri(uri)
+                .build();
+
+        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+        if (coordinators.isEmpty()) {
+            return false;
+        }
+        Exec.execRemote(coordinators.get(0).getExternalHost(), command);
+        return true;
+    }
+
+    @Override
     public List<Record> showAgents(AgentFilter agentFilter)
             throws Exception
     {
@@ -332,6 +348,22 @@ public class HttpCommander implements Commander
         AgentStatusRepresentation agents = client.execute(request, JsonResponseHandler.create(AGENT_CODEC)).checkedGet();
         AgentRecord record = new AgentRecord(agents);
         return record;
+    }
+
+    @Override
+    public boolean sshAgent(AgentFilter agentFilter, String command)
+    {
+        URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent"));
+        Request request = RequestBuilder.prepareGet()
+                .setUri(uri)
+                .build();
+
+        List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
+        if (agents.isEmpty()) {
+            return false;
+        }
+        Exec.execRemote(agents.get(0).getExternalHost(), command);
+        return true;
     }
 
     public static class TextBodyGenerator implements BodyGenerator

@@ -99,14 +99,16 @@ public class Galaxy
                 .withDescription("Manage coordinators")
                 .withDefaultCommand(CoordinatorShowCommand.class)
                 .withCommands(CoordinatorShowCommand.class,
-                        CoordinatorProvisionCommand.class);
+                        CoordinatorProvisionCommand.class,
+                        CoordinatorSshCommand.class);
 
         builder.withGroup("agent")
                 .withDescription("Manage agents")
                 .withDefaultCommand(AgentShowCommand.class)
                 .withCommands(AgentShowCommand.class,
                         AgentProvisionCommand.class,
-                        AgentTerminateCommand.class);
+                        AgentTerminateCommand.class,
+                        AgentSshCommand.class);
 
         builder.withGroup("environment")
                 .withDescription("Manage environments")
@@ -618,6 +620,33 @@ public class Galaxy
         }
     }
 
+    @Command(name = "ssh", description = "ssh to coordinator host")
+    public static class CoordinatorSshCommand extends GalaxyCommanderCommand
+    {
+        @Inject
+        public final CoordinatorFilter coordinatorFilter = new CoordinatorFilter();
+
+        @Arguments(description = "Command to execute on the remote host")
+        public String command;
+
+        @Override
+        public void execute(Commander commander)
+        {
+            commander.sshCoordinator(coordinatorFilter, command);
+        }
+
+        @Override
+        public String toString()
+        {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("CoordinatorSshCommand");
+            sb.append("{coordinatorFilter=").append(coordinatorFilter);
+            sb.append(", command='").append(command).append('\'');
+            sb.append('}');
+            return sb.toString();
+        }
+    }
+
     @Command(name = "show", description = "Show agent details")
     public static class AgentShowCommand extends GalaxyCommanderCommand
     {
@@ -718,6 +747,33 @@ public class Galaxy
             sb.append("AgentTerminateCommand");
             sb.append("{agentId='").append(agentId).append('\'');
             sb.append(", globalOptions=").append(globalOptions);
+            sb.append('}');
+            return sb.toString();
+        }
+    }
+
+    @Command(name = "ssh", description = "ssh to agent host")
+    public static class AgentSshCommand extends GalaxyCommanderCommand
+    {
+        @Inject
+        public final AgentFilter agentFilter = new AgentFilter();
+
+        @Arguments(description = "Command to execute on the remote host")
+        public String command;
+
+        @Override
+        public void execute(Commander commander)
+        {
+            commander.sshAgent(agentFilter, command);
+        }
+
+        @Override
+        public String toString()
+        {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("AgentSshCommand");
+            sb.append("{agentFilter=").append(agentFilter);
+            sb.append(", command='").append(command).append('\'');
             sb.append('}');
             return sb.toString();
         }

@@ -33,6 +33,8 @@ public interface Commander
             String securityGroup,
             boolean waitForStartup);
 
+    boolean sshCoordinator(CoordinatorFilter coordinatorFilter, String command);
+
     List<Record> showAgents(AgentFilter agentFilter)
             throws Exception;
 
@@ -46,4 +48,6 @@ public interface Commander
             boolean waitForStartup);
 
     Record terminateAgent(String agentId);
+
+    boolean sshAgent(AgentFilter agentFilter, String command);
 }
