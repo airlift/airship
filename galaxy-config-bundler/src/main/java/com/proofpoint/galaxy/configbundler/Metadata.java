@@ -36,7 +36,7 @@ public class Metadata
             throws IOException
     {
         String json = JsonCodec.jsonCodec(Metadata.class).toJson(this);
-        Files.write(json, file, Charsets.UTF_8);
+        Files.write(json + "\n", file, Charsets.UTF_8);
     }
     
     public static Metadata load(File file)
