@@ -160,8 +160,13 @@ public class ReleaseCommand
     private Ref getLatestTag(Repository repository, String component)
     {
         Map<String, Ref> forComponent = Maps.filterKeys(repository.getTags(), startsWith(component + "-"));
-        String latest = Ordering.from(new VersionTagComparator()).max(forComponent.keySet());
-        return forComponent.get(latest);
+
+        if (!forComponent.isEmpty()) {
+            String latest = Ordering.from(new VersionTagComparator()).max(forComponent.keySet());
+            return forComponent.get(latest);
+        }
+
+        return null;
     }
 
     private Function<? super ObjectId, InputSupplier<InputStream>> getInputStreamSupplier(final Repository repository)
