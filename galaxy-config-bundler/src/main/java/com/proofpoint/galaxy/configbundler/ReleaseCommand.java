@@ -124,6 +124,10 @@ public class ReleaseCommand
         // get entries from tag
         final Map<String, ObjectId> entries = getEntries(repository, headCommit.getTree());
 
+        if (entries.isEmpty()) {
+            throw new RuntimeException("Cannot build an empty config package");
+        }
+
         URI uri = mavenRepository.upload(groupId, component, Integer.toString(version), ARTIFACT_TYPE, new BodyGenerator()
         {
             public void write(OutputStream out)
