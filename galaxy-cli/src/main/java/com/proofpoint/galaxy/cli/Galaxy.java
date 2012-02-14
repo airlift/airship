@@ -47,8 +47,10 @@ import org.iq80.cli.Option;
 import org.iq80.cli.ParseException;
 
 import javax.inject.Inject;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URL;
@@ -60,6 +62,7 @@ import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.cli.Column.externalHost;
 import static com.proofpoint.galaxy.cli.Column.internalHost;
+import static com.proofpoint.galaxy.cli.Column.uuid;
 import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
 import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
@@ -230,6 +233,31 @@ public class Galaxy
 
         public abstract void execute(Commander commander)
                 throws Exception;
+
+
+        public SlotFilter verifySlotExecution(Commander commander, SlotFilter slotFilter, String question, boolean defaultValue)
+        {
+            if (globalOptions.batch) {
+                return slotFilter;
+            }
+
+            // show effected slots
+            List<Record> slots = commander.show(slotFilter);
+            displaySlots(slots);
+            System.out.println();
+
+            // ask to continue
+            if (!ask(question, defaultValue)) {
+                return null;
+            }
+
+            // return filter for only the shown slots
+            SlotFilter uuidFilter = new SlotFilter();
+            for (Record slot : slots) {
+                uuidFilter.uuid.add(slot.getValue(uuid));
+            }
+            return uuidFilter;
+        }
 
         public void displaySlots(Iterable<Record> slots)
         {
@@ -405,8 +433,12 @@ public class Galaxy
             }
 
             UpgradeVersions upgradeVersions = new UpgradeVersions(binaryVersion, configVersion);
-            List<Record> slots = commander.upgrade(slotFilter, upgradeVersions);
-            displaySlots(slots);
+
+            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to UPGRADE these servers?", true);
+            if (slotFilter != null) {
+                List<Record> slots = commander.upgrade(slotFilter, upgradeVersions);
+                displaySlots(slots);
+            }
         }
 
         @Override
@@ -431,8 +463,11 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            List<Record> slots = commander.terminate(slotFilter);
-            displaySlots(slots);
+            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to TERMINATE these servers?", false);
+            if (slotFilter != null) {
+                List<Record> slots = commander.terminate(slotFilter);
+                displaySlots(slots);
+            }
         }
 
         @Override
@@ -456,8 +491,11 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            List<Record> slots = commander.setState(slotFilter, RUNNING);
-            displaySlots(slots);
+            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to START these servers?", true);
+            if (slotFilter != null) {
+                List<Record> slots = commander.setState(slotFilter, RUNNING);
+                displaySlots(slots);
+            }
         }
     }
 
@@ -470,8 +508,11 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            List<Record> slots = commander.setState(slotFilter, STOPPED);
-            displaySlots(slots);
+            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to STOP these servers?", true);
+            if (slotFilter != null) {
+                List<Record> slots = commander.setState(slotFilter, STOPPED);
+                displaySlots(slots);
+            }
         }
     }
 
@@ -484,8 +525,11 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            List<Record> slots = commander.setState(slotFilter, RESTARTING);
-            displaySlots(slots);
+            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to RESTART these servers?", true);
+            if (slotFilter != null) {
+                List<Record> slots = commander.setState(slotFilter, RESTARTING);
+                displaySlots(slots);
+            }
         }
     }
 
@@ -498,8 +542,11 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            List<Record> slots = commander.resetExpectedState(slotFilter);
-            displaySlots(slots);
+            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to reset these servers to their actual state?", true);
+            if (slotFilter != null) {
+                List<Record> slots = commander.resetExpectedState(slotFilter);
+                displaySlots(slots);
+            }
         }
     }
 
@@ -1278,6 +1325,41 @@ public class Galaxy
             Config config = Config.loadConfig(CONFIG_FILE);
             config.unset(key);
             config.save(CONFIG_FILE);
+        }
+    }
+
+    public static boolean ask(String question, boolean defaultValue)
+    {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+        try {
+            while (true) {
+                System.out.print(question + (defaultValue ? " [Y/n] " : " [y/N] "));
+                String line = null;
+                try {
+                    line = reader.readLine();
+                }
+                catch (IOException ignored) {
+                }
+
+                if (line == null) {
+                    throw new IllegalArgumentException("Error reading from standard in");
+                }
+
+                line = line.trim().toLowerCase();
+                if (line.isEmpty()) {
+                    return defaultValue;
+                }
+                if ("y".equalsIgnoreCase(line) || "yes".equalsIgnoreCase(line)) {
+                    return true;
+                }
+                if ("n".equalsIgnoreCase(line) || "no".equalsIgnoreCase(line)) {
+                    return false;
+                }
+            }
+        }
+        finally {
+            System.out.println();
         }
     }
 
