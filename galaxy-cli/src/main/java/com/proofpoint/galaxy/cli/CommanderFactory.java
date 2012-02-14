@@ -179,7 +179,9 @@ public class CommanderFactory
         Repository repository = new RepositorySet(ImmutableSet.<Repository>of(
                 new MavenRepository(coordinatorConfig),
                 new HttpRepository(coordinatorConfig)));
-        ServiceInventory serviceInventory = new HttpServiceInventory(repository, JsonCodec.listJsonCodec(ServiceDescriptor.class));
+        ServiceInventory serviceInventory = new HttpServiceInventory(repository,
+                JsonCodec.listJsonCodec(ServiceDescriptor.class),
+                new File(slotsDir, "service-inventory-cache"));
 
         Provisioner provisioner = new LocalProvisioner();
 

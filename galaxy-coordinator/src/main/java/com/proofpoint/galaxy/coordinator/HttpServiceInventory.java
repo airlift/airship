@@ -18,11 +18,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
+import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceState;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.DigestUtils;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.ConfigUtils;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
@@ -30,6 +32,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -46,15 +49,22 @@ public class HttpServiceInventory implements ServiceInventory
     private final Repository repository;
     private final JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec;
     private final Set<String> invalidServiceInventory = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private final File cacheDir;
 
     @Inject
     public HttpServiceInventory(Repository repository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec)
+    {
+        this(repository, descriptorsJsonCodec, new File("service-inventory-cache"));
+    }
+
+    public HttpServiceInventory(Repository repository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec, File cacheDir)
     {
         Preconditions.checkNotNull(repository, "repository is null");
         Preconditions.checkNotNull(descriptorsJsonCodec, "descriptorsJsonCodec is null");
 
         this.repository = repository;
         this.descriptorsJsonCodec = descriptorsJsonCodec;
+        this.cacheDir = cacheDir;
     }
 
     @Override
@@ -104,6 +114,21 @@ public class HttpServiceInventory implements ServiceInventory
         }
 
         String config = assignment.getConfig();
+
+        File cacheFile = getCacheFile(config);
+        if (cacheFile.canRead()) {
+            try {
+                String json = CharStreams.toString(Files.newReaderSupplier(cacheFile, Charsets.UTF_8));
+                List<ServiceDescriptor> descriptors = descriptorsJsonCodec.fromJson(json);
+                invalidServiceInventory.remove(config);
+                return descriptors;
+            }
+            catch (Exception ignored) {
+                // delete the bad cache file
+                cacheFile.delete();
+            }
+        }
+
         InputSupplier<? extends InputStream> configFile = ConfigUtils.newConfigEntrySupplier(repository, config, "galaxy-service-inventory.json");
         if (configFile == null) {
             return null;
@@ -111,8 +136,13 @@ public class HttpServiceInventory implements ServiceInventory
 
         try {
             String json = CharStreams.toString(CharStreams.newReaderSupplier(configFile, Charsets.UTF_8));
-            List<ServiceDescriptor> descriptors = descriptorsJsonCodec.fromJson(json);
             invalidServiceInventory.remove(config);
+
+            // cache json
+            cacheFile.getParentFile().mkdirs();
+            Files.write(json, cacheFile, Charsets.UTF_8);
+
+            List<ServiceDescriptor> descriptors = descriptorsJsonCodec.fromJson(json);
             return descriptors;
         }
         catch (FileNotFoundException e) {
@@ -123,5 +153,17 @@ public class HttpServiceInventory implements ServiceInventory
             }
         }
         return null;
+    }
+
+    private File getCacheFile(String config)
+    {
+        String cacheName = config;
+        if (cacheName.startsWith("@")) {
+            cacheName = cacheName.substring(1);
+        }
+        cacheName = cacheName.replaceAll("[^a-zA-Z0-9_.-]", "_");
+
+        cacheName = cacheName + "_" + DigestUtils.md5Hex(cacheName);
+        return new File(cacheDir, cacheName).getAbsoluteFile();
     }
 }
