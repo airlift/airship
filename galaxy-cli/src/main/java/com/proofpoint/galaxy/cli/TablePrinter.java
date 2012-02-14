@@ -6,6 +6,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.fusesource.jansi.Ansi.Color;
 
 import java.util.Iterator;
 import java.util.List;
@@ -36,7 +37,7 @@ public class TablePrinter
         this.columns = ImmutableList.copyOf(columns);
         SimpleRecord.Builder builder = SimpleRecord.builder();
         for (Column column : columns) {
-            builder = builder.addValue(column, column.getHeader());
+            builder = builder.addValue(column, column.getHeader(), Color.CYAN);
         }
         this.headerRecord = builder.build();
     }
@@ -65,7 +66,7 @@ public class TablePrinter
 
             for (final Record record : Iterables.concat(ImmutableList.of(headerRecord), records)) {
                 String line = Joiner.on(columnSeparator).join(transform(columns.entrySet(), columnFormatter(record)));
-                System.out.println(line.trim());
+                System.out.println(line.replaceAll("\\s*$", ""));
             }
         }
         else {

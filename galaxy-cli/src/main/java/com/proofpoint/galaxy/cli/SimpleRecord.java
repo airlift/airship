@@ -1,10 +1,12 @@
 package com.proofpoint.galaxy.cli;
 
 import com.google.common.collect.ImmutableMap;
+import org.fusesource.jansi.Ansi.Color;
 
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.proofpoint.galaxy.cli.Ansi.colorize;
 
 public class SimpleRecord implements Record
 {
@@ -44,6 +46,14 @@ public class SimpleRecord implements Record
             String stringValue = value == null ? "" : value.toString();
             values.put(name, stringValue);
             colorizedValues.put(name, stringValue);
+            return this;
+        }
+
+        public Builder addValue(Column name, Object value, Color color)
+        {
+            String stringValue = value == null ? "" : value.toString();
+            values.put(name, stringValue);
+            colorizedValues.put(name, colorize(stringValue, color));
             return this;
         }
 
