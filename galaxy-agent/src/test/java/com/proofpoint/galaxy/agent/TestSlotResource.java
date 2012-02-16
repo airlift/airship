@@ -19,6 +19,7 @@ import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.VersionConflictException;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
@@ -35,13 +36,13 @@ import java.net.URI;
 import java.util.Collection;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
 import static com.proofpoint.testing.Assertions.assertInstanceOf;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -159,10 +160,9 @@ public class TestSlotResource
             resource.installSlot("invalid-version", InstallationRepresentation.from(APPLE_INSTALLATION), uriInfo);
             fail("Expected WebApplicationException");
         }
-        catch (WebApplicationException e) {
-            assertEquals(e.getResponse().getStatus(), Status.CONFLICT.getStatusCode());
-            AgentStatusRepresentation actualStatus = (AgentStatusRepresentation) e.getResponse().getEntity();
-            assertEquals(actualStatus, AgentStatusRepresentation.from(agent.getAgentStatus()));
+        catch (VersionConflictException e) {
+            assertEquals(e.getName(), GALAXY_AGENT_VERSION_HEADER);
+            assertEquals(e.getVersion(), agent.getAgentStatus().getVersion());
         }
     }
 
@@ -192,13 +192,8 @@ public class TestSlotResource
     @Test
     public void testTerminateUnknownSlot()
     {
-        try {
-            resource.terminateSlot(null, null, "unknown");
-            fail("Expected WebApplicationException");
-        }
-        catch (WebApplicationException e) {
-            assertEquals(e.getResponse().getStatus(), Status.NOT_FOUND.getStatusCode());
-        }
+        Response response = resource.terminateSlot(null, null, "unknown");
+        assertEquals(response.getStatus(), Status.NOT_FOUND.getStatusCode());
     }
 
     @Test(expectedExceptions = NullPointerException.class)

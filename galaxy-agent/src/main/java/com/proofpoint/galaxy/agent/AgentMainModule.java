@@ -17,6 +17,7 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.galaxy.shared.VersionConflictExceptionMapper;
 import org.weakref.jmx.guice.MBeanModule;
 
 public class AgentMainModule
@@ -35,6 +36,7 @@ public class AgentMainModule
         binder.bind(SlotResource.class).in(Scopes.SINGLETON);
         binder.bind(AssignmentResource.class).in(Scopes.SINGLETON);
         binder.bind(LifecycleResource.class).in(Scopes.SINGLETON);
+        binder.bind(VersionConflictExceptionMapper.class).in(Scopes.SINGLETON);
 
         binder.bind(DeploymentManagerFactory.class).to(DirectoryDeploymentManagerFactory.class).in(Scopes.SINGLETON);
         binder.bind(LifecycleManager.class).to(LauncherLifecycleManager.class).in(Scopes.SINGLETON);

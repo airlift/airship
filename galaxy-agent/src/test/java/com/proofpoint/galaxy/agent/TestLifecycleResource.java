@@ -16,6 +16,7 @@ package com.proofpoint.galaxy.agent;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.VersionConflictException;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
@@ -27,12 +28,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
@@ -128,13 +129,8 @@ public class TestLifecycleResource
     @Test
     public void testSetStateUnknown()
     {
-        try {
-            resource.setState(null, "unknown", "start");
-            fail("Expected WebApplicationException");
-        }
-        catch (WebApplicationException e) {
-            assertEquals(e.getResponse().getStatus(), Status.NOT_FOUND.getStatusCode());
-        }
+        Response response = resource.setState(null, "unknown", "start");
+        assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -160,16 +156,13 @@ public class TestLifecycleResource
     @Test
     public void testInvalidVersion()
     {
-        SlotStatus slotStatus = slot.status();
         try {
             resource.setState("invalid-version", slot.getName(), "running");
-            fail("Expected WebApplicationException");
+            fail("Expected VersionConflictException");
         }
-        catch (WebApplicationException e) {
-            assertEquals(e.getResponse().getStatus(), Status.CONFLICT.getStatusCode());
-            SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) e.getResponse().getEntity();
-            assertEquals(actualStatus, SlotStatusRepresentation.from(slotStatus));
-
+        catch (VersionConflictException e) {
+            assertEquals(e.getName(), GALAXY_SLOT_VERSION_HEADER);
+            assertEquals(e.getVersion(), slot.status().getVersion());
         }
     }
 

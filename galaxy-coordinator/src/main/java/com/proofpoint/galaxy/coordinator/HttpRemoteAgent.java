@@ -37,7 +37,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.PROVISIONING;
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 
 public class HttpRemoteAgent implements RemoteAgent

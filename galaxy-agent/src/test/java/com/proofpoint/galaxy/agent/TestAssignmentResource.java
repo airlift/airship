@@ -19,6 +19,7 @@ import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.VersionConflictException;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
@@ -30,10 +31,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
@@ -68,13 +69,8 @@ public class TestAssignmentResource
     @Test
     public void testAssignUnknown()
     {
-        try {
-            resource.assign(null, null, "unknown", UPGRADE);
-            fail("Expected WebApplicationException");
-        }
-        catch (WebApplicationException e) {
-            assertEquals(e.getResponse().getStatus(), Status.NOT_FOUND.getStatusCode());
-        }
+        Response response = resource.assign(null, null, "unknown", UPGRADE);
+        assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -96,30 +92,25 @@ public class TestAssignmentResource
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
         try {
             resource.assign("bad-version", "bad-version", slotStatus.getName(), UPGRADE);
-            fail("Expected WebApplicationException");
+            fail("Expected VersionConflictException");
         }
-        catch (WebApplicationException e) {
-            assertEquals(e.getResponse().getStatus(), Status.CONFLICT.getStatusCode());
-            SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) e.getResponse().getEntity();
-            assertEquals(actualStatus, SlotStatusRepresentation.from(slotStatus));
+        catch (VersionConflictException e) {
         }
         try {
             resource.assign("bad-version", null, slotStatus.getName(), UPGRADE);
-            fail("Expected WebApplicationException");
+            fail("Expected VersionConflictException");
         }
-        catch (WebApplicationException e) {
-            assertEquals(e.getResponse().getStatus(), Status.CONFLICT.getStatusCode());
-            SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) e.getResponse().getEntity();
-            assertEquals(actualStatus, SlotStatusRepresentation.from(slotStatus));
+        catch (VersionConflictException e) {
+            assertEquals(e.getName(), GALAXY_AGENT_VERSION_HEADER);
+            assertEquals(e.getVersion(), agent.getAgentStatus().getVersion());
         }
         try {
             resource.assign(null, "bad-version", slotStatus.getName(), UPGRADE);
-            fail("Expected WebApplicationException");
+            fail("Expected VersionConflictException");
         }
-        catch (WebApplicationException e) {
-            assertEquals(e.getResponse().getStatus(), Status.CONFLICT.getStatusCode());
-            SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) e.getResponse().getEntity();
-            assertEquals(actualStatus, SlotStatusRepresentation.from(slotStatus));
+        catch (VersionConflictException e) {
+            assertEquals(e.getName(), GALAXY_SLOT_VERSION_HEADER);
+            assertEquals(e.getVersion(), slotStatus.getVersion());
         }
     }
 

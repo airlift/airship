@@ -35,10 +35,10 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
 
-import static com.proofpoint.galaxy.agent.VersionsUtil.checkAgentVersion;
-import static com.proofpoint.galaxy.agent.VersionsUtil.checkSlotVersion;
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentVersion;
+import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotVersion;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
 
 @Path("/v1/agent/slot")
 public class SlotResource
@@ -60,7 +60,7 @@ public class SlotResource
     {
         Preconditions.checkNotNull(installation, "installation must not be null");
 
-        checkAgentVersion(agent, agentVersion);
+        checkAgentVersion(agent.getAgentStatus(), agentVersion);
 
         SlotStatus slotStatus = agent.install(installation.toInstallation());
 
@@ -80,7 +80,13 @@ public class SlotResource
     {
         Preconditions.checkNotNull(id, "id must not be null");
 
-        checkSlotVersion(id, slotVersion, agent, agentVersion);
+        Slot slot = agent.getSlot(id);
+        if (slot == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("[" + id + "]").build();
+        }
+
+        checkAgentVersion(agent.getAgentStatus(), agentVersion);
+        checkSlotVersion(slot.status(), slotVersion);
 
         SlotStatus slotStatus = agent.terminateSlot(id);
         if (slotStatus == null) {

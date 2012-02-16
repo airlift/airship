@@ -32,8 +32,6 @@ public class AgentStatusRepresentation
         }));
     }
 
-    public static final String GALAXY_AGENT_VERSION_HEADER = "x-galaxy-agent-version";
-
     private final String agentId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;

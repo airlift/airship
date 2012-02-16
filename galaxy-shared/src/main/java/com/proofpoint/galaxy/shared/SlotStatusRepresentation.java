@@ -29,8 +29,6 @@ import java.util.UUID;
 @JsonAutoDetect(JsonMethod.NONE)
 public class SlotStatusRepresentation
 {
-    public static final String GALAXY_SLOT_VERSION_HEADER = "x-galaxy-slot-version";
-
     private final UUID id;
     private final String shortId;
     private final String name;

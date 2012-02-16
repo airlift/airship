@@ -25,6 +25,7 @@ import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.galaxy.shared.InstallationHelper;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.VersionsUtil;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.galaxy.shared.Installation;
@@ -275,7 +276,7 @@ public class TestServer
                 .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", TERMINATED.toString())
-                .put("version", SlotStatus.createVersion(slotStatus.getId(), TERMINATED, null))
+                .put("version", VersionsUtil.createSlotVersion(slotStatus.getId(), TERMINATED, null))
                 .put("resources", ImmutableMap.<String,Integer>of())
                 .build();
 
@@ -368,7 +369,7 @@ public class TestServer
                 .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", RUNNING.toString())
-                .put("version", SlotStatus.createVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
+                .put("version", VersionsUtil.createSlotVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
                 .put("installPath", slotStatus.getInstallPath())
                 .put("resources", ImmutableMap.<String,Integer>of("memory", 512))
                 .build();
@@ -435,7 +436,7 @@ public class TestServer
                 .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
                 .put("status", RUNNING.toString())
-                .put("version", SlotStatus.createVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
+                .put("version", VersionsUtil.createSlotVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
                 .put("installPath", slotStatus.getInstallPath())
                 .put("resources", ImmutableMap.<String,Integer>of("memory", 512))
                 .build();

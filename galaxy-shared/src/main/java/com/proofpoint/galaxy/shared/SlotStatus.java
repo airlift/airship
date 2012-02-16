@@ -14,7 +14,6 @@
 package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
@@ -61,7 +60,7 @@ public class SlotStatus
         this.location = location;
         this.assignment = assignment;
         this.state = state;
-        this.version = createVersion(id, state, assignment);
+        this.version = VersionsUtil.createSlotVersion(id, state, assignment);
         this.installPath = installPath;
         this.statusMessage = null;
         this.resources = ImmutableMap.copyOf(resources);
@@ -80,7 +79,7 @@ public class SlotStatus
         this.location = status.location;
         this.assignment = assignment;
         this.state = state;
-        this.version = createVersion(id, state, assignment);
+        this.version = VersionsUtil.createSlotVersion(id, state, assignment);
         this.installPath = status.getInstallPath();
         this.statusMessage = null;
         this.resources = status.resources;
@@ -107,7 +106,7 @@ public class SlotStatus
             this.resources = ImmutableMap.of();
         }
         this.state = state;
-        this.version = createVersion(id, state, assignment);
+        this.version = VersionsUtil.createSlotVersion(id, state, assignment);
         this.statusMessage = statusMessage;
     }
 
@@ -269,11 +268,5 @@ public class SlotStatus
                 return input.getId();
             }
         };
-    }
-
-    public static String createVersion(UUID id, SlotLifecycleState state, Assignment assignment)
-    {
-        String data = Joiner.on("||").useForNull("--NULL--").join(id, state, assignment);
-        return DigestUtils.md5Hex(data);
     }
 }

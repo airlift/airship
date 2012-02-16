@@ -28,9 +28,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.proofpoint.galaxy.agent.VersionsUtil.checkSlotVersion;
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.GALAXY_AGENT_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.GALAXY_SLOT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentVersion;
+import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotVersion;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
 
 @Path("/v1/agent/slot/{slotName: [a-z0-9_.-]+}/assignment")
 public class AssignmentResource
@@ -56,12 +57,13 @@ public class AssignmentResource
         Preconditions.checkNotNull(slotName, "slotName must not be null");
         Preconditions.checkNotNull(installation, "installation must not be null");
 
-        checkSlotVersion(slotName, slotVersion, agent, agentVersion);
-
         Slot slot = agent.getSlot(slotName);
         if (slot == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
         }
+
+        checkAgentVersion(agent.getAgentStatus(), agentVersion);
+        checkSlotVersion(slot.status(), slotVersion);
 
         SlotStatus status = slot.assign(installation.toInstallation());
         return Response.ok(SlotStatusRepresentation.from(status))
