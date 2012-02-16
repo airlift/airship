@@ -9,6 +9,8 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import org.fusesource.jansi.Ansi.Color;
 
+import java.util.List;
+
 import static com.proofpoint.galaxy.cli.Ansi.colorize;
 
 public class SlotRecord implements Record
@@ -26,7 +28,7 @@ public class SlotRecord implements Record
         }));
     }
 
-    public static ImmutableList<Record> toSlotRecords(final int prefixSize, Iterable<SlotStatus> slots)
+    public static List<Record> toSlotRecords(final int prefixSize, Iterable<SlotStatus> slots)
     {
         return ImmutableList.copyOf(Iterables.transform(slots, new Function<SlotStatus, Record>()
         {
@@ -38,7 +40,7 @@ public class SlotRecord implements Record
         }));
     }
 
-    public static ImmutableList<Record> toSlotRecordsWithExpectedState(final int prefixSize, Iterable<SlotStatusWithExpectedState> slots)
+    public static List<Record> toSlotRecordsWithExpectedState(final int prefixSize, Iterable<SlotStatusWithExpectedState> slots)
     {
         return ImmutableList.copyOf(Iterables.transform(slots, new Function<SlotStatusWithExpectedState, Record>()
         {

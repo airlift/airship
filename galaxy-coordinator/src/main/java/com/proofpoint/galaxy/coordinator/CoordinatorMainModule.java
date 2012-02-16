@@ -28,6 +28,7 @@ import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.RepositorySet;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.VersionConflictExceptionMapper;
 import com.proofpoint.http.server.TheServlet;
 import com.proofpoint.json.JsonCodecBinder;
 
@@ -50,6 +51,7 @@ public class CoordinatorMainModule
         binder.bind(ExpectedStateResource.class).in(Scopes.SINGLETON);
         binder.bind(InvalidSlotFilterExceptionMapper.class).in(Scopes.SINGLETON);
         binder.bind(AdminResource.class).in(Scopes.SINGLETON);
+        binder.bind(VersionConflictExceptionMapper.class).in(Scopes.SINGLETON);
         binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
 
         binder.bind(Repository.class).to(RepositorySet.class).in(Scopes.SINGLETON);

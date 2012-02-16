@@ -17,6 +17,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.galaxy.shared.VersionsUtil;
 import com.proofpoint.json.JsonCodec;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
+import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
 import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
 import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
@@ -51,9 +53,10 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<Record> show(SlotFilter slotFilter)
+    public CommanderResponse<List<Record>> show(SlotFilter slotFilter)
     {
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
         final int prefixSize = getPrefixSize(uuids);
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
@@ -63,7 +66,7 @@ public class LocalCommander implements Commander
         // update just in case something changed
         updateServiceInventory();
 
-        return toSlotRecordsWithExpectedState(prefixSize, slots);
+        return createCommanderResponse(VersionsUtil.createSlotsVersion(allSlotStatus), toSlotRecordsWithExpectedState(prefixSize, slots));
     }
 
     @Override
@@ -82,9 +85,12 @@ public class LocalCommander implements Commander
 
 
     @Override
-    public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions)
+    public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion)
     {
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        VersionsUtil.checkSlotsVersion(expectedVersion, allSlotStatus);
+
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
         final int prefixSize = getPrefixSize(uuids);
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
@@ -97,9 +103,12 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<Record> setState(SlotFilter slotFilter, SlotLifecycleState state)
+    public List<Record> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedVersion)
     {
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        VersionsUtil.checkSlotsVersion(expectedVersion, allSlotStatus);
+
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
         final int prefixSize = getPrefixSize(uuids);
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
@@ -116,9 +125,12 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<Record> terminate(SlotFilter slotFilter)
+    public List<Record> terminate(SlotFilter slotFilter, String expectedVersion)
     {
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        VersionsUtil.checkSlotsVersion(expectedVersion, allSlotStatus);
+
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
         final int prefixSize = getPrefixSize(uuids);
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
@@ -132,9 +144,12 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<Record> resetExpectedState(SlotFilter slotFilter)
+    public List<Record> resetExpectedState(SlotFilter slotFilter, String expectedVersion)
     {
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        VersionsUtil.checkSlotsVersion(expectedVersion, allSlotStatus);
+
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
         final int prefixSize = getPrefixSize(uuids);
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);

@@ -23,11 +23,13 @@ import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
+import com.proofpoint.galaxy.shared.VersionsUtil;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -41,6 +43,8 @@ import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotsVersion;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.toSlotRepresentation;
 import static java.lang.Math.max;
@@ -64,7 +68,8 @@ public class CoordinatorSlotResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllSlots(@Context UriInfo uriInfo)
     {
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
 
         int prefixSize = MIN_PREFIX_SIZE;
         if (!uuids.isEmpty()) {
@@ -75,7 +80,9 @@ public class CoordinatorSlotResource
 
         Iterable<SlotStatusWithExpectedState> result = coordinator.getAllSlotStatusWithExpectedState(slotFilter);
 
-        return Response.ok(Iterables.transform(result, toSlotRepresentation(prefixSize))).build();
+        return Response.ok(Iterables.transform(result, toSlotRepresentation(prefixSize)))
+                .header(GALAXY_SLOTS_VERSION_HEADER, VersionsUtil.createSlotsVersion(allSlotStatus))
+                .build();
     }
 
     @POST
@@ -91,21 +98,28 @@ public class CoordinatorSlotResource
 
         Assignment assignment = assignmentRepresentation.toAssignment();
 
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
         Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo, uuids);
         List<SlotStatus> results = coordinator.install(agentFilter, limit, assignment);
 
         int uniquePrefixSize = max(Strings.shortestUniquePrefix(transform(uuids, toStringFunction())), MIN_PREFIX_SIZE);
 
-        return Response.ok(transform(results, fromSlotStatusWithShortIdPrefixSize(uniquePrefixSize))).build();
+        return Response.ok(transform(results, fromSlotStatusWithShortIdPrefixSize(uniquePrefixSize)))
+                .header(GALAXY_SLOTS_VERSION_HEADER, VersionsUtil.createSlotsVersion(allSlotStatus))
+                .build();
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response terminateSlots(@Context UriInfo uriInfo)
+    public Response terminateSlots(@Context UriInfo uriInfo,
+            @HeaderParam(GALAXY_SLOTS_VERSION_HEADER) String expectedSlotsVersion)
     {
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        checkSlotsVersion(expectedSlotsVersion, allSlotStatus);
 
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
         int prefixSize = MIN_PREFIX_SIZE;
         if (!uuids.isEmpty()) {
             prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
@@ -115,6 +129,8 @@ public class CoordinatorSlotResource
 
         List<SlotStatus> result = coordinator.terminate(slotFilter);
 
-        return Response.ok(transform(result, fromSlotStatusWithShortIdPrefixSize(prefixSize))).build();
+        return Response.ok(transform(result, fromSlotStatusWithShortIdPrefixSize(prefixSize)))
+                .header(GALAXY_SLOTS_VERSION_HEADER, VersionsUtil.createSlotsVersion(allSlotStatus))
+                .build();
     }
 }

@@ -139,7 +139,7 @@ public class TestCoordinatorAssignmentResource
     private void testUpgrade(UpgradeVersions upgradeVersions)
     {
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.upgrade(upgradeVersions, uriInfo);
+        Response response = resource.upgrade(upgradeVersions, uriInfo, null);
 
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SlotId);
@@ -164,7 +164,7 @@ public class TestCoordinatorAssignmentResource
         UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2,0");
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?state=stopped");
         try {
-            resource.upgrade(upgradeVersions, uriInfo);
+            resource.upgrade(upgradeVersions, uriInfo, null);
             fail("Expected AmbiguousUpgradeException");
         }
         catch (AmbiguousUpgradeException expected) {

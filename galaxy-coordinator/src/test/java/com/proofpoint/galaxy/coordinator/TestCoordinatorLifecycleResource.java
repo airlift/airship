@@ -21,6 +21,8 @@ import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.VersionConflictException;
+import com.proofpoint.galaxy.shared.VersionsUtil;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
@@ -40,10 +42,12 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
 public class TestCoordinatorLifecycleResource
 {
@@ -131,37 +135,37 @@ public class TestCoordinatorLifecycleResource
         assertSlotState(bananaSlotId, STOPPED);
 
         // stopped.start => running
-        assertOkResponse(resource.setState("running", uriInfo), RUNNING, apple1SlotId, apple2SlotId);
+        assertOkResponse(resource.setState("running", uriInfo, null), RUNNING, apple1SlotId, apple2SlotId);
         assertSlotState(apple1SlotId, RUNNING);
         assertSlotState(apple2SlotId, RUNNING);
         assertSlotState(bananaSlotId, STOPPED);
 
         // running.start => running
-        assertOkResponse(resource.setState("running", uriInfo), RUNNING, apple1SlotId, apple2SlotId);
+        assertOkResponse(resource.setState("running", uriInfo, null), RUNNING, apple1SlotId, apple2SlotId);
         assertSlotState(apple1SlotId, RUNNING);
         assertSlotState(apple2SlotId, RUNNING);
         assertSlotState(bananaSlotId, STOPPED);
 
         // running.stop => stopped
-        assertOkResponse(resource.setState("stopped", uriInfo), STOPPED, apple1SlotId, apple2SlotId);
+        assertOkResponse(resource.setState("stopped", uriInfo, null), STOPPED, apple1SlotId, apple2SlotId);
         assertSlotState(apple1SlotId, STOPPED);
         assertSlotState(apple2SlotId, STOPPED);
         assertSlotState(bananaSlotId, STOPPED);
 
         // stopped.stop => stopped
-        assertOkResponse(resource.setState("stopped", uriInfo), STOPPED, apple1SlotId, apple2SlotId);
+        assertOkResponse(resource.setState("stopped", uriInfo, null), STOPPED, apple1SlotId, apple2SlotId);
         assertSlotState(apple1SlotId, STOPPED);
         assertSlotState(apple2SlotId, STOPPED);
         assertSlotState(bananaSlotId, STOPPED);
 
         // stopped.restart => running
-        assertOkResponse(resource.setState("restarting", uriInfo), RUNNING, apple1SlotId, apple2SlotId);
+        assertOkResponse(resource.setState("restarting", uriInfo, null), RUNNING, apple1SlotId, apple2SlotId);
         assertSlotState(apple1SlotId, RUNNING);
         assertSlotState(apple2SlotId, RUNNING);
         assertSlotState(bananaSlotId, STOPPED);
 
         // running.restart => running
-        assertOkResponse(resource.setState("restarting", uriInfo), RUNNING, apple1SlotId, apple2SlotId);
+        assertOkResponse(resource.setState("restarting", uriInfo, null), RUNNING, apple1SlotId, apple2SlotId);
         assertSlotState(apple1SlotId, RUNNING);
         assertSlotState(apple2SlotId, RUNNING);
         assertSlotState(bananaSlotId, STOPPED);
@@ -170,7 +174,7 @@ public class TestCoordinatorLifecycleResource
     @Test
     public void testSetStateUnknownState()
     {
-        Response response = resource.setState("unknown", uriInfo);
+        Response response = resource.setState("unknown", uriInfo, null);
         assertEquals(response.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertNull(response.getEntity());
     }
@@ -178,13 +182,34 @@ public class TestCoordinatorLifecycleResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetStateNullState()
     {
-        resource.setState(null, uriInfo);
+        resource.setState(null, uriInfo, null);
     }
 
     @Test(expectedExceptions = InvalidSlotFilterException.class)
     public void testSetStateNoFilter()
     {
-        resource.setState("running", MockUriInfo.from("http://localhost/v1/slot/lifecycle"));
+        resource.setState("running", MockUriInfo.from("http://localhost/v1/slot/lifecycle"), null);
+    }
+
+    @Test
+    public void testInvalidVersion()
+    {
+        try {
+            resource.setState("running", uriInfo, "invalid-version");
+            fail("Expected VersionConflictException");
+        }
+        catch (VersionConflictException e) {
+            assertEquals(e.getName(), GALAXY_SLOTS_VERSION_HEADER);
+            assertEquals(e.getVersion(), VersionsUtil.createSlotsVersion(coordinator.getAllSlotStatus()));
+        }
+    }
+
+    @Test
+    public void testValidVersion()
+    {
+        String slotsVersion = VersionsUtil.createSlotsVersion(coordinator.getAllSlotStatus());
+        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/lifecycle?binary=*:apple:*");
+        assertOkResponse(resource.setState("running", uriInfo, slotsVersion), RUNNING, apple1SlotId, apple2SlotId);
     }
 
     private void assertOkResponse(Response response, SlotLifecycleState state, UUID... slotIds)

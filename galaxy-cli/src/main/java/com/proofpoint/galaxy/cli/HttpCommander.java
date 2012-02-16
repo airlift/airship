@@ -12,6 +12,8 @@ import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.AssignmentRepresentation;
 import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
 import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
+import com.proofpoint.galaxy.shared.FullJsonResponseHandler;
+import com.proofpoint.galaxy.shared.FullJsonResponseHandler.JsonResponse;
 import com.proofpoint.galaxy.shared.JsonResponseHandler;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -30,8 +32,10 @@ import java.util.concurrent.Executors;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
 import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.cli.HttpCommander.TextBodyGenerator.textBodyGenerator;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
 
 public class HttpCommander implements Commander
@@ -58,16 +62,16 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<Record> show(SlotFilter slotFilter)
+    public CommanderResponse<List<Record>> show(SlotFilter slotFilter)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
         Request request = RequestBuilder.prepareGet()
                 .setUri(uri)
                 .build();
 
-        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
-        ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
-        return records;
+        JsonResponse<List<SlotStatusRepresentation>> response = client.execute(request, FullJsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<Record> records = SlotRecord.toSlotRecords(response.getValue());
+        return createCommanderResponse(response.getHeader(GALAXY_SLOTS_VERSION_HEADER), records);
     }
 
     @Override
@@ -86,56 +90,62 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions)
+    public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/assignment"));
-        Request request = RequestBuilder.preparePost()
+        RequestBuilder requestBuilder = RequestBuilder.preparePost()
                 .setUri(uri)
                 .setHeader("Content-Type", "application/json")
-                .setBodyGenerator(jsonBodyGenerator(UPGRADE_VERSIONS_CODEC, upgradeVersions))
-                .build();
+                .setBodyGenerator(jsonBodyGenerator(UPGRADE_VERSIONS_CODEC, upgradeVersions));
+        if (expectedVersion != null) {
+            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+        }
 
-        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
         ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
         return records;
     }
 
     @Override
-    public List<Record> setState(SlotFilter slotFilter, SlotLifecycleState state)
+    public List<Record> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/lifecycle"));
-        Request request = RequestBuilder.preparePut()
+        RequestBuilder requestBuilder = RequestBuilder.preparePut()
                 .setUri(uri)
-                .setBodyGenerator(textBodyGenerator(state.name()))
-                .build();
+                .setBodyGenerator(textBodyGenerator(state.name()));
+        if (expectedVersion != null) {
+            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+        }
 
-        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
         ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
         return records;
     }
 
     @Override
-    public List<Record> terminate(SlotFilter slotFilter)
+    public List<Record> terminate(SlotFilter slotFilter, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
-        Request request = RequestBuilder.prepareDelete()
-                .setUri(uri)
-                .build();
+        RequestBuilder requestBuilder = RequestBuilder.prepareDelete().setUri(uri);
+        if (expectedVersion != null) {
+            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+        }
 
-        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
         ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
         return records;
     }
 
     @Override
-    public List<Record> resetExpectedState(SlotFilter slotFilter)
+    public List<Record> resetExpectedState(SlotFilter slotFilter, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/expected-state"));
-        Request request = RequestBuilder.prepareDelete()
-                .setUri(uri)
-                .build();
+        RequestBuilder requestBuilder = RequestBuilder.prepareDelete().setUri(uri);
+        if (expectedVersion != null) {
+            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+        }
 
-        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
         ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
         return records;
     }

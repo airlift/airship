@@ -19,7 +19,9 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.galaxy.shared.VersionsUtil;
 
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -33,6 +35,8 @@ import java.util.UUID;
 import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotsVersion;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
 import static java.lang.Math.max;
 
@@ -51,7 +55,9 @@ public class CoordinatorLifecycleResource
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    public Response setState(String newState, @Context UriInfo uriInfo)
+    public Response setState(String newState,
+            @Context UriInfo uriInfo,
+            @HeaderParam(GALAXY_SLOTS_VERSION_HEADER) String expectedSlotsVersion)
     {
         Preconditions.checkNotNull(newState, "newState must not be null");
 
@@ -60,8 +66,10 @@ public class CoordinatorLifecycleResource
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        checkSlotsVersion(expectedSlotsVersion, allSlotStatus);
 
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
         int prefixSize = CoordinatorSlotResource.MIN_PREFIX_SIZE;
         if (!uuids.isEmpty()) {
             prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
@@ -71,6 +79,8 @@ public class CoordinatorLifecycleResource
 
         List<SlotStatus> results = coordinator.setState(state, slotFilter);
 
-        return Response.ok(transform(results, fromSlotStatusWithShortIdPrefixSize(prefixSize))).build();
+        return Response.ok(transform(results, fromSlotStatusWithShortIdPrefixSize(prefixSize)))
+                .header(GALAXY_SLOTS_VERSION_HEADER, VersionsUtil.createSlotsVersion(coordinator.getAllSlotStatus()))
+                .build();
      }
 }

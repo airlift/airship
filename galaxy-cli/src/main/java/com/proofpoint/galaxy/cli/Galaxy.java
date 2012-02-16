@@ -235,28 +235,32 @@ public class Galaxy
                 throws Exception;
 
 
-        public SlotFilter verifySlotExecution(Commander commander, SlotFilter slotFilter, String question, boolean defaultValue)
+        public void verifySlotExecution(Commander commander, SlotFilter slotFilter, String question, boolean defaultValue, SlotExecution slotExecution)
         {
             if (globalOptions.batch) {
-                return slotFilter;
+                slotExecution.execute(commander, slotFilter, null);
             }
 
             // show effected slots
-            List<Record> slots = commander.show(slotFilter);
-            displaySlots(slots);
+            CommanderResponse<List<Record>> response = commander.show(slotFilter);
+            displaySlots(response.getValue());
             System.out.println();
 
             // ask to continue
             if (!ask(question, defaultValue)) {
-                return null;
+                return;
             }
 
             // return filter for only the shown slots
             SlotFilter uuidFilter = new SlotFilter();
-            for (Record slot : slots) {
+            for (Record slot : response.getValue()) {
                 uuidFilter.uuid.add(slot.getValue(uuid));
             }
-            return uuidFilter;
+            slotExecution.execute(commander, uuidFilter, response.getVersion());
+        }
+
+        protected interface SlotExecution {
+            void execute(Commander commander, SlotFilter slotFilter, String expectedVersion);
         }
 
         public void displaySlots(Iterable<Record> slots)
@@ -335,8 +339,8 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            List<Record> slots = commander.show(slotFilter);
-            displaySlots(slots);
+            CommanderResponse<List<Record>> response = commander.show(slotFilter);
+            displaySlots(response.getValue());
         }
 
         @Override
@@ -432,13 +436,16 @@ public class Galaxy
                 }
             }
 
-            UpgradeVersions upgradeVersions = new UpgradeVersions(binaryVersion, configVersion);
+            final UpgradeVersions upgradeVersions = new UpgradeVersions(binaryVersion, configVersion);
 
-            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to UPGRADE these servers?", true);
-            if (slotFilter != null) {
-                List<Record> slots = commander.upgrade(slotFilter, upgradeVersions);
-                displaySlots(slots);
-            }
+            verifySlotExecution(commander, slotFilter, "Are you sure you would like to UPGRADE these servers?", false, new SlotExecution()
+            {
+                public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
+                {
+                    List<Record> slots = commander.upgrade(slotFilter, upgradeVersions, expectedVersion);
+                    displaySlots(slots);
+                }
+            });
         }
 
         @Override
@@ -463,11 +470,14 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to TERMINATE these servers?", false);
-            if (slotFilter != null) {
-                List<Record> slots = commander.terminate(slotFilter);
-                displaySlots(slots);
-            }
+            verifySlotExecution(commander, slotFilter, "Are you sure you would like to TERMINATE these servers?", false, new SlotExecution()
+            {
+                public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
+                {
+                    List<Record> slots = commander.terminate(slotFilter, expectedVersion);
+                    displaySlots(slots);
+                }
+            });
         }
 
         @Override
@@ -491,11 +501,14 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to START these servers?", true);
-            if (slotFilter != null) {
-                List<Record> slots = commander.setState(slotFilter, RUNNING);
-                displaySlots(slots);
-            }
+            verifySlotExecution(commander, slotFilter, "Are you sure you would like to START these servers?", true, new SlotExecution()
+            {
+                public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
+                {
+                    List<Record> slots = commander.setState(slotFilter, RUNNING, expectedVersion);
+                    displaySlots(slots);
+                }
+            });
         }
     }
 
@@ -508,11 +521,14 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to STOP these servers?", true);
-            if (slotFilter != null) {
-                List<Record> slots = commander.setState(slotFilter, STOPPED);
-                displaySlots(slots);
-            }
+            verifySlotExecution(commander, slotFilter, "Are you sure you would like to STOP these servers?", true, new SlotExecution()
+            {
+                public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
+                {
+                    List<Record> slots = commander.setState(slotFilter, STOPPED, expectedVersion);
+                    displaySlots(slots);
+                }
+            });
         }
     }
 
@@ -525,11 +541,14 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to RESTART these servers?", true);
-            if (slotFilter != null) {
-                List<Record> slots = commander.setState(slotFilter, RESTARTING);
-                displaySlots(slots);
-            }
+            verifySlotExecution(commander, slotFilter, "Are you sure you would like to RESTART these servers?", true, new SlotExecution()
+            {
+                public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
+                {
+                    List<Record> slots = commander.setState(slotFilter, RESTARTING, expectedVersion);
+                    displaySlots(slots);
+                }
+            });
         }
     }
 
@@ -542,11 +561,14 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            SlotFilter slotFilter = verifySlotExecution(commander, this.slotFilter, "Are you sure you would like to reset these servers to their actual state?", true);
-            if (slotFilter != null) {
-                List<Record> slots = commander.resetExpectedState(slotFilter);
-                displaySlots(slots);
-            }
+            verifySlotExecution(commander, slotFilter, "Are you sure you would like to reset these servers to their actual state?", true, new SlotExecution()
+            {
+                public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
+                {
+                    List<Record> slots = commander.resetExpectedState(slotFilter, expectedVersion);
+                    displaySlots(slots);
+                }
+            });
         }
     }
 
