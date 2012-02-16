@@ -1,3 +1,0 @@
-#!/usr/bin/env ruby
-
-exec *([File.join(File::dirname(File::expand_path(__FILE__)), "galaxy.jar")] + ARGV)
