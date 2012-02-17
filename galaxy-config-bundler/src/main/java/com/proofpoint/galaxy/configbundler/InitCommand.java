@@ -56,8 +56,13 @@ public class InitCommand
         git.commit().setMessage("Initialize metadata")
                 .call();
 
-        git.commit().setMessage(format("Initialize with groupId '%s'", groupId))
+        // mark first commit as the template for new components
+        git.checkout()
+                .setName("template")
+                .setCreateBranch(true)
+                .setStartPoint(commit)
                 .call();
+
 
         return null;
     }

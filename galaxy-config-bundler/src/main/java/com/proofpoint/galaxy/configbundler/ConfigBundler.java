@@ -14,8 +14,9 @@ public class ConfigBundler
     {
         Cli<Callable> cli = buildCli("configgy", Callable.class)
                 .withDefaultCommand(Help.class)
-                .withCommands(ReleaseCommand.class)
-                .withCommands(InitCommand.class)
+                .withCommands(ReleaseCommand.class,
+                        InitCommand.class,
+                        AddComponentCommand.class)
                 .withCommand(Help.class)
                 .build();
 
