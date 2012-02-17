@@ -38,11 +38,4 @@ public class Metadata
         String json = JsonCodec.jsonCodec(Metadata.class).toJson(this);
         Files.write(json + "\n", file, Charsets.UTF_8);
     }
-    
-    public static Metadata load(File file)
-            throws IOException
-    {
-        String json = Files.toString(file, Charsets.UTF_8);
-        return JsonCodec.jsonCodec(Metadata.class).fromJson(json);
-    }
 }

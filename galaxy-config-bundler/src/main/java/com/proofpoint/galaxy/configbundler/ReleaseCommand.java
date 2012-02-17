@@ -3,13 +3,13 @@ package com.proofpoint.galaxy.configbundler;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.proofpoint.http.client.BodyGenerator;
+import com.proofpoint.json.JsonCodec;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.lib.Constants;
@@ -17,11 +17,11 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTag;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
 import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;
 import org.iq80.cli.Option;
@@ -34,9 +34,9 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static com.google.common.base.Objects.firstNonNull;
-import static com.google.common.collect.Iterables.filter;
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.collect.Iterables.find;
+import static com.google.common.io.CharStreams.newReaderSupplier;
 import static java.lang.String.format;
 
 
@@ -59,7 +59,26 @@ public class ReleaseCommand
     public Void call()
             throws Exception
     {
-        Metadata metadata = Metadata.load(new File(".metadata"));
+        Git git = Git.open(new File("."));
+        final Repository repository = git.getRepository();
+
+        // load metadata from HEAD of master branch
+        Ref masterBranch = repository.getRef("master");
+        RevCommit masterHeadCommit = new RevWalk(repository).parseCommit(masterBranch.getObjectId());
+
+        TreeWalk startWalk = new TreeWalk(repository);
+        startWalk.setRecursive(true);
+        startWalk.setFilter(PathFilterGroup.createFromStrings(".metadata"));
+        startWalk.addTree(masterHeadCommit.getTree());
+
+        Metadata metadata = null;
+        while (startWalk.next()) {
+            ObjectId objectId = startWalk.getObjectId(0);
+
+            String json = CharStreams.toString(newReaderSupplier(getBlob(repository, objectId), UTF_8));
+            metadata = JsonCodec.jsonCodec(Metadata.class).fromJson(json);
+        }
+
 
         if (groupId == null) {
             groupId = metadata.getGroupId();
@@ -69,8 +88,6 @@ public class ReleaseCommand
         }
 
         Preconditions.checkNotNull(repositoryId, "Repository missing and no default repository configured");
-
-        Git git = Git.open(new File("."));
 
         Status status = git.status().call();
 
@@ -82,7 +99,6 @@ public class ReleaseCommand
                 status.getConflicting().isEmpty(),
                 "Cannot release with a dirty working tree");
 
-        final Repository repository = git.getRepository();
         if (component == null) {
             // infer component from current branch
             String currentBranch = repository.getRef(Constants.HEAD).getTarget().getName();
