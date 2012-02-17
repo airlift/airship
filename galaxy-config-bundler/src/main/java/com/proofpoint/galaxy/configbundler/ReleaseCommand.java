@@ -121,7 +121,7 @@ public class ReleaseCommand
         MavenRepository mavenRepository = new Maven().getRepository(repositoryId);
         // TODO: handle errors getting uploader (e.g., repo does not exist, does not have credentials)
 
-        if (latestTag != null && getCommit(repository, latestTag).equals(headCommit)) {
+        if (latestTag != null && GitUtils.getCommit(repository, latestTag).equals(headCommit)) {
             // check if artifact exists in repo
             if (mavenRepository.contains(groupId, component, Integer.toString(version), ARTIFACT_TYPE)) {
                 throw new RuntimeException(format("%s-%s has already been released", component, version));
@@ -159,19 +159,6 @@ public class ReleaseCommand
     }
 
 
-    private RevCommit getCommit(Repository repository, Ref tag)
-    {
-        RevWalk revWalk = new RevWalk(repository);
-        try {
-            return revWalk.parseCommit(firstNonNull(tag.getPeeledObjectId(), tag.getObjectId()));
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-        finally {
-            revWalk.release();
-        }
-    }
 
     private Ref getLatestTag(Repository repository, String component)
     {
