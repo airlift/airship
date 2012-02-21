@@ -1,9 +1,12 @@
 package com.proofpoint.galaxy.cli;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.HttpUriBuilder;
+import com.proofpoint.galaxy.shared.Repository;
 import org.iq80.cli.Option;
 
 import java.net.URI;
@@ -29,9 +32,12 @@ public class AgentFilter
     @Option(name = "--all", description = "Select all agents")
     public boolean selectAll;
 
-    public Predicate<AgentStatus> toAgentPredicate(List<UUID> allUuids)
+    // assignable filters can not be set via the CLI
+    public final List<Assignment> assignableFilters = Lists.newArrayList();
+
+    public Predicate<AgentStatus> toAgentPredicate(List<UUID> allUuids, boolean allowDuplicateInstallationsOnAnAgent, Repository repository)
     {
-        return createFilterBuilder().build(allUuids);
+        return createFilterBuilder().build(allUuids, allowDuplicateInstallationsOnAnAgent, repository);
     }
 
     public URI toUri(URI baseUri)
@@ -59,6 +65,9 @@ public class AgentFilter
         for (String slotUuidGlob : slotUuid) {
             agentFilterBuilder.addSlotUuidGlobFilter(slotUuidGlob);
         }
+        for (Assignment assignment : assignableFilters) {
+            agentFilterBuilder.addAssignableFilter(assignment);
+        }
         if (selectAll) {
             agentFilterBuilder.selectAll();
         }
@@ -74,6 +83,7 @@ public class AgentFilter
         sb.append(", host=").append(host);
         sb.append(", slotUuid=").append(slotUuid);
         sb.append(", state=").append(state);
+        sb.append(", assignableFilters=").append(assignableFilters);
         sb.append(", selectAll=").append(selectAll);
         sb.append('}');
         return sb.toString();

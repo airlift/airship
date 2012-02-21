@@ -1,37 +1,43 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
+import com.proofpoint.galaxy.shared.Repository;
+import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
 import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENTS_VERSION_HEADER;
+import static com.proofpoint.galaxy.shared.VersionsUtil.createAgentsVersion;
 
 @Path("/v1/admin/")
 public class AdminResource
 {
     private final Coordinator coordinator;
+    private final Repository repository;
 
     @Inject
-    public AdminResource(Coordinator coordinator)
+    public AdminResource(Coordinator coordinator, Repository repository)
     {
         this.coordinator = coordinator;
+        this.repository = repository;
     }
 
     @GET
@@ -69,8 +75,15 @@ public class AdminResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllAgents(@Context UriInfo uriInfo)
     {
-        List<AgentStatus> agents = coordinator.getAllAgentStatus();
-        return Response.ok(transform(agents, fromAgentStatus())).build();
+        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
+        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
+        Predicate<AgentStatus> agentPredicate = AgentFilterBuilder.build(uriInfo, uuids, false, repository);
+
+        List<AgentStatus> agents = coordinator.getAgents(agentPredicate);
+
+        return Response.ok(transform(agents, fromAgentStatus()))
+                .header(GALAXY_AGENTS_VERSION_HEADER, createAgentsVersion(agents))
+                .build();
     }
 
     @POST

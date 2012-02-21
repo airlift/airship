@@ -51,8 +51,8 @@ public class TestCoordinator
                 provisioner,
                 new InMemoryStateManager(),
                 new MockServiceInventory(),
-                statusExpiration
-        );
+                statusExpiration,
+                false);
 
     }
 

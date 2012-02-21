@@ -14,6 +14,8 @@ public class VersionsUtil
 {
     public static final String GALAXY_SLOTS_VERSION_HEADER = "x-galaxy-slots-version";
     public static final String GALAXY_SLOT_VERSION_HEADER = "x-galaxy-slot-version";
+
+    public static final String GALAXY_AGENTS_VERSION_HEADER = "x-galaxy-agents-version";
     public static final String GALAXY_AGENT_VERSION_HEADER = "x-galaxy-agent-version";
 
     private VersionsUtil()
@@ -33,10 +35,16 @@ public class VersionsUtil
         }
     }
 
-    public static void checkSlotsVersion(String expectedSlotsVersion, Iterable<SlotStatus> allSlotStatus)
+    public static void checkSlotsVersion(String expectedSlotsVersion, Iterable<SlotStatus> slotStatuses)
     {
-        String actualSlotsVersion = createSlotsVersion(allSlotStatus);
-        if (expectedSlotsVersion != null && !expectedSlotsVersion.equals(actualSlotsVersion)) {
+        Preconditions.checkNotNull(slotStatuses, "slotStatuses is null");
+
+        if (expectedSlotsVersion == null) {
+            return;
+        }
+
+        String actualSlotsVersion = createSlotsVersion(slotStatuses);
+        if (!expectedSlotsVersion.equals(actualSlotsVersion)) {
             throw new VersionConflictException(GALAXY_SLOTS_VERSION_HEADER, actualSlotsVersion);
         }
     }
@@ -54,6 +62,20 @@ public class VersionsUtil
         }
     }
 
+    public static void checkAgentsVersion(String expectedAgentsVersion, Iterable<AgentStatus> agentStatuses)
+    {
+        Preconditions.checkNotNull(agentStatuses, "agentStatuses is null");
+
+        if (expectedAgentsVersion == null) {
+            return;
+        }
+
+        String actualAgentsVersion = createAgentsVersion(agentStatuses);
+        if (!expectedAgentsVersion.equals(actualAgentsVersion)) {
+            throw new VersionConflictException(GALAXY_AGENTS_VERSION_HEADER, actualAgentsVersion);
+        }
+    }
+
     public static String createSlotVersion(UUID id, SlotLifecycleState state, Assignment assignment)
     {
         String data = Joiner.on("||").useForNull("--NULL--").join(id, state, assignment);
@@ -62,6 +84,8 @@ public class VersionsUtil
 
     public static String createSlotsVersion(Iterable<SlotStatus> slots)
     {
+        Preconditions.checkNotNull(slots, "slots is null");
+
         // canonicalize slot order
         Map<UUID, String> slotVersions = new TreeMap<UUID, String>();
         for (SlotStatus slot : slots) {
@@ -89,4 +113,16 @@ public class VersionsUtil
         String data = Joiner.on("||").useForNull("--NULL--").join(parts);
         return DigestUtils.md5Hex(data);
     }
+    
+    public static String createAgentsVersion(Iterable<AgentStatus> agents)
+    {
+        Preconditions.checkNotNull(agents, "agents is null");
+
+        // canonicalize agent order
+        Map<String, String> agentVersions = new TreeMap<String, String>();
+        for (AgentStatus agent : agents) {
+            agentVersions.put(agent.getAgentId(), agent.getVersion());
+        }
+        return DigestUtils.md5Hex(agentVersions.values().toString());
+    }    
 }

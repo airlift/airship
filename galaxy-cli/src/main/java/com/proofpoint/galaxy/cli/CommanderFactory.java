@@ -198,9 +198,10 @@ public class CommanderFactory
                 provisioner,
                 stateManager,
                 serviceInventory,
-                new Duration(100, TimeUnit.DAYS));
+                new Duration(100, TimeUnit.DAYS),
+                true);
 
-        return new LocalCommander(new File(slotsDir), coordinator, serviceInventory);
+        return new LocalCommander(new File(slotsDir), coordinator, repository, serviceInventory);
     }
 
     private class LocalProvisioner implements Provisioner

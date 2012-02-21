@@ -10,7 +10,7 @@ public interface Commander
 {
     CommanderResponse<List<Record>> show(SlotFilter slotFilter);
 
-    List<Record> install(AgentFilter agentFilter, int count, Assignment assignment);
+    List<Record> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedVersion);
 
     List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion);
 
@@ -35,8 +35,7 @@ public interface Commander
 
     boolean sshCoordinator(CoordinatorFilter coordinatorFilter, String command);
 
-    List<Record> showAgents(AgentFilter agentFilter)
-            throws Exception;
+    CommanderResponse<List<Record>> showAgents(AgentFilter agentFilter);
 
     List<Record> provisionAgents(String agentConfig,
             int agentCount,

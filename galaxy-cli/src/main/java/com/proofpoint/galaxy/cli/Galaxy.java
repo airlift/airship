@@ -54,6 +54,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -244,6 +245,9 @@ public class Galaxy
             // show effected slots
             CommanderResponse<List<Record>> response = commander.show(slotFilter);
             displaySlots(response.getValue());
+            if (response.getValue().isEmpty()) {
+                return;
+            }
             System.out.println();
 
             // ask to continue
@@ -386,7 +390,47 @@ public class Galaxy
             }
 
             Assignment assignment = new Assignment(binary, config);
-            List<Record> slots = commander.install(agentFilter, count, assignment);
+
+            // add assignment to agent filter
+            agentFilter.assignableFilters.add(assignment);
+
+            if (globalOptions.batch) {
+                List<Record> slots = commander.install(agentFilter, count, assignment, null);
+                displaySlots(slots);
+            }
+
+            // select agents
+            CommanderResponse<List<Record>> response = commander.showAgents(agentFilter);
+            List<Record> agents = response.getValue();
+            if (agents.isEmpty()) {
+                System.out.println("No agents match the provided filters, matched the software constrains or had the required resources available for the software");
+                return;
+            }
+
+            // limit count
+            if (agents.size() > count) {
+                agents = newArrayList(agents);
+                Collections.shuffle(agents);
+                agents = agents.subList(0, count);
+            }
+
+            // show effected agents
+            displayAgents(agents);
+            System.out.println();
+
+            // ask to continue
+            if (!ask("Are you sure you would like to INSTALL these on these agents?", true)) {
+                return;
+            }
+
+            // build filter for only the shown agents
+            AgentFilter uuidFilter = new AgentFilter();
+            for (Record agent : agents) {
+                uuidFilter.uuid.add(agent.getValue(uuid));
+            }
+
+            // install software
+            List<Record> slots = commander.install(agentFilter, count, assignment, response.getVersion());
             displaySlots(slots);
         }
 
@@ -726,8 +770,8 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
-            List<Record> agents = commander.showAgents(agentFilter);
-            displayAgents(agents);
+            CommanderResponse<List<Record>> response = commander.showAgents(agentFilter);
+            displayAgents(response.getValue());
         }
 
         @Override

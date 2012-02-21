@@ -8,11 +8,13 @@ import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import org.fusesource.jansi.Ansi.Color;
 
+import java.util.List;
+
 import static com.proofpoint.galaxy.cli.Ansi.colorize;
 
 public class AgentRecord implements Record
 {
-    public static ImmutableList<Record> toAgentRecords(Iterable<AgentStatusRepresentation> agents)
+    public static List<Record> toAgentRecords(Iterable<AgentStatusRepresentation> agents)
     {
         return ImmutableList.copyOf(Iterables.transform(agents, new Function<AgentStatusRepresentation, Record>()
         {

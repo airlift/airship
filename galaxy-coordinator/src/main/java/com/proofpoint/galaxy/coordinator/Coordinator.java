@@ -13,7 +13,6 @@ import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.InputSupplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptor;
@@ -24,6 +23,7 @@ import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
 import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.InstallationUtils;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -34,8 +34,6 @@ import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,9 +41,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -59,7 +54,6 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.galaxy.shared.ConfigUtils.newConfigEntrySupplier;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -81,6 +75,7 @@ public class Coordinator
     private final RemoteAgentFactory remoteAgentFactory;
     private final ServiceInventory serviceInventory;
     private final StateManager stateManager;
+    private final boolean allowDuplicateInstallationsOnAnAgent;
 
     @Inject
     public Coordinator(NodeInfo nodeInfo,
@@ -96,8 +91,8 @@ public class Coordinator
                 provisioner,
                 stateManager,
                 serviceInventory,
-                checkNotNull(config, "config is null").getStatusExpiration()
-        );
+                checkNotNull(config, "config is null").getStatusExpiration(),
+                false);
     }
 
     public Coordinator(String environment,
@@ -106,7 +101,8 @@ public class Coordinator
             Provisioner provisioner,
             StateManager stateManager,
             ServiceInventory serviceInventory,
-            Duration statusExpiration)
+            Duration statusExpiration,
+            boolean allowDuplicateInstallationsOnAnAgent)
     {
         Preconditions.checkNotNull(environment, "environment is null");
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
@@ -123,6 +119,7 @@ public class Coordinator
         this.stateManager = stateManager;
         this.serviceInventory = serviceInventory;
         this.statusExpiration = statusExpiration;
+        this.allowDuplicateInstallationsOnAnAgent = allowDuplicateInstallationsOnAnAgent;
 
         timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
 
@@ -219,11 +216,9 @@ public class Coordinator
 
     public List<AgentStatus> getAgents(Predicate<AgentStatus> agentFilter)
     {
-        ImmutableList.Builder<AgentStatus> builder = ImmutableList.builder();
-        for (RemoteAgent remoteAgent : filter(this.agents.values(), filterAgentsBy(agentFilter))) {
-            builder.add(remoteAgent.status());
-        }
-        return builder.build();
+        Iterable<RemoteAgent> remoteAgents = filter(this.agents.values(), filterAgentsBy(agentFilter));
+        List<AgentStatus> agentStatuses = ImmutableList.copyOf(transform(remoteAgents, getAgentStatus()));
+        return agentStatuses;
     }
 
     public AgentStatus getAgentStatus(String agentId)
@@ -345,45 +340,16 @@ public class Coordinator
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
-        // resolve assignment
-        assignment = assignment.resolve(repository);
+        Installation installation = InstallationUtils.toInstallation(repository, assignment);
 
-        // load resources
-        Map<String, Integer> resources = readResources(assignment);
-
-        // create installation
-        URI binaryUri = repository.binaryToHttpUri(assignment.getBinary());
-        Preconditions.checkNotNull(binaryUri, "Unknown binary %s", binaryUri);
-        URI configUri = repository.configToHttpUri(assignment.getConfig());
-        Preconditions.checkNotNull(configUri, "Unknown config %s", configUri);
-        Installation installation = new Installation(
-                repository.configShortName(assignment.getConfig()),
-                assignment,
-                binaryUri,
-                configUri,
-                resources);
-
-        List<SlotStatus> slots = newArrayList();
-        List<RemoteAgent> agents = newArrayList(filter(this.agents.values(), Predicates.and(filterAgentsBy(filter), filterAgentsWithAssignment(assignment))));
+        List<RemoteAgent> targetAgents = selectAgents(filter, installation);
 
         // randomize agents so all processes don't end up on the same node
         // todo sort agents by number of process already installed on them
-        Collections.shuffle(agents);
-        for (RemoteAgent agent : agents) {
+        List<SlotStatus> slots = newArrayList();
+        for (RemoteAgent agent : targetAgents) {
             if (slots.size() >= limit) {
                 break;
-            }
-
-            // verify agent state
-            AgentStatus status = agent.status();
-            if (status.getState() != ONLINE) {
-                continue;
-            }
-
-            // verify that required resources are available
-            Map<String, Integer> availableResources = getAvailableResources(status);
-            if (!resourcesAreAvailable(availableResources, installation.getResources())) {
-                continue;
             }
 
             // install
@@ -394,47 +360,32 @@ public class Coordinator
         return ImmutableList.copyOf(slots);
     }
 
-    private boolean resourcesAreAvailable(Map<String, Integer> availableResources, Map<String, Integer> requiredResources)
+    private List<RemoteAgent> selectAgents(Predicate<AgentStatus> filter, Installation installation)
     {
-        for (Entry<String, Integer> entry : requiredResources.entrySet()) {
-            int available = Objects.firstNonNull(availableResources.get(entry.getKey()), 0);
-            if (available < entry.getValue()) {
-                return false;
-            }
+        // randomize agents so all processes don't end up on the same node
+        // todo sort agents by number of process already installed on them
+        List<RemoteAgent> targetAgents = newArrayList();
+        List<RemoteAgent> allAgents = newArrayList(filter(this.agents.values(), filterAgentsBy(filter)));
+        if (!allowDuplicateInstallationsOnAnAgent) {
+            allAgents = newArrayList(filter(this.agents.values(), filterAgentsWithAssignment(installation)));
         }
-        return true;
-    }
-
-    public static Map<String, Integer> getAvailableResources(AgentStatus agentStatus)
-    {
-        Map<String, Integer> availableResources = new TreeMap<String, Integer>(agentStatus.getResources());
-        for (SlotStatus slotStatus : agentStatus.getSlotStatuses()) {
-            for (Entry<String, Integer> entry : slotStatus.getResources().entrySet()) {
-                int value = Objects.firstNonNull(availableResources.get(entry.getKey()), 0);
-                availableResources.put(entry.getKey(), value - entry.getValue());
+        Collections.shuffle(allAgents);
+        for (RemoteAgent agent : allAgents) {
+            // verify agent state
+            AgentStatus status = agent.status();
+            if (status.getState() != ONLINE) {
+                continue;
             }
+
+            // verify that required resources are available
+            Map<String, Integer> availableResources = InstallationUtils.getAvailableResources(status);
+            if (!InstallationUtils.resourcesAreAvailable(availableResources, installation.getResources())) {
+                continue;
+            }
+
+            targetAgents.add(agent);
         }
-        return availableResources;
-    }
-
-
-    private Map<String, Integer> readResources(Assignment assignment)
-    {
-        ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
-
-        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(repository, assignment.getConfig(), "galaxy-resources.properties");
-        if (resourcesFile != null) {
-            try {
-                Properties resources = new Properties();
-                resources.load(resourcesFile.getInput());
-                for (Entry<Object, Object> entry : resources.entrySet()) {
-                    builder.put((String) entry.getKey(), Integer.valueOf((String) entry.getValue()));
-                }
-            }
-            catch (IOException ignored) {
-            }
-        }
-        return builder.build();
+        return targetAgents;
     }
 
     public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions)
@@ -668,9 +619,23 @@ public class Coordinator
             }
         };
     }
-
-    private Predicate<RemoteAgent> filterAgentsWithAssignment(final Assignment assignment)
+    private Function<RemoteAgent, AgentStatus> getAgentStatus()
     {
+        return new Function<RemoteAgent, AgentStatus>()
+        {
+            @Override
+            public AgentStatus apply(RemoteAgent agent)
+            {
+                return agent.status();
+            }
+        };
+    }
+
+    private Predicate<RemoteAgent> filterAgentsWithAssignment(final Installation installation)
+    {
+        Preconditions.checkNotNull(installation, "installation is null");
+        final Assignment assignment = installation.getAssignment();
+
         return new Predicate<RemoteAgent>()
         {
             @Override

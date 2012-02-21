@@ -35,6 +35,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
 import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.cli.HttpCommander.TextBodyGenerator.textBodyGenerator;
+import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENTS_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
 
@@ -75,16 +76,18 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<Record> install(AgentFilter agentFilter, int count, Assignment assignment)
+    public List<Record> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedVersion)
     {
         URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
-        Request request = RequestBuilder.preparePost()
+        RequestBuilder requestBuilder = RequestBuilder.preparePost()
                 .setUri(uri)
                 .setHeader("Content-Type", "application/json")
-                .setBodyGenerator(jsonBodyGenerator(ASSIGNMENT_CODEC, AssignmentRepresentation.from(assignment)))
-                .build();
+                .setBodyGenerator(jsonBodyGenerator(ASSIGNMENT_CODEC, AssignmentRepresentation.from(assignment)));
+        if (expectedVersion != null) {
+            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+        }
 
-        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
         ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
         return records;
     }
@@ -264,17 +267,16 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<Record> showAgents(AgentFilter agentFilter)
-            throws Exception
+    public CommanderResponse<List<Record>> showAgents(AgentFilter agentFilter)
     {
         URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent"));
         Request request = RequestBuilder.prepareGet()
                 .setUri(uri)
                 .build();
 
-        List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
-        ImmutableList<Record> records = AgentRecord.toAgentRecords(agents);
-        return records;
+        JsonResponse<List<AgentStatusRepresentation>> response = client.execute(request, FullJsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
+        List<Record> records = AgentRecord.toAgentRecords(response.getValue());
+        return CommanderResponse.createCommanderResponse(response.getHeader(GALAXY_AGENTS_VERSION_HEADER), records);
     }
 
     @Override
@@ -312,7 +314,7 @@ public class HttpCommander implements Commander
             }
             agents = waitForAgentsToStart(instanceIds);
         }
-        ImmutableList<Record> records = AgentRecord.toAgentRecords(agents);
+        List<Record> records = AgentRecord.toAgentRecords(agents);
         return records;
     }
 

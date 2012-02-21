@@ -4,18 +4,29 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.HttpUriBuilder;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.InstallationUtils.getAvailableResources;
+import static com.proofpoint.galaxy.shared.InstallationUtils.resourcesAreAvailable;
+import static com.proofpoint.galaxy.shared.InstallationUtils.toInstallation;
 
 public class AgentFilterBuilder
 {
@@ -25,6 +36,11 @@ public class AgentFilterBuilder
     }
 
     public static Predicate<AgentStatus> build(UriInfo uriInfo, List<UUID> allUuids)
+    {
+        return build(uriInfo, allUuids, false, null);
+    }
+
+    public static Predicate<AgentStatus> build(UriInfo uriInfo, List<UUID> allUuids, boolean allowDuplicateInstallationsOnAnAgent, Repository repository)
     {
         AgentFilterBuilder builder = new AgentFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
@@ -48,17 +64,26 @@ public class AgentFilterBuilder
                     builder.addSlotUuidGlobFilter(uuidGlob);
                 }
             }
+            else if ("assignable".equals(entry.getKey())) {
+                Preconditions.checkArgument(repository != null, "repository is null");
+                for (String assignment : entry.getValue()) {
+                    List<String> split = ImmutableList.copyOf(Splitter.on("@").limit(2).split(assignment));
+                    Preconditions.checkArgument(split.size() == 2, "Invalid canInstall filter %s", assignment);
+                    builder.addAssignableFilter(new Assignment(split.get(0), "@" + split.get(1)));
+                }
+            }
             else if ("all".equals(entry.getKey())) {
                 builder.selectAll();
             }
         }
-        return builder.build(allUuids);
+        return builder.build(allUuids, allowDuplicateInstallationsOnAnAgent, repository);
     }
 
     private final List<String> uuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<AgentLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> slotUuidGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<Assignment> assignableFilters = Lists.newArrayListWithCapacity(6);
     private boolean selectAll;
 
     public void addUuidFilter(String uuid)
@@ -87,12 +112,20 @@ public class AgentFilterBuilder
         hostGlobs.add(hostGlob);
     }
 
+    public void addAssignableFilter(Assignment assignment)
+    {
+        Preconditions.checkNotNull(assignment, "assignment is null");
+        assignableFilters.add(assignment);
+    }
+
     public void selectAll()
     {
         this.selectAll = true;
     }
 
-    public Predicate<AgentStatus> build(final List<UUID> allUuids)
+    public Predicate<AgentStatus> build(final List<UUID> allUuids,
+            final boolean allowDuplicateInstallationsOnAnAgent,
+            final Repository repository)
     {
         // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<AgentStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
@@ -140,6 +173,17 @@ public class AgentFilterBuilder
             }));
             andPredicates.add(predicate);
         }
+        if (!assignableFilters.isEmpty()) {
+            Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(assignableFilters, new Function<Assignment, AssignablePredicate>()
+            {
+                @Override
+                public AssignablePredicate apply(Assignment assignment)
+                {
+                    return new AssignablePredicate(assignment, allowDuplicateInstallationsOnAnAgent, repository);
+                }
+            }));
+            andPredicates.add(predicate);
+        }
 
         if (selectAll) {
             return Predicates.alwaysTrue();
@@ -171,6 +215,9 @@ public class AgentFilterBuilder
         }
         for (String shortId : slotUuidGlobs) {
             uriBuilder.addParameter("slotUuid", shortId);
+        }
+        for (Assignment assignment : assignableFilters) {
+            uriBuilder.addParameter("assignable", assignment.getBinary() + assignment.getConfig());
         }
         if (selectAll) {
             uriBuilder.addParameter("all");
@@ -252,7 +299,49 @@ public class AgentFilterBuilder
         @Override
         public boolean apply(@Nullable AgentStatus agentStatus)
         {
-            return agentStatus.getState() == state;
+            return agentStatus != null && agentStatus.getState() == state;
+        }
+    }
+
+    private static class AssignablePredicate implements Predicate<AgentStatus>
+    {
+        private final Assignment assignment;
+        private final boolean allowDuplicateInstallationsOnAnAgent;
+        private final Repository repository;
+
+        public AssignablePredicate(Assignment assignment, boolean allowDuplicateInstallationsOnAnAgent, Repository repository)
+        {
+            this.assignment = assignment;
+            this.allowDuplicateInstallationsOnAnAgent = allowDuplicateInstallationsOnAnAgent;
+            this.repository = repository;
+        }
+
+        @Override
+        public boolean apply(@Nullable AgentStatus status)
+        {
+            // We can only install on online agents
+            if (status.getState() != ONLINE) {
+                return false;
+            }
+
+            // Constraints: normally we only allow only instance of a binary+config on each agent
+            if (!allowDuplicateInstallationsOnAnAgent) {
+                for (SlotStatus slot : status.getSlotStatuses()) {
+                    if (repository.binaryEqualsIgnoreVersion(assignment.getBinary(), slot.getAssignment().getBinary()) &&
+                            repository.configEqualsIgnoreVersion(assignment.getConfig(), slot.getAssignment().getConfig())) {
+                        return false;
+                    }
+                }
+            }
+
+            // verify that required resources are available
+            Installation installation = toInstallation(repository, assignment);
+            Map<String, Integer> availableResources = getAvailableResources(status);
+            if (!resourcesAreAvailable(availableResources, installation.getResources())) {
+                return false;
+            }
+
+            return true;
         }
     }
 }
