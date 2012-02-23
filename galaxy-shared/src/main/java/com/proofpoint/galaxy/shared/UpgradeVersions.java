@@ -38,12 +38,17 @@ public class UpgradeVersions
         String binary = assignment.getBinary();
         if (binaryVersion != null) {
             binary = repository.binaryUpgrade(binary, binaryVersion);
-            Preconditions.checkArgument(binary != null, "Can not upgrade binary " + binary + " to " + binaryVersion);
+            Preconditions.checkArgument(binary != null, "Can not upgrade binary " + assignment.getBinary() + " to " + binaryVersion);
+        } else{
+            Preconditions.checkArgument(repository.binaryToHttpUri(assignment.getBinary()) != null, "Can not locate existing binary " + assignment.getBinary() + " for upgrade");            
         }
+        
         String config = assignment.getConfig();
         if (configVersion != null) {
             config = repository.configUpgrade(config, configVersion);
-            Preconditions.checkArgument(binary != null, "Can not upgrade config " + config + " to " + configVersion);
+            Preconditions.checkArgument(config != null, "Can not upgrade config " + assignment.getConfig() + " to " + configVersion);
+        } else {
+            Preconditions.checkArgument(repository.configToHttpUri(assignment.getConfig()) != null, "Can not locate existing config " + assignment.getConfig() + " for upgrade");
         }
 
         return new Assignment(binary, config);
