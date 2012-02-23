@@ -17,9 +17,14 @@ public class Strings
 {
     public static int shortestUniquePrefix(Collection<String> strings)
     {
+        return shortestUniquePrefix(strings, 0);
+    }
+
+    public static int shortestUniquePrefix(Collection<String> strings, int minSize)
+    {
         Preconditions.checkNotNull(strings, "strings is null");
         if (strings.isEmpty()) {
-            return 0;
+            return minSize;
         }
 
         SortedSet<String> sorted = Sets.newTreeSet(strings);
@@ -27,10 +32,11 @@ public class Strings
             throw new IllegalArgumentException("Cannot compute unique prefix size for collection with duplicate entries");
         }
 
-        return shortestUniquePrefix(ImmutableList.copyOf(sorted), 0);
+        int prefix = shortestUniquePrefixStartingAt(ImmutableList.copyOf(sorted), 0);
+        return max(prefix, minSize);
     }
 
-    private static int shortestUniquePrefix(List<String> strings, int charPosition)
+    private static int shortestUniquePrefixStartingAt(List<String> strings, int charPosition)
     {
         Preconditions.checkArgument(!strings.isEmpty(), "strings is empty");
         Preconditions.checkArgument(charPosition < Collections.max(transform(strings, lengthGetter())),
@@ -68,7 +74,7 @@ public class Strings
             if (currentChar != commonChar) {
                 if (index - sequenceStart > 1) {
                     // only recurse if we have more than one item to process in the sequence
-                    result = max(result, shortestUniquePrefix(strings.subList(sequenceStart, index), charPosition + 1) + 1);
+                    result = max(result, shortestUniquePrefixStartingAt(strings.subList(sequenceStart, index), charPosition + 1) + 1);
                 }
 
                 sequenceStart = index;
@@ -78,7 +84,7 @@ public class Strings
 
         // deal with the last sequence
         if (candidates > 1 && strings.size() - sequenceStart > 1) {
-            result = max(result, shortestUniquePrefix(strings.subList(sequenceStart, strings.size()), charPosition + 1) + 1);
+            result = max(result, shortestUniquePrefixStartingAt(strings.subList(sequenceStart, strings.size()), charPosition + 1) + 1);
         }
 
         return result;

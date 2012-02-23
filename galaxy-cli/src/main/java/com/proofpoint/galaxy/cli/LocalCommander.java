@@ -7,7 +7,6 @@ import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.ServiceInventory;
-import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
@@ -17,14 +16,15 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
-import com.proofpoint.galaxy.shared.VersionsUtil;
 import com.proofpoint.json.JsonCodec;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
 import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
 import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
@@ -40,7 +40,6 @@ import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentsVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.createAgentsVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
-import static java.lang.Math.max;
 
 public class LocalCommander implements Commander
 {
@@ -64,7 +63,7 @@ public class LocalCommander implements Commander
     {
         List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
         List<UUID> uuids = transform(allSlotStatus, SlotStatus.uuidGetter());
-        final int prefixSize = getPrefixSize(uuids);
+        final int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
@@ -80,9 +79,7 @@ public class LocalCommander implements Commander
     public List<Record> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedAgentsVersion)
     {
         // select the target agents
-        Predicate<AgentStatus> agentsPredicate = agentFilter.toAgentPredicate(transform(coordinator.getAllSlotStatus(), uuidGetter()),
-                false,
-                repository);
+        Predicate<AgentStatus> agentsPredicate = agentFilter.toAgentPredicate(transform(coordinator.getAllSlotStatus(), uuidGetter()), false, repository);
         List<AgentStatus> agents = coordinator.getAgents(agentsPredicate);
 
         // verify the expected status of agents
@@ -95,97 +92,94 @@ public class LocalCommander implements Commander
         updateServiceInventory();
 
         // calculate unique prefix size with the new slots included
-        int uniquePrefixSize = max(shortestUniquePrefix(transform(transform(coordinator.getAllSlotStatus(), uuidGetter()), toStringFunction())), MIN_PREFIX_SIZE);
-
+        int uniquePrefixSize = shortestUniquePrefix(transform(transform(coordinator.getAllSlotStatus(), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
         return toSlotRecords(uniquePrefixSize, slots);
     }
 
     @Override
-    public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion)
+    public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedSlotsVersion)
     {
-        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
-        VersionsUtil.checkSlotsVersion(expectedVersion, allSlotStatus);
-
-        List<UUID> uuids = transform(allSlotStatus, SlotStatus.uuidGetter());
-        final int prefixSize = getPrefixSize(uuids);
-
+        // build predicate
+        List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
-        List<SlotStatus> slots = coordinator.upgrade(slotPredicate, upgradeVersions);
+
+        // upgrade slots
+        List<SlotStatus> slots = coordinator.upgrade(slotPredicate, upgradeVersions, expectedSlotsVersion);
 
         // update to latest state
         updateServiceInventory();
 
+        // build results
+        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
         return toSlotRecords(prefixSize, slots);
     }
 
     @Override
-    public List<Record> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedVersion)
+    public List<Record> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedSlotsVersion)
     {
-        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
-        VersionsUtil.checkSlotsVersion(expectedVersion, allSlotStatus);
-
-        List<UUID> uuids = transform(allSlotStatus, SlotStatus.uuidGetter());
-        final int prefixSize = getPrefixSize(uuids);
-
+        // build predicate
+        List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
         // before changing state (like starting) update just in case something changed
         updateServiceInventory();
 
-        Iterable<SlotStatus> slots = coordinator.setState(state, slotPredicate);
+        // set slots state
+        Iterable<SlotStatus> slots = coordinator.setState(state, slotPredicate, expectedSlotsVersion);
 
         // update to latest state
         updateServiceInventory();
 
+        // build results
+        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
         return toSlotRecords(prefixSize, slots);
     }
 
     @Override
-    public List<Record> terminate(SlotFilter slotFilter, String expectedVersion)
+    public List<Record> terminate(SlotFilter slotFilter, String expectedSlotsVersion)
     {
-        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
-        VersionsUtil.checkSlotsVersion(expectedVersion, allSlotStatus);
-
-        List<UUID> uuids = transform(allSlotStatus, SlotStatus.uuidGetter());
-        final int prefixSize = getPrefixSize(uuids);
-
+        // build predicate
+        List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
-        Iterable<SlotStatus> slots = coordinator.terminate(slotPredicate);
+        // terminate slots
+        Iterable<SlotStatus> slots = coordinator.terminate(slotPredicate, expectedSlotsVersion);
 
         // update to latest state
         updateServiceInventory();
 
+        // build results
+        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
         return toSlotRecords(prefixSize, slots);
     }
 
     @Override
-    public List<Record> resetExpectedState(SlotFilter slotFilter, String expectedVersion)
+    public List<Record> resetExpectedState(SlotFilter slotFilter, String expectedSlotsVersion)
     {
-        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
-        VersionsUtil.checkSlotsVersion(expectedVersion, allSlotStatus);
-
-        List<UUID> uuids = transform(allSlotStatus, SlotStatus.uuidGetter());
-        final int prefixSize = getPrefixSize(uuids);
-
+        // build predicate
+        List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
-        Iterable<SlotStatus> slots = coordinator.resetExpectedState(slotPredicate);
+        // rest slots expected state
+        Iterable<SlotStatus> slots = coordinator.resetExpectedState(slotPredicate, expectedSlotsVersion);
 
         // update just in case something changed
         updateServiceInventory();
 
+        // build results
+        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
         return toSlotRecords(prefixSize, slots);
     }
 
     @Override
     public boolean ssh(SlotFilter slotFilter, String command)
     {
+        // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
-
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
-        List<SlotStatusWithExpectedState> slots = coordinator.getAllSlotStatusWithExpectedState(slotPredicate);
+        // find the matching slots
+        List<SlotStatusWithExpectedState> slots = newArrayList(coordinator.getAllSlotStatusWithExpectedState(slotPredicate));
 
         // update just in case something changed
         updateServiceInventory();
@@ -193,6 +187,9 @@ public class LocalCommander implements Commander
         if (slots.isEmpty()) {
             return false;
         }
+
+        // execute the command against one of the slots
+        Collections.shuffle(slots);
         Exec.execLocal(SlotStatusRepresentation.from(slots.get(0)), command);
         return true;
     }
@@ -278,17 +275,5 @@ public class LocalCommander implements Commander
         catch (IOException e) {
             System.out.println("Unable to write " + serviceInventoryFile);
         }
-    }
-
-    public static int getPrefixSize(List<UUID> uuids)
-    {
-        final int prefixSize;
-        if (!uuids.isEmpty()) {
-            prefixSize = max(MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
-        }
-        else {
-            prefixSize = MIN_PREFIX_SIZE;
-        }
-        return prefixSize;
     }
 }

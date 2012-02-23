@@ -59,6 +59,7 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotsVersion;
 
 public class Coordinator
 {
@@ -388,11 +389,17 @@ public class Coordinator
         return targetAgents;
     }
 
-    public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions)
+    public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions, String expectedSlotsVersion)
     {
+        // filter the slots
+        List<RemoteSlot> filteredSlots = ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)));
+
+        // verify the state of the system hasn't changed
+        checkSlotsVersion(expectedSlotsVersion, transform(filteredSlots, getSlotStatus()));
+
         HashSet<Assignment> newAssignments = new HashSet<Assignment>();
         List<RemoteSlot> slotsToUpgrade = new ArrayList<RemoteSlot>();
-        for (RemoteSlot slot : ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)))) {
+        for (RemoteSlot slot : filteredSlots) {
             SlotStatus status = slot.status();
             SlotLifecycleState state = status.getState();
             if (state != TERMINATED && state != UNKNOWN) {
@@ -433,30 +440,40 @@ public class Coordinator
         }));
     }
 
-    public List<SlotStatus> terminate(Predicate<SlotStatus> filter)
+    public List<SlotStatus> terminate(Predicate<SlotStatus> filter, String expectedSlotsVersion)
     {
         Preconditions.checkNotNull(filter, "filter is null");
 
+        // filter the slots
+        List<RemoteSlot> filteredSlots = ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)));
+
+        // verify the state of the system hasn't changed
+        checkSlotsVersion(expectedSlotsVersion, transform(filteredSlots, getSlotStatus()));
+
         ImmutableList.Builder<SlotStatus> builder = ImmutableList.builder();
-        for (RemoteAgent agent : agents.values()) {
-            for (RemoteSlot slot : agent.getSlots()) {
-                if (filter.apply(slot.status())) {
-                    SlotStatus slotStatus = slot.terminate();
-                    if (slotStatus.getState() == TERMINATED) {
-                        stateManager.deleteExpectedState(slotStatus.getId());
-                    }
-                    builder.add(slotStatus);
+        for (RemoteSlot slot : filteredSlots) {
+            if (filter.apply(slot.status())) {
+                SlotStatus slotStatus = slot.terminate();
+                if (slotStatus.getState() == TERMINATED) {
+                    stateManager.deleteExpectedState(slotStatus.getId());
                 }
+                builder.add(slotStatus);
             }
         }
         return builder.build();
     }
 
-    public List<SlotStatus> setState(final SlotLifecycleState state, Predicate<SlotStatus> filter)
+    public List<SlotStatus> setState(final SlotLifecycleState state, Predicate<SlotStatus> filter, String expectedSlotsVersion)
     {
         Preconditions.checkArgument(EnumSet.of(RUNNING, RESTARTING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);
 
-        return ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), new Function<RemoteSlot, SlotStatus>()
+        // filter the slots
+        List<RemoteSlot> filteredSlots = ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)));
+
+        // verify the state of the system hasn't changed
+        checkSlotsVersion(expectedSlotsVersion, transform(filteredSlots, getSlotStatus()));
+
+        return ImmutableList.copyOf(transform(filteredSlots, new Function<RemoteSlot, SlotStatus>()
         {
             @Override
             public SlotStatus apply(RemoteSlot slot)
@@ -485,9 +502,15 @@ public class Coordinator
         }));
     }
 
-    public List<SlotStatus> resetExpectedState(Predicate<SlotStatus> filter)
+    public List<SlotStatus> resetExpectedState(Predicate<SlotStatus> filter, String expectedSlotsVersion)
     {
-        return ImmutableList.copyOf(transform(filter(getAllSlotStatus(), filter), new Function<SlotStatus, SlotStatus>()
+        // filter the slots
+        List<SlotStatus> filteredSlots = ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), getSlotStatus()));
+
+        // verify the state of the system hasn't changed
+        checkSlotsVersion(expectedSlotsVersion, filteredSlots);
+
+        return ImmutableList.copyOf(transform(filteredSlots, new Function<SlotStatus, SlotStatus>()
         {
             @Override
             public SlotStatus apply(SlotStatus slotStatus)
@@ -585,7 +608,7 @@ public class Coordinator
         };
     }
 
-    private List<? extends RemoteSlot> getAllSlots()
+    private List<RemoteSlot> getAllSlots()
     {
         return ImmutableList.copyOf(concat(Iterables.transform(agents.values(), new Function<RemoteAgent, List<? extends RemoteSlot>>()
         {

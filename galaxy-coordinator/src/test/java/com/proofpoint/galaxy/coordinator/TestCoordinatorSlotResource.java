@@ -22,12 +22,13 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
+import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -95,7 +96,7 @@ public class TestCoordinatorSlotResource
                 ImmutableMap.<String, Integer>of());
         coordinator.setAgentStatus(agentStatus);
 
-        int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString())));
+        int prefixSize = shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString()), MIN_PREFIX_SIZE);
 
         URI requestUri = URI.create("http://localhost/v1/slot");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
@@ -136,7 +137,7 @@ public class TestCoordinatorSlotResource
                 ImmutableMap.<String, Integer>of());
         coordinator.setAgentStatus(agentStatus);
 
-        int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString())));
+        int prefixSize = shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString()), MIN_PREFIX_SIZE);
 
         URI requestUri = URI.create("http://localhost/v1/slot?host=foo");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));

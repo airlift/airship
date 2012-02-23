@@ -2,10 +2,10 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.VersionsUtil;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.HeaderParam;
@@ -21,10 +21,11 @@ import java.util.UUID;
 import static com.google.common.collect.Collections2.transform;
 import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
+import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
+import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotsVersion;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
-import static java.lang.Math.max;
+import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
 
 @Path("/v1/slot/expected-state")
 public class ExpectedStateResource
@@ -44,21 +45,17 @@ public class ExpectedStateResource
     public Response terminateSlots(@Context UriInfo uriInfo,
             @HeaderParam(GALAXY_SLOTS_VERSION_HEADER) String expectedSlotsVersion)
     {
-        List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
-        checkSlotsVersion(expectedSlotsVersion, allSlotStatus);
-
-        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
-        int prefixSize = MIN_PREFIX_SIZE;
-        if (!uuids.isEmpty()) {
-            prefixSize = max(prefixSize, Strings.shortestUniquePrefix(transform(uuids, toStringFunction())));
-        }
-
+        // build filter
+        List<UUID> uuids = Lists.transform(coordinator.getAllSlotStatus(), uuidGetter());
         Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, true, uuids);
 
-        List<SlotStatus> result = coordinator.resetExpectedState(slotFilter);
+        // reset slots expected state
+        List<SlotStatus> result = coordinator.resetExpectedState(slotFilter, expectedSlotsVersion);
 
+        // build response
+        int prefixSize = shortestUniquePrefix(Collections2.transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
         return Response.ok(transform(result, fromSlotStatusWithShortIdPrefixSize(prefixSize)))
-                .header(GALAXY_SLOTS_VERSION_HEADER, VersionsUtil.createSlotsVersion(coordinator.getAllSlotStatus()))
+                .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(result))
                 .build();
     }
 }

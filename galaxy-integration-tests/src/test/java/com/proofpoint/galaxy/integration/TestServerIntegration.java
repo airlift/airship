@@ -34,14 +34,12 @@ import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
-import com.proofpoint.galaxy.coordinator.CoordinatorSlotResource;
 import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
 import com.proofpoint.galaxy.coordinator.Instance;
 import com.proofpoint.galaxy.coordinator.LocalProvisioner;
 import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
 import com.proofpoint.galaxy.coordinator.Provisioner;
 import com.proofpoint.galaxy.coordinator.StateManager;
-import com.proofpoint.galaxy.coordinator.Strings;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -70,6 +68,8 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static com.google.inject.Scopes.SINGLETON;
+import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
+import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
@@ -82,7 +82,6 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.testing.Assertions.assertNotEquals;
-import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -252,10 +251,11 @@ public class TestServerIntegration
         provisioner.addAgent(agentInstance);
         coordinator.updateAllAgents();
 
-        prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
+        prefixSize = shortestUniquePrefix(asList(
                 appleSlot1.getId().toString(),
                 appleSlot2.getId().toString(),
-                bananaSlot.getId().toString())));
+                bananaSlot.getId().toString()),
+                MIN_PREFIX_SIZE);
     }
 
     @AfterClass

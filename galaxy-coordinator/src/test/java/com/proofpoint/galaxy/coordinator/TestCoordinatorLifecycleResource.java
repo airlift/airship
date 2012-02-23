@@ -35,6 +35,8 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
+import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
@@ -43,7 +45,6 @@ import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
-import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -117,9 +118,11 @@ public class TestCoordinatorLifecycleResource
                 ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus),
                 ImmutableMap.of("cpu", 8, "memory", 1024));
 
-        prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
-                appleSlotStatus1.getId().toString(), appleSlotStatus2.getId().toString(),
-                bananaSlotStatus.getId().toString())));
+        prefixSize = shortestUniquePrefix(asList(
+                appleSlotStatus1.getId().toString(),
+                appleSlotStatus2.getId().toString(),
+                bananaSlotStatus.getId().toString()),
+                MIN_PREFIX_SIZE);
 
         coordinator.setAgentStatus(agentStatus);
     }
@@ -194,21 +197,22 @@ public class TestCoordinatorLifecycleResource
     @Test
     public void testInvalidVersion()
     {
+        UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/lifecycle?binary=*:apple:*");
         try {
             resource.setState("running", uriInfo, "invalid-version");
             fail("Expected VersionConflictException");
         }
         catch (VersionConflictException e) {
             assertEquals(e.getName(), GALAXY_SLOTS_VERSION_HEADER);
-            assertEquals(e.getVersion(), VersionsUtil.createSlotsVersion(coordinator.getAllSlotStatus()));
+            assertEquals(e.getVersion(), VersionsUtil.createSlotsVersion(coordinator.getAllSlotsStatus(SlotFilterBuilder.build(uriInfo, false, ImmutableList.<UUID>of()))));
         }
     }
 
     @Test
     public void testValidVersion()
     {
-        String slotsVersion = VersionsUtil.createSlotsVersion(coordinator.getAllSlotStatus());
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/lifecycle?binary=*:apple:*");
+        String slotsVersion = VersionsUtil.createSlotsVersion(coordinator.getAllSlotsStatus(SlotFilterBuilder.build(uriInfo, false, ImmutableList.<UUID>of())));
         assertOkResponse(resource.setState("running", uriInfo, slotsVersion), RUNNING, apple1SlotId, apple2SlotId);
     }
 

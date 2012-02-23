@@ -76,41 +76,47 @@ public class SlotFilterBuilder
     {
     }
 
-    public void addStateFilter(String stateFilter)
+    public SlotFilterBuilder addStateFilter(String stateFilter)
     {
         Preconditions.checkNotNull(stateFilter, "stateFilter is null");
         SlotLifecycleState state = SlotLifecycleState.lookup(stateFilter);
         Preconditions.checkArgument(state != null, "unknown state " + stateFilter);
         stateFilters.add(state);
+        return this;
     }
 
-    public void addSlotUuidFilter(String shortId)
+    public SlotFilterBuilder addSlotUuidFilter(String shortId)
     {
         Preconditions.checkNotNull(shortId, "shortId is null");
         slotUuidFilters.add(shortId);
+        return this;
     }
 
-    public void addHostGlobFilter(String hostGlob)
+    public SlotFilterBuilder addHostGlobFilter(String hostGlob)
     {
         Preconditions.checkNotNull(hostGlob, "hostGlob is null");
         hostGlobs.add(hostGlob);
+        return this;
     }
 
-    public void addBinaryGlobFilter(String binaryGlob)
+    public SlotFilterBuilder addBinaryGlobFilter(String binaryGlob)
     {
         Preconditions.checkNotNull(binaryGlob, "binaryGlob is null");
         binaryGlobs.add(binaryGlob);
+        return this;
     }
 
-    public void addConfigGlobFilter(String configGlob)
+    public SlotFilterBuilder addConfigGlobFilter(String configGlob)
     {
         Preconditions.checkNotNull(configGlob, "configGlob is null");
         configGlobs.add(configGlob);
+        return this;
     }
 
-    public void selectAll()
+    public SlotFilterBuilder selectAll()
     {
         this.selectAll = true;
+        return this;
     }
 
     public Predicate<SlotStatus> buildPredicate(boolean filterRequired, final List<UUID> allUuids)

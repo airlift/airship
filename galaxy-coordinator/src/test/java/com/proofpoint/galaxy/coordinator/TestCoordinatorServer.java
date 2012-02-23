@@ -52,6 +52,8 @@ import java.util.UUID;
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.collect.Lists.transform;
 import static com.google.inject.Scopes.SINGLETON;
+import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
+import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
@@ -63,7 +65,6 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -184,10 +185,7 @@ public class TestCoordinatorServer
 
         coordinator.setAgentStatus(agentStatus);
 
-        prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(transform(
-                transform(asList(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus), uuidGetter()),
-                toStringFunction())));
-
+        prefixSize = shortestUniquePrefix(transform(transform(asList(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
         stateManager.clearAll();
     }
 
@@ -218,10 +216,11 @@ public class TestCoordinatorServer
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
 
-        int prefixSize = max(CoordinatorSlotResource.MIN_PREFIX_SIZE, Strings.shortestUniquePrefix(asList(
+        int prefixSize = shortestUniquePrefix(asList(
                 agentStatus.getSlotStatus(apple1SotId).getId().toString(),
                 agentStatus.getSlotStatus(apple2SlotId).getId().toString(),
-                agentStatus.getSlotStatus(bananaSlotId).getId().toString())));
+                agentStatus.getSlotStatus(bananaSlotId).getId().toString()),
+                MIN_PREFIX_SIZE);
 
 
         assertEqualsNoOrder(actual, ImmutableList.of(
@@ -357,7 +356,7 @@ public class TestCoordinatorServer
     public void testStop()
             throws Exception
     {
-        coordinator.setState(RUNNING, Predicates.<SlotStatus>alwaysTrue());
+        coordinator.setState(RUNNING, Predicates.<SlotStatus>alwaysTrue(), null);
 
         Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
                 .setBody("stopped")

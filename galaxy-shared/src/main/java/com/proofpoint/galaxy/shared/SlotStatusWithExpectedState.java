@@ -1,5 +1,7 @@
 package com.proofpoint.galaxy.shared;
 
+import com.google.common.base.Function;
+
 public class SlotStatusWithExpectedState
 {
     private final SlotStatus slotStatus;
@@ -30,6 +32,17 @@ public class SlotStatusWithExpectedState
         sb.append(", expectedSlotStatus=").append(expectedSlotStatus);
         sb.append('}');
         return sb.toString();
+    }
+
+    public static Function<SlotStatusWithExpectedState, SlotStatus> toSlotStatus() {
+        return new Function<SlotStatusWithExpectedState, SlotStatus>()
+        {
+            @Override
+            public SlotStatus apply(SlotStatusWithExpectedState input)
+            {
+                return input.getSlotStatus();
+            }
+        };
     }
 }
 
