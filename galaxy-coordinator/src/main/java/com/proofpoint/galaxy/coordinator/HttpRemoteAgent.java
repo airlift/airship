@@ -184,7 +184,8 @@ public class HttpRemoteAgent implements RemoteAgent
         if (state != PROVISIONING) {
             state = OFFLINE;
             for (SlotStatus slotStatus : slots.values()) {
-                slots.put(slotStatus.getId(), new SlotStatus(slotStatus, SlotLifecycleState.UNKNOWN, slotStatus.getAssignment()));
+                // set all slots to unknown state
+                slots.put(slotStatus.getId(), slotStatus.changeState(SlotLifecycleState.UNKNOWN));
             }
         }
     }

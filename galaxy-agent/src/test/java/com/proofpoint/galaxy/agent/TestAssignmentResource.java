@@ -26,7 +26,6 @@ import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
@@ -148,7 +147,7 @@ public class TestAssignmentResource
         assertEquals(response.getStatus(), Status.OK.getStatusCode());
 
         SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) response.getEntity();
-        SlotStatus expectedStatus = new SlotStatus(slotStatus, STOPPED, APPLE_V2);
+        SlotStatus expectedStatus = slotStatus.changeAssignment(STOPPED, APPLE_V2, slotStatus.getResources());
         assertEquals(actualStatus, SlotStatusRepresentation.from(expectedStatus));
         assertEquals(actualStatus.toSlotStatus(), expectedStatus);
         assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());

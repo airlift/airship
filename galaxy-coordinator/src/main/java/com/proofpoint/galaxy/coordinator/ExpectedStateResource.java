@@ -24,7 +24,7 @@ import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction
 import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
 
 @Path("/v1/slot/expected-state")
@@ -54,7 +54,7 @@ public class ExpectedStateResource
 
         // build response
         int prefixSize = shortestUniquePrefix(Collections2.transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(transform(result, fromSlotStatusWithShortIdPrefixSize(prefixSize)))
+        return Response.ok(transform(result, fromSlotStatus(prefixSize)))
                 .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(result))
                 .build();
     }

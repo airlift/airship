@@ -56,6 +56,7 @@ import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREF
 import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
@@ -143,7 +144,7 @@ public class TestCoordinatorServer
 
 
         apple1SotId = UUID.randomUUID();
-        SlotStatus appleSlotStatus1 = new SlotStatus(apple1SotId,
+        SlotStatus appleSlotStatus1 = createSlotStatus(apple1SotId,
                 "apple1",
                 URI.create("fake://appleServer1/v1/agent/slot/apple1"),
                 URI.create("fake://appleServer1/v1/agent/slot/apple1"),
@@ -153,7 +154,7 @@ public class TestCoordinatorServer
                 "/apple1",
                 ImmutableMap.<String, Integer>of());
         apple2SlotId = UUID.randomUUID();
-        SlotStatus appleSlotStatus2 = new SlotStatus(apple2SlotId,
+        SlotStatus appleSlotStatus2 = createSlotStatus(apple2SlotId,
                 "apple2",
                 URI.create("fake://appleServer2/v1/agent/slot/apple1"),
                 URI.create("fake://appleServer2/v1/agent/slot/apple1"),
@@ -163,7 +164,7 @@ public class TestCoordinatorServer
                 "/apple2",
                 ImmutableMap.<String, Integer>of());
         bananaSlotId = UUID.randomUUID();
-        SlotStatus bananaSlotStatus = new SlotStatus(bananaSlotId,
+        SlotStatus bananaSlotStatus = createSlotStatus(bananaSlotId,
                 "banana",
                 URI.create("fake://bananaServer/v1/agent/slot/banana"),
                 URI.create("fake://bananaServer/v1/agent/slot/banana"),
@@ -280,13 +281,13 @@ public class TestCoordinatorServer
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        apple1Status = apple1Status.updateState(TERMINATED);
-        apple2Status = apple2Status.updateState(TERMINATED);
+        apple1Status = apple1Status.changeState(TERMINATED);
+        apple2Status = apple2Status.changeState(TERMINATED);
         SlotStatus bananaStatus = coordinator.getAgentStatus(agentId).getSlotStatus(bananaSlotId);
 
         List<SlotStatusRepresentation> expected = ImmutableList.of(
                 SlotStatusRepresentation.from(apple1Status, prefixSize),
-                SlotStatusRepresentation.from(apple2Status.updateState(TERMINATED), prefixSize));
+                SlotStatusRepresentation.from(apple2Status.changeState(TERMINATED), prefixSize));
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
 

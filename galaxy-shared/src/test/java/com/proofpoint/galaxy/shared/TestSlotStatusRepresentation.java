@@ -31,9 +31,9 @@ public class TestSlotStatusRepresentation
             null,
             "/apple",
             ImmutableMap.of("memory", 512),
-            "Xfood.fruit:apple:1.0",
-            "@Xapple:1.0",
-            UNKNOWN.toString());
+            "food.fruit:apple:1.0",
+            "@prod:apple:1.0",
+            STOPPED.toString());
 
     @Test
     public void testJsonRoundTrip()

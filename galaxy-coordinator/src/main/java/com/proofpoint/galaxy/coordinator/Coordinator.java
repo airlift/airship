@@ -27,7 +27,6 @@ import com.proofpoint.galaxy.shared.InstallationUtils;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
@@ -538,39 +537,36 @@ public class Coordinator
 
         ArrayList<SlotStatus> stats = newArrayList();
         for (UUID uuid : Sets.union(actualStates.keySet(), expectedStates.keySet())) {
-            SlotStatus actualState = actualStates.get(uuid);
-            ExpectedSlotStatus expectedState = expectedStates.get(uuid);
-            if (actualState == null) {
-                actualState = new SlotStatus(uuid, "unknown", null, null, "unknown", UNKNOWN, expectedState.getAssignment(), null, ImmutableMap.<String, Integer>of());
-            }
-            if (slotFilter.apply(actualState)) {
-                stats.add(actualState);
-            }
-        }
-        return ImmutableList.copyOf(stats);
-    }
+            final SlotStatus actualState = actualStates.get(uuid);
+            final ExpectedSlotStatus expectedState = expectedStates.get(uuid);
 
-    public List<SlotStatusWithExpectedState> getAllSlotStatusWithExpectedState(Predicate<SlotStatus> slotFilter)
-    {
-        ImmutableMap<UUID, ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
-        ImmutableMap<UUID, SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());
-
-        ArrayList<SlotStatusWithExpectedState> stats = newArrayList();
-        for (UUID uuid : Sets.union(actualStates.keySet(), expectedStates.keySet())) {
-            SlotStatus actualState = actualStates.get(uuid);
-            ExpectedSlotStatus expectedState = expectedStates.get(uuid);
+            SlotStatus fullSlotStatus;
             if (actualState == null) {
                 // skip terminated slots
                 if (expectedState == null || expectedState.getStatus() == SlotLifecycleState.TERMINATED)  {
                     continue;
                 }
-                actualState = new SlotStatus(uuid, "unknown", null, null, "unknown", UNKNOWN, expectedState.getAssignment(), null, ImmutableMap.<String, Integer>of());
-                actualState = actualState.updateState(UNKNOWN, "Slot is missing; Expected slot to be " + expectedState.getStatus());
+                // missing slot
+                fullSlotStatus = SlotStatus.createSlotStatusWithExpectedState(uuid,
+                        "unknown",
+                        null,
+                        null,
+                        "unknown",
+                        UNKNOWN,
+                        expectedState.getAssignment(),
+                        null,
+                        ImmutableMap.<String, Integer>of(), expectedState.getStatus(),
+                        expectedState.getAssignment(),
+                        "Slot is missing; Expected slot to be " + expectedState.getStatus());
             }
             else if (expectedState == null) {
-                actualState = actualState.updateState(actualState.getState(), "Unexpected slot");
+                // unexpected slot
+                fullSlotStatus = actualState.changeStatusMessage("Unexpected slot").changeExpectedState(null, null);
             }
             else {
+                fullSlotStatus = actualState.changeExpectedState(expectedState.getStatus(), expectedState.getAssignment());
+
+                // add error message if actual state doesn't match expected state
                 List<String> messages = newArrayList();
                 if (!Objects.equal(actualState.getState(), expectedState.getStatus())) {
                     messages.add("Expected state to be " + expectedState.getStatus());
@@ -585,11 +581,11 @@ public class Coordinator
                     }
                 }
                 if (!messages.isEmpty()) {
-                    actualState = actualState.updateState(actualState.getState(), Joiner.on("; ").join(messages));
+                    fullSlotStatus = fullSlotStatus.changeStatusMessage(Joiner.on("; ").join(messages));
                 }
             }
-            if (slotFilter.apply(actualState)) {
-                stats.add(new SlotStatusWithExpectedState(actualState, expectedState));
+            if (slotFilter.apply(fullSlotStatus)) {
+                stats.add(fullSlotStatus);
             }
         }
 

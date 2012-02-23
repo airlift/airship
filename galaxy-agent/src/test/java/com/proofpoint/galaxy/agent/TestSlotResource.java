@@ -14,7 +14,6 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.collect.ImmutableMultiset;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -26,7 +25,6 @@ import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -146,7 +144,8 @@ public class TestSlotResource
         assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
         assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/agent/slot/" + slot.getName()));
 
-        SlotStatus expectedStatus = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
+        SlotStatus status = slot.status();
+        SlotStatus expectedStatus = status.changeAssignment(STOPPED, APPLE_ASSIGNMENT, status.getResources());
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
         assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
         assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
@@ -180,7 +179,7 @@ public class TestSlotResource
         Response response = resource.terminateSlot(null, null, slotStatus.getName());
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
-        SlotStatus expectedStatus = slotStatus.updateState(TERMINATED);
+        SlotStatus expectedStatus = slotStatus.changeState(TERMINATED);
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
         assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
         assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());

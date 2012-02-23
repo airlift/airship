@@ -13,7 +13,7 @@
     "resources": {
         "memory": 512
     },
-    "expectedBinary":"Xfood.fruit:apple:1.0",
-    "expectedConfig":"@Xapple:1.0",
-    "expectedStatus":"UNKNOWN"
+    "expectedBinary":"food.fruit:apple:1.0",
+    "expectedConfig":"@prod:apple:1.0",
+    "expectedStatus":"STOPPED"
 }

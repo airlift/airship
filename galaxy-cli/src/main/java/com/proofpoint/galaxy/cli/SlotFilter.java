@@ -32,6 +32,16 @@ public class SlotFilter
     @Option(name = "--all", description = "Select all slots")
     public boolean selectAll;
 
+    public boolean isFiltered()
+    {
+        return !binary.isEmpty() ||
+                !config.isEmpty() ||
+                !host.isEmpty() ||
+                !uuid.isEmpty() ||
+                !state.isEmpty() ||
+                selectAll;
+    }
+
     public Predicate<SlotStatus> toSlotPredicate(boolean filterRequired, List<UUID> allUuids)
     {
         return createFilterBuilder().buildPredicate(filterRequired, allUuids);

@@ -84,8 +84,10 @@ public class TestSlot
                 new MockLifecycleManager(),
                 APPLE_INSTALLATION,
                 new Duration(1, SECONDS));
-        SlotStatus running = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
-        SlotStatus stopped = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
+        SlotStatus status1 = slot.status();
+        SlotStatus running = status1.changeAssignment(RUNNING, APPLE_ASSIGNMENT, status1.getResources());
+        SlotStatus status = slot.status();
+        SlotStatus stopped = status.changeAssignment(STOPPED, APPLE_ASSIGNMENT, status.getResources());
 
         // assign => stopped
         assertEquals(slot.assign(APPLE_INSTALLATION), stopped);

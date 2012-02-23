@@ -62,6 +62,7 @@ import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -175,7 +176,8 @@ public class TestRemoteSlot
             throws Exception
     {
         // setup
-        assertEquals(slot.status(), new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT));
+        SlotStatus status1 = slot.status();
+        assertEquals(slot.status(), status1.changeAssignment(STOPPED, APPLE_ASSIGNMENT, status1.getResources()));
 
         // test
         remoteAgent.setStatus(agent.getAgentStatus());
@@ -183,7 +185,8 @@ public class TestRemoteSlot
         SlotStatus actual = remoteSlot.assign(BANANA_INSTALLATION);
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.status(), STOPPED, BANANA_ASSIGNMENT);
+        SlotStatus status = slot.status();
+        SlotStatus expected = status.changeAssignment(STOPPED, BANANA_ASSIGNMENT, status.getResources());
         assertEquals(actual, expected);
     }
 
@@ -200,7 +203,7 @@ public class TestRemoteSlot
         SlotStatus actual = remoteSlot.terminate();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.getId(),
+        SlotStatus expected = createSlotStatus(slot.getId(),
                 slot.getName(),
                 slot.getSelf(),
                 slot.getExternalUri(),
@@ -225,7 +228,8 @@ public class TestRemoteSlot
         SlotStatus actual = remoteSlot.start();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
+        SlotStatus status = slot.status();
+        SlotStatus expected = status.changeAssignment(RUNNING, APPLE_ASSIGNMENT, status.getResources());
         assertEquals(actual, expected);
     }
 
@@ -243,7 +247,8 @@ public class TestRemoteSlot
         SlotStatus actual = remoteSlot.stop();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.status(), STOPPED, APPLE_ASSIGNMENT);
+        SlotStatus status = slot.status();
+        SlotStatus expected = status.changeAssignment(STOPPED, APPLE_ASSIGNMENT, status.getResources());
         assertEquals(actual, expected);
     }
 
@@ -260,7 +265,8 @@ public class TestRemoteSlot
         SlotStatus actual = remoteSlot.restart();
 
         // verify
-        SlotStatus expected = new SlotStatus(slot.status(), RUNNING, APPLE_ASSIGNMENT);
+        SlotStatus status = slot.status();
+        SlotStatus expected = status.changeAssignment(RUNNING, APPLE_ASSIGNMENT, status.getResources());
         assertEquals(actual, expected);
     }
 }

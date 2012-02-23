@@ -21,13 +21,14 @@ import java.util.UUID;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 public class TestSlotFilterBuilder
 {
-    private final SlotStatus status = new SlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
+    private final SlotStatus status = SlotStatus.createSlotStatusWithExpectedState(UUID.fromString("12345678-1234-1234-1234-123456789012"),
             "slotName",
             URI.create("fake://localhost"),
             URI.create("fake://localhost"),
@@ -35,7 +36,10 @@ public class TestSlotFilterBuilder
             UNKNOWN,
             APPLE_ASSIGNMENT,
             "/slotName",
-            ImmutableMap.<String, Integer>of());
+            ImmutableMap.<String, Integer>of(),
+            null,
+            null,
+            null);
 
 
     private Predicate<SlotStatus> buildFilter(String key, String value, List<UUID> uuids)
@@ -143,7 +147,7 @@ public class TestSlotFilterBuilder
     @Test
     public void testFullBinarySpecPredicate()
     {
-        SlotStatus status = new SlotStatus(UUID.randomUUID(),
+        SlotStatus status = createSlotStatus(UUID.randomUUID(),
                 "slotName",
                 URI.create("fake://localhost"),
                 URI.create("fake://localhost"),

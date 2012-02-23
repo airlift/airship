@@ -32,6 +32,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 
 public class DeploymentSlot implements Slot
 {
@@ -78,7 +80,7 @@ public class DeploymentSlot implements Slot
         Preconditions.checkState(deployment != null, "No deployment for slot %s", name);
 
         SlotLifecycleState state = lifecycleManager.status(deployment);
-        SlotStatus slotStatus = new SlotStatus(id,
+        SlotStatus slotStatus = createSlotStatus(id,
                 name,
                 self,
                 externalUri,
@@ -122,8 +124,7 @@ public class DeploymentSlot implements Slot
             lifecycleManager.updateNodeConfig(deployment);
 
             // set initial status
-            lastSlotStatus.set(new SlotStatus(
-                    id,
+            lastSlotStatus.set(createSlotStatus(id,
                     name,
                     self,
                     externalUri,
@@ -192,7 +193,7 @@ public class DeploymentSlot implements Slot
             // create node config file
             lifecycleManager.updateNodeConfig(deployment);
 
-            SlotStatus slotStatus = new SlotStatus(id,
+            SlotStatus slotStatus = createSlotStatus(id,
                     name,
                     self,
                     externalUri,
@@ -201,6 +202,7 @@ public class DeploymentSlot implements Slot
                     installation.getAssignment(),
                     deployment.getDataDir().getAbsolutePath(),
                     deployment.getResources());
+
             lastSlotStatus.set(slotStatus);
             return slotStatus;
         }
@@ -225,7 +227,8 @@ public class DeploymentSlot implements Slot
                 deploymentManager.terminate();
                 terminated = true;
             }
-            SlotStatus slotStatus = new SlotStatus(id, name, self, externalUri, location, TERMINATED, null, null, ImmutableMap.<String, Integer>of());
+
+            SlotStatus slotStatus = lastSlotStatus.get().changeState(TERMINATED);
             lastSlotStatus.set(slotStatus);
             return slotStatus;
         }
@@ -254,24 +257,15 @@ public class DeploymentSlot implements Slot
         }
         try {
             if (terminated) {
-                return new SlotStatus(id, name, self, externalUri, location, TERMINATED, null, null, ImmutableMap.<String, Integer>of());
+                return lastSlotStatus.get().changeState(TERMINATED);
             }
 
             Deployment activeDeployment = deploymentManager.getDeployment();
             if (activeDeployment == null) {
-                return new SlotStatus(id, name, self, externalUri, location, SlotLifecycleState.UNKNOWN, null, null, ImmutableMap.<String, Integer>of());
+                return lastSlotStatus.get().changeAssignment(UNKNOWN, null, ImmutableMap.<String, Integer>of());
             }
 
-            SlotLifecycleState state = lifecycleManager.status(activeDeployment);
-            SlotStatus slotStatus = new SlotStatus(id,
-                    name,
-                    self,
-                    externalUri,
-                    location,
-                    state,
-                    activeDeployment.getAssignment(),
-                    activeDeployment.getDataDir().getAbsolutePath(),
-                    activeDeployment.getResources());
+            SlotStatus slotStatus = lastSlotStatus.get().changeState(lifecycleManager.status(activeDeployment));
             lastSlotStatus.set(slotStatus);
             return slotStatus;
         }
@@ -294,17 +288,8 @@ public class DeploymentSlot implements Slot
 
             SlotLifecycleState state = lifecycleManager.start(activeDeployment);
 
-            SlotStatus slotStatus = new SlotStatus(id,
-                    name,
-                    self,
-                    externalUri,
-                    location,
-                    state,
-                    activeDeployment.getAssignment(),
-                    activeDeployment.getDataDir().getAbsolutePath(),
-                    activeDeployment.getResources());
+            SlotStatus slotStatus = lastSlotStatus.get().changeState(state);
             lastSlotStatus.set(slotStatus);
-
             return slotStatus;
         }
         finally {
@@ -326,17 +311,8 @@ public class DeploymentSlot implements Slot
 
             SlotLifecycleState state = lifecycleManager.restart(activeDeployment);
 
-            SlotStatus slotStatus = new SlotStatus(id,
-                    name,
-                    self,
-                    externalUri,
-                    location,
-                    state,
-                    activeDeployment.getAssignment(),
-                    activeDeployment.getDataDir().getAbsolutePath(),
-                    activeDeployment.getResources());
+            SlotStatus slotStatus = lastSlotStatus.get().changeState(state);
             lastSlotStatus.set(slotStatus);
-
             return slotStatus;
         }
         finally {
@@ -358,17 +334,8 @@ public class DeploymentSlot implements Slot
 
             SlotLifecycleState state = lifecycleManager.stop(activeDeployment);
 
-            SlotStatus slotStatus = new SlotStatus(id,
-                    name,
-                    self,
-                    externalUri,
-                    location,
-                    state,
-                    activeDeployment.getAssignment(),
-                    activeDeployment.getDataDir().getAbsolutePath(),
-                    activeDeployment.getResources());
+            SlotStatus slotStatus = lastSlotStatus.get().changeState(state);
             lastSlotStatus.set(slotStatus);
-
             return slotStatus;
         }
         finally {

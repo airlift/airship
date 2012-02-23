@@ -37,7 +37,7 @@ import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREF
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatusWithShortIdPrefixSize;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
 
 @Path("/v1/slot/assignment")
@@ -71,7 +71,7 @@ public class CoordinatorAssignmentResource
 
         // build response
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(transform(results, fromSlotStatusWithShortIdPrefixSize(prefixSize)))
+        return Response.ok(transform(results, fromSlotStatus(prefixSize)))
                 .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(results))
                 .build();
     }

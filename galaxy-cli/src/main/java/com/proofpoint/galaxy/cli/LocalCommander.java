@@ -14,7 +14,6 @@ import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.json.JsonCodec;
 
@@ -34,7 +33,6 @@ import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.toAgentStatusRepresentations;
 import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
 import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
-import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecordsWithExpectedState;
 import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.toCoordinatorStatusRepresentations;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentsVersion;
@@ -67,12 +65,12 @@ public class LocalCommander implements Commander
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
-        Iterable<SlotStatusWithExpectedState> slots = coordinator.getAllSlotStatusWithExpectedState(slotPredicate);
+        Iterable<SlotStatus> slots = coordinator.getAllSlotsStatus(slotPredicate);
 
         // update just in case something changed
         updateServiceInventory();
 
-        return createCommanderResponse(createSlotsVersion(allSlotStatus), toSlotRecordsWithExpectedState(prefixSize, slots));
+        return createCommanderResponse(createSlotsVersion(allSlotStatus), toSlotRecords(prefixSize, slots));
     }
 
     @Override
@@ -119,7 +117,7 @@ public class LocalCommander implements Commander
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
-        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
+        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
 
         // before changing state (like starting) update just in case something changed
         updateServiceInventory();
@@ -140,7 +138,7 @@ public class LocalCommander implements Commander
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
-        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
+        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
 
         // terminate slots
         Iterable<SlotStatus> slots = coordinator.terminate(slotPredicate, expectedSlotsVersion);
@@ -158,7 +156,7 @@ public class LocalCommander implements Commander
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
-        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
+        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
 
         // rest slots expected state
         Iterable<SlotStatus> slots = coordinator.resetExpectedState(slotPredicate, expectedSlotsVersion);
@@ -176,10 +174,10 @@ public class LocalCommander implements Commander
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
-        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
+        Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
 
         // find the matching slots
-        List<SlotStatusWithExpectedState> slots = newArrayList(coordinator.getAllSlotStatusWithExpectedState(slotPredicate));
+        List<SlotStatus> slots = newArrayList(coordinator.getAllSlotsStatus(slotPredicate));
 
         // update just in case something changed
         updateServiceInventory();

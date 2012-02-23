@@ -42,6 +42,7 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -73,7 +74,7 @@ public class TestCoordinatorAssignmentResource
         resource = new CoordinatorAssignmentResource(coordinator);
 
         apple1SlotId = UUID.randomUUID();
-        SlotStatus appleSlotStatus1 = new SlotStatus(apple1SlotId,
+        SlotStatus appleSlotStatus1 = createSlotStatus(apple1SlotId,
                 "apple1",
                 URI.create("fake://appleServer1/v1/agent/slot/apple1"),
                 URI.create("fake://appleServer1/v1/agent/slot/apple1"),
@@ -83,7 +84,7 @@ public class TestCoordinatorAssignmentResource
                 "/apple1",
                 ImmutableMap.<String, Integer>of());
         apple2SlotId = UUID.randomUUID();
-        SlotStatus appleSlotStatus2 = new SlotStatus(apple2SlotId,
+        SlotStatus appleSlotStatus2 = createSlotStatus(apple2SlotId,
                 "apple2",
                 URI.create("fake://appleServer2/v1/agent/slot/apple1"),
                 URI.create("fake://appleServer2/v1/agent/slot/apple1"),
@@ -93,7 +94,7 @@ public class TestCoordinatorAssignmentResource
                 "/apple2",
                 ImmutableMap.<String, Integer>of());
         bananaSlotId = UUID.randomUUID();
-        SlotStatus bananaSlotStatus = new SlotStatus(bananaSlotId,
+        SlotStatus bananaSlotStatus = createSlotStatus(bananaSlotId,
                 "banana",
                 URI.create("fake://bananaServer/v1/agent/slot/banana"),
                 URI.create("fake://bananaServer/v1/agent/slot/banana"),
@@ -182,7 +183,7 @@ public class TestCoordinatorAssignmentResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (SlotStatus slotStatus : slots) {
-            builder.add(SlotStatusRepresentation.from(slotStatus.updateState(state), prefixSize));
+            builder.add(SlotStatusRepresentation.from(slotStatus.changeState(state), prefixSize));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

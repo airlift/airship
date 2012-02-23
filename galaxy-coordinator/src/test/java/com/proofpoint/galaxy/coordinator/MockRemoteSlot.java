@@ -38,7 +38,7 @@ public class MockRemoteSlot implements RemoteSlot
     public SlotStatus assign(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
-        slotStatus = new SlotStatus(slotStatus, STOPPED, installation.getAssignment());
+        slotStatus = slotStatus.changeAssignment(STOPPED, installation.getAssignment(), slotStatus.getResources());
         mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
@@ -47,7 +47,7 @@ public class MockRemoteSlot implements RemoteSlot
     public SlotStatus terminate()
     {
         if (slotStatus.getState() == STOPPED) {
-            slotStatus = slotStatus.updateState(TERMINATED);
+            slotStatus = slotStatus.changeState(TERMINATED);
         }
         mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
@@ -59,7 +59,7 @@ public class MockRemoteSlot implements RemoteSlot
         if (slotStatus.getAssignment() == null) {
             throw new IllegalStateException("Slot can not be started because the slot is not assigned");
         }
-        slotStatus = slotStatus.updateState(RUNNING);
+        slotStatus = slotStatus.changeState(RUNNING);
         mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
@@ -70,7 +70,7 @@ public class MockRemoteSlot implements RemoteSlot
         if (slotStatus.getAssignment() == null) {
             throw new IllegalStateException("Slot can not be restarted because the slot is not assigned");
         }
-        slotStatus = slotStatus.updateState(RUNNING);
+        slotStatus = slotStatus.changeState(RUNNING);
         mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
@@ -81,7 +81,7 @@ public class MockRemoteSlot implements RemoteSlot
         if (slotStatus.getAssignment() == null) {
             throw new IllegalStateException("Slot can not be stopped because the slot is not assigned");
         }
-        slotStatus = slotStatus.updateState(STOPPED);
+        slotStatus = slotStatus.changeState(STOPPED);
         mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }

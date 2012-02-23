@@ -21,6 +21,7 @@ import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -33,7 +34,7 @@ public class TestAgentFilterBuilder
             URI.create("external://localhost"),
             "unknown/location",
             "instance.type",
-            ImmutableList.<SlotStatus>of(new SlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
+            ImmutableList.<SlotStatus>of(createSlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
                     "slotName",
                     URI.create("fake://localhost"),
                     URI.create("fake://localhost"),

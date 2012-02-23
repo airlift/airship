@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatusWithExpectedState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import org.fusesource.jansi.Ansi.Color;
@@ -34,18 +33,6 @@ public class SlotRecord implements Record
         {
             @Override
             public SlotRecord apply(SlotStatus slot)
-            {
-                return new SlotRecord(SlotStatusRepresentation.from(slot, prefixSize));
-            }
-        }));
-    }
-
-    public static List<Record> toSlotRecordsWithExpectedState(final int prefixSize, Iterable<SlotStatusWithExpectedState> slots)
-    {
-        return ImmutableList.copyOf(Iterables.transform(slots, new Function<SlotStatusWithExpectedState, Record>()
-        {
-            @Override
-            public SlotRecord apply(SlotStatusWithExpectedState slot)
             {
                 return new SlotRecord(SlotStatusRepresentation.from(slot, prefixSize));
             }

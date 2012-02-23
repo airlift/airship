@@ -29,6 +29,7 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
@@ -68,7 +69,7 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlots()
     {
-        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(),
+        SlotStatus slot1 = createSlotStatus(UUID.randomUUID(),
                 "slot1",
                 URI.create("fake://localhost/v1/agent/slot/slot1"),
                 URI.create("fake://localhost/v1/agent/slot/slot1"),
@@ -77,7 +78,7 @@ public class TestCoordinatorSlotResource
                 APPLE_ASSIGNMENT,
                 "/slot1",
                 ImmutableMap.<String, Integer>of());
-        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(),
+        SlotStatus slot2 = createSlotStatus(UUID.randomUUID(),
                 "slot2",
                 URI.create("fake://localhost/v1/agent/slot/slot2"),
                 URI.create("fake://localhost/v1/agent/slot/slot2"),
@@ -109,7 +110,7 @@ public class TestCoordinatorSlotResource
     @Test
     public void testGetAllSlotsWithFilter()
     {
-        SlotStatus slot1 = new SlotStatus(UUID.randomUUID(),
+        SlotStatus slot1 = createSlotStatus(UUID.randomUUID(),
                 "slot1",
                 URI.create("fake://foo/v1/agent/slot/slot1"),
                 URI.create("fake://foo/v1/agent/slot/slot1"),
@@ -118,7 +119,7 @@ public class TestCoordinatorSlotResource
                 APPLE_ASSIGNMENT,
                 "/slot1",
                 ImmutableMap.<String, Integer>of());
-        SlotStatus slot2 = new SlotStatus(UUID.randomUUID(),
+        SlotStatus slot2 = createSlotStatus(UUID.randomUUID(),
                 "slot2",
                 URI.create("fake://bar/v1/agent/slot/slot2"),
                 URI.create("fake://bar/v1/agent/slot/slot2"),

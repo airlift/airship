@@ -48,24 +48,13 @@ public class SlotStatusRepresentation
 
     private final static int MAX_ID_SIZE = UUID.randomUUID().toString().length();
 
-    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatusWithShortIdPrefixSize(final int size)
+    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus(final int shortIdPrefixSize)
     {
         return new Function<SlotStatus, SlotStatusRepresentation>()
         {
             public SlotStatusRepresentation apply(SlotStatus status)
             {
-                return from(status, size);
-            }
-        };
-    }
-
-    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus()
-    {
-        return new Function<SlotStatus, SlotStatusRepresentation>()
-        {
-            public SlotStatusRepresentation apply(SlotStatus status)
-            {
-                return from(status);
+                return from(status, shortIdPrefixSize);
             }
         };
     }
@@ -84,60 +73,16 @@ public class SlotStatusRepresentation
             config = slotStatus.getAssignment().getConfig();
         }
 
-        return new SlotStatusRepresentation(slotStatus.getId(),
-                slotStatus.getId().toString().substring(0, shortIdPrefixSize),
-                slotStatus.getName(),
-                slotStatus.getSelf(),
-                slotStatus.getExternalUri(),
-                slotStatus.getLocation(),
-                binary,
-                config,
-                slotStatus.getState().toString(),
-                slotStatus.getVersion(),
-                slotStatus.getStatusMessage(),
-                slotStatus.getInstallPath(),
-                slotStatus.getResources(),
-                null,
-                null,
-                null
-        );
-    }
-
-    public static Function<SlotStatusWithExpectedState, SlotStatusRepresentation> toSlotRepresentation(final int size)
-    {
-        return new Function<SlotStatusWithExpectedState, SlotStatusRepresentation>()
-        {
-            public SlotStatusRepresentation apply(SlotStatusWithExpectedState status)
-            {
-                return from(status, size);
-            }
-        };
-    }
-
-    public static SlotStatusRepresentation from(SlotStatusWithExpectedState slotStatusWithExpectedState)
-    {
-        return from(slotStatusWithExpectedState, MAX_ID_SIZE);
-    }
-
-    public static SlotStatusRepresentation from(SlotStatusWithExpectedState slotStatusWithExpectedState, int shortIdPrefixSize)
-    {
-        SlotStatus slotStatus = slotStatusWithExpectedState.getSlotStatus();
-        ExpectedSlotStatus expectedSlotStatus = slotStatusWithExpectedState.getExpectedSlotStatus();
-
         String expectedBinary = null;
         String expectedConfig = null;
-        String expectedStatus = null;
-        if (expectedSlotStatus != null) {
-            expectedBinary = expectedSlotStatus.getBinary();
-            expectedConfig = expectedSlotStatus.getConfig();
-            expectedStatus = expectedSlotStatus.getStatus() == null ? null : expectedSlotStatus.getStatus().toString();
+        if (slotStatus.getExpectedAssignment() != null) {
+            expectedBinary = slotStatus.getExpectedAssignment().getBinary();
+            expectedConfig = slotStatus.getExpectedAssignment().getConfig();
         }
 
-        String binary = null;
-        String config = null;
-        if (slotStatus.getAssignment() != null) {
-            binary = slotStatus.getAssignment().getBinary();
-            config = slotStatus.getAssignment().getConfig();
+        String expectedStatus = null;
+        if (slotStatus.getExpectedState() != null) {
+            expectedStatus = slotStatus.getExpectedState().toString();
         }
 
         return new SlotStatusRepresentation(slotStatus.getId(),
@@ -301,12 +246,30 @@ public class SlotStatusRepresentation
 
     public SlotStatus toSlotStatus()
     {
+        Assignment assignment = null;
         if (binary != null) {
-            return new SlotStatus(id, name, self, externalUri, location, SlotLifecycleState.valueOf(status), new Assignment(binary, config), installPath, resources);
+            assignment = new Assignment(binary, config);
         }
-        else {
-            return new SlotStatus(id, name, self, externalUri, location, SlotLifecycleState.valueOf(status), null, installPath, resources);
+        Assignment expectedAssignment = null;
+        if (expectedBinary != null) {
+            assignment = new Assignment(expectedBinary, expectedConfig);
         }
+        SlotLifecycleState expectedState = null;
+        if (expectedStatus != null) {
+            expectedState = SlotLifecycleState.valueOf(expectedStatus);
+        }
+        return SlotStatus.createSlotStatusWithExpectedState(id,
+                name,
+                self,
+                externalUri,
+                location,
+                SlotLifecycleState.valueOf(status),
+                assignment,
+                installPath,
+                resources,
+                expectedState,
+                expectedAssignment,
+                statusMessage);
     }
 
     public String getExternalHost() {

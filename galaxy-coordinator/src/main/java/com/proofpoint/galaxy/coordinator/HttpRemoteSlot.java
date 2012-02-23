@@ -5,7 +5,6 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.json.JsonCodec;
@@ -16,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
@@ -63,10 +63,10 @@ public class HttpRemoteSlot implements RemoteSlot
         }
     }
 
-    private SlotStatus setErrorStatus(SlotLifecycleState status, String statusMessage)
+    private SlotStatus setErrorStatus(String statusMessage)
     {
-        slotStatus = slotStatus.updateState(status);
-        return slotStatus.updateState(status, statusMessage);
+        slotStatus = slotStatus.changeState(UNKNOWN);
+        return slotStatus.changeStatusMessage(statusMessage);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
+                return setErrorStatus(response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -92,7 +92,7 @@ public class HttpRemoteSlot implements RemoteSlot
         }
         catch (Exception e) {
             log.error(e);
-            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
+            return setErrorStatus(e.getMessage());
         }
     }
 
@@ -107,7 +107,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
+                return setErrorStatus(response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -116,7 +116,7 @@ public class HttpRemoteSlot implements RemoteSlot
         }
         catch (Exception e) {
             log.error(e);
-            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
+            return setErrorStatus(e.getMessage());
         }
     }
 
@@ -131,7 +131,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
+                return setErrorStatus(response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -140,7 +140,7 @@ public class HttpRemoteSlot implements RemoteSlot
         }
         catch (Exception e) {
             log.error(e);
-            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
+            return setErrorStatus(e.getMessage());
         }
     }
 
@@ -155,7 +155,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
+                return setErrorStatus(response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -164,7 +164,7 @@ public class HttpRemoteSlot implements RemoteSlot
         }
         catch (Exception e) {
             log.error(e);
-            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
+            return setErrorStatus(e.getMessage());
         }
     }
 
@@ -179,7 +179,7 @@ public class HttpRemoteSlot implements RemoteSlot
                     .get();
 
             if (response.getStatusCode() != Status.OK.getStatusCode()) {
-                return setErrorStatus(SlotLifecycleState.UNKNOWN, response.getStatusText());
+                return setErrorStatus(response.getStatusText());
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
@@ -188,7 +188,7 @@ public class HttpRemoteSlot implements RemoteSlot
         }
         catch (Exception e) {
             log.error(e);
-            return setErrorStatus(SlotLifecycleState.UNKNOWN, e.getMessage());
+            return setErrorStatus(e.getMessage());
         }
     }
 }

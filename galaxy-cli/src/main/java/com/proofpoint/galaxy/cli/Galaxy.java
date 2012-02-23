@@ -133,7 +133,12 @@ public class Galaxy
 
         Cli<GalaxyCommand> galaxyParser = builder.build();
 
-        galaxyParser.parse(args).call();
+        try {
+            galaxyParser.parse(args).call();
+        }
+        catch (ParseException e) {
+            System.out.println(firstNonNull(e.getMessage(), "Unknown command line parser error"));
+        }
     }
 
     public static abstract class GalaxyCommand implements Callable<Void>
@@ -238,6 +243,8 @@ public class Galaxy
 
         public void verifySlotExecution(Commander commander, SlotFilter slotFilter, String question, boolean defaultValue, SlotExecution slotExecution)
         {
+            Preconditions.checkArgument(slotFilter.isFiltered(), "A filter is required");
+
             if (globalOptions.batch) {
                 slotExecution.execute(commander, slotFilter, null);
             }
@@ -419,7 +426,7 @@ public class Galaxy
             System.out.println();
 
             // ask to continue
-            if (!ask("Are you sure you would like to INSTALL these on these agents?", true)) {
+            if (!ask("Are you sure you would like to INSTALL on these agents?", true)) {
                 return;
             }
 

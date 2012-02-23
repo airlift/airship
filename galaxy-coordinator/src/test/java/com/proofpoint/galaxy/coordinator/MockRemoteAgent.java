@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentMap;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 
 public class MockRemoteAgent implements RemoteAgent
 {
@@ -128,7 +129,7 @@ public class MockRemoteAgent implements RemoteAgent
         Preconditions.checkState(state != OFFLINE, "agent is offline");
 
         UUID slotId = UUID.randomUUID();
-        SlotStatus slotStatus = new SlotStatus(slotId,
+        SlotStatus slotStatus = createSlotStatus(slotId,
                 "",
                 internalUri.resolve("slot/" + slotId),
                 externalUri.resolve("slot/" + slotId),

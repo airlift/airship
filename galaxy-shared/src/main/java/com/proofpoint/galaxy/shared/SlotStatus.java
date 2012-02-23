@@ -28,6 +28,35 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 @Immutable
 public class SlotStatus
 {
+    public static SlotStatus createSlotStatus(UUID id,
+            String name,
+            URI self,
+            URI externalUri,
+            String location,
+            SlotLifecycleState state,
+            Assignment assignment,
+            String installPath,
+            Map<String, Integer> resources)
+    {
+        return new SlotStatus(id, name, self, externalUri, location, state, assignment, installPath, resources, null, null, null);
+    }
+
+    public static SlotStatus createSlotStatusWithExpectedState(UUID id,
+            String name,
+            URI self,
+            URI externalUri,
+            String location,
+            SlotLifecycleState state,
+            Assignment assignment,
+            String installPath,
+            Map<String, Integer> resources,
+            SlotLifecycleState expectedState,
+            Assignment expectedAssignment,
+            String statusMessage)
+    {
+        return new SlotStatus(id, name, self, externalUri, location, state, assignment, installPath, resources, expectedState, expectedAssignment, statusMessage);
+    }
+
     private final UUID id;
     private final String name;
     private final URI self;
@@ -36,13 +65,28 @@ public class SlotStatus
     private final Assignment assignment;
     private final SlotLifecycleState state;
     private final String version;
+
+    private final SlotLifecycleState expectedState;
+    private final Assignment expectedAssignment;
+
     private final String statusMessage;
 
     private final String installPath;
 
     private final Map<String, Integer> resources;
 
-    public SlotStatus(UUID id, String name, URI self, URI externalUri, String location, SlotLifecycleState state, Assignment assignment, String installPath, Map<String, Integer> resources)
+    private SlotStatus(UUID id,
+            String name,
+            URI self,
+            URI externalUri,
+            String location,
+            SlotLifecycleState state,
+            Assignment assignment,
+            String installPath,
+            Map<String, Integer> resources,
+            SlotLifecycleState expectedState,
+            Assignment expectedAssignment,
+            String statusMessage)
     {
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
@@ -62,53 +106,12 @@ public class SlotStatus
         this.state = state;
         this.version = VersionsUtil.createSlotVersion(id, state, assignment);
         this.installPath = installPath;
-        this.statusMessage = null;
+        this.expectedState = expectedState;
+        this.expectedAssignment = expectedAssignment;
+        this.statusMessage = statusMessage;
         this.resources = ImmutableMap.copyOf(resources);
     }
 
-    public SlotStatus(SlotStatus status, SlotLifecycleState state, Assignment assignment)
-    {
-        Preconditions.checkNotNull(status, "status is null");
-        Preconditions.checkNotNull(state, "state is null");
-        Preconditions.checkNotNull(assignment, "assignment is null");
-
-        this.id = status.id;
-        this.name = status.name;
-        this.self = status.self;
-        this.externalUri = status.externalUri;
-        this.location = status.location;
-        this.assignment = assignment;
-        this.state = state;
-        this.version = VersionsUtil.createSlotVersion(id, state, assignment);
-        this.installPath = status.getInstallPath();
-        this.statusMessage = null;
-        this.resources = status.resources;
-    }
-
-    private SlotStatus(SlotStatus status, SlotLifecycleState state, String statusMessage)
-    {
-        Preconditions.checkNotNull(status, "status is null");
-        Preconditions.checkNotNull(state, "state is null");
-
-        this.id = status.id;
-        this.name = status.name;
-        this.self = status.self;
-        this.externalUri = status.externalUri;
-        this.location = status.location;
-        if (state != TERMINATED) {
-            this.assignment = status.assignment;
-            this.installPath = status.installPath;
-            this.resources = status.resources;
-        }
-        else {
-            this.assignment = null;
-            this.installPath = null;
-            this.resources = ImmutableMap.of();
-        }
-        this.state = state;
-        this.version = VersionsUtil.createSlotVersion(id, state, assignment);
-        this.statusMessage = statusMessage;
-    }
 
     public UUID getId()
     {
@@ -150,19 +153,14 @@ public class SlotStatus
         return version;
     }
 
-    public SlotStatus updateState(SlotLifecycleState state)
+    public SlotLifecycleState getExpectedState()
     {
-        return updateState(state, null);
+        return expectedState;
     }
 
-    public SlotStatus updateState(SlotLifecycleState state, String statusMessage)
+    public Assignment getExpectedAssignment()
     {
-        return new SlotStatus(this, state, statusMessage);
-    }
-
-    public SlotStatus clearStatusMessage()
-    {
-        return new SlotStatus(this, state, (String) null);
+        return expectedAssignment;
     }
 
     public String getStatusMessage()
@@ -178,6 +176,70 @@ public class SlotStatus
     public Map<String, Integer> getResources()
     {
         return resources;
+    }
+
+    public SlotStatus changeState(SlotLifecycleState state)
+    {
+        return createSlotStatusWithExpectedState(this.id,
+                this.name,
+                this.self,
+                this.externalUri,
+                this.location,
+                state,
+                state == TERMINATED ? null : this.assignment,
+                state == TERMINATED ? null : this.installPath,
+                state == TERMINATED ? ImmutableMap.<String, Integer>of() : this.resources,
+                this.expectedState,
+                this.expectedAssignment,
+                this.statusMessage);
+    }
+
+    public SlotStatus changeAssignment(SlotLifecycleState state, Assignment assignment, Map<String, Integer> resources)
+    {
+        return createSlotStatusWithExpectedState(this.id,
+                this.name,
+                this.self,
+                this.externalUri,
+                this.location,
+                state,
+                state == TERMINATED ? null : assignment,
+                state == TERMINATED ? null : this.installPath,
+                state == TERMINATED ? ImmutableMap.<String, Integer>of() : ImmutableMap.copyOf(resources),
+                this.expectedState,
+                this.expectedAssignment,
+                this.statusMessage);
+    }
+
+    public SlotStatus changeExpectedState(SlotLifecycleState expectedState, Assignment expectedAssignment)
+    {
+        return createSlotStatusWithExpectedState(this.id,
+                this.name,
+                this.self,
+                this.externalUri,
+                this.location,
+                this.state,
+                this.assignment,
+                this.installPath,
+                this.resources,
+                expectedState,
+                expectedAssignment,
+                this.statusMessage);
+    }
+
+    public SlotStatus changeStatusMessage(String statusMessage)
+    {
+        return createSlotStatusWithExpectedState(this.id,
+                this.name,
+                this.self,
+                this.externalUri,
+                this.location,
+                this.state,
+                this.assignment,
+                this.installPath,
+                this.resources,
+                this.expectedState,
+                this.expectedAssignment,
+                statusMessage);
     }
 
     @Override
@@ -222,6 +284,12 @@ public class SlotStatus
         if (!resources.equals(that.resources)) {
             return false;
         }
+        if (expectedState != that.expectedState) {
+            return false;
+        }
+        if (expectedAssignment != null ? !expectedAssignment.equals(that.expectedAssignment) : that.expectedAssignment != null) {
+            return false;
+        }
 
         return true;
     }
@@ -239,24 +307,31 @@ public class SlotStatus
         result = 31 * result + version.hashCode();
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
         result = 31 * result + resources.hashCode();
+        result = 31 * result + (expectedState != null ? expectedState.hashCode() : 0);
+        result = 31 * result + (expectedAssignment != null ? expectedAssignment.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString()
     {
-        return "SlotStatus{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", externalUri=" + externalUri +
-                ", self=" + self +
-                ", location=" + location +
-                ", assignment=" + assignment +
-                ", state=" + state +
-                ", version=" + version +
-                ", installPath='" + installPath + '\'' +
-                ", resources='" + resources + '\'' +
-                '}';
+        final StringBuilder sb = new StringBuilder();
+        sb.append("SlotStatus");
+        sb.append("{id=").append(id);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", self=").append(self);
+        sb.append(", externalUri=").append(externalUri);
+        sb.append(", location='").append(location).append('\'');
+        sb.append(", assignment=").append(assignment);
+        sb.append(", state=").append(state);
+        sb.append(", version='").append(version).append('\'');
+        sb.append(", expectedState=").append(expectedState);
+        sb.append(", expectedAssignment=").append(expectedAssignment);
+        sb.append(", statusMessage='").append(statusMessage).append('\'');
+        sb.append(", installPath='").append(installPath).append('\'');
+        sb.append(", resources=").append(resources);
+        sb.append('}');
+        return sb.toString();
     }
 
     public static Function<SlotStatus, UUID> uuidGetter()

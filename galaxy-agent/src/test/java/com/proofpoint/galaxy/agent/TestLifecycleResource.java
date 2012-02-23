@@ -23,9 +23,7 @@ import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
@@ -169,7 +167,7 @@ public class TestLifecycleResource
     private void assertOkResponse(Response response, SlotLifecycleState state)
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        SlotStatusRepresentation expectedStatus = SlotStatusRepresentation.from(slot.status().updateState(state));
+        SlotStatusRepresentation expectedStatus = SlotStatusRepresentation.from(slot.status().changeState(state));
         assertEquals(response.getEntity(), expectedStatus);
         assertEquals(slot.status().getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
