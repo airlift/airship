@@ -8,8 +8,10 @@ import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.ServiceInventory;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
+import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -26,15 +28,13 @@ import java.util.UUID;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
 import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
-import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
 import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
 import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
 import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.toAgentStatusRepresentations;
-import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
-import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
-import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.toCoordinatorStatusRepresentations;
+import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
+import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
+import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentsVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.createAgentsVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
@@ -57,7 +57,7 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public CommanderResponse<List<Record>> show(SlotFilter slotFilter)
+    public CommanderResponse<List<SlotStatusRepresentation>> show(SlotFilter slotFilter)
     {
         List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
         List<UUID> uuids = transform(allSlotStatus, SlotStatus.uuidGetter());
@@ -65,16 +65,16 @@ public class LocalCommander implements Commander
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
-        Iterable<SlotStatus> slots = coordinator.getAllSlotsStatus(slotPredicate);
+        List<SlotStatus> slots = coordinator.getAllSlotsStatus(slotPredicate);
 
         // update just in case something changed
         updateServiceInventory();
 
-        return createCommanderResponse(createSlotsVersion(allSlotStatus), toSlotRecords(prefixSize, slots));
+        return createCommanderResponse(createSlotsVersion(allSlotStatus), transform(slots, fromSlotStatus(prefixSize)));
     }
 
     @Override
-    public List<Record> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedAgentsVersion)
+    public List<SlotStatusRepresentation> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedAgentsVersion)
     {
         // select the target agents
         Predicate<AgentStatus> agentsPredicate = agentFilter.toAgentPredicate(transform(coordinator.getAllSlotStatus(), uuidGetter()), false, repository);
@@ -90,12 +90,12 @@ public class LocalCommander implements Commander
         updateServiceInventory();
 
         // calculate unique prefix size with the new slots included
-        int uniquePrefixSize = shortestUniquePrefix(transform(transform(coordinator.getAllSlotStatus(), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
-        return toSlotRecords(uniquePrefixSize, slots);
+        int prefixSize = shortestUniquePrefix(transform(transform(coordinator.getAllSlotStatus(), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
+        return transform(slots, fromSlotStatus(prefixSize));
     }
 
     @Override
-    public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedSlotsVersion)
+    public List<SlotStatusRepresentation> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedSlotsVersion)
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
@@ -109,11 +109,11 @@ public class LocalCommander implements Commander
 
         // build results
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return toSlotRecords(prefixSize, slots);
+        return transform(slots, fromSlotStatus(prefixSize));
     }
 
     @Override
-    public List<Record> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedSlotsVersion)
+    public List<SlotStatusRepresentation> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedSlotsVersion)
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
@@ -123,50 +123,50 @@ public class LocalCommander implements Commander
         updateServiceInventory();
 
         // set slots state
-        Iterable<SlotStatus> slots = coordinator.setState(state, slotPredicate, expectedSlotsVersion);
+        List<SlotStatus> slots = coordinator.setState(state, slotPredicate, expectedSlotsVersion);
 
         // update to latest state
         updateServiceInventory();
 
         // build results
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return toSlotRecords(prefixSize, slots);
+        return transform(slots, fromSlotStatus(prefixSize));
     }
 
     @Override
-    public List<Record> terminate(SlotFilter slotFilter, String expectedSlotsVersion)
+    public List<SlotStatusRepresentation> terminate(SlotFilter slotFilter, String expectedSlotsVersion)
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
 
         // terminate slots
-        Iterable<SlotStatus> slots = coordinator.terminate(slotPredicate, expectedSlotsVersion);
+        List<SlotStatus> slots = coordinator.terminate(slotPredicate, expectedSlotsVersion);
 
         // update to latest state
         updateServiceInventory();
 
         // build results
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return toSlotRecords(prefixSize, slots);
+        return transform(slots, fromSlotStatus(prefixSize));
     }
 
     @Override
-    public List<Record> resetExpectedState(SlotFilter slotFilter, String expectedSlotsVersion)
+    public List<SlotStatusRepresentation> resetExpectedState(SlotFilter slotFilter, String expectedSlotsVersion)
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
 
         // rest slots expected state
-        Iterable<SlotStatus> slots = coordinator.resetExpectedState(slotPredicate, expectedSlotsVersion);
+        List<SlotStatus> slots = coordinator.resetExpectedState(slotPredicate, expectedSlotsVersion);
 
         // update just in case something changed
         updateServiceInventory();
 
         // build results
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return toSlotRecords(prefixSize, slots);
+        return transform(slots, fromSlotStatus(prefixSize));
     }
 
     @Override
@@ -193,7 +193,7 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<Record> showCoordinators(CoordinatorFilter coordinatorFilter)
+    public List<CoordinatorStatusRepresentation> showCoordinators(CoordinatorFilter coordinatorFilter)
     {
         Predicate<CoordinatorStatus> coordinatorPredicate = coordinatorFilter.toCoordinatorPredicate();
         List<CoordinatorStatus> coordinatorStatuses = coordinator.getCoordinators(coordinatorPredicate);
@@ -201,11 +201,11 @@ public class LocalCommander implements Commander
         // update just in case something changed
         updateServiceInventory();
 
-        return toCoordinatorRecords(toCoordinatorStatusRepresentations(coordinatorStatuses));
+        return transform(coordinatorStatuses, fromCoordinatorStatus());
     }
 
     @Override
-    public List<Record> provisionCoordinators(String coordinatorConfigSpec,
+    public List<CoordinatorStatusRepresentation> provisionCoordinators(String coordinatorConfigSpec,
             int coordinatorCount,
             String instanceType,
             String availabilityZone,
@@ -224,7 +224,7 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public CommanderResponse<List<Record>> showAgents(AgentFilter agentFilter)
+    public CommanderResponse<List<AgentStatusRepresentation>> showAgents(AgentFilter agentFilter)
     {
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate(uuids, true, repository);
@@ -233,11 +233,11 @@ public class LocalCommander implements Commander
         // update just in case something changed
         updateServiceInventory();
 
-        return createCommanderResponse(createAgentsVersion(agentStatuses), toAgentRecords(toAgentStatusRepresentations(agentStatuses)));
+        return createCommanderResponse(createAgentsVersion(agentStatuses), transform(agentStatuses, fromAgentStatus()));
     }
 
     @Override
-    public List<Record> provisionAgents(String agentConfig,
+    public List<AgentStatusRepresentation> provisionAgents(String agentConfig,
             int agentCount,
             String instanceType,
             String availabilityZone,
@@ -250,7 +250,7 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public Record terminateAgent(String agentId)
+    public AgentStatusRepresentation terminateAgent(String agentId)
     {
         throw new UnsupportedOperationException("Agents can not be terminated in local mode");
     }

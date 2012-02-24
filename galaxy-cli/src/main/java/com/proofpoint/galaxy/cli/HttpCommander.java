@@ -63,7 +63,7 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public CommanderResponse<List<Record>> show(SlotFilter slotFilter)
+    public CommanderResponse<List<SlotStatusRepresentation>> show(SlotFilter slotFilter)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
         Request request = RequestBuilder.prepareGet()
@@ -71,12 +71,11 @@ public class HttpCommander implements Commander
                 .build();
 
         JsonResponse<List<SlotStatusRepresentation>> response = client.execute(request, FullJsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
-        List<Record> records = SlotRecord.toSlotRecords(response.getValue());
-        return createCommanderResponse(response.getHeader(GALAXY_SLOTS_VERSION_HEADER), records);
+        return createCommanderResponse(response.getHeader(GALAXY_SLOTS_VERSION_HEADER), response.getValue());
     }
 
     @Override
-    public List<Record> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedVersion)
+    public List<SlotStatusRepresentation> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedVersion)
     {
         URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
         RequestBuilder requestBuilder = RequestBuilder.preparePost()
@@ -88,12 +87,11 @@ public class HttpCommander implements Commander
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
-        ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
-        return records;
+        return slots;
     }
 
     @Override
-    public List<Record> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion)
+    public List<SlotStatusRepresentation> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/assignment"));
         RequestBuilder requestBuilder = RequestBuilder.preparePost()
@@ -105,12 +103,11 @@ public class HttpCommander implements Commander
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
-        ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
-        return records;
+        return slots;
     }
 
     @Override
-    public List<Record> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedVersion)
+    public List<SlotStatusRepresentation> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/lifecycle"));
         RequestBuilder requestBuilder = RequestBuilder.preparePut()
@@ -121,12 +118,11 @@ public class HttpCommander implements Commander
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
-        ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
-        return records;
+        return slots;
     }
 
     @Override
-    public List<Record> terminate(SlotFilter slotFilter, String expectedVersion)
+    public List<SlotStatusRepresentation> terminate(SlotFilter slotFilter, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
         RequestBuilder requestBuilder = RequestBuilder.prepareDelete().setUri(uri);
@@ -135,12 +131,11 @@ public class HttpCommander implements Commander
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
-        ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
-        return records;
+        return slots;
     }
 
     @Override
-    public List<Record> resetExpectedState(SlotFilter slotFilter, String expectedVersion)
+    public List<SlotStatusRepresentation> resetExpectedState(SlotFilter slotFilter, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/expected-state"));
         RequestBuilder requestBuilder = RequestBuilder.prepareDelete().setUri(uri);
@@ -149,8 +144,7 @@ public class HttpCommander implements Commander
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
-        ImmutableList<Record> records = SlotRecord.toSlotRecords(slots);
-        return records;
+        return slots;
     }
 
     @Override
@@ -170,7 +164,7 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<Record> showCoordinators(CoordinatorFilter coordinatorFilter)
+    public List<CoordinatorStatusRepresentation> showCoordinators(CoordinatorFilter coordinatorFilter)
     {
         URI uri = coordinatorFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator"));
         Request request = RequestBuilder.prepareGet()
@@ -178,12 +172,11 @@ public class HttpCommander implements Commander
                 .build();
 
         List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
-        ImmutableList<Record> records = CoordinatorRecord.toCoordinatorRecords(coordinators);
-        return records;
+        return coordinators;
     }
 
     @Override
-    public List<Record> provisionCoordinators(String coordinatorConfig,
+    public List<CoordinatorStatusRepresentation> provisionCoordinators(String coordinatorConfig,
             int coordinatorCount,
             String instanceType,
             String availabilityZone,
@@ -217,8 +210,7 @@ public class HttpCommander implements Commander
             }
             coordinators = waitForCoordinatorsToStart(instanceIds);
         }
-        ImmutableList<Record> records = CoordinatorRecord.toCoordinatorRecords(coordinators);
-        return records;
+        return coordinators;
     }
 
     private List<CoordinatorStatusRepresentation> waitForCoordinatorsToStart(List<String> instanceIds)
@@ -267,7 +259,7 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public CommanderResponse<List<Record>> showAgents(AgentFilter agentFilter)
+    public CommanderResponse<List<AgentStatusRepresentation>> showAgents(AgentFilter agentFilter)
     {
         URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent"));
         Request request = RequestBuilder.prepareGet()
@@ -275,12 +267,11 @@ public class HttpCommander implements Commander
                 .build();
 
         JsonResponse<List<AgentStatusRepresentation>> response = client.execute(request, FullJsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
-        List<Record> records = AgentRecord.toAgentRecords(response.getValue());
-        return CommanderResponse.createCommanderResponse(response.getHeader(GALAXY_AGENTS_VERSION_HEADER), records);
+        return CommanderResponse.createCommanderResponse(response.getHeader(GALAXY_AGENTS_VERSION_HEADER), response.getValue());
     }
 
     @Override
-    public List<Record> provisionAgents(String agentConfig,
+    public List<AgentStatusRepresentation> provisionAgents(String agentConfig,
             int agentCount,
             String instanceType,
             String availabilityZone,
@@ -314,8 +305,7 @@ public class HttpCommander implements Commander
             }
             agents = waitForAgentsToStart(instanceIds);
         }
-        List<Record> records = AgentRecord.toAgentRecords(agents);
-        return records;
+        return agents;
     }
 
     private List<AgentStatusRepresentation> waitForAgentsToStart(List<String> instanceIds)
@@ -348,7 +338,7 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public Record terminateAgent(String agentId)
+    public AgentStatusRepresentation terminateAgent(String agentId)
     {
         URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").build();
 
@@ -358,8 +348,7 @@ public class HttpCommander implements Commander
                 .build();
 
         AgentStatusRepresentation agents = client.execute(request, JsonResponseHandler.create(AGENT_CODEC)).checkedGet();
-        AgentRecord record = new AgentRecord(agents);
-        return record;
+        return agents;
     }
 
     @Override

@@ -28,9 +28,12 @@ import com.proofpoint.galaxy.coordinator.CoordinatorConfig;
 import com.proofpoint.galaxy.coordinator.HttpRepository;
 import com.proofpoint.galaxy.coordinator.Instance;
 import com.proofpoint.galaxy.coordinator.MavenRepository;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
+import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.RepositorySet;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.galaxy.cli.CommanderFactory.ToUriFunction;
 import com.proofpoint.http.server.HttpServerConfig;
@@ -61,9 +64,11 @@ import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
 import static com.proofpoint.galaxy.cli.Column.externalHost;
 import static com.proofpoint.galaxy.cli.Column.internalHost;
-import static com.proofpoint.galaxy.cli.Column.uuid;
+import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
+import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
 import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
 import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
@@ -250,7 +255,7 @@ public class Galaxy
             }
 
             // show effected slots
-            CommanderResponse<List<Record>> response = commander.show(slotFilter);
+            CommanderResponse<List<SlotStatusRepresentation>> response = commander.show(slotFilter);
             displaySlots(response.getValue());
             if (response.getValue().isEmpty()) {
                 return;
@@ -264,8 +269,8 @@ public class Galaxy
 
             // return filter for only the shown slots
             SlotFilter uuidFilter = new SlotFilter();
-            for (Record slot : response.getValue()) {
-                uuidFilter.uuid.add(slot.getValue(uuid));
+            for (SlotStatusRepresentation slot : response.getValue()) {
+                uuidFilter.uuid.add(slot.getId().toString());
             }
             slotExecution.execute(commander, uuidFilter, response.getVersion());
         }
@@ -274,36 +279,36 @@ public class Galaxy
             void execute(Commander commander, SlotFilter slotFilter, String expectedVersion);
         }
 
-        public void displaySlots(Iterable<Record> slots)
+        public void displaySlots(Iterable<SlotStatusRepresentation> slots)
         {
             if (Iterables.isEmpty(slots)) {
                 System.out.println("No slots match the provided filters.");
             }
             else {
                 TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, binary, Column.config, statusMessage);
-                tablePrinter.print(slots);
+                tablePrinter.print(toSlotRecords(slots));
             }
         }
 
-        public void displayAgents(Iterable<Record> agents)
+        public void displayAgents(Iterable<AgentStatusRepresentation> agents)
         {
             if (Iterables.isEmpty(agents)) {
                 System.out.println("No agents match the provided filters.");
             }
             else {
                 TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, Column.instanceType, location);
-                tablePrinter.print(agents);
+                tablePrinter.print(toAgentRecords(agents));
             }
         }
 
-        public void displayCoordinators(Iterable<Record> coordinators)
+        public void displayCoordinators(Iterable<CoordinatorStatusRepresentation> coordinators)
         {
             if (Iterables.isEmpty(coordinators)) {
                 System.out.println("No coordinators match the provided filters.");
             }
             else {
                 TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, Column.instanceType, location);
-                tablePrinter.print(coordinators);
+                tablePrinter.print(toCoordinatorRecords(coordinators));
             }
         }
 
@@ -350,7 +355,7 @@ public class Galaxy
         @Override
         public void execute(Commander commander)
         {
-            CommanderResponse<List<Record>> response = commander.show(slotFilter);
+            CommanderResponse<List<SlotStatusRepresentation>> response = commander.show(slotFilter);
             displaySlots(response.getValue());
         }
 
@@ -402,13 +407,13 @@ public class Galaxy
             agentFilter.assignableFilters.add(assignment);
 
             if (globalOptions.batch) {
-                List<Record> slots = commander.install(agentFilter, count, assignment, null);
+                List<SlotStatusRepresentation> slots = commander.install(agentFilter, count, assignment, null);
                 displaySlots(slots);
             }
 
             // select agents
-            CommanderResponse<List<Record>> response = commander.showAgents(agentFilter);
-            List<Record> agents = response.getValue();
+            CommanderResponse<List<AgentStatusRepresentation>> response = commander.showAgents(agentFilter);
+            List<AgentStatusRepresentation> agents = response.getValue();
             if (agents.isEmpty()) {
                 System.out.println("No agents match the provided filters, matched the software constrains or had the required resources available for the software");
                 return;
@@ -432,12 +437,12 @@ public class Galaxy
 
             // build filter for only the shown agents
             AgentFilter uuidFilter = new AgentFilter();
-            for (Record agent : agents) {
-                uuidFilter.uuid.add(agent.getValue(uuid));
+            for (AgentStatusRepresentation agent : agents) {
+                uuidFilter.uuid.add(agent.getAgentId());
             }
 
             // install software
-            List<Record> slots = commander.install(agentFilter, count, assignment, response.getVersion());
+            List<SlotStatusRepresentation> slots = commander.install(agentFilter, count, assignment, response.getVersion());
             displaySlots(slots);
         }
 
@@ -493,7 +498,7 @@ public class Galaxy
             {
                 public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
                 {
-                    List<Record> slots = commander.upgrade(slotFilter, upgradeVersions, expectedVersion);
+                    List<SlotStatusRepresentation> slots = commander.upgrade(slotFilter, upgradeVersions, expectedVersion);
                     displaySlots(slots);
                 }
             });
@@ -525,7 +530,7 @@ public class Galaxy
             {
                 public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
                 {
-                    List<Record> slots = commander.terminate(slotFilter, expectedVersion);
+                    List<SlotStatusRepresentation> slots = commander.terminate(slotFilter, expectedVersion);
                     displaySlots(slots);
                 }
             });
@@ -556,7 +561,7 @@ public class Galaxy
             {
                 public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
                 {
-                    List<Record> slots = commander.setState(slotFilter, RUNNING, expectedVersion);
+                    List<SlotStatusRepresentation> slots = commander.setState(slotFilter, RUNNING, expectedVersion);
                     displaySlots(slots);
                 }
             });
@@ -576,7 +581,7 @@ public class Galaxy
             {
                 public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
                 {
-                    List<Record> slots = commander.setState(slotFilter, STOPPED, expectedVersion);
+                    List<SlotStatusRepresentation> slots = commander.setState(slotFilter, STOPPED, expectedVersion);
                     displaySlots(slots);
                 }
             });
@@ -596,7 +601,7 @@ public class Galaxy
             {
                 public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
                 {
-                    List<Record> slots = commander.setState(slotFilter, RESTARTING, expectedVersion);
+                    List<SlotStatusRepresentation> slots = commander.setState(slotFilter, RESTARTING, expectedVersion);
                     displaySlots(slots);
                 }
             });
@@ -616,7 +621,7 @@ public class Galaxy
             {
                 public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
                 {
-                    List<Record> slots = commander.resetExpectedState(slotFilter, expectedVersion);
+                    List<SlotStatusRepresentation> slots = commander.resetExpectedState(slotFilter, expectedVersion);
                     displaySlots(slots);
                 }
             });
@@ -661,7 +666,7 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
-            List<Record> coordinators = commander.showCoordinators(coordinatorFilter);
+            List<CoordinatorStatusRepresentation> coordinators = commander.showCoordinators(coordinatorFilter);
             displayCoordinators(coordinators);
         }
 
@@ -708,14 +713,14 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
-            List<Record> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, !noWait);
+            List<CoordinatorStatusRepresentation> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, !noWait);
 
             // add the new coordinators to the config
             String coordinatorProperty = "environment." + environmentRef + ".coordinator";
-            for (Record coordinator : coordinators) {
-                String url = coordinator.getValue(Column.externalUri);
-                if (url != null && !url.isEmpty()) {
-                    config.add(coordinatorProperty, url);
+            for (CoordinatorStatusRepresentation coordinator : coordinators) {
+                URI uri = coordinator.getExternalUri();
+                if (uri != null) {
+                    config.add(coordinatorProperty, uri.toASCIIString());
                 }
             }
             config.save(CONFIG_FILE);
@@ -777,7 +782,7 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
-            CommanderResponse<List<Record>> response = commander.showAgents(agentFilter);
+            CommanderResponse<List<AgentStatusRepresentation>> response = commander.showAgents(agentFilter);
             displayAgents(response.getValue());
         }
 
@@ -824,7 +829,7 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
-            List<Record> agents = commander.provisionAgents(agentConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, !noWait);
+            List<AgentStatusRepresentation> agents = commander.provisionAgents(agentConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, !noWait);
             displayAgents(agents);
         }
 
@@ -856,7 +861,7 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
-            Record agent = commander.terminateAgent(agentId);
+            AgentStatusRepresentation agent = commander.terminateAgent(agentId);
             displayAgents(ImmutableList.of(agent));
         }
 
