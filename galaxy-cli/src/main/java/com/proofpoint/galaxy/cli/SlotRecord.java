@@ -57,6 +57,8 @@ public class SlotRecord implements Record
                 return slotStatus.getInternalHost();
             case internalIp:
                 return slotStatus.getInternalIp();
+            case externalHost:
+                return slotStatus.getExternalHost();
             case status:
                 return slotStatus.getStatus();
             case binary:
