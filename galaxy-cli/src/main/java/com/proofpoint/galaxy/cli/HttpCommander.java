@@ -20,6 +20,7 @@ import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.http.client.BodyGenerator;
 import com.proofpoint.http.client.HttpClient;
+import com.proofpoint.http.client.HttpClientConfig;
 import com.proofpoint.http.client.Request;
 import com.proofpoint.http.client.RequestBuilder;
 import com.proofpoint.json.JsonCodec;
@@ -59,7 +60,7 @@ public class HttpCommander implements Commander
     {
         Preconditions.checkNotNull(coordinatorUri, "coordinatorUri is null");
         this.coordinatorUri = coordinatorUri;
-        this.client = new HttpClient(Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("http-%s").setDaemon(true).build()));
+        this.client = new HttpClient(Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("http-%s").setDaemon(true).build()), new HttpClientConfig());
     }
 
     @Override
