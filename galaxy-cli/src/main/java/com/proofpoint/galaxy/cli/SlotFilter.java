@@ -63,7 +63,7 @@ public class SlotFilter
         for (String binaryGlob : binary) {
             slotFilterBuilder.addBinaryGlobFilter(binaryGlob);
         }
-        for (String configGlob : binary) {
+        for (String configGlob : config) {
             slotFilterBuilder.addConfigGlobFilter(configGlob);
         }
         for (String hostGlob : host) {
