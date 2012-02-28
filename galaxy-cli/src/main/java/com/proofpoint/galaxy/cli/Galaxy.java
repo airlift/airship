@@ -253,6 +253,7 @@ public class Galaxy
 
             if (globalOptions.batch) {
                 slotExecution.execute(commander, slotFilter, null);
+                return;
             }
 
             // show effected slots
@@ -410,6 +411,7 @@ public class Galaxy
             if (globalOptions.batch) {
                 List<SlotStatusRepresentation> slots = commander.install(agentFilter, count, assignment, null);
                 displaySlots(slots);
+                return;
             }
 
             // select agents
