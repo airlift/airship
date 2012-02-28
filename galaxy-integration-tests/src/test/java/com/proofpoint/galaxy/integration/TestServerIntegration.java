@@ -297,8 +297,8 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
-                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize, repository),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize, repository));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEquals(appleSlot1.status().getState(), RUNNING);
@@ -322,8 +322,8 @@ public class TestServerIntegration
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
-                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize, repository),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize, repository));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -348,8 +348,8 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
-                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize, repository),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize, repository));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -378,8 +378,8 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
-                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize, repository),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize, repository));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -409,8 +409,8 @@ public class TestServerIntegration
         assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
 
 
-        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize),
-                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize));
+        List<SlotStatusRepresentation> expected = ImmutableList.of(SlotStatusRepresentation.from(appleSlot1.status(), prefixSize, repository),
+                SlotStatusRepresentation.from(appleSlot2.status(), prefixSize, repository));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);

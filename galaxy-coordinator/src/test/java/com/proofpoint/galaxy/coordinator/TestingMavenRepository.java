@@ -30,6 +30,12 @@ public class TestingMavenRepository extends MavenRepository
     public static final Repository MOCK_REPO = new Repository()
     {
         @Override
+        public String configRelativize(String config)
+        {
+            return null;
+        }
+
+        @Override
         public String configResolve(String config)
         {
             return config;
@@ -69,6 +75,12 @@ public class TestingMavenRepository extends MavenRepository
         public URI configToHttpUri(String config)
         {
             return URI.create("fake://config/" + config);
+        }
+
+        @Override
+        public String binaryRelativize(String config)
+        {
+            return null;
         }
 
         @Override

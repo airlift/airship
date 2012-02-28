@@ -70,7 +70,7 @@ public class LocalCommander implements Commander
         // update just in case something changed
         updateServiceInventory();
 
-        return createCommanderResponse(createSlotsVersion(allSlotStatus), transform(slots, fromSlotStatus(prefixSize)));
+        return createCommanderResponse(createSlotsVersion(allSlotStatus), transform(slots, fromSlotStatus(prefixSize, repository)));
     }
 
     @Override
@@ -91,7 +91,7 @@ public class LocalCommander implements Commander
 
         // calculate unique prefix size with the new slots included
         int prefixSize = shortestUniquePrefix(transform(transform(coordinator.getAllSlotStatus(), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize));
+        return transform(slots, fromSlotStatus(prefixSize, repository));
     }
 
     @Override
@@ -109,7 +109,7 @@ public class LocalCommander implements Commander
 
         // build results
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize));
+        return transform(slots, fromSlotStatus(prefixSize, repository));
     }
 
     @Override
@@ -130,7 +130,7 @@ public class LocalCommander implements Commander
 
         // build results
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize));
+        return transform(slots, fromSlotStatus(prefixSize, repository));
     }
 
     @Override
@@ -148,7 +148,7 @@ public class LocalCommander implements Commander
 
         // build results
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize));
+        return transform(slots, fromSlotStatus(prefixSize, repository));
     }
 
     @Override
@@ -166,7 +166,7 @@ public class LocalCommander implements Commander
 
         // build results
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize));
+        return transform(slots, fromSlotStatus(prefixSize, repository));
     }
 
     @Override

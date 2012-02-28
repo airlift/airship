@@ -225,9 +225,9 @@ public class TestCoordinatorServer
 
 
         assertEqualsNoOrder(actual, ImmutableList.of(
-                SlotStatusRepresentation.from(agentStatus.getSlotStatus(apple1SotId), prefixSize),
-                SlotStatusRepresentation.from(agentStatus.getSlotStatus(apple2SlotId), prefixSize),
-                SlotStatusRepresentation.from(agentStatus.getSlotStatus(bananaSlotId), prefixSize)));
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus(apple1SotId), prefixSize, MOCK_REPO),
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus(apple2SlotId), prefixSize, MOCK_REPO),
+                SlotStatusRepresentation.from(agentStatus.getSlotStatus(bananaSlotId), prefixSize, MOCK_REPO)));
     }
 
     @Test
@@ -251,8 +251,8 @@ public class TestCoordinatorServer
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
 
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(apple1Status, prefixSize),
-                SlotStatusRepresentation.from(apple2Status, prefixSize));
+                SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
+                SlotStatusRepresentation.from(apple2Status, prefixSize, MOCK_REPO));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -286,8 +286,8 @@ public class TestCoordinatorServer
         SlotStatus bananaStatus = coordinator.getAgentStatus(agentId).getSlotStatus(bananaSlotId);
 
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(apple1Status, prefixSize),
-                SlotStatusRepresentation.from(apple2Status.changeState(TERMINATED), prefixSize));
+                SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
+                SlotStatusRepresentation.from(apple2Status.changeState(TERMINATED), prefixSize, MOCK_REPO));
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
 
@@ -315,8 +315,8 @@ public class TestCoordinatorServer
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
 
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(apple1Status, prefixSize),
-                SlotStatusRepresentation.from(apple2Status, prefixSize));
+                SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
+                SlotStatusRepresentation.from(apple2Status, prefixSize, MOCK_REPO));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -343,8 +343,8 @@ public class TestCoordinatorServer
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
 
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(apple1Status, prefixSize),
-                SlotStatusRepresentation.from(apple2Status, prefixSize));
+                SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
+                SlotStatusRepresentation.from(apple2Status, prefixSize, MOCK_REPO));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
@@ -373,8 +373,8 @@ public class TestCoordinatorServer
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
 
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(apple1Status, prefixSize),
-                SlotStatusRepresentation.from(apple2Status, prefixSize));
+                SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
+                SlotStatusRepresentation.from(apple2Status, prefixSize, MOCK_REPO));
 
         List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);

@@ -17,6 +17,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
@@ -44,13 +45,16 @@ import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
 public class CoordinatorLifecycleResource
 {
     private final Coordinator coordinator;
+    private final Repository repository;
 
     @Inject
-    public CoordinatorLifecycleResource(Coordinator coordinator)
+    public CoordinatorLifecycleResource(Coordinator coordinator, Repository repository)
     {
         Preconditions.checkNotNull(coordinator, "coordinator must not be null");
+        Preconditions.checkNotNull(repository, "repository is null");
 
         this.coordinator = coordinator;
+        this.repository = repository;
     }
 
     @PUT
@@ -75,7 +79,7 @@ public class CoordinatorLifecycleResource
 
         // build response
         int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(transform(results, fromSlotStatus(prefixSize)))
+        return Response.ok(transform(results, fromSlotStatus(prefixSize, repository)))
                 .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(results))
                 .build();
      }

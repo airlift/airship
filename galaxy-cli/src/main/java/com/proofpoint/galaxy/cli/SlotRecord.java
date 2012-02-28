@@ -27,18 +27,6 @@ public class SlotRecord implements Record
         }));
     }
 
-    public static List<Record> toSlotRecords(final int prefixSize, Iterable<SlotStatus> slots)
-    {
-        return ImmutableList.copyOf(Iterables.transform(slots, new Function<SlotStatus, Record>()
-        {
-            @Override
-            public SlotRecord apply(SlotStatus slot)
-            {
-                return new SlotRecord(SlotStatusRepresentation.from(slot, prefixSize));
-            }
-        }));
-    }
-
     private final SlotStatusRepresentation slotStatus;
 
     public SlotRecord(SlotStatusRepresentation statusRepresentation)
@@ -63,8 +51,12 @@ public class SlotRecord implements Record
                 return slotStatus.getStatus();
             case binary:
                 return slotStatus.getBinary();
+            case shortBinary:
+                return slotStatus.getShortBinary();
             case config:
                 return slotStatus.getConfig();
+            case shortConfig:
+                return slotStatus.getShortConfig();
             case expectedStatus:
                 return slotStatus.getExpectedStatus();
             case expectedBinary:

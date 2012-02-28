@@ -38,6 +38,24 @@ public class RepositorySet implements Repository
     }
 
     @Override
+    public String configRelativize(String config)
+    {
+        Set<String> relativeConfigs = newTreeSet();
+        for (Repository repository : repositories) {
+            String relativeConfig = repository.configRelativize(config);
+            if (relativeConfig != null) {
+                relativeConfigs.add(relativeConfig);
+            }
+        }
+        
+        // if we end up with more than one form for the relative config, just return the absolute config
+        if (relativeConfigs.size() != 1) {
+            return config;
+        }
+        return relativeConfigs.iterator().next();
+    }
+
+    @Override
     public String configResolve(String config)
     {
         Set<String> configs = newTreeSet();
@@ -58,6 +76,7 @@ public class RepositorySet implements Repository
 
         return configs.iterator().next();
     }
+
 
     @Override
     public String configUpgrade(String config, String version)
@@ -112,6 +131,24 @@ public class RepositorySet implements Repository
         }
 
         return httpUris.iterator().next();
+    }
+
+    @Override
+    public String binaryRelativize(String binary)
+    {
+        Set<String> relativeBinaries = newTreeSet();
+        for (Repository repository : repositories) {
+            String relativeBinary = repository.binaryRelativize(binary);
+            if (relativeBinary != null) {
+                relativeBinaries.add(relativeBinary);
+            }
+        }
+
+        // if we end up with more than one form for the relative binary, just return the absolute binary
+        if (relativeBinaries.size() != 1) {
+            return binary;
+        }
+        return relativeBinaries.iterator().next();
     }
 
     @Override

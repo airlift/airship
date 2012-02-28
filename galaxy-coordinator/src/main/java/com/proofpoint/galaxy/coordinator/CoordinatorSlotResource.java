@@ -81,7 +81,7 @@ public class CoordinatorSlotResource
 
         // build response
         int prefixSize = shortestUniquePrefix(Collections2.transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(Iterables.transform(result, fromSlotStatus(prefixSize)))
+        return Response.ok(Iterables.transform(result, fromSlotStatus(prefixSize, repository)))
                 .header(GALAXY_SLOTS_VERSION_HEADER, result)
                 .build();
     }
@@ -115,7 +115,7 @@ public class CoordinatorSlotResource
 
         // calculate unique prefix size with the new slots included
         int prefixSize = shortestUniquePrefix(transform(transform(coordinator.getAllSlotStatus(), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(transform(slots, fromSlotStatus(prefixSize)))
+        return Response.ok(transform(slots, fromSlotStatus(prefixSize, repository)))
                 .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(slots))
                 .build();
     }
@@ -134,7 +134,7 @@ public class CoordinatorSlotResource
 
         // build response
         int prefixSize = shortestUniquePrefix(Collections2.transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(transform(result, fromSlotStatus(prefixSize)))
+        return Response.ok(transform(result, fromSlotStatus(prefixSize, repository)))
                 .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(result))
                 .build();
     }

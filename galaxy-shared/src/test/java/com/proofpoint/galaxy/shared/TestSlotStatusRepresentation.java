@@ -11,7 +11,6 @@ import java.util.UUID;
 
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static org.testng.Assert.assertEquals;
 
 public class TestSlotStatusRepresentation
@@ -25,6 +24,8 @@ public class TestSlotStatusRepresentation
             URI.create("external://apple"),
             "location/apple",
             AssignmentHelper.APPLE_ASSIGNMENT.getBinary(),
+            AssignmentHelper.APPLE_ASSIGNMENT.getBinary(),
+            AssignmentHelper.APPLE_ASSIGNMENT.getConfig(),
             AssignmentHelper.APPLE_ASSIGNMENT.getConfig(),
             STOPPED.toString(),
             "abc",

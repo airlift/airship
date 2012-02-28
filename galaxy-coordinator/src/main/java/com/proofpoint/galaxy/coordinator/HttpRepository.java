@@ -97,6 +97,23 @@ public class HttpRepository implements Repository
     }
 
     @Override
+    public String configRelativize(String config)
+    {
+        if (!config.startsWith("@")) {
+            return null;
+        }
+        config = config.substring(1);
+
+        for (URI baseUri : baseUris) {
+            String baseUriString = baseUri.toASCIIString();
+            if (config.startsWith(baseUriString)) {
+                return config.substring(0, baseUriString.length());
+            }
+        }
+        return null;
+    }
+
+    @Override
     public String configResolve(String config)
     {
         if (!config.startsWith("@")) {
@@ -142,6 +159,18 @@ public class HttpRepository implements Repository
         }
         config = config.substring(1);
         return toHttpUri(config, DEFAULT_CONFIG_PACKAGING);
+    }
+
+    @Override
+    public String binaryRelativize(String binary)
+    {
+        for (URI baseUri : baseUris) {
+            String baseUriString = baseUri.toASCIIString();
+            if (binary.startsWith(baseUriString)) {
+                return binary.substring(0, baseUriString.length());
+            }
+        }
+        return null;
     }
 
     @Override

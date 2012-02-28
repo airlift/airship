@@ -67,6 +67,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
 import static com.proofpoint.galaxy.cli.Column.externalHost;
 import static com.proofpoint.galaxy.cli.Column.internalHost;
+import static com.proofpoint.galaxy.cli.Column.shortBinary;
+import static com.proofpoint.galaxy.cli.Column.shortConfig;
 import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
 import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
 import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
@@ -74,7 +76,6 @@ import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactor
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.cli.Column.binary;
 import static com.proofpoint.galaxy.cli.Column.location;
 import static com.proofpoint.galaxy.cli.Column.shortId;
 import static com.proofpoint.galaxy.cli.Column.status;
@@ -285,7 +286,7 @@ public class Galaxy
                 System.out.println("No slots match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, binary, Column.config, statusMessage);
+                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, shortBinary, shortConfig, statusMessage);
                 tablePrinter.print(toSlotRecords(slots));
             }
         }

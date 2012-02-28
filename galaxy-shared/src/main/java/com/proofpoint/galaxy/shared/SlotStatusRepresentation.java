@@ -14,6 +14,7 @@
 package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
@@ -36,7 +37,9 @@ public class SlotStatusRepresentation
     private final URI externalUri;
     private final String location;
     private final String binary;
+    private final String shortBinary;
     private final String config;
+    private final String shortConfig;
     private final String status;
     private final String version;
     private final String statusMessage;
@@ -48,29 +51,39 @@ public class SlotStatusRepresentation
 
     private final static int MAX_ID_SIZE = UUID.randomUUID().toString().length();
 
-    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus(final int shortIdPrefixSize)
+    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus(final int shortIdPrefixSize, final Repository repository)
     {
         return new Function<SlotStatus, SlotStatusRepresentation>()
         {
             public SlotStatusRepresentation apply(SlotStatus status)
             {
-                return from(status, shortIdPrefixSize);
+                return from(status, shortIdPrefixSize, repository);
             }
         };
     }
 
     public static SlotStatusRepresentation from(SlotStatus slotStatus)
     {
-        return from(slotStatus, MAX_ID_SIZE);
+        return from(slotStatus, MAX_ID_SIZE, null);
     }
 
-    public static SlotStatusRepresentation from(SlotStatus slotStatus, int shortIdPrefixSize)
+    public static SlotStatusRepresentation from(SlotStatus slotStatus, int shortIdPrefixSize, Repository repository)
     {
         String binary = null;
         String config = null;
+        String shortBinary = null;
+        String shortConfig = null;
         if (slotStatus.getAssignment() != null) {
             binary = slotStatus.getAssignment().getBinary();
             config = slotStatus.getAssignment().getConfig();
+            if (repository != null) {
+                shortBinary = Objects.firstNonNull(repository.binaryRelativize(binary), binary);
+                shortConfig = Objects.firstNonNull(repository.configRelativize(config), config);
+            } else {
+                shortBinary = binary;
+                shortConfig = config;
+            }
+
         }
 
         String expectedBinary = null;
@@ -92,7 +105,9 @@ public class SlotStatusRepresentation
                 slotStatus.getExternalUri(),
                 slotStatus.getLocation(),
                 binary,
+                shortBinary,
                 config,
+                shortConfig,
                 slotStatus.getState().toString(),
                 slotStatus.getVersion(),
                 slotStatus.getStatusMessage(),
@@ -112,7 +127,9 @@ public class SlotStatusRepresentation
             @JsonProperty("externalUri") URI externalUri,
             @JsonProperty("location") String location,
             @JsonProperty("binary") String binary,
+            @JsonProperty("shortBinary") String shortBinary,
             @JsonProperty("config") String config,
+            @JsonProperty("shortConfig") String shortConfig,
             @JsonProperty("status") String status,
             @JsonProperty("version") String version,
             @JsonProperty("statusMessage") String statusMessage,
@@ -129,7 +146,9 @@ public class SlotStatusRepresentation
         this.externalUri = externalUri;
         this.location = location;
         this.binary = binary;
+        this.shortBinary = shortBinary;
         this.config = config;
+        this.shortConfig = shortConfig;
         this.status = status;
         this.version = version;
         this.statusMessage = statusMessage;
@@ -191,9 +210,23 @@ public class SlotStatusRepresentation
 
     @JsonProperty
     @NotNull(message = "is missing")
+    public String getShortBinary()
+    {
+        return shortBinary;
+    }
+
+    @JsonProperty
+    @NotNull(message = "is missing")
     public String getConfig()
     {
         return config;
+    }
+
+    @JsonProperty
+    @NotNull(message = "is missing")
+    public String getShortConfig()
+    {
+        return shortConfig;
     }
 
     @JsonProperty
@@ -320,7 +353,13 @@ public class SlotStatusRepresentation
         if (binary != null ? !binary.equals(that.binary) : that.binary != null) {
             return false;
         }
+        if (shortBinary != null ? !shortBinary.equals(that.shortBinary) : that.shortBinary != null) {
+            return false;
+        }
         if (config != null ? !config.equals(that.config) : that.config != null) {
+            return false;
+        }
+        if (shortConfig != null ? !shortConfig.equals(that.shortConfig) : that.shortConfig != null) {
             return false;
         }
         if (id != null ? !id.equals(that.id) : that.id != null) {
@@ -373,7 +412,9 @@ public class SlotStatusRepresentation
         result = 31 * result + (shortId != null ? shortId.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (binary != null ? binary.hashCode() : 0);
+        result = 31 * result + (shortBinary != null ? shortBinary.hashCode() : 0);
         result = 31 * result + (config != null ? config.hashCode() : 0);
+        result = 31 * result + (shortConfig != null ? shortConfig.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (version != null ? version.hashCode() : 0);
         result = 31 * result + (self != null ? self.hashCode() : 0);
@@ -399,7 +440,9 @@ public class SlotStatusRepresentation
         sb.append(", externalUri=").append(externalUri);
         sb.append(", location=").append(location);
         sb.append(", binary='").append(binary).append('\'');
+        sb.append(", shortBinary='").append(shortBinary).append('\'');
         sb.append(", config='").append(config).append('\'');
+        sb.append(", shortConfig='").append(shortConfig).append('\'');
         sb.append(", status='").append(status).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", statusMessage='").append(statusMessage).append('\'');

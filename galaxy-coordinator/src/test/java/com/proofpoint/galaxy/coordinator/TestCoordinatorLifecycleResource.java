@@ -76,7 +76,7 @@ public class TestCoordinatorLifecycleResource
                 new LocalProvisioner(),
                 new InMemoryStateManager(),
                 new MockServiceInventory());
-        resource = new CoordinatorLifecycleResource(coordinator);
+        resource = new CoordinatorLifecycleResource(coordinator, MOCK_REPO);
 
         apple1SlotId = UUID.randomUUID();
         SlotStatus appleSlotStatus1 = createSlotStatus(apple1SlotId,
@@ -225,7 +225,7 @@ public class TestCoordinatorLifecycleResource
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (UUID slotId : slotIds) {
             SlotStatus slotStatus = agentStatus.getSlotStatus(slotId);
-            builder.add(SlotStatusRepresentation.from(slotStatus.changeState(state), prefixSize));
+            builder.add(SlotStatusRepresentation.from(slotStatus.changeState(state), prefixSize, MOCK_REPO));
             assertEquals(slotStatus.getAssignment(), APPLE_ASSIGNMENT);
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());

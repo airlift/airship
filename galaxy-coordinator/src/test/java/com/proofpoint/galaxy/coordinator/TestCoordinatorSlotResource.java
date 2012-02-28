@@ -103,7 +103,7 @@ public class TestCoordinatorSlotResource
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEqualsNoOrder((Iterable<?>) response.getEntity(),
-                ImmutableList.of(SlotStatusRepresentation.from(slot1, prefixSize), SlotStatusRepresentation.from(slot2, prefixSize)));
+                ImmutableList.of(SlotStatusRepresentation.from(slot1, prefixSize, repository), SlotStatusRepresentation.from(slot2, prefixSize, repository)));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -143,7 +143,7 @@ public class TestCoordinatorSlotResource
         URI requestUri = URI.create("http://localhost/v1/slot?host=foo");
         Response response = resource.getAllSlots(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1, prefixSize)));
+        assertEqualsNoOrder((Iterable<?>) response.getEntity(), ImmutableList.of(SlotStatusRepresentation.from(slot1, prefixSize, repository)));
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 

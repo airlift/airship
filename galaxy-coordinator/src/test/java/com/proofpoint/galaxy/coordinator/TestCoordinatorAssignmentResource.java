@@ -71,7 +71,7 @@ public class TestCoordinatorAssignmentResource
                 new LocalProvisioner(),
                 new InMemoryStateManager(),
                 new MockServiceInventory());
-        resource = new CoordinatorAssignmentResource(coordinator);
+        resource = new CoordinatorAssignmentResource(coordinator, MOCK_REPO);
 
         apple1SlotId = UUID.randomUUID();
         SlotStatus appleSlotStatus1 = createSlotStatus(apple1SlotId,
@@ -183,7 +183,7 @@ public class TestCoordinatorAssignmentResource
 
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (SlotStatus slotStatus : slots) {
-            builder.add(SlotStatusRepresentation.from(slotStatus.changeState(state), prefixSize));
+            builder.add(SlotStatusRepresentation.from(slotStatus.changeState(state), prefixSize, MOCK_REPO));
         }
         assertEqualsNoOrder((Collection<?>) response.getEntity(), builder.build());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces

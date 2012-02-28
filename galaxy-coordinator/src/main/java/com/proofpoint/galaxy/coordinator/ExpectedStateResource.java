@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
 import javax.ws.rs.DELETE;
@@ -31,13 +32,16 @@ import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
 public class ExpectedStateResource
 {
     private final Coordinator coordinator;
+    private final Repository repository;
 
     @Inject
-    public ExpectedStateResource(Coordinator coordinator)
+    public ExpectedStateResource(Coordinator coordinator, Repository repository)
     {
         Preconditions.checkNotNull(coordinator, "coordinator must not be null");
+        Preconditions.checkNotNull(repository, "repository is null");
 
         this.coordinator = coordinator;
+        this.repository = repository;
     }
 
     @DELETE
@@ -54,7 +58,7 @@ public class ExpectedStateResource
 
         // build response
         int prefixSize = shortestUniquePrefix(Collections2.transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(transform(result, fromSlotStatus(prefixSize)))
+        return Response.ok(transform(result, fromSlotStatus(prefixSize, repository)))
                 .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(result))
                 .build();
     }

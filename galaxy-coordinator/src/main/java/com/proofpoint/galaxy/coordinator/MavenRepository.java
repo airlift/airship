@@ -70,6 +70,31 @@ public class MavenRepository implements Repository
     }
 
     @Override
+    public String configRelativize(String config)
+    {
+        if (!config.startsWith("@")) {
+            return null;
+        }
+
+        MavenCoordinates coordinates = MavenCoordinates.fromConfigGAV(config);
+        if (coordinates == null) {
+            return null;
+        }
+        for (String defaultGroupId : defaultGroupIds) {
+            if (defaultGroupId.equals(coordinates.getGroupId())) {
+                return MavenCoordinates.toConfigGAV(new MavenCoordinates(
+                        null,
+                        coordinates.getArtifactId(),
+                        coordinates.getVersion(),
+                        coordinates.getPackaging(),
+                        coordinates.getClassifier(),
+                        coordinates.getFileVersion()));
+            }
+        }
+        return null;
+    }
+
+    @Override
     public String configResolve(String config)
     {
         MavenCoordinates coordinates = MavenCoordinates.fromConfigGAV(config);
@@ -142,6 +167,27 @@ public class MavenRepository implements Repository
             return null;
         }
         return toHttpUri(coordinates, true);
+    }
+
+    @Override
+    public String binaryRelativize(String binary)
+    {
+        MavenCoordinates coordinates = MavenCoordinates.fromBinaryGAV(binary);
+        if (coordinates == null) {
+            return null;
+        }
+        for (String defaultGroupId : defaultGroupIds) {
+            if (defaultGroupId.equals(coordinates.getGroupId())) {
+                return MavenCoordinates.toBinaryGAV(new MavenCoordinates(
+                        null,
+                        coordinates.getArtifactId(),
+                        coordinates.getVersion(),
+                        coordinates.getPackaging(),
+                        coordinates.getClassifier(),
+                        coordinates.getFileVersion()));
+            }
+        }
+        return null;
     }
 
     @Override
