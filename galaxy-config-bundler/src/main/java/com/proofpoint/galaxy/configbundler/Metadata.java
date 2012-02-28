@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.configbundler;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.proofpoint.json.JsonCodec;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -11,13 +12,16 @@ import java.io.IOException;
 public class Metadata
 {
     private final String groupId;
-    private final String repositoryId;
+    private final Repository snapshotsRepository;
+    private final Repository releasesRepository;
 
     public Metadata(@JsonProperty("groupId") String groupId,
-            @JsonProperty("repository") String repositoryId)
+            @JsonProperty("snapshotsRepository") Repository snapshotsRepository,
+            @JsonProperty("releasesRepository") Repository releasesRepository)
     {
         this.groupId = groupId;
-        this.repositoryId = repositoryId;
+        this.snapshotsRepository = snapshotsRepository;
+        this.releasesRepository = releasesRepository;
     }
 
     @JsonProperty
@@ -27,9 +31,15 @@ public class Metadata
     }
 
     @JsonProperty
-    public String getRepository()
+    public Repository getSnapshotsRepository()
     {
-        return repositoryId;
+        return snapshotsRepository;
+    }
+
+    @JsonProperty
+    public Repository getReleasesRepository()
+    {
+        return releasesRepository;
     }
 
     public void save(File file)
@@ -37,5 +47,31 @@ public class Metadata
     {
         String json = JsonCodec.jsonCodec(Metadata.class).toJson(this);
         Files.write(json + "\n", file, Charsets.UTF_8);
+    }
+
+    public static class Repository
+    {
+        private final String id;
+        private final String uri;
+
+        public Repository(@JsonProperty("id") String id, @JsonProperty("uri") String uri)
+        {
+            Preconditions.checkNotNull(id, "id is null");
+
+            this.uri = uri;
+            this.id = id;
+        }
+
+        @JsonProperty("id")
+        public String getId()
+        {
+            return id;
+        }
+
+        @JsonProperty("uri")
+        public String getUri()
+        {
+            return uri;
+        }
     }
 }

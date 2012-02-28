@@ -1,24 +1,42 @@
 package com.proofpoint.galaxy.configbundler;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import org.apache.maven.settings.Profile;
-import org.apache.maven.settings.Repository;
+import com.proofpoint.http.client.BodyGenerator;
+import org.apache.maven.repository.internal.DefaultArtifactDescriptorReader;
+import org.apache.maven.repository.internal.DefaultVersionRangeResolver;
+import org.apache.maven.repository.internal.DefaultVersionResolver;
+import org.apache.maven.repository.internal.MavenRepositorySystemSession;
+import org.apache.maven.repository.internal.SnapshotMetadataGeneratorFactory;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.DefaultSettingsBuilderFactory;
 import org.apache.maven.settings.building.DefaultSettingsBuildingRequest;
 import org.apache.maven.settings.building.SettingsBuildingException;
 import org.apache.maven.settings.building.SettingsBuildingRequest;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.artifact.Artifact;
+import org.sonatype.aether.connector.async.AsyncRepositoryConnectorFactory;
+import org.sonatype.aether.connector.file.FileRepositoryConnectorFactory;
+import org.sonatype.aether.deployment.DeployRequest;
+import org.sonatype.aether.impl.ArtifactDescriptorReader;
+import org.sonatype.aether.impl.MetadataGeneratorFactory;
+import org.sonatype.aether.impl.VersionRangeResolver;
+import org.sonatype.aether.impl.VersionResolver;
+import org.sonatype.aether.impl.internal.DefaultServiceLocator;
+import org.sonatype.aether.repository.Authentication;
+import org.sonatype.aether.repository.LocalRepository;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.repository.RepositoryPolicy;
+import org.sonatype.aether.resolution.ArtifactRequest;
+import org.sonatype.aether.resolution.ArtifactResolutionException;
+import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.net.URI;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.collect.Iterables.find;
+import java.io.FileOutputStream;
 
 public class Maven
 {
@@ -29,55 +47,110 @@ public class Maven
     private static final File DEFAULT_USER_SETTINGS_FILE = new File(MAVEN_USER_HOME, "settings.xml");
     private static final File DEFAULT_GLOBAL_SETTINGS_FILE = new File(MAVEN_HOME, "conf/settings.xml");
 
-    private final Settings settings;
+    private final RepositorySystem repositorySystem;
+    private final RepositorySystemSession session;
 
-    public Maven()
+    private final RemoteRepository snapshotsRepository;
+    private final RemoteRepository releasesRepository;
+
+    public Maven(@Nullable Metadata.Repository snapshotsRepositoryInfo,
+            @Nullable Metadata.Repository releasesRepositoryInfo)
             throws SettingsBuildingException
     {
+        validateRepositoryMetadata(snapshotsRepositoryInfo, "snapshots");
+        validateRepositoryMetadata(releasesRepositoryInfo, "releases");
+        
         final SettingsBuildingRequest request = new DefaultSettingsBuildingRequest()
                 .setGlobalSettingsFile(DEFAULT_GLOBAL_SETTINGS_FILE)
                 .setUserSettingsFile(DEFAULT_USER_SETTINGS_FILE)
                 .setSystemProperties(System.getProperties());
 
-        settings = new DefaultSettingsBuilderFactory()
+        Settings settings = new DefaultSettingsBuilderFactory()
                 .newInstance()
                 .build(request)
                 .getEffectiveSettings();
-    }
 
-    public MavenRepository getRepository(String repositoryId)
-    {
-        Repository repository = find(getActiveRepositories(), matchesId(repositoryId), null);
-        Preconditions.checkArgument(repository != null, "Repository '%s' not found", repositoryId);
+        repositorySystem = new DefaultServiceLocator()
+                .addService(RepositoryConnectorFactory.class, AsyncRepositoryConnectorFactory.class)
+                .addService(RepositoryConnectorFactory.class, FileRepositoryConnectorFactory.class)
+                .addService(VersionResolver.class, DefaultVersionResolver.class)
+                .addService(VersionRangeResolver.class, DefaultVersionRangeResolver.class)
+                .addService(ArtifactDescriptorReader.class, DefaultArtifactDescriptorReader.class)
+                .addService(MetadataGeneratorFactory.class, SnapshotMetadataGeneratorFactory.class)
+                .getService(RepositorySystem.class);
 
-        Server server = settings.getServer(repository.getId());
-        Preconditions.checkArgument(server != null && server.getPassword() != null, "No credentials found for repository '%s'", repositoryId);
-
-        return new MavenRepository(URI.create(repository.getUrl()), server.getUsername(), server.getPassword());
-    }
-
-    private List<Repository> getActiveRepositories()
-    {
-        ImmutableList.Builder<Repository> builder = ImmutableList.builder();
-
-        final Set<String> activeProfiles = ImmutableSet.copyOf(settings.getActiveProfiles());
-        for (Profile profile : settings.getProfiles()) {
-            if (activeProfiles.contains(profile.getId())) {
-                builder.addAll(profile.getRepositories());
-            }
+        String localRepository = settings.getLocalRepository();
+        if (localRepository == null || localRepository.trim().isEmpty()) {
+            localRepository = new File(MAVEN_USER_HOME, "repository").getAbsolutePath();
         }
 
-        return builder.build();
+        session = new MavenRepositorySystemSession()
+                .setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(new LocalRepository(localRepository)));
+
+        releasesRepository = makeRemoteRepository(releasesRepositoryInfo, settings.getServer(releasesRepositoryInfo.getId()), false);
+        snapshotsRepository = makeRemoteRepository(snapshotsRepositoryInfo, settings.getServer(snapshotsRepositoryInfo.getId()), true);
     }
 
-    private static Predicate<? super Repository> matchesId(final String repositoryId)
+    private static void validateRepositoryMetadata(Metadata.Repository info, String name)
     {
-        return new Predicate<Repository>()
-        {
-            public boolean apply(Repository input)
-            {
-                return input.getId().equals(repositoryId);
-            }
-        };
+        Preconditions.checkNotNull(info.getId(), "%s repository id is null", name);
+        Preconditions.checkNotNull(info.getUri(), "%s repository uri is null", name);
     }
+    
+    private static RemoteRepository makeRemoteRepository(Metadata.Repository info, Server server, boolean snapshot)
+    {
+        return new RemoteRepository(info.getId(), "default", info.getUri())
+                .setPolicy(true, new RepositoryPolicy(snapshot, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_FAIL))
+                .setPolicy(false, new RepositoryPolicy(!snapshot, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_FAIL))
+                .setAuthentication(new Authentication(server.getUsername(), server.getPassword()));
+    }
+
+    public void upload(String groupId, String artifactId, String version, String extension, BodyGenerator bodyWriter)
+            throws Exception
+    {
+        File file = File.createTempFile(String.format("%s-%s-%s", groupId, artifactId, version), "." + extension);
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            try {
+                bodyWriter.write(out);
+            }
+            finally {
+                out.close();
+            }
+
+            Artifact artifact = new DefaultArtifact(groupId, artifactId, extension, version).setFile(file);
+
+            DeployRequest request = new DeployRequest()
+                    .addArtifact(artifact);
+
+            if (artifact.isSnapshot()) {
+                Preconditions.checkNotNull(snapshotsRepository, "snapshots repository uri is null");
+                request.setRepository(snapshotsRepository);
+            }
+            else {
+                Preconditions.checkNotNull(releasesRepository, "releases repository uri is null");
+                request.setRepository(releasesRepository);
+            }
+
+            repositorySystem.deploy(session, request);
+        }
+        finally {
+            file.delete();
+        }
+    }
+
+    public boolean contains(String groupId, String artifactId, String version, String type)
+    {
+        Artifact artifact = new DefaultArtifact(groupId, artifactId, type, version);
+
+        try {
+            repositorySystem.resolveArtifact(session, new ArtifactRequest(artifact, ImmutableList.of(snapshotsRepository, releasesRepository), null));
+        }
+        catch (ArtifactResolutionException e) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

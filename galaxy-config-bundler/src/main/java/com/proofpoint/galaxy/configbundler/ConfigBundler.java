@@ -16,7 +16,8 @@ public class ConfigBundler
                 .withDefaultCommand(Help.class)
                 .withCommands(ReleaseCommand.class,
                         InitCommand.class,
-                        AddComponentCommand.class)
+                        AddComponentCommand.class,
+                        SnapshotCommand.class)
                 .withCommand(Help.class)
                 .build();
 
