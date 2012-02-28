@@ -73,16 +73,16 @@ galaxy config set environment.galaxy.use-internal-address true
 ln -n -f -s /mnt/galaxy /home/ubuntu/galaxy
 
 # install server
-galaxy install ${galaxyInstallBinary} ${galaxyInstallConfig}
+galaxy --batch install ${galaxyInstallBinary} ${galaxyInstallConfig}
 
 if [ -e /home/ubuntu/cloudconf/aws-credentials.properties ]
 then
     # copy aws credentials to server
-    galaxy ssh -c @coordinator.config "mkdir -p $(dirname ${galaxyAwsCredentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${galaxyAwsCredentialsFile}"
+    galaxy ssh --all "mkdir -p $(dirname ${galaxyAwsCredentialsFile}) && cp /home/ubuntu/cloudconf/aws-credentials.properties ${galaxyAwsCredentialsFile}"
 fi
 
 # start server
-galaxy start -c ${galaxyInstallConfig}
+galaxy --batch start --all
 
 # add target environment
 galaxy environment add ${galaxyEnvironment} http://127.0.0.1:64000/
