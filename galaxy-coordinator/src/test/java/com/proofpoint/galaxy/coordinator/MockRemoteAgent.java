@@ -3,10 +3,8 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.proofpoint.discovery.client.ServiceDescriptor;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
@@ -14,68 +12,37 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
 import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 
 public class MockRemoteAgent implements RemoteAgent
 {
-    private final ConcurrentMap<UUID, SlotStatus> slots = new ConcurrentHashMap<UUID, SlotStatus>();
-    private final String agentId;
-    private AgentLifecycleState state;
-    private URI internalUri;
-    private URI externalUri;
-    private Map<String,Integer> resources = ImmutableMap.of();
+    private AgentStatus agentStatus;
 
-    public MockRemoteAgent(String agentId)
+    public MockRemoteAgent(AgentStatus agentStatus)
     {
-        this.agentId = checkNotNull(agentId, "agentId is null");
-        this.internalUri = URI.create("internal://agent/" + agentId);
-        this.externalUri = URI.create("external://agent/" + agentId);
-        state = ONLINE;
+        this.agentStatus = checkNotNull(agentStatus, "agentStatus is null");
     }
 
     @Override
     public AgentStatus status()
     {
-        return new AgentStatus(agentId, state, internalUri, externalUri, "unknown/location", "instance.type", ImmutableList.copyOf(slots.values()), resources);
+        return agentStatus;
     }
 
     @Override
-    public URI getInternalUri()
+    public void setInternalUri(URI internalUri)
     {
-        return internalUri;
-    }
-
-    @Override
-    public void setInternalUri(URI uri)
-    {
-        this.internalUri = uri;
-    }
-
-    @Override
-    public URI getExternalUri()
-    {
-        return externalUri;
-    }
-
-    @Override
-    public void setExternalUri(URI externalUri)
-    {
-        this.externalUri = externalUri;
+        agentStatus = agentStatus.changeInternalUri(internalUri);
     }
 
     @Override
     public List<? extends RemoteSlot> getSlots()
     {
-        return ImmutableList.copyOf(Iterables.transform(slots.values(), new Function<SlotStatus, MockRemoteSlot>()
+        return ImmutableList.copyOf(Iterables.transform(agentStatus.getSlotStatuses(), new Function<SlotStatus, MockRemoteSlot>()
         {
             @Override
             public MockRemoteSlot apply(SlotStatus slotStatus)
@@ -90,31 +57,9 @@ public class MockRemoteAgent implements RemoteAgent
     {
     }
 
-    @Override
-    public void setStatus(AgentStatus status)
+    void setSlotStatus(SlotStatus slotStatus)
     {
-        Set<UUID> updatedSlots = newHashSet();
-        for (SlotStatus slotStatus : status.getSlotStatuses()) {
-            updatedSlots.add(slotStatus.getId());
-            slots.put(slotStatus.getId(), slotStatus);
-        }
-
-        // remove all slots that were not updated
-        slots.keySet().retainAll(updatedSlots);
-
-        state = status.getState();
-        internalUri = status.getInternalUri();
-        if (status.getResources() != null) {
-            resources = ImmutableMap.copyOf(status.getResources());
-        }
-        else {
-            resources = ImmutableMap.of();
-        }
-    }
-
-    public void setSlotStatus(SlotStatus slotStatus)
-    {
-        slots.put(slotStatus.getId(), slotStatus);
+        agentStatus = agentStatus.changeSlotStatus(slotStatus);
     }
 
     @Override
@@ -126,19 +71,19 @@ public class MockRemoteAgent implements RemoteAgent
     public SlotStatus install(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
-        Preconditions.checkState(state != OFFLINE, "agent is offline");
+        Preconditions.checkState(agentStatus.getState() != OFFLINE, "agent is offline");
 
         UUID slotId = UUID.randomUUID();
         SlotStatus slotStatus = createSlotStatus(slotId,
                 "",
-                internalUri.resolve("slot/" + slotId),
-                externalUri.resolve("slot/" + slotId),
+                agentStatus.getInternalUri().resolve("slot/" + slotId),
+                agentStatus.getExternalUri().resolve("slot/" + slotId),
                 "location",
                 SlotLifecycleState.STOPPED,
                 installation.getAssignment(),
                 "/" + slotId,
                 installation.getResources());
-        slots.put(slotId, slotStatus);
+        agentStatus.changeSlotStatus(slotStatus);
 
         return slotStatus;
     }

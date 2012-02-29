@@ -30,7 +30,6 @@ public class LocalProvisioner implements Provisioner
         for (String localAgentUri : localAgentUris) {
             addAgent(new Instance("local", "unknown", "location", URI.create(localAgentUri), URI.create(localAgentUri)));
         }
-        addAgent(new Instance("bad", "unknown", "location", null, null));
     }
 
     public void addCoordinator(Instance instance) {

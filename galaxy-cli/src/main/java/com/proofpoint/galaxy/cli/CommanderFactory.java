@@ -259,12 +259,9 @@ public class CommanderFactory
         }
 
         @Override
-        public RemoteAgent createRemoteAgent(String instanceId, String instanceType, URI internalUri, URI externalUri)
+        public RemoteAgent createRemoteAgent(AgentStatus agentStatus)
         {
-            Preconditions.checkArgument(agentId.equals(instanceId), "instanceId is not '" + agentId + "'");
-            Preconditions.checkArgument(AGENT_URI.equals(internalUri), "internalUri is not '" + AGENT_URI + "'");
-            Preconditions.checkArgument(AGENT_URI.equals(externalUri), "externalUri is not '" + AGENT_URI + "'");
-
+            Preconditions.checkNotNull(agentStatus, "agentStatus is null");
             return new LocalRemoteAgent(agent);
         }
     }
@@ -279,25 +276,7 @@ public class CommanderFactory
         }
 
         @Override
-        public URI getInternalUri()
-        {
-            return AGENT_URI;
-        }
-
-        @Override
         public void setInternalUri(URI uri)
-        {
-            Preconditions.checkArgument(AGENT_URI.equals(uri), "uri is not '" + AGENT_URI + "'");
-        }
-
-        @Override
-        public URI getExternalUri()
-        {
-            return AGENT_URI;
-        }
-
-        @Override
-        public void setExternalUri(URI uri)
         {
             Preconditions.checkArgument(AGENT_URI.equals(uri), "uri is not '" + AGENT_URI + "'");
         }
@@ -342,11 +321,6 @@ public class CommanderFactory
         {
         }
 
-        @Override
-        public void setStatus(AgentStatus status)
-        {
-            // only used for testing
-        }
     }
 
     private static class LocalRemoteSlot implements RemoteSlot

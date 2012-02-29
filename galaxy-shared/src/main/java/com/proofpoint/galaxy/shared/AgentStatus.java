@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.google.common.collect.Maps.newHashMap;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+
 @Immutable
 public class AgentStatus
 {
@@ -31,7 +34,7 @@ public class AgentStatus
             URI externalUri,
             String location,
             String instanceType,
-            List<SlotStatus> slots,
+            Iterable<SlotStatus> slots,
             Map<String, Integer> resources)
     {
         Preconditions.checkNotNull(agentId, "agentId is null");
@@ -49,22 +52,6 @@ public class AgentStatus
         this.version = VersionsUtil.createAgentVersion(agentId, state, slots, resources);
     }
 
-    public AgentStatus(AgentStatus agentStatus, AgentLifecycleState state)
-    {
-        Preconditions.checkNotNull(agentStatus, "agentStatus is null");
-        Preconditions.checkNotNull(state, "state is null");
-
-        this.internalUri = agentStatus.internalUri;
-        this.externalUri = agentStatus.externalUri;
-        this.state = state;
-        this.agentId = agentStatus.agentId;
-        this.location = agentStatus.location;
-        this.instanceType = agentStatus.instanceType;
-        this.slots = agentStatus.slots;
-        this.resources = agentStatus.resources;
-        this.version = VersionsUtil.createAgentVersion(agentId, state, slots.values(), resources);
-    }
-
     public String getAgentId()
     {
         return agentId;
@@ -75,9 +62,40 @@ public class AgentStatus
         return state;
     }
     
-    public AgentStatus updateState(AgentLifecycleState state)
+    public AgentStatus changeState(AgentLifecycleState state)
     {
-        return new AgentStatus(this, state);
+        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+    }
+
+    public AgentStatus changeInstanceType(String instanceType)
+    {
+        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+    }
+
+    public AgentStatus changeSlotStatus(SlotStatus slotStatus)
+    {
+        Map<UUID,SlotStatus> slots = newHashMap(this.slots);
+        if (slotStatus.getState() != TERMINATED) {
+            slots.put(slotStatus.getId(), slotStatus);
+        } else {
+            slots.remove(slotStatus.getId());
+        }
+        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+    }
+
+    public AgentStatus changeAllSlotsState(SlotLifecycleState slotState)
+    {
+        Map<UUID,SlotStatus> slots = newHashMap(this.slots);
+        for (SlotStatus slotStatus : slots.values()) {
+            // set all slots to unknown state
+            slots.put(slotStatus.getId(), slotStatus.changeState(slotState));
+        }
+        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+    }
+
+    public AgentStatus changeInternalUri(URI internalUri)
+    {
+        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
     }
 
     public URI getInternalUri()

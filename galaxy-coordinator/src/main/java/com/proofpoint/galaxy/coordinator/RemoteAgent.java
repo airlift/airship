@@ -11,23 +11,15 @@ import java.util.UUID;
 
 public interface RemoteAgent
 {
-    URI getInternalUri();
+    AgentStatus status();
 
     void setInternalUri(URI uri);
 
-    URI getExternalUri();
-
-    void setExternalUri(URI uri);
-
     SlotStatus install(Installation installation);
-
-    AgentStatus status();
 
     List<? extends RemoteSlot> getSlots();
 
     void updateStatus();
-
-    void setStatus(AgentStatus status);
 
     void setServiceInventory(List<ServiceDescriptor> serviceInventory);
 }

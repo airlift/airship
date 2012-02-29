@@ -1,8 +1,8 @@
 package com.proofpoint.galaxy.coordinator;
 
-import java.net.URI;
+import com.proofpoint.galaxy.shared.AgentStatus;
 
 public interface RemoteAgentFactory
 {
-    RemoteAgent createRemoteAgent(String agentId, String instanceType, URI internalUri, URI externalUri);
+    RemoteAgent createRemoteAgent(AgentStatus agentStatus);
 }

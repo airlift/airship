@@ -120,17 +120,14 @@ public class TestRemoteSlot
 
         server.start();
         client = new AsyncHttpClient();
-        remoteAgent = new HttpRemoteAgent("test",
-                agent.getAgentId(),
-                "instance.type",
-                server.getBaseUrl(),
-                server.getBaseUrl(),
+        remoteAgent = new HttpRemoteAgent(
+                agent.getAgentStatus(),
+                "test",
                 client,
                 JsonCodec.jsonCodec(InstallationRepresentation.class),
                 JsonCodec.jsonCodec(AgentStatusRepresentation.class),
                 JsonCodec.jsonCodec(SlotStatusRepresentation.class),
                 JsonCodec.jsonCodec(ServiceDescriptorsRepresentation.class));
-        remoteAgent.setStatus(agent.getAgentStatus());
     }
 
     @BeforeMethod

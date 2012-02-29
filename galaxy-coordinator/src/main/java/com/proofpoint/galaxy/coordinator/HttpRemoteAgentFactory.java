@@ -3,6 +3,7 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.inject.Inject;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
+import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -36,8 +37,8 @@ public class HttpRemoteAgentFactory implements RemoteAgentFactory
     }
 
     @Override
-    public RemoteAgent createRemoteAgent(String agentId, String instanceType, URI internalUri, URI externalUri)
+    public RemoteAgent createRemoteAgent(AgentStatus agentStatus)
     {
-        return new HttpRemoteAgent(environment, agentId, instanceType, internalUri, externalUri, httpClient, installationCodec, agentStatusCodec, slotStatusCodec, serviceDescriptorsCodec);
+        return new HttpRemoteAgent(agentStatus, environment, httpClient, installationCodec, agentStatusCodec, slotStatusCodec, serviceDescriptorsCodec);
     }
 }

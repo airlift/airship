@@ -40,6 +40,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -59,10 +60,12 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotsVersion;
+import static java.lang.Character.MIN_RADIX;
 
 public class Coordinator
 {
     private static final Logger log = Logger.get(Coordinator.class);
+    private static final Random random = new Random();
 
     private final ConcurrentMap<String, CoordinatorStatus> coordinators = new ConcurrentHashMap<String, CoordinatorStatus>();
     private final ConcurrentMap<String, RemoteAgent> agents = new ConcurrentHashMap<String, RemoteAgent>();
@@ -253,7 +256,16 @@ public class Coordinator
     public void updateAllAgents()
     {
         for (Instance instance : this.provisioner.listAgents()) {
-            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance.getInstanceId(), instance.getInstanceType(), instance.getInternalUri(), instance.getExternalUri());
+            AgentStatus agentStatus = new AgentStatus(instance.getInstanceId(),
+                    AgentLifecycleState.ONLINE,
+                    instance.getInternalUri(),
+                    instance.getExternalUri(),
+                    instance.getLocation(),
+                    instance.getInstanceType(),
+                    ImmutableList.<SlotStatus>of(),
+                    ImmutableMap.<String, Integer>of());
+
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(agentStatus);
             RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgent);
             if (existing != null) {
                 existing.setInternalUri(instance.getInternalUri());
@@ -270,13 +282,9 @@ public class Coordinator
     @VisibleForTesting
     public void setAgentStatus(AgentStatus status)
     {
-
-        RemoteAgent remoteAgent = agents.get(status.getAgentId());
-        if (remoteAgent == null) {
-            remoteAgent = remoteAgentFactory.createRemoteAgent(status.getAgentId(), status.getInstanceType(), status.getInternalUri(), status.getExternalUri());
-            agents.put(status.getAgentId(), remoteAgent);
-        }
-        remoteAgent.setStatus(status);
+        agents.remove(status.getAgentId());
+        RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(status);
+        agents.put(status.getAgentId(), remoteAgent);
     }
 
     public List<AgentStatus> provisionAgents(String agentConfigSpec,
@@ -300,7 +308,7 @@ public class Coordinator
             String instanceId = instance.getInstanceId();
 
             AgentStatus agentStatus = new AgentStatus(
-                    instanceId,
+                    "provisioning-" + Integer.toString(random.nextInt(), MIN_RADIX),
                     AgentLifecycleState.PROVISIONING,
                     null,
                     null,
@@ -309,8 +317,7 @@ public class Coordinator
                     ImmutableList.<SlotStatus>of(),
                     ImmutableMap.<String, Integer>of());
 
-            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instanceId, instance.getInstanceType(), null, null);
-            remoteAgent.setStatus(agentStatus);
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(agentStatus);
             this.agents.put(instanceId, remoteAgent);
 
             agents.add(agentStatus);
@@ -335,7 +342,7 @@ public class Coordinator
             throw new IllegalStateException("Cannot terminate agent that has slots: " + agentId);
         }
         provisioner.terminateAgents(ImmutableList.of(agentId));
-        return agent.status().updateState(AgentLifecycleState.TERMINATED);
+        return agent.status().changeState(AgentLifecycleState.TERMINATED);
     }
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)

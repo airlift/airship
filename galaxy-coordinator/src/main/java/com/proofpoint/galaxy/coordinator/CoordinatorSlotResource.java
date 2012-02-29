@@ -77,12 +77,12 @@ public class CoordinatorSlotResource
         Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, false, uuids);
 
         // select slots
-        List<SlotStatus> result = coordinator.getAllSlotsStatus(slotFilter);
+        List<SlotStatus> slots = coordinator.getAllSlotsStatus(slotFilter);
 
         // build response
         int prefixSize = shortestUniquePrefix(Collections2.transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(Iterables.transform(result, fromSlotStatus(prefixSize, repository)))
-                .header(GALAXY_SLOTS_VERSION_HEADER, result)
+        return Response.ok(Iterables.transform(slots, fromSlotStatus(prefixSize, repository)))
+                .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(slots))
                 .build();
     }
 
