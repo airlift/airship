@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -14,19 +15,64 @@ import java.util.SortedSet;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 public class Strings
 {
+    public static int commonPrefixSegments(char separator, Collection<String> strings)
+    {
+        if (strings.size() < 2) {
+            return 0;
+        }
+
+        List<List<String>> stringsParts = newArrayList();
+        for (String string : strings) {
+            List<String> parts = ImmutableList.copyOf(Splitter.on(separator).split(string));
+            stringsParts.add(parts);
+        }
+
+        int commonParts = 0;
+        while (isPartEqual(commonParts, stringsParts)) {
+            commonParts++;
+        }
+        return commonParts;
+    }
+
+    private static boolean isPartEqual(int partNumber, List<List<String>> stringsParts)
+    {
+        if (stringsParts.get(0).size() <= partNumber) {
+            return false;
+        }
+        String part = stringsParts.get(0).get(partNumber);
+        for (List<String> parts : stringsParts) {
+            if (parts.size() <= partNumber || !part.equals(parts.get(partNumber))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static String trimLeadingSegments(String string, char separator, int segmentCount)
+    {
+        if (string == null) {
+            return null;
+        }
+
+        List<String> segments = ImmutableList.copyOf(Splitter.on(separator).split(string));
+        if (segments.size() < segmentCount) {
+            return string;
+        }
+        return Joiner.on(separator).join(segments.subList(segmentCount, segments.size()));
+    }
+
     public static int shortestUniquePrefix(Collection<String> strings)
     {
-        return shortestUniquePrefix(strings, 0);
+        return shortestUniquePrefix(strings, 1);
     }
 
     public static int shortestUniquePrefix(Collection<String> strings, int minSize)
     {
         Preconditions.checkNotNull(strings, "strings is null");
-        if (strings.isEmpty()) {
+        if (strings.size() < 2) {
             return minSize;
         }
 
@@ -91,6 +137,17 @@ public class Strings
         }
 
         return result;
+    }
+
+    public static String safeTruncate(String string, int length)
+    {
+        if (string == null) {
+            return null;
+        }
+        if (length > string.length()) {
+            return string;
+        }
+        return string.substring(0, length);
     }
 
     private static Function<String, Integer> lengthGetter()

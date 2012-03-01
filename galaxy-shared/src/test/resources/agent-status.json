@@ -1,8 +1,10 @@
 {
     "agentId":"44444444-4444-4444-4444-444444444444",
+    "shortAgentId":"4444",
     "state":"ONLINE",
     "instanceType":"instance.type",
     "location":"unknown/location",
+    "shortLocation":"location",
     "slots":[
         {
             "id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",

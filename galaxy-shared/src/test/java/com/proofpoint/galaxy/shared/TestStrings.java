@@ -11,6 +11,18 @@ import static org.testng.Assert.assertEquals;
 public class TestStrings
 {
     @Test
+    public void testCommonSegment()
+    {
+        assertEquals(commonPrefixSegments('/', ImmutableList.<String>of()), 0);
+        assertEquals(commonPrefixSegments('/', of("")), 0);
+        assertEquals(commonPrefixSegments('/', of("a")), 0);
+        assertEquals(commonPrefixSegments('/', of("a", "a")), 1);
+        assertEquals(commonPrefixSegments('/', of("a/a/a", "a/a/a")), 3);
+        assertEquals(commonPrefixSegments('/', of("a/a/a", "a/a/b")), 2);
+        assertEquals(commonPrefixSegments('/', of("a/a/a", "a/a/a", "a/a/b")), 2);
+    }
+
+    @Test
     public void test()
     {
         assertEquals(shortestUniquePrefix(of("aa", "aaa")), 3);

@@ -189,4 +189,15 @@ public class AgentStatus
             }
         };
     }
+
+    public static Function<AgentStatus, String> locationGetter()
+    {
+        return new Function<AgentStatus, String>()
+        {
+            public String apply(AgentStatus input)
+            {
+                return input.getLocation();
+            }
+        };
+    }
 }

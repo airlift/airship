@@ -17,6 +17,7 @@ public enum Column
     expectedConfig("expected-config"),
     statusMessage(""),
     location,
+    shortLocation("location"),
     instanceType("type"),
     internalUri("uri"),
     externalUri("uri");

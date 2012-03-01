@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
@@ -17,77 +16,117 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.collect.Lists.transform;
+import static com.proofpoint.galaxy.shared.AgentStatus.idGetter;
+import static com.proofpoint.galaxy.shared.AgentStatus.locationGetter;
+import static com.proofpoint.galaxy.shared.Strings.commonPrefixSegments;
+import static com.proofpoint.galaxy.shared.Strings.safeTruncate;
+import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
+import static com.proofpoint.galaxy.shared.Strings.trimLeadingSegments;
+
 @JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation
 {
-    public static List<AgentStatusRepresentation> toAgentStatusRepresentations(Iterable<AgentStatus> agents)
-    {
-        return ImmutableList.copyOf(Iterables.transform(agents, new Function<AgentStatus, AgentStatusRepresentation>()
+    public static class AgentStatusRepresentationFactory {
+        public static final int MIN_PREFIX_SIZE = 4;
+
+        private final int shortIdPrefixSize;
+        private final int commonLocationParts;
+        private final Repository repository;
+
+        public AgentStatusRepresentationFactory()
         {
-            @Override
-            public AgentStatusRepresentation apply(AgentStatus agent)
-            {
-                return from(agent);
+            this(Integer.MAX_VALUE, 0, null);
+        }
+
+        public AgentStatusRepresentationFactory(List<AgentStatus> agentStatuses, Repository repository)
+        {
+            this.shortIdPrefixSize = shortestUniquePrefix(transform(agentStatuses, idGetter()), MIN_PREFIX_SIZE);
+            this.commonLocationParts = commonPrefixSegments('/', transform(agentStatuses, locationGetter()));
+            this.repository = repository;
+        }
+
+        public AgentStatusRepresentationFactory(int shortIdPrefixSize, int commonLocationParts, Repository repository)
+        {
+            this.shortIdPrefixSize = shortIdPrefixSize;
+            this.commonLocationParts = commonLocationParts;
+            this.repository = repository;
+        }
+
+        public AgentStatusRepresentation create(AgentStatus status) {
+            Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
+            for (SlotStatus slot : status.getSlotStatuses()) {
+                builder.add(SlotStatusRepresentation.from(slot, Integer.MAX_VALUE, repository));
             }
-        }));
+            return new AgentStatusRepresentation(
+                    status.getAgentId(),
+                    safeTruncate(status.getAgentId(), shortIdPrefixSize),
+                    status.getState(),
+                    status.getInternalUri(),
+                    status.getExternalUri(),
+                    status.getLocation(),
+                    trimLeadingSegments(status.getLocation(), '/', commonLocationParts),
+                    status.getInstanceType(),
+                    builder.build(),
+                    status.getResources(),
+                    status.getVersion());
+        }
     }
 
     private final String agentId;
+    private final String shortAgentId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
     private final URI externalUri;
     private final AgentLifecycleState state;
     private final String location;
+    private final String shortLocation;
     private final String instanceType;
     private final Map<String, Integer> resources;
     private final String version;
 
-    public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatus()
+    public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatus(List<AgentStatus> agentStatuses, Repository repository)
+    {
+        return fromAgentStatus(new AgentStatusRepresentationFactory(agentStatuses, repository));
+    }
+
+    public static Function<AgentStatus, AgentStatusRepresentation> fromAgentStatus(final AgentStatusRepresentationFactory factory)
     {
         return new Function<AgentStatus, AgentStatusRepresentation>()
         {
             public AgentStatusRepresentation apply(AgentStatus status)
             {
-                return from(status);
+                return factory.create(status);
             }
         };
     }
 
     public static AgentStatusRepresentation from(AgentStatus status) {
-        Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
-        for (SlotStatus slot : status.getSlotStatuses()) {
-            builder.add(SlotStatusRepresentation.from(slot));
-        }
-        return new AgentStatusRepresentation(
-                status.getAgentId(),
-                status.getState(),
-                status.getInternalUri(),
-                status.getExternalUri(),
-                status.getLocation(),
-                status.getInstanceType(),
-                builder.build(),
-                status.getResources(),
-                status.getVersion());
+        return new AgentStatusRepresentationFactory().create(status);
     }
 
     @JsonCreator
     public AgentStatusRepresentation(
             @JsonProperty("agentId") String agentId,
+            @JsonProperty("shortAgentId") String shortAgentId,
             @JsonProperty("state") AgentLifecycleState state,
             @JsonProperty("self") URI self,
             @JsonProperty("externalUri") URI externalUri,
             @JsonProperty("location") String location,
+            @JsonProperty("shortLocation") String shortLocation,
             @JsonProperty("instanceType") String instanceType,
             @JsonProperty("slots") List<SlotStatusRepresentation> slots,
             @JsonProperty("resources") Map<String, Integer> resources,
             @JsonProperty("version") String version)
     {
         this.agentId = agentId;
+        this.shortAgentId = shortAgentId;
         this.slots = slots;
         this.self = self;
         this.externalUri = externalUri;
         this.state = state;
         this.location = location;
+        this.shortLocation = shortLocation;
         this.instanceType = instanceType;
         if (resources != null) {
             this.resources = ImmutableMap.copyOf(resources);
@@ -103,6 +142,13 @@ public class AgentStatusRepresentation
     public String getAgentId()
     {
         return agentId;
+    }
+
+    @JsonProperty
+    @NotNull
+    public String getShortAgentId()
+    {
+        return shortAgentId;
     }
 
     @JsonProperty
@@ -136,6 +182,12 @@ public class AgentStatusRepresentation
     public String getLocation()
     {
         return location;
+    }
+
+    @JsonProperty
+    public String getShortLocation()
+    {
+        return shortLocation;
     }
 
     @JsonProperty
@@ -229,11 +281,13 @@ public class AgentStatusRepresentation
         final StringBuilder sb = new StringBuilder();
         sb.append("AgentStatusRepresentation");
         sb.append("{agentId='").append(agentId).append('\'');
+        sb.append(", shortAgentId=").append(shortAgentId);
         sb.append(", slots=").append(slots);
         sb.append(", self=").append(self);
         sb.append(", externalUri=").append(externalUri);
         sb.append(", state=").append(state);
         sb.append(", location='").append(location).append('\'');
+        sb.append(", shortLocation='").append(shortLocation).append('\'');
         sb.append(", instanceType='").append(instanceType).append('\'');
         sb.append(", resources=").append(resources);
         sb.append(", version='").append(version).append('\'');

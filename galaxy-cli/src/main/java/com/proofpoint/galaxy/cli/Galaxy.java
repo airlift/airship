@@ -69,6 +69,7 @@ import static com.proofpoint.galaxy.cli.Column.externalHost;
 import static com.proofpoint.galaxy.cli.Column.internalHost;
 import static com.proofpoint.galaxy.cli.Column.shortBinary;
 import static com.proofpoint.galaxy.cli.Column.shortConfig;
+import static com.proofpoint.galaxy.cli.Column.shortLocation;
 import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
 import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
 import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
@@ -298,7 +299,7 @@ public class Galaxy
                 System.out.println("No agents match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, Column.instanceType, location);
+                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, Column.instanceType, shortLocation);
                 tablePrinter.print(toAgentRecords(agents));
             }
         }

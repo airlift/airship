@@ -36,10 +36,12 @@ public class TestAgentStatusRepresentation
 
     private final AgentStatusRepresentation expected = new AgentStatusRepresentation(
             "44444444-4444-4444-4444-444444444444",
+            "4444",
             ONLINE,
             URI.create("internal://agent"),
             URI.create("external://agent"),
             "unknown/location",
+            "location",
             "instance.type",
             ImmutableList.of(
                     new SlotStatusRepresentation(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
@@ -99,12 +101,14 @@ public class TestAgentStatusRepresentation
 
         assertEquals(actual, expected);
         assertEquals(actual.getAgentId(), expected.getAgentId());
+        assertEquals(actual.getShortAgentId(), expected.getShortAgentId());
         assertEquals(actual.getSelf(), expected.getSelf());
         assertEquals(actual.getState(), expected.getState());
         assertEquals(actual.getInstanceType(), expected.getInstanceType());
         assertEquals(actual.getResources(), expected.getResources());
         assertEquals(actual.getLocation(), expected.getLocation());
         assertEquals(actual.getLocation(), expected.getLocation());
+        assertEquals(actual.getShortLocation(), expected.getShortLocation());
         assertEquals(actual.getSlots(), expected.getSlots());
         assertEquals(actual.getVersion(), expected.getVersion());
     }

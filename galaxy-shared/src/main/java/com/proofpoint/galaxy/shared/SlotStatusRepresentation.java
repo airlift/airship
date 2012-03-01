@@ -27,6 +27,8 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.shared.Strings.safeTruncate;
+
 @JsonAutoDetect(JsonMethod.NONE)
 public class SlotStatusRepresentation
 {
@@ -99,7 +101,7 @@ public class SlotStatusRepresentation
         }
 
         return new SlotStatusRepresentation(slotStatus.getId(),
-                slotStatus.getId().toString().substring(0, shortIdPrefixSize),
+                safeTruncate(slotStatus.getId().toString(), shortIdPrefixSize),
                 slotStatus.getName(),
                 slotStatus.getSelf(),
                 slotStatus.getExternalUri(),

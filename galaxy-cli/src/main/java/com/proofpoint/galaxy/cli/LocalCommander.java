@@ -232,8 +232,7 @@ public class LocalCommander implements Commander
 
         // update just in case something changed
         updateServiceInventory();
-
-        return createCommanderResponse(createAgentsVersion(agentStatuses), transform(agentStatuses, fromAgentStatus()));
+        return createCommanderResponse(createAgentsVersion(agentStatuses), transform(agentStatuses, fromAgentStatus(coordinator.getAllAgentStatus(), repository)));
     }
 
     @Override

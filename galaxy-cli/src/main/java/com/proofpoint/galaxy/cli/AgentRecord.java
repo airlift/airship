@@ -39,7 +39,7 @@ public class AgentRecord implements Record
     {
         switch (column) {
             case shortId:
-                return agentStatus.getAgentId();
+                return agentStatus.getShortAgentId();
             case uuid:
                 return agentStatus.getAgentId();
             case internalHost:
@@ -52,6 +52,8 @@ public class AgentRecord implements Record
                 return agentStatus.getState();
             case location:
                 return agentStatus.getLocation();
+            case shortLocation:
+                return agentStatus.getShortLocation();
             case instanceType:
                 return agentStatus.getInstanceType();
             case internalUri:
