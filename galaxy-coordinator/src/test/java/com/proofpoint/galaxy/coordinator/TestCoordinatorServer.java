@@ -53,7 +53,7 @@ import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.collect.Lists.transform;
 import static com.google.inject.Scopes.SINGLETON;
 import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
-import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
+import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;

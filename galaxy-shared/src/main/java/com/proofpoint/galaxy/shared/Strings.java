@@ -1,7 +1,8 @@
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
@@ -11,7 +12,9 @@ import java.util.List;
 import java.util.SortedSet;
 
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class Strings
 {

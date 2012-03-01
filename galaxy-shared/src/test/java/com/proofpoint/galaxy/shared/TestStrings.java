@@ -1,9 +1,11 @@
-package com.proofpoint.galaxy.coordinator;
+package com.proofpoint.galaxy.shared;
 
+import com.google.common.collect.ImmutableList;
 import org.testng.annotations.Test;
 
 import static com.google.common.collect.ImmutableList.of;
-import static com.proofpoint.galaxy.coordinator.Strings.shortestUniquePrefix;
+import static com.proofpoint.galaxy.shared.Strings.commonPrefixSegments;
+import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
 import static org.testng.Assert.assertEquals;
 
 public class TestStrings
