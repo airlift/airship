@@ -67,6 +67,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
 import static com.proofpoint.galaxy.cli.Column.externalHost;
 import static com.proofpoint.galaxy.cli.Column.internalHost;
+import static com.proofpoint.galaxy.cli.Column.machine;
 import static com.proofpoint.galaxy.cli.Column.shortBinary;
 import static com.proofpoint.galaxy.cli.Column.shortConfig;
 import static com.proofpoint.galaxy.cli.Column.shortLocation;
@@ -299,7 +300,7 @@ public class Galaxy
                 System.out.println("No agents match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, Column.instanceType, shortLocation);
+                TablePrinter tablePrinter = new TablePrinter(machine, shortId, getHostColumn(), status, Column.instanceType, shortLocation);
                 tablePrinter.print(toAgentRecords(agents));
             }
         }

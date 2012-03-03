@@ -4,6 +4,7 @@ public enum Column
 {
     shortId("uuid"),
     uuid,
+    machine("machine"),
     internalIp("ip"),
     internalHost("host"),
     externalHost("host"),

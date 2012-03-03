@@ -42,6 +42,8 @@ public class AgentRecord implements Record
                 return agentStatus.getShortAgentId();
             case uuid:
                 return agentStatus.getAgentId();
+            case machine:
+                return agentStatus.getInstanceId();
             case internalHost:
                 return agentStatus.getInternalHost();
             case internalIp:
