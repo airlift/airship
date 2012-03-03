@@ -34,6 +34,7 @@ import com.proofpoint.log.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
@@ -134,8 +135,16 @@ public class HttpServiceInventory implements ServiceInventory
             return null;
         }
 
+
         try {
-            String json = CharStreams.toString(CharStreams.newReaderSupplier(configFile, Charsets.UTF_8));
+            String json;
+            try {
+                json = CharStreams.toString(CharStreams.newReaderSupplier(configFile, Charsets.UTF_8));
+            }
+            catch (FileNotFoundException e) {
+                // no service inventory in the config, so replace with json null so caching works
+                json = "null";
+            }
             invalidServiceInventory.remove(config);
 
             // cache json
@@ -144,8 +153,6 @@ public class HttpServiceInventory implements ServiceInventory
 
             List<ServiceDescriptor> descriptors = descriptorsJsonCodec.fromJson(json);
             return descriptors;
-        }
-        catch (FileNotFoundException e) {
         }
         catch (Exception e) {
             if (invalidServiceInventory.add(config)) {
