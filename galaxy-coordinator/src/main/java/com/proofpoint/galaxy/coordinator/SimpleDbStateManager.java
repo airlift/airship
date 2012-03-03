@@ -43,7 +43,7 @@ public class SimpleDbStateManager implements StateManager
     public Collection<ExpectedSlotStatus> getAllExpectedStates()
     {
         List<ExpectedSlotStatus> slots = newArrayList();
-        if (!isDomainCreate()) {
+        if (isDomainCreated()) {
             try {
                 String query = String.format("select itemName, state, binary, config from `%s`", domainName);
                 SelectResult select = simpleDb.select(new SelectRequest(query, true));
@@ -67,7 +67,7 @@ public class SimpleDbStateManager implements StateManager
     {
         Preconditions.checkNotNull(slotId, "id is null");
 
-        if (!isDomainCreate()) {
+        if (isDomainCreated()) {
             List<Attribute> attributes = newArrayList();
             attributes.add(new Attribute("state", null));
             attributes.add(new Attribute("binary", null));
@@ -88,7 +88,7 @@ public class SimpleDbStateManager implements StateManager
     {
         Preconditions.checkNotNull(slotStatus, "slotStatus is null");
 
-        if (!isDomainCreate()) {
+        if (isDomainCreated()) {
             List<ReplaceableAttribute> attributes = newArrayList();
             attributes.add(new ReplaceableAttribute("state", slotStatus.getStatus().toString(), true));
             if (slotStatus.getAssignment() != null) {
@@ -106,16 +106,16 @@ public class SimpleDbStateManager implements StateManager
         }
     }
 
-    private synchronized boolean isDomainCreate()
+    private synchronized boolean isDomainCreated()
     {
         if (!domainCreated) {
             try {
                 simpleDb.createDomain(new CreateDomainRequest(domainName));
+                domainCreated = true;
             }
             catch (AmazonClientException e) {
                 expectedStateStoreDown(e);
             }
-            domainCreated = true;
         }
         return domainCreated;
     }
