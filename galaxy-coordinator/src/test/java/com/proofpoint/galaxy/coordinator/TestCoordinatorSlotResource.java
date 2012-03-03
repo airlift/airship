@@ -40,6 +40,7 @@ public class TestCoordinatorSlotResource
     private CoordinatorSlotResource resource;
     private Coordinator coordinator;
     private TestingMavenRepository repository;
+    private MockProvisioner provisioner;
 
     @BeforeMethod
     public void setUp()
@@ -49,11 +50,12 @@ public class TestCoordinatorSlotResource
 
         repository = new TestingMavenRepository();
 
+        provisioner = new MockProvisioner();
         coordinator = new Coordinator(nodeInfo,
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
-                new MockRemoteAgentFactory(),
+                provisioner.getAgentFactory(),
                 repository,
-                new LocalProvisioner(),
+                provisioner,
                 new InMemoryStateManager(),
                 new MockServiceInventory());
         resource = new CoordinatorSlotResource(coordinator, repository);
@@ -89,13 +91,15 @@ public class TestCoordinatorSlotResource
                 ImmutableMap.<String, Integer>of());
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
+                "instance-id",
                 URI.create("fake://foo/"),
                 URI.create("fake://foo/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.of(slot1, slot2),
                 ImmutableMap.<String, Integer>of());
-        coordinator.setAgentStatus(agentStatus);
+        provisioner.addAgent(agentStatus);
+        coordinator.updateAllAgents();
 
         int prefixSize = shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString()), MIN_PREFIX_SIZE);
 
@@ -130,13 +134,15 @@ public class TestCoordinatorSlotResource
                 ImmutableMap.<String, Integer>of());
         AgentStatus agentStatus = new AgentStatus(UUID.randomUUID().toString(),
                 ONLINE,
+                "instance-id",
                 URI.create("fake://foo/"),
                 URI.create("fake://foo/"),
                 "unknown/location",
                 "instance.type",
                 ImmutableList.of(slot1, slot2),
                 ImmutableMap.<String, Integer>of());
-        coordinator.setAgentStatus(agentStatus);
+        provisioner.addAgent(agentStatus);
+        coordinator.updateAllAgents();
 
         int prefixSize = shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString()), MIN_PREFIX_SIZE);
 
@@ -178,16 +184,9 @@ public class TestCoordinatorSlotResource
     public void testInstall(int numberOfAgents, int limit, Assignment assignment)
     {
         for (int i = 0; i < numberOfAgents; i++) {
-            final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
-                    ONLINE,
-                    URI.create("fake://appleServer1/"),
-                    URI.create("fake://appleServer1/"),
-                    "unknown/location",
-                    "instance.type",
-                    ImmutableList.<SlotStatus>of(),
-                    ImmutableMap.of("cpu", 8, "memory", 1024));
-            coordinator.setAgentStatus(status);
+            provisioner.addAgent(UUID.randomUUID().toString(), URI.create("fake://appleServer1/"), ImmutableMap.of("cpu", 8, "memory", 1024));
         }
+        coordinator.updateAllAgents();
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.install(AssignmentRepresentation.from(assignment), limit, uriInfo, null);
@@ -208,15 +207,8 @@ public class TestCoordinatorSlotResource
     @Test
     public void testInstallWithinResourceLimit()
     {
-        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
-                ONLINE,
-                URI.create("fake://appleServer1/"),
-                URI.create("fake://appleServer1/"),
-                "unknown/location",
-                "instance.type",
-                ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.setAgentStatus(status);
+        provisioner.addAgent(UUID.randomUUID().toString(), URI.create("fake://appleServer1/"), ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.updateAllAgents();
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
         Response response = resource.install(AssignmentRepresentation.from(APPLE_ASSIGNMENT), 1, uriInfo, null);
@@ -235,15 +227,7 @@ public class TestCoordinatorSlotResource
     @Test
     public void testInstallNotEnoughResources()
     {
-        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
-                ONLINE,
-                URI.create("fake://appleServer1/"),
-                URI.create("fake://appleServer1/"),
-                "unknown/location",
-                "instance.type",
-                ImmutableList.<SlotStatus>of(),
-                ImmutableMap.<String, Integer>of());
-        coordinator.setAgentStatus(status);
+        provisioner.addAgent(UUID.randomUUID().toString(), URI.create("fake://appleServer1/"));
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
         Response response = resource.install(AssignmentRepresentation.from(APPLE_ASSIGNMENT), 1, uriInfo, null);
@@ -257,15 +241,8 @@ public class TestCoordinatorSlotResource
     @Test
     public void testInstallResourcesConsumed()
     {
-        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
-                ONLINE,
-                URI.create("fake://appleServer1/"),
-                URI.create("fake://appleServer1/"),
-                "unknown/location",
-                "instance.type",
-                ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.setAgentStatus(status);
+        provisioner.addAgent(UUID.randomUUID().toString(), URI.create("fake://appleServer1/"), ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.updateAllAgents();
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
 

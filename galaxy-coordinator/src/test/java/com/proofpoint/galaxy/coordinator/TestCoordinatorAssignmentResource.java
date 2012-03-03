@@ -64,11 +64,12 @@ public class TestCoordinatorAssignmentResource
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
 
+        MockProvisioner provisioner = new MockProvisioner();
         coordinator = new Coordinator(nodeInfo,
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
-                new MockRemoteAgentFactory(),
+                provisioner.getAgentFactory(),
                 MOCK_REPO,
-                new LocalProvisioner(),
+                provisioner,
                 new InMemoryStateManager(),
                 new MockServiceInventory());
         resource = new CoordinatorAssignmentResource(coordinator, MOCK_REPO);
@@ -107,6 +108,7 @@ public class TestCoordinatorAssignmentResource
         agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
+                "instance-id",
                 URI.create("fake://appleServer1/"),
                 URI.create("fake://appleServer1/"),
                 "unknown/location",
@@ -120,7 +122,8 @@ public class TestCoordinatorAssignmentResource
                 bananaSlotStatus.getId().toString()),
                 MIN_PREFIX_SIZE);
 
-        coordinator.setAgentStatus(agentStatus);
+        provisioner.addAgent(agentStatus);
+        coordinator.updateAllAgents();
     }
 
     @Test

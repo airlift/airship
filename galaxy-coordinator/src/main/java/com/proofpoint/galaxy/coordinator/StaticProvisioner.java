@@ -2,6 +2,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.JsonResponseHandler;
 import com.proofpoint.http.client.HttpClient;
@@ -13,12 +14,14 @@ import javax.inject.Inject;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.SortedMap;
 
 import static com.google.common.base.Objects.firstNonNull;
 
 public class StaticProvisioner implements Provisioner
 {
-    private final List<String> localAgentUris;
+    private final SortedMap<String, String> agents;
     private final HttpClient httpClient;
     private final JsonCodec<AgentStatusRepresentation> agentCodec;
 
@@ -28,13 +31,19 @@ public class StaticProvisioner implements Provisioner
         this(config.getLocalAgentUris(), httpClient, agentCodec);
     }
 
-    public StaticProvisioner(List<String> agentUris, HttpClient httpClient, JsonCodec<AgentStatusRepresentation> agentCodec)
+    public StaticProvisioner(List<String> agents, HttpClient httpClient, JsonCodec<AgentStatusRepresentation> agentCodec)
     {
-        Preconditions.checkNotNull(agentUris, "agentUris is null");
+        Preconditions.checkNotNull(agents, "agents is null");
         Preconditions.checkNotNull(httpClient, "httpClient is null");
         Preconditions.checkNotNull(agentCodec, "agentCodec is null");
 
-        this.localAgentUris = ImmutableList.copyOf(agentUris);
+        ImmutableSortedMap.Builder<String,String> builder = ImmutableSortedMap.naturalOrder();
+        int instanceNumber = 1;
+        for (String agentUri : agents) {
+            String instanceId = String.format("i-%05d", instanceNumber++);
+            builder.put(instanceId, agentUri);
+        }
+        this.agents = builder.build();
         this.httpClient = httpClient;
         this.agentCodec = agentCodec;
     }
@@ -61,8 +70,11 @@ public class StaticProvisioner implements Provisioner
     public List<Instance> listAgents()
     {
         ImmutableList.Builder<Instance> instances = ImmutableList.builder();
-        for (String localAgentUri : localAgentUris) {
-            URI uri = UriBuilder.fromUri(localAgentUri).path("/v1/agent").build();
+        for (Entry<String, String> entry : agents.entrySet()) {
+            String instanceId = entry.getKey();
+            String agentUri = entry.getValue();
+
+            URI uri = UriBuilder.fromUri(agentUri).path("/v1/agent").build();
             Request request = RequestBuilder.prepareGet()
                     .setUri(uri)
                     .build();
@@ -70,16 +82,16 @@ public class StaticProvisioner implements Provisioner
             try {
                 AgentStatusRepresentation agent = httpClient.execute(request, JsonResponseHandler.create(agentCodec)).checkedGet();
 
-                instances.add(new Instance(agent.getAgentId(),
+                instances.add(new Instance(instanceId,
                         firstNonNull(agent.getInstanceType(), "unknown"),
-                        firstNonNull(agent.getLocation(), "unknown"),
+                        firstNonNull(agent.getLocation(), "/static/" + uri.getHost() + "/agent"),
                         agent.getSelf(),
                         agent.getExternalUri()));
             }
             catch (Exception e) {
-                instances.add(new Instance(localAgentUri,
+                instances.add(new Instance(instanceId,
                         "unknown",
-                        "unknown",
+                         "/static/" + uri.getHost() + "/agent",
                         uri,
                         uri));
             }

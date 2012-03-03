@@ -30,6 +30,7 @@ public class TestAgentFilterBuilder
 {
     AgentStatus status = new AgentStatus("agent-id",
             ONLINE,
+            "instance-id",
             URI.create("internal://10.0.0.1"),
             URI.create("external://localhost"),
             "unknown/location",

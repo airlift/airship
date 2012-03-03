@@ -1,16 +1,18 @@
 package com.proofpoint.galaxy.coordinator;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.node.NodeInfo;
-
-import java.net.URI;
 
 public class HttpRemoteAgentFactory implements RemoteAgentFactory
 {
@@ -37,8 +39,18 @@ public class HttpRemoteAgentFactory implements RemoteAgentFactory
     }
 
     @Override
-    public RemoteAgent createRemoteAgent(AgentStatus agentStatus)
+    public RemoteAgent createRemoteAgent(Instance instance)
     {
+        AgentStatus agentStatus = new AgentStatus("unknown",
+                AgentLifecycleState.ONLINE,
+                instance.getInstanceId(),
+                instance.getInternalUri(),
+                instance.getExternalUri(),
+                instance.getLocation(),
+                instance.getInstanceType(),
+                ImmutableList.<SlotStatus>of(),
+                ImmutableMap.<String, Integer>of());
+
         return new HttpRemoteAgent(agentStatus, environment, httpClient, installationCodec, agentStatusCodec, slotStatusCodec, serviceDescriptorsCodec);
     }
 }

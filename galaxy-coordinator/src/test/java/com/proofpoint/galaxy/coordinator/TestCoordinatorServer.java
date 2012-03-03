@@ -19,7 +19,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Module;
+import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.util.Modules;
 import com.ning.http.client.AsyncHttpClient;
@@ -42,6 +44,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.inject.Singleton;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
@@ -86,6 +89,8 @@ public class TestCoordinatorServer
     private UUID apple2SlotId;
     private UUID bananaSlotId;
 
+    private MockProvisioner provisioner;
+
     @BeforeClass
     public void startServer()
             throws Exception
@@ -113,15 +118,21 @@ public class TestCoordinatorServer
                     public void configure(Binder binder)
                     {
                         binder.bind(StateManager.class).to(InMemoryStateManager.class).in(SINGLETON);
-                        binder.bind(Provisioner.class).to(LocalProvisioner.class).in(SINGLETON);
+                        binder.bind(MockProvisioner.class).in(SINGLETON);
+                        binder.bind(Provisioner.class).to(Key.get(MockProvisioner.class)).in(SINGLETON);
                     }
                 }),
                 Modules.override(new CoordinatorMainModule()).with(new Module()
                 {
                     public void configure(Binder binder)
                     {
-                        binder.bind(RemoteAgentFactory.class).to(MockRemoteAgentFactory.class).in(Scopes.SINGLETON);
                         binder.bind(Repository.class).toInstance(MOCK_REPO);
+                        binder.bind(ServiceInventory.class).to(MockServiceInventory.class).in(Scopes.SINGLETON);
+                    }
+
+                    @Provides @Singleton
+                    public RemoteAgentFactory getRemoteAgentFactory(MockProvisioner provisioner) {
+                        return provisioner.getAgentFactory();
                     }
                 }),
                 new ConfigurationModule(new ConfigurationFactory(properties)));
@@ -129,6 +140,7 @@ public class TestCoordinatorServer
         server = injector.getInstance(TestingHttpServer.class);
         coordinator = injector.getInstance(Coordinator.class);
         stateManager = (InMemoryStateManager) injector.getInstance(StateManager.class);
+        provisioner = (MockProvisioner) injector.getInstance(Provisioner.class);
 
         server.start();
         client = new AsyncHttpClient();
@@ -137,9 +149,8 @@ public class TestCoordinatorServer
     @BeforeMethod
     public void resetState()
     {
-        for (AgentStatus agentStatus : coordinator.getAllAgentStatus()) {
-            coordinator.removeAgent(agentStatus.getAgentId());
-        }
+        provisioner.clearAgents();
+        coordinator.updateAllAgents();
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
 
@@ -177,6 +188,7 @@ public class TestCoordinatorServer
         agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
+                "instance-id",
                 URI.create("fake://foo/"),
                 URI.create("fake://foo/"),
                 "unknown/location",
@@ -184,7 +196,8 @@ public class TestCoordinatorServer
                 ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus),
                 ImmutableMap.of("cpu", 8, "memory", 1024));
 
-        coordinator.setAgentStatus(agentStatus);
+        provisioner.addAgent(agentStatus);
+        coordinator.updateAllAgents();
 
         prefixSize = shortestUniquePrefix(transform(transform(asList(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
         stateManager.clearAll();

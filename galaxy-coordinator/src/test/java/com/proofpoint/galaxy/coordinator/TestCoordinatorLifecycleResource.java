@@ -69,11 +69,12 @@ public class TestCoordinatorLifecycleResource
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
 
+        MockProvisioner provisioner = new MockProvisioner();
         coordinator = new Coordinator(nodeInfo,
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
-                new MockRemoteAgentFactory(),
+                provisioner.getAgentFactory(),
                 MOCK_REPO,
-                new LocalProvisioner(),
+                provisioner,
                 new InMemoryStateManager(),
                 new MockServiceInventory());
         resource = new CoordinatorLifecycleResource(coordinator, MOCK_REPO);
@@ -112,6 +113,7 @@ public class TestCoordinatorLifecycleResource
         agentId = UUID.randomUUID().toString();
         AgentStatus agentStatus = new AgentStatus(agentId,
                 ONLINE,
+                "instance-id",
                 URI.create("fake://foo/"),
                 URI.create("fake://foo/"),
                 "unknown/location",
@@ -125,7 +127,8 @@ public class TestCoordinatorLifecycleResource
                 bananaSlotStatus.getId().toString()),
                 MIN_PREFIX_SIZE);
 
-        coordinator.setAgentStatus(agentStatus);
+        provisioner.addAgent(agentStatus);
+        coordinator.updateAllAgents();
     }
 
     @Test

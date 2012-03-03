@@ -143,7 +143,7 @@ public class CommanderFactory
         Preconditions.checkNotNull(this.repositories, "binaryRepositories is null");
 
         if (location == null) {
-            location = Joiner.on('/').join("localhost", agentId, "agent");
+            location = Joiner.on('/').join("", "local", agentId, "agent");
         }
         //
         // Create agent
@@ -259,9 +259,9 @@ public class CommanderFactory
         }
 
         @Override
-        public RemoteAgent createRemoteAgent(AgentStatus agentStatus)
+        public RemoteAgent createRemoteAgent(Instance instance)
         {
-            Preconditions.checkNotNull(agentStatus, "agentStatus is null");
+            Preconditions.checkNotNull(instance, "instance is null");
             return new LocalRemoteAgent(agent);
         }
     }
@@ -293,6 +293,7 @@ public class CommanderFactory
             AgentStatus agentStatus = agent.getAgentStatus();
             return new AgentStatus(agentStatus.getAgentId(),
                     agentStatus.getState(),
+                    agentStatus.getAgentId(),
                     agentStatus.getInternalUri(),
                     agentStatus.getExternalUri(),
                     agentStatus.getLocation(),

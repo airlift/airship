@@ -20,6 +20,7 @@ public class AgentStatus
 {
     private final String agentId;
     private final AgentLifecycleState state;
+    private final String instanceId;
     private final URI internalUri;
     private final URI externalUri;
     private final Map<UUID, SlotStatus> slots;
@@ -30,6 +31,7 @@ public class AgentStatus
 
     public AgentStatus(String agentId,
             AgentLifecycleState state,
+            String instanceId,
             URI internalUri,
             URI externalUri,
             String location,
@@ -41,10 +43,11 @@ public class AgentStatus
         Preconditions.checkNotNull(slots, "slots is null");
         Preconditions.checkNotNull(resources, "resources is null");
 
+        this.agentId = agentId;
+        this.state = state;
+        this.instanceId = instanceId;
         this.internalUri = internalUri;
         this.externalUri = externalUri;
-        this.state = state;
-        this.agentId = agentId;
         this.location = location;
         this.instanceType = instanceType;
         this.slots = Maps.uniqueIndex(slots, SlotStatus.uuidGetter());
@@ -61,15 +64,15 @@ public class AgentStatus
     {
         return state;
     }
-    
-    public AgentStatus changeState(AgentLifecycleState state)
+
+    public String getInstanceId()
     {
-        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+        return instanceId;
     }
 
-    public AgentStatus changeInstanceType(String instanceType)
+    public AgentStatus changeState(AgentLifecycleState state)
     {
-        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+        return new AgentStatus(agentId, state, instanceId, internalUri, externalUri, location, instanceType, slots.values(), resources);
     }
 
     public AgentStatus changeSlotStatus(SlotStatus slotStatus)
@@ -80,7 +83,7 @@ public class AgentStatus
         } else {
             slots.remove(slotStatus.getId());
         }
-        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+        return new AgentStatus(agentId, state, instanceId, internalUri, externalUri, location, instanceType, slots.values(), resources);
     }
 
     public AgentStatus changeAllSlotsState(SlotLifecycleState slotState)
@@ -90,12 +93,12 @@ public class AgentStatus
             // set all slots to unknown state
             slots.put(slotStatus.getId(), slotStatus.changeState(slotState));
         }
-        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+        return new AgentStatus(agentId, state, instanceId, internalUri, externalUri, location, instanceType, slots.values(), resources);
     }
 
     public AgentStatus changeInternalUri(URI internalUri)
     {
-        return new AgentStatus(agentId, state, internalUri, externalUri, location, instanceType, slots.values(), resources);
+        return new AgentStatus(agentId, state, instanceId, internalUri, externalUri, location, instanceType, slots.values(), resources);
     }
 
     public URI getInternalUri()
@@ -170,6 +173,7 @@ public class AgentStatus
         sb.append("AgentStatus");
         sb.append("{agentId=").append(agentId);
         sb.append(", state=").append(state);
+        sb.append(", instanceId=").append(instanceId);
         sb.append(", internalUri=").append(internalUri);
         sb.append(", externalUri=").append(externalUri);
         sb.append(", slots=").append(slots.values());

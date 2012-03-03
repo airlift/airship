@@ -1,6 +1,5 @@
 package com.proofpoint.galaxy.coordinator;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -19,21 +18,20 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.RESOLVED_APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.SHORT_APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class TestCoordinator
 {
-
     private Coordinator coordinator;
     private Duration statusExpiration = new Duration(500, TimeUnit.MILLISECONDS);
-    private LocalProvisioner provisioner;
+    private MockProvisioner provisioner;
     private TestingMavenRepository repository;
 
     @BeforeMethod
@@ -44,16 +42,15 @@ public class TestCoordinator
 
         repository = new TestingMavenRepository();
 
-        provisioner = new LocalProvisioner();
+        provisioner = new MockProvisioner();
         coordinator = new Coordinator(nodeInfo.getEnvironment(),
-                new MockRemoteAgentFactory(),
+                provisioner.getAgentFactory(),
                 repository,
                 provisioner,
                 new InMemoryStateManager(),
                 new MockServiceInventory(),
                 statusExpiration,
                 false);
-
     }
 
     @AfterMethod
@@ -79,13 +76,15 @@ public class TestCoordinator
 
         AgentStatus status = new AgentStatus(agentId,
                 AgentLifecycleState.ONLINE,
+                "instance-id",
                 agentUri,
                 agentUri,
                 "unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(),
                 ImmutableMap.of("cpu", 8, "memory", 1024));
-        coordinator.setAgentStatus(status);
+        provisioner.addAgent(status);
+        coordinator.updateAllAgents();
 
         assertEquals(coordinator.getAllAgentStatus(), ImmutableList.of(status));
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
@@ -100,7 +99,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://agent/" + agentId);
 
         // provision the agent
-        provisioner.addAgent(new Instance(agentId, "test.type", Joiner.on('/').join("ec2", "region", "zone", agentId, "agent"), agentUri, agentUri));
+        provisioner.addAgent(agentId, agentUri);
 
         // coordinator won't see it until it update is called
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
@@ -110,25 +109,18 @@ public class TestCoordinator
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
         assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
 
-        // remove the slot from provisioner and coordinator remember it
+        // remove the slot from provisioner
         provisioner.removeAgent(agentId);
-        assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
-        // slot is online because MOCK slot is fake.... a real slot would transition to offline
-        assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
+        coordinator.updateAllAgents();
+        assertNull(coordinator.getAgentStatus(agentId));
     }
 
     @Test
     public void testInstallWithinShortBinarySpec()
     {
-        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
-                ONLINE,
-                URI.create("fake://appleServer1/"),
-                URI.create("fake://appleServer1/"),
-                "unknown/location",
-                "instance.type",
-                ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.setAgentStatus(status);
+        URI agentUri = URI.create("fake://appleServer1/");
+        provisioner.addAgent(UUID.randomUUID().toString(), agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.updateAllAgents();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, SHORT_APPLE_ASSIGNMENT);
 
@@ -141,15 +133,10 @@ public class TestCoordinator
     @Test
     public void testInstallWithinResourceLimit()
     {
-        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
-                ONLINE,
-                URI.create("fake://appleServer1/"),
-                URI.create("fake://appleServer1/"),
-                "unknown/location",
-                "instance.type",
-                ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.setAgentStatus(status);
+        URI agentUri = URI.create("fake://appleServer1/");
+
+        provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.updateAllAgents();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
 
@@ -162,15 +149,10 @@ public class TestCoordinator
     @Test
     public void testInstallNotEnoughResources()
     {
-        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
-                ONLINE,
-                URI.create("fake://appleServer1/"),
-                URI.create("fake://appleServer1/"),
-                "unknown/location",
-                "instance.type",
-                ImmutableList.<SlotStatus>of(),
-                ImmutableMap.<String, Integer>of());
-        coordinator.setAgentStatus(status);
+        URI agentUri = URI.create("fake://appleServer1/");
+
+        provisioner.addAgent("instance-id", agentUri);
+        coordinator.updateAllAgents();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
         assertEquals(slots.size(), 0);
@@ -179,15 +161,9 @@ public class TestCoordinator
     @Test
     public void testInstallResourcesConsumed()
     {
-        final AgentStatus status = new AgentStatus(UUID.randomUUID().toString(),
-                ONLINE,
-                URI.create("fake://appleServer1/"),
-                URI.create("fake://appleServer1/"),
-                "unknown/location",
-                "instance.type",
-                ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.setAgentStatus(status);
+        URI agentUri = URI.create("fake://appleServer1/");
+        provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
+        coordinator.updateAllAgents();
 
         // install an apple server
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);

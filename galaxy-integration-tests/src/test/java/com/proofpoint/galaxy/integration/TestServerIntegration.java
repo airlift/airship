@@ -35,12 +35,10 @@ import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
-import com.proofpoint.galaxy.coordinator.Instance;
-import com.proofpoint.galaxy.coordinator.LocalProvisioner;
+import com.proofpoint.galaxy.coordinator.MockProvisioner;
 import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
 import com.proofpoint.galaxy.coordinator.Provisioner;
 import com.proofpoint.galaxy.coordinator.StateManager;
-import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
@@ -108,8 +106,7 @@ public class TestServerIntegration
     private Repository repository;
 
     private int prefixSize;
-    private Instance agentInstance;
-    private LocalProvisioner provisioner;
+    private MockProvisioner provisioner;
 
     public static Map<String,Integer> AGENT_RESOURCES = ImmutableMap.<String,Integer>builder()
             .put("cpu", 8)
@@ -158,7 +155,7 @@ public class TestServerIntegration
                     public void configure(Binder binder)
                     {
                         binder.bind(StateManager.class).to(InMemoryStateManager.class).in(SINGLETON);
-                        binder.bind(Provisioner.class).to(LocalProvisioner.class).in(SINGLETON);
+                        binder.bind(Provisioner.class).to(MockProvisioner.class).in(SINGLETON);
                     }
                 }),
                 new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
@@ -166,7 +163,7 @@ public class TestServerIntegration
         coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
         coordinator = coordinatorInjector.getInstance(Coordinator.class);
         repository = coordinatorInjector.getInstance(Repository.class);
-        provisioner = (LocalProvisioner) coordinatorInjector.getInstance(Provisioner.class);
+        provisioner = (MockProvisioner) coordinatorInjector.getInstance(Provisioner.class);
 
         coordinatorServer.start();
         client = new AsyncHttpClient();
@@ -224,9 +221,8 @@ public class TestServerIntegration
             }
             agent.terminateSlot(slot.getName());
         }
-        for (AgentStatus agentStatus : coordinator.getAllAgentStatus()) {
-            coordinator.removeAgent(agentStatus.getAgentId());
-        }
+        provisioner.clearAgents();
+        coordinator.updateAllAgents();
         assertTrue(agent.getAllSlots().isEmpty());
         assertTrue(coordinator.getAllAgentStatus().isEmpty());
 
@@ -247,8 +243,7 @@ public class TestServerIntegration
                 repository.configToHttpUri(BANANA_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
 
-        agentInstance = new Instance(agent.getAgentId(), "test.type", "location", agentServer.getBaseUrl(), agentServer.getBaseUrl());
-        provisioner.addAgent(agentInstance);
+        provisioner.addAgent(agent.getAgentId(), agentServer.getBaseUrl());
         coordinator.updateAllAgents();
 
         prefixSize = shortestUniquePrefix(asList(

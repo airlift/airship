@@ -12,6 +12,7 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -20,29 +21,31 @@ import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 
 public class MockRemoteAgent implements RemoteAgent
 {
-    private AgentStatus agentStatus;
+    private final String instanceId;
+    private final Map<String, AgentStatus> agents;
 
-    public MockRemoteAgent(AgentStatus agentStatus)
+    public MockRemoteAgent(String instanceId, Map<String, AgentStatus> agents)
     {
-        this.agentStatus = checkNotNull(agentStatus, "agentStatus is null");
+        this.instanceId = instanceId;
+        this.agents = agents;
     }
 
     @Override
     public AgentStatus status()
     {
-        return agentStatus;
+        return getAgentStatus();
     }
 
     @Override
     public void setInternalUri(URI internalUri)
     {
-        agentStatus = agentStatus.changeInternalUri(internalUri);
+        setAgentStatus(getAgentStatus().changeInternalUri(internalUri));
     }
 
     @Override
     public List<? extends RemoteSlot> getSlots()
     {
-        return ImmutableList.copyOf(Iterables.transform(agentStatus.getSlotStatuses(), new Function<SlotStatus, MockRemoteSlot>()
+        return ImmutableList.copyOf(Iterables.transform(getAgentStatus().getSlotStatuses(), new Function<SlotStatus, MockRemoteSlot>()
         {
             @Override
             public MockRemoteSlot apply(SlotStatus slotStatus)
@@ -59,7 +62,8 @@ public class MockRemoteAgent implements RemoteAgent
 
     void setSlotStatus(SlotStatus slotStatus)
     {
-        agentStatus = agentStatus.changeSlotStatus(slotStatus);
+        AgentStatus agentStatus = getAgentStatus().changeSlotStatus(slotStatus);
+        setAgentStatus(agentStatus);
     }
 
     @Override
@@ -70,7 +74,9 @@ public class MockRemoteAgent implements RemoteAgent
     @Override
     public SlotStatus install(Installation installation)
     {
-        Preconditions.checkNotNull(installation, "installation is null");
+        checkNotNull(installation, "installation is null");
+
+        AgentStatus agentStatus = getAgentStatus();
         Preconditions.checkState(agentStatus.getState() != OFFLINE, "agent is offline");
 
         UUID slotId = UUID.randomUUID();
@@ -86,5 +92,16 @@ public class MockRemoteAgent implements RemoteAgent
         agentStatus.changeSlotStatus(slotStatus);
 
         return slotStatus;
+    }
+
+    public AgentStatus getAgentStatus()
+    {
+        return checkNotNull(agents.get(instanceId), "Status not found for instance " + instanceId);
+    }
+
+    public void setAgentStatus(AgentStatus agentStatus)
+    {
+        Preconditions.checkNotNull(agentStatus, "agentStatus is null");
+        agents.put(instanceId, agentStatus);
     }
 }

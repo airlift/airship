@@ -37,6 +37,7 @@ public class TestAgentStatusRepresentation
     private final AgentStatusRepresentation expected = new AgentStatusRepresentation(
             "44444444-4444-4444-4444-444444444444",
             "4444",
+            "instanceId",
             ONLINE,
             URI.create("internal://agent"),
             URI.create("external://agent"),

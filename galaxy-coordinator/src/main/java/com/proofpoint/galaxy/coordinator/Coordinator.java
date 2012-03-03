@@ -38,9 +38,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -53,6 +55,7 @@ import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
@@ -60,12 +63,10 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotsVersion;
-import static java.lang.Character.MIN_RADIX;
 
 public class Coordinator
 {
     private static final Logger log = Logger.get(Coordinator.class);
-    private static final Random random = new Random();
 
     private final ConcurrentMap<String, CoordinatorStatus> coordinators = new ConcurrentHashMap<String, CoordinatorStatus>();
     private final ConcurrentMap<String, RemoteAgent> agents = new ConcurrentHashMap<String, RemoteAgent>();
@@ -226,11 +227,13 @@ public class Coordinator
 
     public AgentStatus getAgentStatus(String agentId)
     {
-        RemoteAgent agent = agents.get(agentId);
-        if (agent == null) {
-            return null;
+        for (RemoteAgent remoteAgent : agents.values()) {
+            AgentStatus status = remoteAgent.status();
+            if (agentId.equals(status.getAgentId())) {
+                return status;
+            }
         }
-        return agent.status();
+        return null;
     }
 
     @VisibleForTesting
@@ -255,36 +258,28 @@ public class Coordinator
     @VisibleForTesting
     public void updateAllAgents()
     {
+        Set<String> instanceIds = newHashSet();
         for (Instance instance : this.provisioner.listAgents()) {
-            AgentStatus agentStatus = new AgentStatus(instance.getInstanceId(),
-                    AgentLifecycleState.ONLINE,
-                    instance.getInternalUri(),
-                    instance.getExternalUri(),
-                    instance.getLocation(),
-                    instance.getInstanceType(),
-                    ImmutableList.<SlotStatus>of(),
-                    ImmutableMap.<String, Integer>of());
-
-            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(agentStatus);
+            instanceIds.add(instance.getInstanceId());
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance);
             RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgent);
             if (existing != null) {
-                existing.setInternalUri(instance.getInternalUri());
+                if (existing.status().getState() == AgentLifecycleState.PROVISIONING) {
+                    // replace the temporary provisioning instance with a real remote factory
+                    agents.replace(instance.getInstanceId(), existing, remoteAgent);
+                } else {
+                    existing.setInternalUri(instance.getInternalUri());
+                }
             }
         }
+        // remove any agents in the provisioner list
+        agents.keySet().retainAll(instanceIds);
 
         List<ServiceDescriptor> serviceDescriptors = serviceInventory.getServiceInventory(transform(getAllSlots(), getSlotStatus()));
         for (RemoteAgent remoteAgent : agents.values()) {
             remoteAgent.updateStatus();
             remoteAgent.setServiceInventory(serviceDescriptors);
         }
-    }
-
-    @VisibleForTesting
-    public void setAgentStatus(AgentStatus status)
-    {
-        agents.remove(status.getAgentId());
-        RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(status);
-        agents.put(status.getAgentId(), remoteAgent);
     }
 
     public List<AgentStatus> provisionAgents(String agentConfigSpec,
@@ -307,38 +302,30 @@ public class Coordinator
         for (Instance instance : instances) {
             String instanceId = instance.getInstanceId();
 
-            AgentStatus agentStatus = new AgentStatus(
-                    "provisioning-" + Integer.toString(random.nextInt(), MIN_RADIX),
-                    AgentLifecycleState.PROVISIONING,
-                    null,
-                    null,
-                    instance.getLocation(),
-                    instance.getInstanceType(),
-                    ImmutableList.<SlotStatus>of(),
-                    ImmutableMap.<String, Integer>of());
-
-            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(agentStatus);
+            RemoteAgent remoteAgent = new ProvisioningRemoteAgent(instance);
             this.agents.put(instanceId, remoteAgent);
 
-            agents.add(agentStatus);
+            agents.add(remoteAgent.status());
         }
         return agents;
     }
 
-    @VisibleForTesting
-    public boolean removeAgent(String agentId)
-    {
-        return agents.remove(agentId) != null;
-    }
-
     public AgentStatus terminateAgent(String agentId)
     {
-        RemoteAgent agent = agents.remove(agentId);
+        RemoteAgent agent = null;
+        for (Iterator<Entry<String, RemoteAgent>> iterator = agents.entrySet().iterator(); iterator.hasNext(); ) {
+            Entry<String, RemoteAgent> entry = iterator.next();
+            if (entry.getValue().status().getAgentId().equals(agentId)) {
+                iterator.remove();
+                agent = entry.getValue();
+                break;
+            }
+        }
         if (agent == null) {
             return null;
         }
         if (!agent.getSlots().isEmpty()) {
-            agents.putIfAbsent(agentId, agent);
+            agents.putIfAbsent(agent.status().getInstanceId(), agent);
             throw new IllegalStateException("Cannot terminate agent that has slots: " + agentId);
         }
         provisioner.terminateAgents(ImmutableList.of(agentId));

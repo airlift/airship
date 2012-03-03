@@ -136,7 +136,7 @@ public class HttpRemoteAgent implements RemoteAgent
                 if (response.getStatusCode() == Status.OK.getStatusCode()) {
                     String responseJson = response.getResponseBody();
                     AgentStatusRepresentation agentStatusRepresentation = agentStatusCodec.fromJson(responseJson);
-                    agentStatus = agentStatusRepresentation.toAgentStatus().changeInstanceType(agentStatus.getInstanceType());
+                    agentStatus = agentStatusRepresentation.toAgentStatus(agentStatus.getInstanceId(), agentStatus.getInstanceType());
                     return;
                 }
             }

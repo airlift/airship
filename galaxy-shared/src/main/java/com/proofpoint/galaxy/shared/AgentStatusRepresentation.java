@@ -61,6 +61,7 @@ public class AgentStatusRepresentation
             return new AgentStatusRepresentation(
                     status.getAgentId(),
                     safeTruncate(status.getAgentId(), shortIdPrefixSize),
+                    status.getInstanceId(),
                     status.getState(),
                     status.getInternalUri(),
                     status.getExternalUri(),
@@ -75,6 +76,7 @@ public class AgentStatusRepresentation
 
     private final String agentId;
     private final String shortAgentId;
+    private final String instanceId;
     private final List<SlotStatusRepresentation> slots;
     private final URI self;
     private final URI externalUri;
@@ -109,6 +111,7 @@ public class AgentStatusRepresentation
     public AgentStatusRepresentation(
             @JsonProperty("agentId") String agentId,
             @JsonProperty("shortAgentId") String shortAgentId,
+            @JsonProperty("instanceId") String instanceId,
             @JsonProperty("state") AgentLifecycleState state,
             @JsonProperty("self") URI self,
             @JsonProperty("externalUri") URI externalUri,
@@ -121,6 +124,7 @@ public class AgentStatusRepresentation
     {
         this.agentId = agentId;
         this.shortAgentId = shortAgentId;
+        this.instanceId = instanceId;
         this.slots = slots;
         this.self = self;
         this.externalUri = externalUri;
@@ -149,6 +153,13 @@ public class AgentStatusRepresentation
     public String getShortAgentId()
     {
         return shortAgentId;
+    }
+
+    @JsonProperty
+    @NotNull
+    public String getInstanceId()
+    {
+        return instanceId;
     }
 
     @JsonProperty
@@ -241,13 +252,13 @@ public class AgentStatusRepresentation
         return externalUri.getHost();
     }
 
-    public AgentStatus toAgentStatus()
+    public AgentStatus toAgentStatus(String instanceId, String instanceType)
     {
         Builder<SlotStatus> builder = ImmutableList.builder();
         for (SlotStatusRepresentation slot : slots) {
             builder.add(slot.toSlotStatus());
         }
-        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, self, externalUri, location, instanceType, builder.build(), resources);
+        return new AgentStatus(agentId, AgentLifecycleState.ONLINE, instanceId, self, externalUri, location, instanceType, builder.build(), resources);
     }
 
     @Override
@@ -282,6 +293,7 @@ public class AgentStatusRepresentation
         sb.append("AgentStatusRepresentation");
         sb.append("{agentId='").append(agentId).append('\'');
         sb.append(", shortAgentId=").append(shortAgentId);
+        sb.append(", instanceId=").append(instanceId);
         sb.append(", slots=").append(slots);
         sb.append(", self=").append(self);
         sb.append(", externalUri=").append(externalUri);

@@ -186,7 +186,7 @@ public class Agent
             SlotStatus slotStatus = slot.status();
             builder.add(slotStatus);
         }
-        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, internalUri, externalUri, location, null, builder.build(), resources);
+        AgentStatus agentStatus = new AgentStatus(agentId, ONLINE, null, internalUri, externalUri, location, null, builder.build(), resources);
         return agentStatus;
     }
 
