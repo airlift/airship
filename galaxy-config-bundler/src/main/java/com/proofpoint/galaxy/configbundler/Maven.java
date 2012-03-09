@@ -105,14 +105,14 @@ public class Maven
                 .setAuthentication(new Authentication(server.getUsername(), server.getPassword()));
     }
 
-    public void upload(String groupId, String artifactId, String version, String extension, BodyGenerator bodyWriter)
+    public void upload(String groupId, String artifactId, String version, String extension, Generator writer)
             throws Exception
     {
         File file = File.createTempFile(String.format("%s-%s-%s", groupId, artifactId, version), "." + extension);
         try {
             FileOutputStream out = new FileOutputStream(file);
             try {
-                bodyWriter.write(out);
+                writer.write(out);
             }
             finally {
                 out.close();

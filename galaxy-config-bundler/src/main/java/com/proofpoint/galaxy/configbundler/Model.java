@@ -87,7 +87,6 @@ public class Model
         git.commit().setMessage("Update metadata").call();
     }
 
-    
     public Bundle getActiveBundle()
             throws IOException
     {
@@ -106,14 +105,21 @@ public class Model
     {
         Ref branch = getBranch(git.getRepository(), name);
         if (branch != null) {
-            Integer version = null;
+            int version = 0;
 
             Ref latestTag = getLatestTag(name);
             if (latestTag != null) {
                 version = extractVersion(latestTag.getName());
             }
 
-            return new Bundle(name, version);
+            RevCommit headCommit = GitUtils.getCommit(git.getRepository(), branch);
+
+            boolean snapshot = (latestTag == null || !GitUtils.getCommit(git.getRepository(), latestTag).equals(headCommit));
+            if (snapshot) {
+                ++version;
+            }
+
+            return new Bundle(name, version, snapshot);
         }
 
         return null;
@@ -123,12 +129,13 @@ public class Model
             throws IOException
     {
         Ref ref;
-        if (bundle.getVersion() == null) {
+        if (bundle.isSnapshot()) {
+            // TODO: what does it mean to get entries for an old snapshot version?
             ref = getBranch(git.getRepository(), bundle.getName());
         }
         else {
-            ref = git.getRepository().getTags().get(bundle.getName() + "-" + bundle.getVersion());
-            Preconditions.checkNotNull(ref, "cannot find tag for bundle %s:%s", bundle.getName(), bundle.getVersion());
+            ref = git.getRepository().getTags().get(bundle.getName() + "-" + bundle.getVersionString());
+            Preconditions.checkNotNull(ref, "cannot find tag for bundle %s:%s", bundle.getName(), bundle.getVersionString());
         }
 
         RevCommit commit = GitUtils.getCommit(git.getRepository(), ref);
@@ -139,34 +146,22 @@ public class Model
     public Bundle createNewVersion(Bundle bundle)
             throws NoHeadException, ConcurrentRefUpdateException, InvalidTagNameException, IOException
     {
-        Integer version = bundle.getVersion();
-        
-        Bundle current = getBundle(bundle.getName());
-        Preconditions.checkArgument(bundle.equals(current), "Bundle specifier (%s:%s) is stale. Latest version is %s:%s", bundle.getName(), version, bundle.getName(), current.getVersion());
+        Preconditions.checkNotNull(bundle, "bundle is null");
+        Preconditions.checkArgument(bundle.isSnapshot(), "can't release a non-snapshot version");
 
-        version = bundle.getNextVersion();
+        Bundle current = getBundle(bundle.getName());
+        Preconditions.checkArgument(bundle.equals(current), "Bundle specifier (%s:%s) is stale. Latest version is %s:%s", bundle.getName(), bundle.getVersion(), bundle.getName(), current.getVersion());
+
+        int version = bundle.getVersion();
 
         RevCommit commit = GitUtils.getCommit(git.getRepository(), getBranch(git.getRepository(), bundle.getName()));
         git.tag().setObjectId(commit)
                 .setName(bundle.getName() + "-" + version)
                 .call();
         
-        return new Bundle(bundle.getName(), version);
+        return new Bundle(bundle.getName(), version, false);
     }
 
-    public boolean hasPendingChanges(String bundleName)
-            throws IOException
-    {
-        Ref latestTag = getLatestTag(bundleName);
-
-        final Repository repository = git.getRepository();
-        
-        Ref branch = getBranch(repository, bundleName);
-        RevCommit headCommit = GitUtils.getCommit(repository, branch);
-
-        return (latestTag == null || !GitUtils.getCommit(git.getRepository(), latestTag).equals(headCommit));
-    }
-    
     private Ref getLatestTag(String component)
     {
         Map<String, Ref> forComponent = Maps.filterKeys(git.getRepository().getTags(), startsWith(component + "-"));

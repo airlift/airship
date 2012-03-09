@@ -1,15 +1,9 @@
 package com.proofpoint.galaxy.configbundler;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.google.common.io.InputSupplier;
 import com.proofpoint.http.client.BodyGenerator;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;
 
@@ -19,8 +13,6 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static com.proofpoint.galaxy.configbundler.GitUtils.getEntries;
-import static com.proofpoint.galaxy.configbundler.GitUtils.inputStreamSupplierFunction;
 import static java.lang.String.format;
 
 
@@ -61,9 +53,9 @@ public class ReleaseCommand
         Maven maven = new Maven(metadata.getSnapshotsRepository(), metadata.getReleasesRepository());
         // TODO: handle errors getting uploader (e.g., repo does not exist, does not have credentials)
 
-        if (!model.hasPendingChanges(bundle.getName())) {
-            if (maven.contains(groupId, bundle.getName(), Integer.toString(bundle.getVersion()), ARTIFACT_TYPE)) {
-                throw new RuntimeException(format("%s-%s has already been released", bundle.getName(), bundle.getVersion()));
+        if (!bundle.isSnapshot()) {
+            if (maven.contains(groupId, bundle.getName(), bundle.getVersionString(), ARTIFACT_TYPE)) {
+                throw new RuntimeException(format("%s-%s has already been released", bundle.getName(), bundle.getVersionString()));
             }
 
             // re-publish version that has already been tagged
@@ -79,16 +71,9 @@ public class ReleaseCommand
             throw new RuntimeException("Cannot build an empty config package");
         }
 
-        maven.upload(groupId, bundle.getName(), Integer.toString(bundle.getVersion()), ARTIFACT_TYPE, new BodyGenerator()
-        {
-            public void write(OutputStream out)
-                    throws Exception
-            {
-                ZipPackager.packageEntries(out, entries);
-            }
-        });
+        maven.upload(groupId, bundle.getName(), bundle.getVersionString(), ARTIFACT_TYPE, new ZipGenerator(entries));
 
-        System.out.println(format("Uploaded %s-%s", bundle.getName(), bundle.getVersion()));
+        System.out.println(format("Uploaded %s-%s", bundle.getName(), bundle.getVersionString()));
 
         return null;
     }
