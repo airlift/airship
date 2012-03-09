@@ -15,25 +15,43 @@ import java.util.SortedSet;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class Strings
 {
     public static int commonPrefixSegments(char separator, Collection<String> strings)
     {
-        if (strings.size() < 2) {
+        return commonPrefixSegments(separator, strings, 0);
+    }
+
+    public static int commonPrefixSegments(char separator, Collection<String> strings, int minSize)
+    {
+        Preconditions.checkNotNull(strings, "strings is null");
+        Preconditions.checkArgument(minSize >= 0, "minSize is negative");
+
+        if (strings.isEmpty()) {
             return 0;
         }
 
+        int shortestNumberOfParts = Integer.MAX_VALUE;
         List<List<String>> stringsParts = newArrayList();
         for (String string : strings) {
             List<String> parts = ImmutableList.copyOf(Splitter.on(separator).split(string));
+            if (parts.isEmpty() || !parts.get(0).isEmpty()) {
+                throw new IllegalArgumentException("All strings must start with the separator character");
+            }
+            parts = parts.subList(1, parts.size());
             stringsParts.add(parts);
+            shortestNumberOfParts = min(parts.size(), shortestNumberOfParts);
         }
 
+        int maxNumberOfSharedParts = max(shortestNumberOfParts - minSize, 0);
+
         int commonParts = 0;
-        while (isPartEqual(commonParts, stringsParts)) {
+        while (commonParts < maxNumberOfSharedParts && isPartEqual(commonParts, stringsParts)) {
             commonParts++;
         }
+
         return commonParts;
     }
 
@@ -58,10 +76,19 @@ public class Strings
         }
 
         List<String> segments = ImmutableList.copyOf(Splitter.on(separator).split(string));
+        if (segments.isEmpty() || !segments.get(0).isEmpty()) {
+            throw new IllegalArgumentException("String must start with the separator character");
+        }
+        segments = segments.subList(1, segments.size());
+
         if (segments.size() < segmentCount) {
             return string;
         }
-        return Joiner.on(separator).join(segments.subList(segmentCount, segments.size()));
+        String trimmedString = Joiner.on(separator).join(segments.subList(segmentCount, segments.size()));
+        if (!trimmedString.startsWith("" + separator)) {
+            trimmedString = separator + trimmedString;
+        }
+        return trimmedString;
     }
 
     public static int shortestUniquePrefix(Collection<String> strings)

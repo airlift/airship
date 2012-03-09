@@ -25,6 +25,7 @@ public class CoordinatorStatusRepresentation
 {
     public static class CoordinatorStatusRepresentationFactory {
         public static final int MIN_PREFIX_SIZE = 4;
+        public static final int MIN_LOCATION_SEGMENTS = 2;
 
         private final int shortIdPrefixSize;
         private final int commonLocationParts;
@@ -37,7 +38,7 @@ public class CoordinatorStatusRepresentation
         public CoordinatorStatusRepresentationFactory(List<CoordinatorStatus> coordinatorStatuses)
         {
             this.shortIdPrefixSize = shortestUniquePrefix(transform(coordinatorStatuses, idGetter()), MIN_PREFIX_SIZE);
-            this.commonLocationParts = commonPrefixSegments('/', transform(coordinatorStatuses, locationGetter()));
+            this.commonLocationParts = commonPrefixSegments('/', transform(coordinatorStatuses, locationGetter()), MIN_LOCATION_SEGMENTS);
         }
 
         public CoordinatorStatusRepresentationFactory(int shortIdPrefixSize, int commonLocationParts)

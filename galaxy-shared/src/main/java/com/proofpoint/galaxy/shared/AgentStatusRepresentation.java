@@ -29,6 +29,7 @@ public class AgentStatusRepresentation
 {
     public static class AgentStatusRepresentationFactory {
         public static final int MIN_PREFIX_SIZE = 4;
+        public static final int MIN_LOCATION_SEGMENTS = 2;
 
         private final int shortIdPrefixSize;
         private final int commonLocationParts;
@@ -42,7 +43,7 @@ public class AgentStatusRepresentation
         public AgentStatusRepresentationFactory(List<AgentStatus> agentStatuses, Repository repository)
         {
             this.shortIdPrefixSize = shortestUniquePrefix(transform(agentStatuses, idGetter()), MIN_PREFIX_SIZE);
-            this.commonLocationParts = commonPrefixSegments('/', transform(agentStatuses, locationGetter()));
+            this.commonLocationParts = commonPrefixSegments('/', transform(agentStatuses, locationGetter()), MIN_LOCATION_SEGMENTS);
             this.repository = repository;
         }
 
