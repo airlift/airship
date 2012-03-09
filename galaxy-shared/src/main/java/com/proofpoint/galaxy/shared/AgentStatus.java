@@ -39,7 +39,6 @@ public class AgentStatus
             Iterable<SlotStatus> slots,
             Map<String, Integer> resources)
     {
-        Preconditions.checkNotNull(agentId, "agentId is null");
         Preconditions.checkNotNull(slots, "slots is null");
         Preconditions.checkNotNull(resources, "resources is null");
 

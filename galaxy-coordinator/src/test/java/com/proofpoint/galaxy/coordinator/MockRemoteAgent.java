@@ -3,12 +3,15 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.proofpoint.discovery.client.ServiceDescriptor;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 
 import java.net.URI;
 import java.util.List;
@@ -96,7 +99,20 @@ public class MockRemoteAgent implements RemoteAgent
 
     public AgentStatus getAgentStatus()
     {
-        return checkNotNull(agents.get(instanceId), "Status not found for instance " + instanceId);
+        AgentStatus agentStatus = agents.get(instanceId);
+        if (agentStatus != null) {
+            return agentStatus;
+        } else {
+            return new AgentStatus(null,
+                    AgentLifecycleState.OFFLINE,
+                    instanceId,
+                    null,
+                    null,
+                    null,
+                    null,
+                    ImmutableList.<SlotStatus>of(),
+                    ImmutableMap.<String, Integer>of());
+        }
     }
 
     public void setAgentStatus(AgentStatus agentStatus)

@@ -272,6 +272,11 @@ public class Coordinator
                 }
             }
         }
+        for (RemoteAgent agent : agents.values()) {
+            if (agent.status().getState() == AgentLifecycleState.PROVISIONING) {
+                instanceIds.add(agent.status().getInstanceId());
+            }
+        }
         // remove any agents in the provisioner list
         agents.keySet().retainAll(instanceIds);
 
