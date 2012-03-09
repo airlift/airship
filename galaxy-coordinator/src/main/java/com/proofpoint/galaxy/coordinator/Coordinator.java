@@ -204,7 +204,7 @@ public class Coordinator
         return coordinators;
     }
 
-    public List<AgentStatus> getAllAgentStatus()
+    public List<AgentStatus> getAgents()
     {
         return ImmutableList.copyOf(Iterables.transform(agents.values(), new Function<RemoteAgent, AgentStatus>()
         {
@@ -213,15 +213,6 @@ public class Coordinator
                 return agent.status();
             }
         }));
-    }
-
-    public List<AgentStatus> getAllAgents()
-    {
-        ImmutableList.Builder<AgentStatus> builder = ImmutableList.builder();
-        for (RemoteAgent remoteAgent : agents.values()) {
-            builder.add(remoteAgent.status());
-        }
-        return builder.build();
     }
 
     public List<AgentStatus> getAgents(Predicate<AgentStatus> agentFilter)

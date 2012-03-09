@@ -224,7 +224,7 @@ public class TestServerIntegration
         provisioner.clearAgents();
         coordinator.updateAllAgents();
         assertTrue(agent.getAllSlots().isEmpty());
-        assertTrue(coordinator.getAllAgentStatus().isEmpty());
+        assertTrue(coordinator.getAgents().isEmpty());
 
 
         appleSlot1 = agent.getSlot(agent.install(new Installation("apple",

@@ -151,7 +151,7 @@ public class TestCoordinatorServer
     {
         provisioner.clearAgents();
         coordinator.updateAllAgents();
-        assertTrue(coordinator.getAllAgentStatus().isEmpty());
+        assertTrue(coordinator.getAgents().isEmpty());
 
 
         apple1SotId = UUID.randomUUID();

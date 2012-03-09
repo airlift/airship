@@ -64,7 +64,7 @@ public class TestCoordinator
     public void testNoAgents()
             throws Exception
     {
-        assertTrue(coordinator.getAllAgentStatus().isEmpty());
+        assertTrue(coordinator.getAgents().isEmpty());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class TestCoordinator
         provisioner.addAgent(status);
         coordinator.updateAllAgents();
 
-        assertEquals(coordinator.getAllAgentStatus(), ImmutableList.of(status));
+        assertEquals(coordinator.getAgents(), ImmutableList.of(status));
         assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
         assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
     }
@@ -102,7 +102,7 @@ public class TestCoordinator
         provisioner.addAgent(agentId, agentUri);
 
         // coordinator won't see it until it update is called
-        assertTrue(coordinator.getAllAgentStatus().isEmpty());
+        assertTrue(coordinator.getAgents().isEmpty());
 
         // announce the new agent and verify
         coordinator.updateAllAgents();

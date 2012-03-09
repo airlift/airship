@@ -81,7 +81,7 @@ public class AdminResource
 
         List<AgentStatus> agents = coordinator.getAgents(agentPredicate);
 
-        return Response.ok(transform(agents, fromAgentStatus(coordinator.getAllAgentStatus(), repository)))
+        return Response.ok(transform(agents, fromAgentStatus(coordinator.getAgents(), repository)))
                 .header(GALAXY_AGENTS_VERSION_HEADER, createAgentsVersion(agents))
                 .build();
     }
@@ -103,7 +103,7 @@ public class AdminResource
                 provisioning.getKeyPair(),
                 provisioning.getSecurityGroup());
 
-        return Response.ok(transform(agents, fromAgentStatus(coordinator.getAllAgentStatus(), repository))).build();
+        return Response.ok(transform(agents, fromAgentStatus(coordinator.getAgents(), repository))).build();
     }
 
     @DELETE
