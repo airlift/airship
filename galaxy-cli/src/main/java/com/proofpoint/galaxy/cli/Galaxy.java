@@ -311,7 +311,8 @@ public class Galaxy
                 System.out.println("No coordinators match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, Column.instanceType, location);
+                // todo add short id once coordinator is update to get coordinator id from remote coordinators
+                TablePrinter tablePrinter = new TablePrinter(machine, getHostColumn(), status, Column.instanceType, shortLocation);
                 tablePrinter.print(toCoordinatorRecords(coordinators));
             }
         }

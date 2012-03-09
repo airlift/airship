@@ -9,7 +9,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -127,6 +126,7 @@ public class Coordinator
 
         timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
 
+        updateAllCoordinators();
         updateAllAgents();
     }
 
@@ -159,6 +159,11 @@ public class Coordinator
         return environment;
     }
 
+    public List<CoordinatorStatus> getCoordinators()
+    {
+        return ImmutableList.copyOf(this.coordinators.values());
+    }
+
     public List<CoordinatorStatus> getCoordinators(Predicate<CoordinatorStatus> coordinatorFilter)
     {
         return ImmutableList.copyOf(filter(this.coordinators.values(), coordinatorFilter));
@@ -185,8 +190,9 @@ public class Coordinator
             String instanceId = instance.getInstanceId();
 
             CoordinatorStatus coordinatorStatus = new CoordinatorStatus(
-                    instanceId,
+                    null,
                     CoordinatorLifecycleState.PROVISIONING,
+                    instanceId,
                     null,
                     null,
                     instance.getLocation(),
@@ -239,20 +245,33 @@ public class Coordinator
     @VisibleForTesting
     public void updateAllCoordinators()
     {
-        Builder<String,CoordinatorStatus> builder = ImmutableMap.builder();
+        Set<String> instanceIds = newHashSet();
         for (Instance instance : this.provisioner.listCoordinators()) {
-            // todo machine or process may still be starting (provisioning)
+            instanceIds.add(instance.getInstanceId());
+            // todo add remote coordinator to get real status
             CoordinatorStatus coordinatorStatus = new CoordinatorStatus(instance.getInstanceId(),
                     CoordinatorLifecycleState.ONLINE,
+                    instance.getInstanceId(),
                     instance.getInternalUri(),
                     instance.getExternalUri(),
                     instance.getLocation(),
                     instance.getInstanceType());
 
-            // todo remove terminated coordinators?
-            coordinators.put(instance.getInstanceId(), coordinatorStatus);
-            builder.put(coordinatorStatus.getCoordinatorId(), coordinatorStatus);
+            CoordinatorStatus existing = coordinators.putIfAbsent(instance.getInstanceId(), coordinatorStatus);
+            if (existing != null) {
+                if (existing.getState() == CoordinatorLifecycleState.PROVISIONING) {
+                    // replace the temporary provisioning instance with a current state
+                    coordinators.replace(instance.getInstanceId(), existing, coordinatorStatus);
+                }
+            }
         }
+        for (CoordinatorStatus coordinatorStatus : coordinators.values()) {
+            if (coordinatorStatus.getState() == CoordinatorLifecycleState.PROVISIONING) {
+                instanceIds.add(coordinatorStatus.getCoordinatorId());
+            }
+        }
+        // remove any coordinators in the provisioner list
+        coordinators.keySet().retainAll(instanceIds);
     }
 
     @VisibleForTesting

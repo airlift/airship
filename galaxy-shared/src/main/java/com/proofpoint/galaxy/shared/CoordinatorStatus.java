@@ -1,50 +1,32 @@
 package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 @Immutable
 public class CoordinatorStatus
 {
     private final String coordinatorId;
     private final CoordinatorLifecycleState state;
+    private final String instanceId;
     private final URI internalUri;
     private final URI externalUri;
     private final String location;
     private final String instanceType;
     private final String version;
 
-    public CoordinatorStatus(String coordinatorId, CoordinatorLifecycleState state, URI internalUri, URI externalUri, String location, String instanceType)
+    public CoordinatorStatus(String coordinatorId, CoordinatorLifecycleState state, String instanceId, URI internalUri, URI externalUri, String location, String instanceType)
     {
-        Preconditions.checkNotNull(coordinatorId, "coordinatorId is null");
-
         this.internalUri = internalUri;
         this.externalUri = externalUri;
+        this.instanceId = instanceId;
         this.state = state;
         this.coordinatorId = coordinatorId;
         this.location = location;
         this.instanceType = instanceType;
-        this.version = createVersion(coordinatorId, state);
-    }
-
-    public CoordinatorStatus(CoordinatorStatus coordinatorStatus, CoordinatorLifecycleState state)
-    {
-        Preconditions.checkNotNull(coordinatorStatus, "coordinatorStatus is null");
-        Preconditions.checkNotNull(state, "state is null");
-
-        this.internalUri = coordinatorStatus.internalUri;
-        this.externalUri = coordinatorStatus.externalUri;
-        this.state = state;
-        this.coordinatorId = coordinatorStatus.coordinatorId;
-        this.location = coordinatorStatus.location;
-        this.instanceType = coordinatorStatus.instanceType;
-        this.version = createVersion(coordinatorId, state);
+        this.version = VersionsUtil.createVersion(coordinatorId, state);
     }
 
     public String getCoordinatorId()
@@ -57,9 +39,14 @@ public class CoordinatorStatus
         return state;
     }
     
-    public CoordinatorStatus updateState(CoordinatorLifecycleState state)
+    public CoordinatorStatus changeState(CoordinatorLifecycleState state)
     {
-        return new CoordinatorStatus(this, state);
+        return new CoordinatorStatus(coordinatorId, state, instanceId, internalUri, externalUri, location, instanceType);
+    }
+
+    public String getInstanceId()
+    {
+        return instanceId;
     }
 
     public URI getInternalUri()
@@ -112,19 +99,23 @@ public class CoordinatorStatus
         return coordinatorId.hashCode();
     }
 
+
     @Override
     public String toString()
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("CoordinatorStatus");
-        sb.append("{coordinatorId=").append(coordinatorId);
+        sb.append("{coordinatorId='").append(coordinatorId).append('\'');
         sb.append(", state=").append(state);
-        sb.append(", uri=").append(internalUri);
-        sb.append(", version=").append(version);
+        sb.append(", instanceId='").append(instanceId).append('\'');
+        sb.append(", internalUri=").append(internalUri);
+        sb.append(", externalUri=").append(externalUri);
+        sb.append(", location='").append(location).append('\'');
+        sb.append(", instanceType='").append(instanceType).append('\'');
+        sb.append(", version='").append(version).append('\'');
         sb.append('}');
         return sb.toString();
     }
-
 
     public static Function<CoordinatorStatus, String> idGetter()
     {
@@ -137,13 +128,14 @@ public class CoordinatorStatus
         };
     }
 
-    public static String createVersion(String coordinatorId, CoordinatorLifecycleState state)
+    public static Function<CoordinatorStatus, String> locationGetter()
     {
-        List<Object> parts = new ArrayList<Object>();
-        parts.add(coordinatorId);
-        parts.add(state);
-
-        String data = Joiner.on("||").useForNull("--NULL--").join(parts);
-        return DigestUtils.md5Hex(data);
+        return new Function<CoordinatorStatus, String>()
+        {
+            public String apply(CoordinatorStatus input)
+            {
+                return input.getLocation();
+            }
+        };
     }
 }

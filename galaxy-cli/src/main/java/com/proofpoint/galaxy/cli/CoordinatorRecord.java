@@ -37,9 +37,11 @@ public class CoordinatorRecord implements Record
     {
         switch (column) {
             case shortId:
-                return coordinatorStatus.getCoordinatorId();
+                return coordinatorStatus.getShortCoordinatorId();
             case uuid:
                 return coordinatorStatus.getCoordinatorId();
+            case machine:
+                return coordinatorStatus.getInstanceId();
             case internalHost:
                 return coordinatorStatus.getInternalHost();
             case internalIp:
@@ -50,6 +52,8 @@ public class CoordinatorRecord implements Record
                 return coordinatorStatus.getState();
             case location:
                 return coordinatorStatus.getLocation();
+            case shortLocation:
+                return coordinatorStatus.getShortLocation();
             case instanceType:
                 return coordinatorStatus.getInstanceType();
             case internalUri:

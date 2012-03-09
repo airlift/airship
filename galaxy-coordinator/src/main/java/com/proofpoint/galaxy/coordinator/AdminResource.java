@@ -47,7 +47,7 @@ public class AdminResource
     {
         Predicate<CoordinatorStatus> coordinatorPredicate = CoordinatorFilterBuilder.build(uriInfo);
         List<CoordinatorStatus> coordinators = coordinator.getCoordinators(coordinatorPredicate);
-        return Response.ok(transform(coordinators, fromCoordinatorStatus())).build();
+        return Response.ok(transform(coordinators, fromCoordinatorStatus(coordinator.getCoordinators()))).build();
     }
 
     @POST
@@ -67,7 +67,7 @@ public class AdminResource
                 provisioning.getKeyPair(),
                 provisioning.getSecurityGroup());
 
-        return Response.ok(transform(coordinators, fromCoordinatorStatus())).build();
+        return Response.ok(transform(coordinators, fromCoordinatorStatus(coordinator.getCoordinators()))).build();
     }
 
     @GET

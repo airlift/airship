@@ -201,7 +201,7 @@ public class LocalCommander implements Commander
         // update just in case something changed
         updateServiceInventory();
 
-        return transform(coordinatorStatuses, fromCoordinatorStatus());
+        return transform(coordinatorStatuses, fromCoordinatorStatus(coordinator.getCoordinators()));
     }
 
     @Override

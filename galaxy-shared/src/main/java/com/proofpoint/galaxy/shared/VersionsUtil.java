@@ -124,5 +124,15 @@ public class VersionsUtil
             agentVersions.put(agent.getAgentId(), agent.getVersion());
         }
         return DigestUtils.md5Hex(agentVersions.values().toString());
-    }    
+    }
+
+    public static String createVersion(String coordinatorId, CoordinatorLifecycleState state)
+    {
+        List<Object> parts = new ArrayList<Object>();
+        parts.add(coordinatorId);
+        parts.add(state);
+
+        String data = Joiner.on("||").useForNull("--NULL--").join(parts);
+        return DigestUtils.md5Hex(data);
+    }
 }

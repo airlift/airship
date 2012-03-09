@@ -8,6 +8,7 @@ import com.proofpoint.galaxy.shared.JsonResponseHandler;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.client.Request;
 import com.proofpoint.http.client.RequestBuilder;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.json.JsonCodec;
 
 import javax.inject.Inject;
@@ -21,24 +22,46 @@ import static com.google.common.base.Objects.firstNonNull;
 
 public class StaticProvisioner implements Provisioner
 {
+    private final String coordinatorInstanceId;
+    private final URI coordinatorExternalUri;
+    private final URI coordinatorInternalUri;
+
     private final SortedMap<String, String> agents;
     private final HttpClient httpClient;
     private final JsonCodec<AgentStatusRepresentation> agentCodec;
 
     @Inject
-    public StaticProvisioner(LocalProvisionerConfig config, @Global HttpClient httpClient, JsonCodec<AgentStatusRepresentation> agentCodec)
+    public StaticProvisioner(LocalProvisionerConfig config,
+            HttpServerInfo httpServerInfo,
+            @Global HttpClient httpClient,
+            JsonCodec<AgentStatusRepresentation> agentCodec)
     {
-        this(config.getLocalAgentUris(), httpClient, agentCodec);
+        this(httpServerInfo.getHttpExternalUri(),
+                httpServerInfo.getHttpUri(),
+                config.getLocalAgentUris(),
+                httpClient,
+                agentCodec);
     }
 
-    public StaticProvisioner(List<String> agents, HttpClient httpClient, JsonCodec<AgentStatusRepresentation> agentCodec)
+    public StaticProvisioner(URI coordinatorExternalUri,
+            URI coordinatorInternalUri,
+            List<String> agents,
+            HttpClient httpClient,
+            JsonCodec<AgentStatusRepresentation> agentCodec)
     {
+        Preconditions.checkNotNull(coordinatorExternalUri, "coordinatorExternalUri is null");
+        Preconditions.checkNotNull(coordinatorInternalUri, "coordinatorInternalUri is null");
         Preconditions.checkNotNull(agents, "agents is null");
         Preconditions.checkNotNull(httpClient, "httpClient is null");
         Preconditions.checkNotNull(agentCodec, "agentCodec is null");
 
-        ImmutableSortedMap.Builder<String,String> builder = ImmutableSortedMap.naturalOrder();
+        this.coordinatorExternalUri = coordinatorExternalUri;
+        this.coordinatorInternalUri = coordinatorInternalUri;
+
         int instanceNumber = 1;
+        coordinatorInstanceId = String.format("i-%05d", instanceNumber++);
+
+        ImmutableSortedMap.Builder<String,String> builder = ImmutableSortedMap.naturalOrder();
         for (String agentUri : agents) {
             String instanceId = String.format("i-%05d", instanceNumber++);
             builder.put(instanceId, agentUri);
@@ -51,7 +74,11 @@ public class StaticProvisioner implements Provisioner
     @Override
     public List<Instance> listCoordinators()
     {
-        return ImmutableList.of();
+        return ImmutableList.of(new Instance(coordinatorInstanceId,
+                "unknown",
+                "/static/" + coordinatorExternalUri.getHost() + "/coordinator",
+                coordinatorInternalUri,
+                coordinatorExternalUri));
     }
 
     @Override

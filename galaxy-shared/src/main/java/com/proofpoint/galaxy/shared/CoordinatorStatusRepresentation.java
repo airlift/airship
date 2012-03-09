@@ -1,8 +1,6 @@
 package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonMethod;
@@ -14,69 +12,108 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.List;
 
+import static com.google.common.collect.Lists.transform;
+import static com.proofpoint.galaxy.shared.CoordinatorStatus.idGetter;
+import static com.proofpoint.galaxy.shared.CoordinatorStatus.locationGetter;
+import static com.proofpoint.galaxy.shared.Strings.commonPrefixSegments;
+import static com.proofpoint.galaxy.shared.Strings.safeTruncate;
+import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
+import static com.proofpoint.galaxy.shared.Strings.trimLeadingSegments;
+
 @JsonAutoDetect(JsonMethod.NONE)
 public class CoordinatorStatusRepresentation
 {
-    public static List<CoordinatorStatusRepresentation> toCoordinatorStatusRepresentations(Iterable<CoordinatorStatus> coordinators)
-    {
-        return ImmutableList.copyOf(Iterables.transform(coordinators, new Function<CoordinatorStatus, CoordinatorStatusRepresentation>()
+    public static class CoordinatorStatusRepresentationFactory {
+        public static final int MIN_PREFIX_SIZE = 4;
+
+        private final int shortIdPrefixSize;
+        private final int commonLocationParts;
+
+        public CoordinatorStatusRepresentationFactory()
         {
-            @Override
-            public CoordinatorStatusRepresentation apply(CoordinatorStatus coordinator)
-            {
-                return from(coordinator);
-            }
-        }));
+            this(Integer.MAX_VALUE, 0);
+        }
+
+        public CoordinatorStatusRepresentationFactory(List<CoordinatorStatus> coordinatorStatuses)
+        {
+            this.shortIdPrefixSize = shortestUniquePrefix(transform(coordinatorStatuses, idGetter()), MIN_PREFIX_SIZE);
+            this.commonLocationParts = commonPrefixSegments('/', transform(coordinatorStatuses, locationGetter()));
+        }
+
+        public CoordinatorStatusRepresentationFactory(int shortIdPrefixSize, int commonLocationParts)
+        {
+            this.shortIdPrefixSize = shortIdPrefixSize;
+            this.commonLocationParts = commonLocationParts;
+        }
+
+        public CoordinatorStatusRepresentation create(CoordinatorStatus status) {
+            return new CoordinatorStatusRepresentation(
+                    status.getCoordinatorId(),
+                    safeTruncate(status.getCoordinatorId(), shortIdPrefixSize),
+                    status.getInstanceId(),
+                    status.getState(),
+                    status.getInternalUri(),
+                    status.getExternalUri(),
+                    status.getLocation(),
+                    trimLeadingSegments(status.getLocation(), '/', commonLocationParts),
+                    status.getInstanceType(),
+                    status.getVersion());
+        }
     }
 
-    public static final String GALAXY_COORDINATOR_VERSION_HEADER = "x-galaxy-coordinator-version";
-
     private final String coordinatorId;
+    private final String shortCoordinatorId;
+    private final String instanceId;
     private final URI self;
     private final URI externalUri;
     private final CoordinatorLifecycleState state;
     private final String location;
+    private final String shortLocation;
     private final String instanceType;
     private final String version;
 
-    public static Function<CoordinatorStatus, CoordinatorStatusRepresentation> fromCoordinatorStatus()
+    public static Function<CoordinatorStatus, CoordinatorStatusRepresentation> fromCoordinatorStatus(List<CoordinatorStatus> coordinatorStatuses)
+    {
+        return fromCoordinatorStatus(new CoordinatorStatusRepresentationFactory(coordinatorStatuses));
+    }
+
+    public static Function<CoordinatorStatus, CoordinatorStatusRepresentation> fromCoordinatorStatus(final CoordinatorStatusRepresentationFactory factory)
     {
         return new Function<CoordinatorStatus, CoordinatorStatusRepresentation>()
         {
             public CoordinatorStatusRepresentation apply(CoordinatorStatus status)
             {
-                return from(status);
+                return factory.create(status);
             }
         };
     }
 
     public static CoordinatorStatusRepresentation from(CoordinatorStatus status)
     {
-        return new CoordinatorStatusRepresentation(
-                status.getCoordinatorId(),
-                status.getState(),
-                status.getInternalUri(),
-                status.getExternalUri(),
-                status.getLocation(),
-                status.getInstanceType(),
-                status.getVersion());
+        return new CoordinatorStatusRepresentationFactory().create(status);
     }
 
     @JsonCreator
     public CoordinatorStatusRepresentation(
             @JsonProperty("coordinatorId") String coordinatorId,
+            @JsonProperty("shortCoordinatorId") String shortCoordinatorId,
+            @JsonProperty("instanceId") String instanceId,
             @JsonProperty("state") CoordinatorLifecycleState state,
             @JsonProperty("self") URI self,
             @JsonProperty("externalUri") URI externalUri,
             @JsonProperty("location") String location,
+            @JsonProperty("shortLocation") String shortLocation,
             @JsonProperty("instanceType") String instanceType,
             @JsonProperty("version") String version)
     {
         this.coordinatorId = coordinatorId;
+        this.shortCoordinatorId = shortCoordinatorId;
+        this.instanceId = instanceId;
         this.self = self;
         this.state = state;
         this.externalUri = externalUri;
         this.location = location;
+        this.shortLocation = shortLocation;
         this.instanceType = instanceType;
         this.version = version;
     }
@@ -86,6 +123,20 @@ public class CoordinatorStatusRepresentation
     public String getCoordinatorId()
     {
         return coordinatorId;
+    }
+
+    @JsonProperty
+    @NotNull
+    public String getShortCoordinatorId()
+    {
+        return shortCoordinatorId;
+    }
+
+    @JsonProperty
+    @NotNull
+    public String getInstanceId()
+    {
+        return instanceId;
     }
 
     @JsonProperty
@@ -112,6 +163,12 @@ public class CoordinatorStatusRepresentation
     public String getLocation()
     {
         return location;
+    }
+
+    @JsonProperty
+    public String getShortLocation()
+    {
+        return shortLocation;
     }
 
     @JsonProperty
@@ -163,7 +220,7 @@ public class CoordinatorStatusRepresentation
 
     public CoordinatorStatus toCoordinatorStatus()
     {
-        return new CoordinatorStatus(coordinatorId, CoordinatorLifecycleState.ONLINE, self, externalUri, location, instanceType);
+        return new CoordinatorStatus(coordinatorId, CoordinatorLifecycleState.ONLINE, instanceId, self, externalUri, location, instanceType);
     }
 
     @Override
@@ -197,10 +254,13 @@ public class CoordinatorStatusRepresentation
         final StringBuilder sb = new StringBuilder();
         sb.append("CoordinatorStatusRepresentation");
         sb.append("{coordinatorId='").append(coordinatorId).append('\'');
+        sb.append(", shortCoordinatorId='").append(shortCoordinatorId).append('\'');
+        sb.append(", instanceId='").append(instanceId).append('\'');
         sb.append(", self=").append(self);
         sb.append(", externalUri=").append(externalUri);
         sb.append(", state=").append(state);
         sb.append(", location='").append(location).append('\'');
+        sb.append(", shortLocation='").append(shortLocation).append('\'');
         sb.append(", instanceType='").append(instanceType).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append('}');
