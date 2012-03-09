@@ -2,10 +2,13 @@ package com.proofpoint.galaxy.configbundler;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.io.InputSupplier;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -21,9 +24,17 @@ import java.io.InputStream;
 import java.util.Map;
 
 import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.collect.Iterables.find;
 
 public class GitUtils
 {
+    public static Ref getBranch(Repository repository, String name)
+            throws IOException
+    {
+        return repository.getRefDatabase().getRefs(Constants.R_HEADS).get(name);
+    }
+
+
     public static RevCommit getCommit(Repository repository, Ref ref)
     {
         RevWalk revWalk = new RevWalk(repository);
@@ -97,5 +108,4 @@ public class GitUtils
             }
         };
     }
-
 }

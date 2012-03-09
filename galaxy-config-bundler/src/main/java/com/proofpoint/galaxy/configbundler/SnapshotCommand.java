@@ -56,21 +56,15 @@ public class SnapshotCommand
             bundle = model.getBundle(component);
         }
 
-        Maven maven = new Maven(metadata.getSnapshotsRepository(), metadata.getReleasesRepository());
-
-        final Map<String, InputSupplier<InputStream>> entries = model.getEntries(bundle);
+        final Map<String, InputSupplier<InputStream>> entries = model.getEntries(bundle); // TODO: get pending changes
 
         if (entries.isEmpty()) {
             throw new RuntimeException("Cannot build an empty config package");
         }
 
-        Integer version = bundle.getVersion();
-        if (version == null) {
-            version = 0;
-        }
-        ++version;
+        String versionString = bundle.getNextVersion() + "-SNAPSHOT";
 
-        String versionString = version + "-SNAPSHOT";
+        Maven maven = new Maven(metadata.getSnapshotsRepository(), metadata.getReleasesRepository());
         maven.upload(groupId, bundle.getName(), versionString, ReleaseCommand.ARTIFACT_TYPE, new BodyGenerator()
         {
             public void write(OutputStream out)

@@ -13,11 +13,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRefNameException;
 import org.eclipse.jgit.api.errors.InvalidTagNameException;
 import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
-import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -32,12 +29,10 @@ import java.util.Comparator;
 import java.util.Map;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.collect.Iterables.find;
-import static com.google.common.collect.Iterables.transform;
 import static com.google.common.io.CharStreams.newReaderSupplier;
 import static com.proofpoint.galaxy.configbundler.GitUtils.getBlob;
+import static com.proofpoint.galaxy.configbundler.GitUtils.getBranch;
 import static com.proofpoint.galaxy.configbundler.GitUtils.inputStreamSupplierFunction;
-import static java.lang.String.format;
 
 public class Model
 {
@@ -97,25 +92,31 @@ public class Model
             throws IOException
     {
         String currentBranch = git.getRepository().getRef(Constants.HEAD).getTarget().getName();
+
         if (currentBranch != null) {
-            String name = Repository.shortenRefName(currentBranch);
-            Integer version = getLatestVersionForComponent(name);
-            return new Bundle(name, version);
+            return getBundle(Repository.shortenRefName(currentBranch));
         }
 
+        // TODO: ensure branch is not "template" or "master"
         return null;
     }
     
     public Bundle getBundle(String name)
+            throws IOException
     {
-        Ref branch = getBranchForComponent(name);
+        Ref branch = getBranch(git.getRepository(), name);
         if (branch != null) {
-            Integer version = getLatestVersionForComponent(name);
+            Integer version = null;
+
+            Ref latestTag = getLatestTag(name);
+            if (latestTag != null) {
+                version = extractVersion(latestTag.getName());
+            }
+
             return new Bundle(name, version);
         }
 
         return null;
-
     }
     
     public Map<String, InputSupplier<InputStream>> getEntries(Bundle bundle)
@@ -123,7 +124,7 @@ public class Model
     {
         Ref ref;
         if (bundle.getVersion() == null) {
-            ref = getBranchForComponent(bundle.getName());
+            ref = getBranch(git.getRepository(), bundle.getName());
         }
         else {
             ref = git.getRepository().getTags().get(bundle.getName() + "-" + bundle.getVersion());
@@ -136,20 +137,16 @@ public class Model
     }
     
     public Bundle createNewVersion(Bundle bundle)
-            throws NoHeadException, ConcurrentRefUpdateException, InvalidTagNameException
+            throws NoHeadException, ConcurrentRefUpdateException, InvalidTagNameException, IOException
     {
         Integer version = bundle.getVersion();
         
-        Integer latestVersion = getLatestVersionForComponent(bundle.getName());
-
-        if ((version == null || latestVersion == null) && version != latestVersion ||
-                version != null && !version.equals(latestVersion)) {
-            throw new IllegalArgumentException(format("Bundle specifier (%s:%s) is stale. Latest version is %s:%s", bundle.getName(), version, bundle.getName(), latestVersion));
-        }
+        Bundle current = getBundle(bundle.getName());
+        Preconditions.checkArgument(bundle.equals(current), "Bundle specifier (%s:%s) is stale. Latest version is %s:%s", bundle.getName(), version, bundle.getName(), current.getVersion());
 
         version = bundle.getNextVersion();
 
-        RevCommit commit = GitUtils.getCommit(git.getRepository(), getBranchForComponent(bundle.getName()));
+        RevCommit commit = GitUtils.getCommit(git.getRepository(), getBranch(git.getRepository(), bundle.getName()));
         git.tag().setObjectId(commit)
                 .setName(bundle.getName() + "-" + version)
                 .call();
@@ -158,32 +155,18 @@ public class Model
     }
 
     public boolean hasPendingChanges(String bundleName)
+            throws IOException
     {
         Ref latestTag = getLatestTag(bundleName);
 
         final Repository repository = git.getRepository();
         
-        Ref branch = getBranchForComponent(bundleName);
+        Ref branch = getBranch(repository, bundleName);
         RevCommit headCommit = GitUtils.getCommit(repository, branch);
 
         return (latestTag == null || !GitUtils.getCommit(git.getRepository(), latestTag).equals(headCommit));
     }
     
-    private Ref getBranchForComponent(String component)
-    {
-        return find(git.branchList().call(), named(component), null);
-    }
-
-    private Integer getLatestVersionForComponent(String component)
-    {
-        Ref latestTag = getLatestTag(component);
-        if (latestTag != null) {
-            return extractVersion(latestTag.getName());
-        }
-
-        return null;
-    }
-
     private Ref getLatestTag(String component)
     {
         Map<String, Ref> forComponent = Maps.filterKeys(git.getRepository().getTags(), startsWith(component + "-"));
@@ -211,17 +194,6 @@ public class Model
             public boolean apply(String input)
             {
                 return input.startsWith(prefix);
-            }
-        };
-    }
-
-    private Predicate<? super Ref> named(final String component)
-    {
-        return new Predicate<Ref>()
-        {
-            public boolean apply(Ref input)
-            {
-                return Repository.shortenRefName(input.getName()).equals(component);
             }
         };
     }
