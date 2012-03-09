@@ -2,6 +2,7 @@ package com.proofpoint.galaxy.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.common.io.InputSupplier;
 import com.proofpoint.http.client.BodyGenerator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
@@ -13,6 +14,7 @@ import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -26,7 +28,7 @@ import static java.lang.String.format;
 
 @Command(name = "snapshot", description = "Deploy a snapshot config bundle")
 public class SnapshotCommand
-    implements Callable<Void>
+        implements Callable<Void>
 {
     @Arguments
     public String component;
@@ -45,38 +47,40 @@ public class SnapshotCommand
 
         Preconditions.checkState(!model.isDirty(), "Cannot deploy with a dirty working tree");
 
-        String component = fromNullable(this.component).or(model.getCurrentComponent());
-        Ref branch = model.getBranchForComponent(component);
+        Bundle bundle;
 
-        Integer version = model.getLatestVersionForComponent(component);
-        if (version == null) {
-            version = 0;
+        if (component == null) {
+            bundle = model.getActiveBundle();
         }
-        ++version;
+        else {
+            bundle = model.getBundle(component);
+        }
 
         Maven maven = new Maven(metadata.getSnapshotsRepository(), metadata.getReleasesRepository());
 
-        // get entries from tag
-        final Repository repository = git.getRepository();
-        RevCommit headCommit = new RevWalk(repository).parseCommit(branch.getObjectId());
-
-        final Map<String, ObjectId> entries = getEntries(repository, headCommit.getTree());
+        final Map<String, InputSupplier<InputStream>> entries = model.getEntries(bundle);
 
         if (entries.isEmpty()) {
             throw new RuntimeException("Cannot build an empty config package");
         }
 
+        Integer version = bundle.getVersion();
+        if (version == null) {
+            version = 0;
+        }
+        ++version;
+
         String versionString = version + "-SNAPSHOT";
-        maven.upload(groupId, component, versionString, ReleaseCommand.ARTIFACT_TYPE, new BodyGenerator()
+        maven.upload(groupId, bundle.getName(), versionString, ReleaseCommand.ARTIFACT_TYPE, new BodyGenerator()
         {
             public void write(OutputStream out)
                     throws Exception
             {
-                ZipPackager.packageEntries(out, Maps.transformValues(entries, inputStreamSupplierFunction(repository)));
+                ZipPackager.packageEntries(out, entries);
             }
         });
 
-        System.out.println(format("Uploaded %s-%s", component, versionString));
+        System.out.println(format("Uploaded %s-%s", bundle.getName(), versionString));
 
         return null;
 

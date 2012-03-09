@@ -24,11 +24,11 @@ import static com.google.common.base.Objects.firstNonNull;
 
 public class GitUtils
 {
-    public static RevCommit getCommit(Repository repository, Ref tag)
+    public static RevCommit getCommit(Repository repository, Ref ref)
     {
         RevWalk revWalk = new RevWalk(repository);
         try {
-            return revWalk.parseCommit(firstNonNull(tag.getPeeledObjectId(), tag.getObjectId()));
+            return revWalk.parseCommit(firstNonNull(ref.getPeeledObjectId(), ref.getObjectId()));
         }
         catch (IOException e) {
             throw Throwables.propagate(e);

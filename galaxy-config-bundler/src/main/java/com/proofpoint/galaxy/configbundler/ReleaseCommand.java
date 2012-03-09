@@ -2,6 +2,7 @@ package com.proofpoint.galaxy.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.common.io.InputSupplier;
 import com.proofpoint.http.client.BodyGenerator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
@@ -13,6 +14,7 @@ import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -47,59 +49,46 @@ public class ReleaseCommand
 
         Preconditions.checkState(!model.isDirty(), "Cannot release with a dirty working tree");
 
+        Bundle bundle;
+
         if (component == null) {
-            component = model.getCurrentComponent();
+            bundle = model.getActiveBundle();
         }
-
-        Ref branch = model.getBranchForComponent(component);
-        Preconditions.checkArgument(branch != null, "There's not branch for component '%s'", component);
-
-        final Repository repository = git.getRepository();
-        RevCommit headCommit = new RevWalk(repository).parseCommit(branch.getObjectId());
-
-        Ref latestTag = model.getLatestTag(component);
-        Integer version = model.getLatestVersionForComponent(component);
-
-        if (version == null) {
-            version = 0;
+        else {
+            bundle = model.getBundle(component);
         }
 
         Maven maven = new Maven(metadata.getSnapshotsRepository(), metadata.getReleasesRepository());
         // TODO: handle errors getting uploader (e.g., repo does not exist, does not have credentials)
 
-        if (latestTag != null && GitUtils.getCommit(repository, latestTag).equals(headCommit)) {
-            // check if artifact exists in repo
-            if (maven.contains(groupId, component, Integer.toString(version), ARTIFACT_TYPE)) {
-                throw new RuntimeException(format("%s-%s has already been released", component, version));
+        if (!model.hasPendingChanges(bundle.getName())) {
+            if (maven.contains(groupId, bundle.getName(), Integer.toString(bundle.getVersion()), ARTIFACT_TYPE)) {
+                throw new RuntimeException(format("%s-%s has already been released", bundle.getName(), bundle.getVersion()));
             }
+
+            // re-publish version that has already been tagged
         }
         else {
-            ++version;
-
-            // tag <component>@HEAD with <component>-(<version> + 1)
-            git.tag().setObjectId(headCommit)
-                    .setName(component + "-" + version)
-                    .call();
+            bundle = model.createNewVersion(bundle);
         }
 
-
         // get entries from tag
-        final Map<String, ObjectId> entries = getEntries(repository, headCommit.getTree());
+        final Map<String,InputSupplier<InputStream>> entries = model.getEntries(bundle);
 
         if (entries.isEmpty()) {
             throw new RuntimeException("Cannot build an empty config package");
         }
 
-        maven.upload(groupId, component, Integer.toString(version), ARTIFACT_TYPE, new BodyGenerator()
+        maven.upload(groupId, bundle.getName(), Integer.toString(bundle.getVersion()), ARTIFACT_TYPE, new BodyGenerator()
         {
             public void write(OutputStream out)
                     throws Exception
             {
-                ZipPackager.packageEntries(out, Maps.transformValues(entries, inputStreamSupplierFunction(repository)));
+                ZipPackager.packageEntries(out, entries);
             }
         });
 
-        System.out.println(format("Uploaded %s-%s", component, version));
+        System.out.println(format("Uploaded %s-%s", bundle.getName(), bundle.getVersion()));
 
         return null;
     }

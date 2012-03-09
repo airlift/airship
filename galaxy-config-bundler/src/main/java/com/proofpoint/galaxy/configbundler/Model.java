@@ -6,11 +6,16 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
+import com.google.common.io.InputSupplier;
+import com.google.common.primitives.Ints;
 import com.proofpoint.json.JsonCodec;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRefNameException;
+import org.eclipse.jgit.api.errors.InvalidTagNameException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.lib.Constants;
@@ -22,12 +27,17 @@ import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Comparator;
 import java.util.Map;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.collect.Iterables.find;
+import static com.google.common.collect.Iterables.transform;
 import static com.google.common.io.CharStreams.newReaderSupplier;
 import static com.proofpoint.galaxy.configbundler.GitUtils.getBlob;
+import static com.proofpoint.galaxy.configbundler.GitUtils.inputStreamSupplierFunction;
+import static java.lang.String.format;
 
 public class Model
 {
@@ -82,23 +92,89 @@ public class Model
         git.commit().setMessage("Update metadata").call();
     }
 
-    public String getCurrentComponent()
+    
+    public Bundle getActiveBundle()
             throws IOException
     {
         String currentBranch = git.getRepository().getRef(Constants.HEAD).getTarget().getName();
         if (currentBranch != null) {
-            return Repository.shortenRefName(currentBranch);
+            String name = Repository.shortenRefName(currentBranch);
+            Integer version = getLatestVersionForComponent(name);
+            return new Bundle(name, version);
         }
 
         return null;
     }
+    
+    public Bundle getBundle(String name)
+    {
+        Ref branch = getBranchForComponent(name);
+        if (branch != null) {
+            Integer version = getLatestVersionForComponent(name);
+            return new Bundle(name, version);
+        }
 
-    public Ref getBranchForComponent(String component)
+        return null;
+
+    }
+    
+    public Map<String, InputSupplier<InputStream>> getEntries(Bundle bundle)
+            throws IOException
+    {
+        Ref ref;
+        if (bundle.getVersion() == null) {
+            ref = getBranchForComponent(bundle.getName());
+        }
+        else {
+            ref = git.getRepository().getTags().get(bundle.getName() + "-" + bundle.getVersion());
+            Preconditions.checkNotNull(ref, "cannot find tag for bundle %s:%s", bundle.getName(), bundle.getVersion());
+        }
+
+        RevCommit commit = GitUtils.getCommit(git.getRepository(), ref);
+        
+        return Maps.transformValues(GitUtils.getEntries(git.getRepository(), commit.getTree()), inputStreamSupplierFunction(git.getRepository()));
+    }
+    
+    public Bundle createNewVersion(Bundle bundle)
+            throws NoHeadException, ConcurrentRefUpdateException, InvalidTagNameException
+    {
+        Integer version = bundle.getVersion();
+        
+        Integer latestVersion = getLatestVersionForComponent(bundle.getName());
+
+        if ((version == null || latestVersion == null) && version != latestVersion ||
+                version != null && !version.equals(latestVersion)) {
+            throw new IllegalArgumentException(format("Bundle specifier (%s:%s) is stale. Latest version is %s:%s", bundle.getName(), version, bundle.getName(), latestVersion));
+        }
+
+        version = bundle.getNextVersion();
+
+        RevCommit commit = GitUtils.getCommit(git.getRepository(), getBranchForComponent(bundle.getName()));
+        git.tag().setObjectId(commit)
+                .setName(bundle.getName() + "-" + version)
+                .call();
+        
+        return new Bundle(bundle.getName(), version);
+    }
+
+    public boolean hasPendingChanges(String bundleName)
+    {
+        Ref latestTag = getLatestTag(bundleName);
+
+        final Repository repository = git.getRepository();
+        
+        Ref branch = getBranchForComponent(bundleName);
+        RevCommit headCommit = GitUtils.getCommit(repository, branch);
+
+        return (latestTag == null || !GitUtils.getCommit(git.getRepository(), latestTag).equals(headCommit));
+    }
+    
+    private Ref getBranchForComponent(String component)
     {
         return find(git.branchList().call(), named(component), null);
     }
 
-    public Integer getLatestVersionForComponent(String component)
+    private Integer getLatestVersionForComponent(String component)
     {
         Ref latestTag = getLatestTag(component);
         if (latestTag != null) {
@@ -108,7 +184,7 @@ public class Model
         return null;
     }
 
-    public Ref getLatestTag(String component)
+    private Ref getLatestTag(String component)
     {
         Map<String, Ref> forComponent = Maps.filterKeys(git.getRepository().getTags(), startsWith(component + "-"));
 
@@ -120,7 +196,7 @@ public class Model
         return null;
     }
 
-    public static int extractVersion(String tagName)
+    private static int extractVersion(String tagName)
     {
         int dash = tagName.lastIndexOf("-");
         Preconditions.checkArgument(dash != -1, "Tag does not follow <component>-<version> convention");
@@ -170,4 +246,15 @@ public class Model
                 status.getModified().isEmpty() &&
                 status.getConflicting().isEmpty());
     }
+
+    static class VersionTagComparator
+            implements Comparator<String>
+    {
+        @Override
+        public int compare(String tag1, String tag2)
+        {
+            return Ints.compare(extractVersion(tag1), extractVersion(tag2));
+        }
+    }
+
 }
