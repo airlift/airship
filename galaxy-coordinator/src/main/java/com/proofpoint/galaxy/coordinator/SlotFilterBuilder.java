@@ -299,7 +299,7 @@ public class SlotFilterBuilder
 
         public BinarySpecPredicate(String binaryFilter)
         {
-            glob = new GlobPredicate(binaryFilter);
+            glob = new GlobPredicate("*" + binaryFilter + "*");
         }
 
         @Override
@@ -316,7 +316,7 @@ public class SlotFilterBuilder
 
         public ConfigSpecPredicate(String configFilter)
         {
-            glob = new GlobPredicate(configFilter);
+            glob = new GlobPredicate("*" + configFilter + "*");
         }
 
         @Override
