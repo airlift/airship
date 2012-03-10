@@ -41,6 +41,11 @@ public class CoordinatorFilterBuilder
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
+            else if ("machine".equals(entry.getKey())) {
+                for (String machineGlob : entry.getValue()) {
+                    builder.addMachineGlobFilter(machineGlob);
+                }
+            }
             else if ("all".equals(entry.getKey())) {
                 builder.selectAll();
             }
@@ -51,6 +56,7 @@ public class CoordinatorFilterBuilder
     private final List<String> uuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<CoordinatorLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> machineGlobs = Lists.newArrayListWithCapacity(6);
     private boolean selectAll;
 
     public void addUuidFilter(String uuid)
@@ -73,6 +79,12 @@ public class CoordinatorFilterBuilder
         hostGlobs.add(hostGlob);
     }
 
+    public void addMachineGlobFilter(String machineGlob)
+    {
+        Preconditions.checkNotNull(machineGlob, "machineGlob is null");
+        machineGlobs.add(machineGlob);
+    }
+
     public void selectAll()
     {
         this.selectAll = true;
@@ -80,7 +92,6 @@ public class CoordinatorFilterBuilder
 
     public Predicate<CoordinatorStatus> buildPredicate()
     {
-        // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<CoordinatorStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
         if (!uuidFilters.isEmpty()) {
             Predicate<CoordinatorStatus> predicate = Predicates.or(Lists.transform(uuidFilters, new Function<String, UuidPredicate>()
@@ -115,6 +126,17 @@ public class CoordinatorFilterBuilder
             }));
             andPredicates.add(predicate);
         }
+        if (!machineGlobs.isEmpty()) {
+            Predicate<CoordinatorStatus> predicate = Predicates.or(Lists.transform(machineGlobs, new Function<String, MachinePredicate>()
+            {
+                @Override
+                public MachinePredicate apply(String machineGlob)
+                {
+                    return new MachinePredicate(machineGlob);
+                }
+            }));
+            andPredicates.add(predicate);
+        }
         if (selectAll) {
             return Predicates.alwaysTrue();
         }
@@ -139,6 +161,9 @@ public class CoordinatorFilterBuilder
         }
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
+        }
+        for (String machineGlob : machineGlobs) {
+            uriBuilder.addParameter("machine", machineGlob);
         }
         for (CoordinatorLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
@@ -179,6 +204,22 @@ public class CoordinatorFilterBuilder
         {
             return coordinatorStatus != null &&
                     (predicate.apply(coordinatorStatus.getExternalUri()) || predicate.apply(coordinatorStatus.getInternalUri()));
+        }
+    }
+
+    public static class MachinePredicate implements Predicate<CoordinatorStatus>
+    {
+        private final GlobPredicate predicate;
+
+        public MachinePredicate(String machineGlob)
+        {
+            predicate = new GlobPredicate(machineGlob.toLowerCase());
+        }
+
+        @Override
+        public boolean apply(@Nullable CoordinatorStatus coordinatorStatus)
+        {
+            return coordinatorStatus != null && predicate.apply(coordinatorStatus.getInstanceId());
         }
     }
 

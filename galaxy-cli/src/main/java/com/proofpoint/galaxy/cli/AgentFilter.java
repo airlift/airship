@@ -20,8 +20,11 @@ public class AgentFilter
     @Option(name = {"-u", "--uuid"}, description = "Select agent with the given UUID")
     public final List<String> uuid = newArrayList();
 
-    @Option(name = {"-h", "--host"}, description = "Select agent on the given host")
+    @Option(name = {"-h", "--host"}, description = "Select agent on the given host or ip")
     public final List<String> host = newArrayList();
+
+    @Option(name = {"-m", "--machine"}, description = "Select agents on the given machine")
+    public final List<String> machine = newArrayList();
 
     @Option(name = { "--slot-uuid"}, description = "Select agent containing a slot the given UUID")
     public final List<String> slotUuid = newArrayList();
@@ -59,6 +62,9 @@ public class AgentFilter
         for (String hostGlob : host) {
             agentFilterBuilder.addHostGlobFilter(hostGlob);
         }
+        for (String machineGlob : machine) {
+            agentFilterBuilder.addMachineGlobFilter(machineGlob);
+        }
         for (String stateFilter : state) {
             agentFilterBuilder.addStateFilter(stateFilter);
         }
@@ -81,6 +87,7 @@ public class AgentFilter
         sb.append("AgentFilter");
         sb.append("{uuid=").append(uuid);
         sb.append(", host=").append(host);
+        sb.append(", machine=").append(machine);
         sb.append(", slotUuid=").append(slotUuid);
         sb.append(", state=").append(state);
         sb.append(", assignableFilters=").append(assignableFilters);

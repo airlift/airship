@@ -19,6 +19,9 @@ public class CoordinatorFilter
     @Option(name = {"-h", "--host"}, description = "Select coordinator on the given host or IP address")
     public final List<String> host = newArrayList();
 
+    @Option(name = {"-m", "--machine"}, description = "Select coordinator on the given machine")
+    public final List<String> machine = newArrayList();
+
     @Option(name = {"-s", "--state"}, description = "Select coordinator containing 'r{unning}', 's{topped}' or 'unknown' slots")
     public final List<String> state = newArrayList();
 
@@ -49,6 +52,9 @@ public class CoordinatorFilter
         for (String hostGlob : host) {
             coordinatorFilterBuilder.addHostGlobFilter(hostGlob);
         }
+        for (String machineGlob : machine) {
+            coordinatorFilterBuilder.addMachineGlobFilter(machineGlob);
+        }
         for (String stateFilter : state) {
             coordinatorFilterBuilder.addStateFilter(stateFilter);
         }
@@ -65,6 +71,7 @@ public class CoordinatorFilter
         sb.append("CoordinatorFilter");
         sb.append("{uuid=").append(uuid);
         sb.append(", host=").append(host);
+        sb.append(", machine=").append(machine);
         sb.append(", state=").append(state);
         sb.append(", selectAll=").append(selectAll);
         sb.append('}');

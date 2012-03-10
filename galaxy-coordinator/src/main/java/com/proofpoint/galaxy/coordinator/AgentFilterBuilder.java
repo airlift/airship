@@ -59,6 +59,11 @@ public class AgentFilterBuilder
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
+            else if ("machine".equals(entry.getKey())) {
+                for (String machineGlob : entry.getValue()) {
+                    builder.addMachineGlobFilter(machineGlob);
+                }
+            }
             else if ("slotUuid".equals(entry.getKey())) {
                 for (String uuidGlob : entry.getValue()) {
                     builder.addSlotUuidGlobFilter(uuidGlob);
@@ -83,6 +88,7 @@ public class AgentFilterBuilder
     private final List<AgentLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> slotUuidGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> machineGlobs = Lists.newArrayListWithCapacity(6);
     private final List<Assignment> assignableFilters = Lists.newArrayListWithCapacity(6);
     private boolean selectAll;
 
@@ -112,6 +118,12 @@ public class AgentFilterBuilder
         hostGlobs.add(hostGlob);
     }
 
+    public void addMachineGlobFilter(String machineGlob)
+    {
+        Preconditions.checkNotNull(machineGlob, "machineGlob is null");
+        machineGlobs.add(machineGlob);
+    }
+
     public void addAssignableFilter(Assignment assignment)
     {
         Preconditions.checkNotNull(assignment, "assignment is null");
@@ -127,7 +139,6 @@ public class AgentFilterBuilder
             final boolean allowDuplicateInstallationsOnAnAgent,
             final Repository repository)
     {
-        // Filters are evaluated as: set | host | (env & version & type)
         List<Predicate<AgentStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
         if (!uuidFilters.isEmpty()) {
             Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(uuidFilters, new Function<String, UuidPredicate>()
@@ -173,6 +184,17 @@ public class AgentFilterBuilder
             }));
             andPredicates.add(predicate);
         }
+        if (!machineGlobs.isEmpty()) {
+            Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(machineGlobs, new Function<String, MachinePredicate>()
+            {
+                @Override
+                public MachinePredicate apply(String machineGlob)
+                {
+                    return new MachinePredicate(machineGlob);
+                }
+            }));
+            andPredicates.add(predicate);
+        }
         if (!assignableFilters.isEmpty()) {
             Predicate<AgentStatus> predicate = Predicates.or(Lists.transform(assignableFilters, new Function<Assignment, AssignablePredicate>()
             {
@@ -209,6 +231,9 @@ public class AgentFilterBuilder
         }
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
+        }
+        for (String machineGlob : machineGlobs) {
+            uriBuilder.addParameter("machine", machineGlob);
         }
         for (AgentLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
@@ -284,6 +309,22 @@ public class AgentFilterBuilder
         {
             return agentStatus != null &&
                     (predicate.apply(agentStatus.getExternalUri()) || predicate.apply(agentStatus.getInternalUri()));
+        }
+    }
+
+    public static class MachinePredicate implements Predicate<AgentStatus>
+    {
+        private final GlobPredicate predicate;
+
+        public MachinePredicate(String machineGlob)
+        {
+            predicate = new GlobPredicate(machineGlob);
+        }
+
+        @Override
+        public boolean apply(@Nullable AgentStatus agentStatus)
+        {
+            return agentStatus != null && predicate.apply(agentStatus.getInstanceId());
         }
     }
 
