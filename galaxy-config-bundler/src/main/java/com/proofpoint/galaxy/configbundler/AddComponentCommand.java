@@ -25,22 +25,13 @@ public class AddComponentCommand
         Preconditions.checkNotNull(component, "component is null");
 
         Git git = Git.open(new File("."));
-        Repository repository = git.getRepository();
+        
+        Model model = new Model(git);
+        
+        Preconditions.checkArgument(model.getBundle(component) != null, "Component already exists: %s", component);
 
-        Preconditions.checkState(repository.getRef(component) == null, "Branch for component %s already exists", component);
-
-        Ref templateBranch = repository.getRef("template");
-
-        Preconditions.checkNotNull(templateBranch, "'template' branch not found");
-
-        RevCommit templateCommit = GitUtils.getCommit(repository, templateBranch);
-
-        git.branchCreate()
-                .setName(component)
-                .setStartPoint(templateCommit)
-                .call();
-
-        git.checkout().setName(component).call();
+        Bundle bundle = model.createBundle(component);
+        model.activateBundle(bundle);
 
         return null;
     }

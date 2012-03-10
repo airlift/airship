@@ -13,8 +13,11 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRefNameException;
 import org.eclipse.jgit.api.errors.InvalidTagNameException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -123,6 +126,29 @@ public class Model
         }
 
         return null;
+    }
+    
+    public Bundle createBundle(String name)
+            throws IOException, InvalidRefNameException, RefNotFoundException, RefAlreadyExistsException
+    {
+        Ref templateBranch = git.getRepository().getRef("template");
+
+        Preconditions.checkNotNull(templateBranch, "'template' branch not found");
+
+        RevCommit templateCommit = GitUtils.getCommit(git.getRepository(), templateBranch);
+
+        git.branchCreate()
+                .setName(name)
+                .setStartPoint(templateCommit)
+                .call();
+
+        return getBundle(name);
+    }
+    
+    public void activateBundle(Bundle bundle)
+            throws InvalidRefNameException, RefNotFoundException, RefAlreadyExistsException
+    {
+        git.checkout().setName(bundle.getName()).call();
     }
     
     public Map<String, InputSupplier<InputStream>> getEntries(Bundle bundle)
