@@ -7,8 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-public class ZipGenerator
-    implements Generator
+class ZipGenerator
+        implements Generator
 {
     private final Map<String, InputSupplier<InputStream>> entries;
 

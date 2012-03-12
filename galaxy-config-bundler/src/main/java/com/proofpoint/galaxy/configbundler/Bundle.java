@@ -2,7 +2,7 @@ package com.proofpoint.galaxy.configbundler;
 
 import com.google.common.base.Preconditions;
 
-public class Bundle
+class Bundle
 {
     private final String name;
     private final int version;
@@ -32,7 +32,7 @@ public class Bundle
         if (snapshot) {
             return version + "-SNAPSHOT";
         }
-        
+
         return Integer.toString(version);
     }
 

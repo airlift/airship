@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 @Command(name = "init", description = "Initialize a git config repository")
-public class InitCommand
+class InitCommand
         implements Callable<Void>
 {
     @Option(name = "--groupId", description = "Maven group id")
@@ -32,6 +32,12 @@ public class InitCommand
     public Void call()
             throws Exception
     {
+        // 1. If git repo does not exist, create it
+        // 2. If master branch does not exist, create it from current branch
+        // 3. If template branch does not exist, create it from current branch
+        // 4. If metadata file does not exist in master branch, add it. Otherwise update it
+        // 5. If template branch was created in this run, check it out
+
         boolean exists = true;
         try {
             Git.open(new File("."));
@@ -39,7 +45,7 @@ public class InitCommand
         catch (RepositoryNotFoundException e) {
             exists = false;
         }
-        
+
         Preconditions.checkState(!exists, "A git repository already exists in the current directory");
 
         Model model = new Model(Git.init().call());

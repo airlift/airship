@@ -26,7 +26,7 @@ import java.util.Map;
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Iterables.find;
 
-public class GitUtils
+class GitUtils
 {
     public static Ref getBranch(Repository repository, String name)
             throws IOException

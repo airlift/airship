@@ -12,8 +12,8 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 @Command(name = "add", description = "Add config for a component")
-public class AddComponentCommand
-    implements Callable<Void>
+class AddComponentCommand
+        implements Callable<Void>
 {
     @Arguments(required = true)
     public String component;
@@ -25,9 +25,9 @@ public class AddComponentCommand
         Preconditions.checkNotNull(component, "component is null");
 
         Git git = Git.open(new File("."));
-        
+
         Model model = new Model(git);
-        
+
         Preconditions.checkArgument(model.getBundle(component) != null, "Component already exists: %s", component);
 
         Bundle bundle = model.createBundle(component);

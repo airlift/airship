@@ -18,6 +18,7 @@ import org.eclipse.jgit.api.errors.InvalidTagNameException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -37,7 +38,7 @@ import static com.proofpoint.galaxy.configbundler.GitUtils.getBlob;
 import static com.proofpoint.galaxy.configbundler.GitUtils.getBranch;
 import static com.proofpoint.galaxy.configbundler.GitUtils.inputStreamSupplierFunction;
 
-public class Model
+class Model
 {
     private static final String TEMPLATE_BRANCH = "template";
     private static final String METADATA_BRANCH = "master";
@@ -49,7 +50,7 @@ public class Model
     {
         this.git = git;
     }
-
+    
     public Metadata readMetadata()
             throws IOException
     {
@@ -131,9 +132,9 @@ public class Model
     public Bundle createBundle(String name)
             throws IOException, InvalidRefNameException, RefNotFoundException, RefAlreadyExistsException
     {
-        Ref templateBranch = git.getRepository().getRef("template");
+        Ref templateBranch = git.getRepository().getRef(TEMPLATE_BRANCH);
 
-        Preconditions.checkNotNull(templateBranch, "'template' branch not found");
+        Preconditions.checkNotNull(templateBranch, "'%s' branch not found", TEMPLATE_BRANCH);
 
         RevCommit templateCommit = GitUtils.getCommit(git.getRepository(), templateBranch);
 

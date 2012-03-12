@@ -38,7 +38,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 
-public class Maven
+class Maven
 {
     private static final String USER_DIR = System.getProperty("user.dir", "");
     private static final String USER_HOME = System.getProperty("user.home");

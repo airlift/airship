@@ -17,7 +17,7 @@ import static java.lang.String.format;
 
 
 @Command(name = "release", description = "Build and release a config bundle")
-public class ReleaseCommand
+class ReleaseCommand
         implements Callable<Void>
 {
     public static final String ARTIFACT_TYPE = "config";
@@ -31,7 +31,7 @@ public class ReleaseCommand
     {
         Git git = Git.open(new File("."));
         Model model = new Model(git);
-        
+
         Metadata metadata = model.readMetadata();
         Metadata.Repository releasesRepository = metadata.getReleasesRepository();
         String groupId = metadata.getGroupId();
@@ -65,7 +65,7 @@ public class ReleaseCommand
         }
 
         // get entries from tag
-        final Map<String,InputSupplier<InputStream>> entries = model.getEntries(bundle);
+        final Map<String, InputSupplier<InputStream>> entries = model.getEntries(bundle);
 
         if (entries.isEmpty()) {
             throw new RuntimeException("Cannot build an empty config package");

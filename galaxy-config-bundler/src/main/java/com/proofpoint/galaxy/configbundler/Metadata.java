@@ -9,7 +9,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import java.io.File;
 import java.io.IOException;
 
-public class Metadata
+class Metadata
 {
     private final String groupId;
     private final Repository snapshotsRepository;
