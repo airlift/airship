@@ -182,7 +182,7 @@ public class HttpRemoteAgent implements RemoteAgent
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
 
-            SlotStatus slotStatus = slotStatusRepresentation.toSlotStatus();
+            SlotStatus slotStatus = slotStatusRepresentation.toSlotStatus(agentStatus.getInstanceId());
             agentStatus = agentStatus.changeSlotStatus(slotStatus);
 
             return slotStatus;

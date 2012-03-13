@@ -28,9 +28,6 @@ import java.util.UUID;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
 import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
-import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
-import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
 import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
@@ -61,7 +58,6 @@ public class LocalCommander implements Commander
     {
         List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
         List<UUID> uuids = transform(allSlotStatus, SlotStatus.uuidGetter());
-        final int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
 
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(false, uuids);
 
@@ -70,7 +66,7 @@ public class LocalCommander implements Commander
         // update just in case something changed
         updateServiceInventory();
 
-        return createCommanderResponse(createSlotsVersion(allSlotStatus), transform(slots, fromSlotStatus(prefixSize, repository)));
+        return createCommanderResponse(createSlotsVersion(allSlotStatus), transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository)));
     }
 
     @Override
@@ -90,8 +86,7 @@ public class LocalCommander implements Commander
         updateServiceInventory();
 
         // calculate unique prefix size with the new slots included
-        int prefixSize = shortestUniquePrefix(transform(transform(coordinator.getAllSlotStatus(), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize, repository));
+        return transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository));
     }
 
     @Override
@@ -108,8 +103,7 @@ public class LocalCommander implements Commander
         updateServiceInventory();
 
         // build results
-        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize, repository));
+        return transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository));
     }
 
     @Override
@@ -129,8 +123,7 @@ public class LocalCommander implements Commander
         updateServiceInventory();
 
         // build results
-        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize, repository));
+        return transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository));
     }
 
     @Override
@@ -147,8 +140,7 @@ public class LocalCommander implements Commander
         updateServiceInventory();
 
         // build results
-        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize, repository));
+        return transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository));
     }
 
     @Override
@@ -165,8 +157,7 @@ public class LocalCommander implements Commander
         updateServiceInventory();
 
         // build results
-        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return transform(slots, fromSlotStatus(prefixSize, repository));
+        return transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository));
     }
 
     @Override

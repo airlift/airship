@@ -75,7 +75,8 @@ public class TestCoordinatorSlotResource
                 "slot1",
                 URI.create("fake://localhost/v1/agent/slot/slot1"),
                 URI.create("fake://localhost/v1/agent/slot/slot1"),
-                "location",
+                "instance-id",
+                "/location",
                 STOPPED,
                 APPLE_ASSIGNMENT,
                 "/slot1",
@@ -84,7 +85,8 @@ public class TestCoordinatorSlotResource
                 "slot2",
                 URI.create("fake://localhost/v1/agent/slot/slot2"),
                 URI.create("fake://localhost/v1/agent/slot/slot2"),
-                "location",
+                "instance-id",
+                "/location",
                 STOPPED,
                 APPLE_ASSIGNMENT,
                 "/slot2",
@@ -94,7 +96,7 @@ public class TestCoordinatorSlotResource
                 "instance-id",
                 URI.create("fake://foo/"),
                 URI.create("fake://foo/"),
-                "unknown/location",
+                "/unknown/location",
                 "instance.type",
                 ImmutableList.of(slot1, slot2),
                 ImmutableMap.<String, Integer>of());
@@ -118,7 +120,8 @@ public class TestCoordinatorSlotResource
                 "slot1",
                 URI.create("fake://foo/v1/agent/slot/slot1"),
                 URI.create("fake://foo/v1/agent/slot/slot1"),
-                "location",
+                "instance-id",
+                "/location",
                 STOPPED,
                 APPLE_ASSIGNMENT,
                 "/slot1",
@@ -127,7 +130,8 @@ public class TestCoordinatorSlotResource
                 "slot2",
                 URI.create("fake://bar/v1/agent/slot/slot2"),
                 URI.create("fake://bar/v1/agent/slot/slot2"),
-                "location",
+                "instance-id",
+                "/location",
                 STOPPED,
                 APPLE_ASSIGNMENT,
                 "/slot2",
@@ -137,7 +141,7 @@ public class TestCoordinatorSlotResource
                 "instance-id",
                 URI.create("fake://foo/"),
                 URI.create("fake://foo/"),
-                "unknown/location",
+                "/unknown/location",
                 "instance.type",
                 ImmutableList.of(slot1, slot2),
                 ImmutableMap.<String, Integer>of());
@@ -196,7 +200,7 @@ public class TestCoordinatorSlotResource
         Collection<SlotStatusRepresentation> slots = (Collection<SlotStatusRepresentation>) response.getEntity();
         assertEquals(slots.size(), min(numberOfAgents, limit));
         for (SlotStatusRepresentation slotRepresentation : slots) {
-            SlotStatus slot = slotRepresentation.toSlotStatus();
+            SlotStatus slot = slotRepresentation.toSlotStatus("instance");
             assertEquals(slot.getAssignment(), assignment);
             assertEquals(slot.getState(), STOPPED);
         }
@@ -262,7 +266,7 @@ public class TestCoordinatorSlotResource
 
     private void assertAppleSlot(SlotStatusRepresentation slotRepresentation)
     {
-        SlotStatus slot = slotRepresentation.toSlotStatus();
+        SlotStatus slot = slotRepresentation.toSlotStatus("instance");
         assertEquals(slot.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(slot.getState(), STOPPED);
         assertEquals(slot.getResources(), ImmutableMap.of("cpu", 1, "memory", 512));

@@ -24,20 +24,109 @@ import javax.validation.constraints.NotNull;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.google.common.collect.Lists.transform;
+import static com.proofpoint.galaxy.shared.SlotStatus.idGetter;
+import static com.proofpoint.galaxy.shared.SlotStatus.locationGetter;
+import static com.proofpoint.galaxy.shared.Strings.commonPrefixSegments;
 import static com.proofpoint.galaxy.shared.Strings.safeTruncate;
+import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
+import static com.proofpoint.galaxy.shared.Strings.trimLeadingSegments;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class SlotStatusRepresentation
 {
+    public static class SlotStatusRepresentationFactory {
+        public static final int MIN_PREFIX_SIZE = 4;
+        public static final int MIN_LOCATION_SEGMENTS = 2;
+
+        private final int shortIdPrefixSize;
+        private final int commonLocationParts;
+        private final Repository repository;
+
+        public SlotStatusRepresentationFactory()
+        {
+            this(Integer.MAX_VALUE, 0, null);
+        }
+
+        public SlotStatusRepresentationFactory(List<SlotStatus> slotStatuses, Repository repository)
+        {
+            this.shortIdPrefixSize = shortestUniquePrefix(transform(slotStatuses, idGetter()), MIN_PREFIX_SIZE);
+            this.commonLocationParts = commonPrefixSegments('/', transform(slotStatuses, locationGetter()), MIN_LOCATION_SEGMENTS);
+            this.repository = repository;
+        }
+
+        public SlotStatusRepresentationFactory(int shortIdPrefixSize, int commonLocationParts, Repository repository)
+        {
+            this.shortIdPrefixSize = shortIdPrefixSize;
+            this.commonLocationParts = commonLocationParts;
+            this.repository = repository;
+        }
+
+        public SlotStatusRepresentation create(SlotStatus status) {
+            String binary = null;
+            String config = null;
+            String shortBinary = null;
+            String shortConfig = null;
+            if (status.getAssignment() != null) {
+                binary = status.getAssignment().getBinary();
+                config = status.getAssignment().getConfig();
+                if (repository != null) {
+                    shortBinary = Objects.firstNonNull(repository.binaryRelativize(binary), binary);
+                    shortConfig = Objects.firstNonNull(repository.configRelativize(config), config);
+                } else {
+                    shortBinary = binary;
+                    shortConfig = config;
+                }
+
+            }
+
+            String expectedBinary = null;
+            String expectedConfig = null;
+            if (status.getExpectedAssignment() != null) {
+                expectedBinary = status.getExpectedAssignment().getBinary();
+                expectedConfig = status.getExpectedAssignment().getConfig();
+            }
+
+            String expectedStatus = null;
+            if (status.getExpectedState() != null) {
+                expectedStatus = status.getExpectedState().toString();
+            }
+
+            return new SlotStatusRepresentation(status.getId(),
+                    safeTruncate(status.getId().toString(), shortIdPrefixSize),
+                    status.getName(),
+                    status.getSelf(),
+                    status.getExternalUri(),
+                    status.getInstanceId(),
+                    status.getLocation(),
+                    trimLeadingSegments(status.getLocation(), '/', commonLocationParts),
+                    binary,
+                    shortBinary,
+                    config,
+                    shortConfig,
+                    status.getState().toString(),
+                    status.getVersion(),
+                    status.getStatusMessage(),
+                    status.getInstallPath(),
+                    status.getResources(),
+                    expectedBinary,
+                    expectedConfig,
+                    expectedStatus);
+        }
+    }
+
     private final UUID id;
     private final String shortId;
     private final String name;
     private final URI self;
     private final URI externalUri;
+    private final String instanceId;
     private final String location;
+    private final String shortLocation;
     private final String binary;
     private final String shortBinary;
     private final String config;
@@ -51,22 +140,24 @@ public class SlotStatusRepresentation
     private final String expectedConfig;
     private final String expectedStatus;
 
-    private final static int MAX_ID_SIZE = UUID.randomUUID().toString().length();
+    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus(List<SlotStatus> slotStatuses, Repository repository)
+    {
+        return fromSlotStatus(new SlotStatusRepresentationFactory(slotStatuses, repository));
+    }
 
-    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus(final int shortIdPrefixSize, final Repository repository)
+    public static Function<SlotStatus, SlotStatusRepresentation> fromSlotStatus(final SlotStatusRepresentationFactory factory)
     {
         return new Function<SlotStatus, SlotStatusRepresentation>()
         {
             public SlotStatusRepresentation apply(SlotStatus status)
             {
-                return from(status, shortIdPrefixSize, repository);
+                return factory.create(status);
             }
         };
     }
 
-    public static SlotStatusRepresentation from(SlotStatus slotStatus)
-    {
-        return from(slotStatus, MAX_ID_SIZE, null);
+    public static SlotStatusRepresentation from(SlotStatus status) {
+        return new SlotStatusRepresentationFactory().create(status);
     }
 
     public static SlotStatusRepresentation from(SlotStatus slotStatus, int shortIdPrefixSize, Repository repository)
@@ -105,6 +196,8 @@ public class SlotStatusRepresentation
                 slotStatus.getName(),
                 slotStatus.getSelf(),
                 slotStatus.getExternalUri(),
+                slotStatus.getInstanceId(),
+                slotStatus.getLocation(),
                 slotStatus.getLocation(),
                 binary,
                 shortBinary,
@@ -127,7 +220,9 @@ public class SlotStatusRepresentation
             @JsonProperty("name") String name,
             @JsonProperty("self") URI self,
             @JsonProperty("externalUri") URI externalUri,
+            @JsonProperty("instanceId") String instanceId,
             @JsonProperty("location") String location,
+            @JsonProperty("shortLocation") String shortLocation,
             @JsonProperty("binary") String binary,
             @JsonProperty("shortBinary") String shortBinary,
             @JsonProperty("config") String config,
@@ -146,7 +241,9 @@ public class SlotStatusRepresentation
         this.name = name;
         this.self = self;
         this.externalUri = externalUri;
+        this.instanceId = instanceId;
         this.location = location;
+        this.shortLocation = shortLocation;
         this.binary = binary;
         this.shortBinary = shortBinary;
         this.config = config;
@@ -197,10 +294,22 @@ public class SlotStatusRepresentation
     }
 
     @JsonProperty
+    public String getInstanceId()
+    {
+        return instanceId;
+    }
+
+    @JsonProperty
     @NotNull(message = "is missing")
     public String getLocation()
     {
         return location;
+    }
+
+    @JsonProperty
+    public String getShortLocation()
+    {
+        return shortLocation;
     }
 
     @JsonProperty
@@ -279,7 +388,7 @@ public class SlotStatusRepresentation
         return expectedStatus;
     }
 
-    public SlotStatus toSlotStatus()
+    public SlotStatus toSlotStatus(String instanceId)
     {
         Assignment assignment = null;
         if (binary != null) {
@@ -297,6 +406,7 @@ public class SlotStatusRepresentation
                 name,
                 self,
                 externalUri,
+                instanceId,
                 location,
                 SlotLifecycleState.valueOf(status),
                 assignment,
@@ -379,7 +489,13 @@ public class SlotStatusRepresentation
         if (externalUri != null ? !externalUri.equals(that.externalUri) : that.externalUri != null) {
             return false;
         }
+        if (instanceId != null ? !instanceId.equals(that.instanceId) : that.instanceId != null) {
+            return false;
+        }
         if (location != null ? !location.equals(that.location) : that.location != null) {
+            return false;
+        }
+        if (shortLocation != null ? !shortLocation.equals(that.shortLocation) : that.shortLocation != null) {
             return false;
         }
         if (status != null ? !status.equals(that.status) : that.status != null) {
@@ -421,7 +537,9 @@ public class SlotStatusRepresentation
         result = 31 * result + (version != null ? version.hashCode() : 0);
         result = 31 * result + (self != null ? self.hashCode() : 0);
         result = 31 * result + (externalUri != null ? externalUri.hashCode() : 0);
+        result = 31 * result + (instanceId != null ? instanceId.hashCode() : 0);
         result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + (shortLocation != null ? shortLocation.hashCode() : 0);
         result = 31 * result + (installPath != null ? installPath.hashCode() : 0);
         result = 31 * result + (resources != null ? resources.hashCode() : 0);
         result = 31 * result + (expectedBinary != null ? expectedBinary.hashCode() : 0);
@@ -440,7 +558,9 @@ public class SlotStatusRepresentation
         sb.append(", shortId='").append(shortId).append('\'');
         sb.append(", self=").append(self);
         sb.append(", externalUri=").append(externalUri);
+        sb.append(", instanceId=").append(instanceId);
         sb.append(", location=").append(location);
+        sb.append(", shortLocation=").append(shortLocation);
         sb.append(", binary='").append(binary).append('\'');
         sb.append(", shortBinary='").append(shortBinary).append('\'');
         sb.append(", config='").append(config).append('\'');

@@ -29,7 +29,7 @@ public class MockDeploymentManager implements DeploymentManager
     public MockDeploymentManager(String slotName)
     {
         this.slotName = slotName;
-        this.location = "location/" + this.slotName;
+        this.location = "/location/" + this.slotName;
     }
 
     @Override

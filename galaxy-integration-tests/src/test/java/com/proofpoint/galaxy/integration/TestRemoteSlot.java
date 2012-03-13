@@ -204,6 +204,7 @@ public class TestRemoteSlot
                 slot.getName(),
                 slot.getSelf(),
                 slot.getExternalUri(),
+                slot.status().getInstanceId(),
                 slot.status().getLocation(),
                 TERMINATED,
                 null,

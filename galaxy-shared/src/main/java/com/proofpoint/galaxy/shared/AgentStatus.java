@@ -1,17 +1,20 @@
 package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 
@@ -31,7 +34,7 @@ public class AgentStatus
 
     public AgentStatus(String agentId,
             AgentLifecycleState state,
-            String instanceId,
+            final String instanceId,
             URI internalUri,
             URI externalUri,
             String location,
@@ -49,7 +52,19 @@ public class AgentStatus
         this.externalUri = externalUri;
         this.location = location;
         this.instanceType = instanceType;
+
+        slots = transform(slots, new Function<SlotStatus, SlotStatus>()
+        {
+            public SlotStatus apply(@Nullable SlotStatus slotStatus)
+            {
+                if (!Objects.equal(slotStatus.getInstanceId(), instanceId)) {
+                    slotStatus = slotStatus.changeInstanceId(instanceId);
+                }
+                return slotStatus;
+            }
+        });
         this.slots = Maps.uniqueIndex(slots, SlotStatus.uuidGetter());
+
         this.resources = ImmutableMap.copyOf(resources);
         this.version = VersionsUtil.createAgentVersion(agentId, state, slots, resources);
     }

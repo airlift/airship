@@ -47,7 +47,7 @@ public class DeploymentSlot implements Slot
     private final Duration lockWait;
     private final DeploymentManager deploymentManager;
     private final LifecycleManager lifecycleManager;
-    private final AtomicReference<SlotStatus> lastSlotStatus = new AtomicReference<SlotStatus>();
+    private final AtomicReference<SlotStatus> lastSlotStatus;
     private boolean terminated;
 
     private final ReentrantLock lock = new ReentrantLock();
@@ -84,12 +84,13 @@ public class DeploymentSlot implements Slot
                 name,
                 self,
                 externalUri,
+                null,
                 location,
                 state,
                 deployment.getAssignment(),
                 deployment.getDataDir().getAbsolutePath(),
                 deployment.getResources());
-        lastSlotStatus.set(slotStatus);
+        lastSlotStatus = new AtomicReference<SlotStatus>(slotStatus);
     }
 
     public DeploymentSlot(URI self,
@@ -105,7 +106,7 @@ public class DeploymentSlot implements Slot
         Preconditions.checkNotNull(maxLockWait, "maxLockWait is null");
 
         this.name = deploymentManager.getSlotName();
-        location = deploymentManager.getLocation();
+        this.location = deploymentManager.getLocation();
         this.deploymentManager = deploymentManager;
         this.lifecycleManager = lifecycleManager;
 
@@ -124,10 +125,11 @@ public class DeploymentSlot implements Slot
             lifecycleManager.updateNodeConfig(deployment);
 
             // set initial status
-            lastSlotStatus.set(createSlotStatus(id,
+            lastSlotStatus = new AtomicReference<SlotStatus>(createSlotStatus(id,
                     name,
                     self,
                     externalUri,
+                    null,
                     location,
                     STOPPED,
                     installation.getAssignment(),
@@ -135,7 +137,7 @@ public class DeploymentSlot implements Slot
                     deployment.getResources()));
         }
         catch (Exception e) {
-            terminate();
+            deploymentManager.terminate();
             throw Throwables.propagate(e);
         }
     }
@@ -197,6 +199,7 @@ public class DeploymentSlot implements Slot
                     name,
                     self,
                     externalUri,
+                    null,
                     location,
                     STOPPED,
                     installation.getAssignment(),

@@ -87,7 +87,7 @@ public class HttpRemoteSlot implements RemoteSlot
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
-            updateStatus(slotStatusRepresentation.toSlotStatus());
+            updateStatus(slotStatusRepresentation.toSlotStatus(slotStatus.getInstanceId()));
             return slotStatus;
         }
         catch (Exception e) {
@@ -111,7 +111,7 @@ public class HttpRemoteSlot implements RemoteSlot
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
-            updateStatus(slotStatusRepresentation.toSlotStatus());
+            updateStatus(slotStatusRepresentation.toSlotStatus(slotStatus.getInstanceId()));
             return slotStatus;
         }
         catch (Exception e) {
@@ -135,7 +135,7 @@ public class HttpRemoteSlot implements RemoteSlot
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
-            updateStatus(slotStatusRepresentation.toSlotStatus());
+            updateStatus(slotStatusRepresentation.toSlotStatus(slotStatus.getInstanceId()));
             return slotStatus;
         }
         catch (Exception e) {
@@ -159,7 +159,7 @@ public class HttpRemoteSlot implements RemoteSlot
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
-            updateStatus(slotStatusRepresentation.toSlotStatus());
+            updateStatus(slotStatusRepresentation.toSlotStatus(slotStatus.getInstanceId()));
             return slotStatus;
         }
         catch (Exception e) {
@@ -183,7 +183,7 @@ public class HttpRemoteSlot implements RemoteSlot
             }
             String responseJson = response.getResponseBody();
             SlotStatusRepresentation slotStatusRepresentation = slotStatusCodec.fromJson(responseJson);
-            updateStatus(slotStatusRepresentation.toSlotStatus());
+            updateStatus(slotStatusRepresentation.toSlotStatus(slotStatus.getInstanceId()));
             return slotStatus;
         }
         catch (Exception e) {

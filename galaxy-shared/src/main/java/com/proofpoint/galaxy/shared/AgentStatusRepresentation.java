@@ -257,7 +257,7 @@ public class AgentStatusRepresentation
     {
         Builder<SlotStatus> builder = ImmutableList.builder();
         for (SlotStatusRepresentation slot : slots) {
-            builder.add(slot.toSlotStatus());
+            builder.add(slot.toSlotStatus(instanceId));
         }
         return new AgentStatus(agentId, AgentLifecycleState.ONLINE, instanceId, self, externalUri, location, instanceType, builder.build(), resources);
     }

@@ -66,6 +66,7 @@ import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
 import static com.proofpoint.galaxy.cli.Column.externalHost;
+import static com.proofpoint.galaxy.cli.Column.instanceType;
 import static com.proofpoint.galaxy.cli.Column.internalHost;
 import static com.proofpoint.galaxy.cli.Column.machine;
 import static com.proofpoint.galaxy.cli.Column.shortBinary;
@@ -78,7 +79,6 @@ import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactor
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.cli.Column.location;
 import static com.proofpoint.galaxy.cli.Column.shortId;
 import static com.proofpoint.galaxy.cli.Column.status;
 import static com.proofpoint.galaxy.cli.Column.statusMessage;
@@ -289,7 +289,7 @@ public class Galaxy
                 System.out.println("No slots match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), status, shortBinary, shortConfig, statusMessage);
+                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), machine, status, shortBinary, shortConfig, statusMessage);
                 tablePrinter.print(toSlotRecords(slots));
             }
         }
@@ -300,7 +300,7 @@ public class Galaxy
                 System.out.println("No agents match the provided filters.");
             }
             else {
-                TablePrinter tablePrinter = new TablePrinter(machine, shortId, getHostColumn(), status, Column.instanceType, shortLocation);
+                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), machine, status, instanceType, shortLocation);
                 tablePrinter.print(toAgentRecords(agents));
             }
         }
@@ -312,7 +312,7 @@ public class Galaxy
             }
             else {
                 // todo add short id once coordinator is update to get coordinator id from remote coordinators
-                TablePrinter tablePrinter = new TablePrinter(machine, getHostColumn(), status, Column.instanceType, shortLocation);
+                TablePrinter tablePrinter = new TablePrinter(machine, getHostColumn(), status, instanceType, shortLocation);
                 tablePrinter.print(toCoordinatorRecords(coordinators));
             }
         }

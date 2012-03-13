@@ -41,8 +41,8 @@ public class TestAgentStatusRepresentation
             ONLINE,
             URI.create("internal://agent"),
             URI.create("external://agent"),
-            "unknown/location",
-            "location",
+            "/test/unknown/location",
+            "/unknown/location",
             "instance.type",
             ImmutableList.of(
                     new SlotStatusRepresentation(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
@@ -50,7 +50,9 @@ public class TestAgentStatusRepresentation
                             "slot1",
                             URI.create("internal://apple"),
                             URI.create("external://apple"),
-                            "location/apple",
+                            "instance",
+                            "/test/location/apple",
+                            "/location/apple",
                             APPLE_ASSIGNMENT.getBinary(),
                             APPLE_ASSIGNMENT.getBinary(),
                             APPLE_ASSIGNMENT.getConfig(),
@@ -68,7 +70,9 @@ public class TestAgentStatusRepresentation
                             "slot2",
                             URI.create("internal://banana"),
                             URI.create("external://banana"),
-                            "location/banana",
+                            "instance",
+                            "/test/location/banana",
+                            "/location/banana",
                             BANANA_ASSIGNMENT.getBinary(),
                             BANANA_ASSIGNMENT.getBinary(),
                             BANANA_ASSIGNMENT.getConfig(),
@@ -103,11 +107,11 @@ public class TestAgentStatusRepresentation
         assertEquals(actual, expected);
         assertEquals(actual.getAgentId(), expected.getAgentId());
         assertEquals(actual.getShortAgentId(), expected.getShortAgentId());
+        assertEquals(actual.getInstanceId(), expected.getInstanceId());
         assertEquals(actual.getSelf(), expected.getSelf());
         assertEquals(actual.getState(), expected.getState());
         assertEquals(actual.getInstanceType(), expected.getInstanceType());
         assertEquals(actual.getResources(), expected.getResources());
-        assertEquals(actual.getLocation(), expected.getLocation());
         assertEquals(actual.getLocation(), expected.getLocation());
         assertEquals(actual.getShortLocation(), expected.getShortLocation());
         assertEquals(actual.getSlots(), expected.getSlots());

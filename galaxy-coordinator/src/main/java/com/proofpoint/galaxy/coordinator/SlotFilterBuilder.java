@@ -43,6 +43,11 @@ public class SlotFilterBuilder
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
+            else if ("machine".equals(entry.getKey())) {
+                for (String machineGlob : entry.getValue()) {
+                    builder.addMachineGlobFilter(machineGlob);
+                }
+            }
             else if ("uuid".equals(entry.getKey())) {
                 for (String shortId : entry.getValue()) {
                     builder.addSlotUuidFilter(shortId);
@@ -68,6 +73,7 @@ public class SlotFilterBuilder
     private final List<SlotLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> slotUuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> machineGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> binaryGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> configGlobs = Lists.newArrayListWithCapacity(6);
     private boolean selectAll;
@@ -97,6 +103,12 @@ public class SlotFilterBuilder
         Preconditions.checkNotNull(hostGlob, "hostGlob is null");
         hostGlobs.add(hostGlob);
         return this;
+    }
+
+    public void addMachineGlobFilter(String machineGlob)
+    {
+        Preconditions.checkNotNull(machineGlob, "machineGlob is null");
+        machineGlobs.add(machineGlob);
     }
 
     public SlotFilterBuilder addBinaryGlobFilter(String binaryGlob)
@@ -158,6 +170,19 @@ public class SlotFilterBuilder
             }));
             andPredicates.add(predicate);
         }
+
+        if (!machineGlobs.isEmpty()) {
+            Predicate<SlotStatus> predicate = Predicates.or(Lists.transform(machineGlobs, new Function<String, MachinePredicate>()
+            {
+                @Override
+                public MachinePredicate apply(String machineGlob)
+                {
+                    return new MachinePredicate(machineGlob);
+                }
+            }));
+            andPredicates.add(predicate);
+        }
+
         if (!binaryGlobs.isEmpty()) {
             Predicate<SlotStatus> predicate = Predicates.or(Lists.transform(binaryGlobs, new Function<String, BinarySpecPredicate>()
             {
@@ -211,6 +236,9 @@ public class SlotFilterBuilder
         }
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
+        }
+        for (String machineGlob : machineGlobs) {
+            uriBuilder.addParameter("machine", machineGlob);
         }
         for (SlotLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
@@ -274,6 +302,22 @@ public class SlotFilterBuilder
         {
             return slotStatus != null &&
                     (predicate.apply(slotStatus.getExternalUri()) || predicate.apply(slotStatus.getSelf()));
+        }
+    }
+
+    public static class MachinePredicate implements Predicate<SlotStatus>
+    {
+        private final GlobPredicate predicate;
+
+        public MachinePredicate(String machineGlob)
+        {
+            predicate = new GlobPredicate(machineGlob);
+        }
+
+        @Override
+        public boolean apply(@Nullable SlotStatus slotStatus)
+        {
+            return slotStatus != null && predicate.apply(slotStatus.getInstanceId());
         }
     }
 

@@ -32,19 +32,21 @@ public class SlotStatus
             String name,
             URI self,
             URI externalUri,
+            String instanceId,
             String location,
             SlotLifecycleState state,
             Assignment assignment,
             String installPath,
             Map<String, Integer> resources)
     {
-        return new SlotStatus(id, name, self, externalUri, location, state, assignment, installPath, resources, null, null, null);
+        return new SlotStatus(id, name, self, externalUri, instanceId, location, state, assignment, installPath, resources, null, null, null);
     }
 
     public static SlotStatus createSlotStatusWithExpectedState(UUID id,
             String name,
             URI self,
             URI externalUri,
+            String instanceId,
             String location,
             SlotLifecycleState state,
             Assignment assignment,
@@ -54,13 +56,14 @@ public class SlotStatus
             Assignment expectedAssignment,
             String statusMessage)
     {
-        return new SlotStatus(id, name, self, externalUri, location, state, assignment, installPath, resources, expectedState, expectedAssignment, statusMessage);
+        return new SlotStatus(id, name, self, externalUri, instanceId, location, state, assignment, installPath, resources, expectedState, expectedAssignment, statusMessage);
     }
 
     private final UUID id;
     private final String name;
     private final URI self;
     private final URI externalUri;
+    private final String instanceId;
     private final String location;
     private final Assignment assignment;
     private final SlotLifecycleState state;
@@ -79,7 +82,7 @@ public class SlotStatus
             String name,
             URI self,
             URI externalUri,
-            String location,
+            String instanceId, String location,
             SlotLifecycleState state,
             Assignment assignment,
             String installPath,
@@ -91,6 +94,7 @@ public class SlotStatus
         Preconditions.checkNotNull(id, "id is null");
         Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(location, "location is null");
+        Preconditions.checkArgument(location.startsWith("/"), "location must start with a /");
         Preconditions.checkNotNull(state, "state is null");
         if (state != TERMINATED && state != UNKNOWN) {
             Preconditions.checkNotNull(assignment, "assignment is null");
@@ -101,6 +105,7 @@ public class SlotStatus
         this.name = name;
         this.self = self;
         this.externalUri = externalUri;
+        this.instanceId = instanceId;
         this.location = location;
         this.assignment = assignment;
         this.state = state;
@@ -131,6 +136,11 @@ public class SlotStatus
     public URI getExternalUri()
     {
         return externalUri;
+    }
+
+    public String getInstanceId()
+    {
+        return instanceId;
     }
 
     public String getLocation()
@@ -184,6 +194,24 @@ public class SlotStatus
                 this.name,
                 this.self,
                 this.externalUri,
+                this.instanceId,
+                this.location,
+                state,
+                state == TERMINATED ? null : this.assignment,
+                state == TERMINATED ? null : this.installPath,
+                state == TERMINATED ? ImmutableMap.<String, Integer>of() : this.resources,
+                this.expectedState,
+                this.expectedAssignment,
+                this.statusMessage);
+    }
+
+    public SlotStatus changeInstanceId(String instanceId)
+    {
+        return createSlotStatusWithExpectedState(this.id,
+                this.name,
+                this.self,
+                this.externalUri,
+                instanceId,
                 this.location,
                 state,
                 state == TERMINATED ? null : this.assignment,
@@ -200,6 +228,7 @@ public class SlotStatus
                 this.name,
                 this.self,
                 this.externalUri,
+                this.instanceId,
                 this.location,
                 state,
                 state == TERMINATED ? null : assignment,
@@ -216,6 +245,7 @@ public class SlotStatus
                 this.name,
                 this.self,
                 this.externalUri,
+                this.instanceId,
                 this.location,
                 this.state,
                 this.assignment,
@@ -232,6 +262,7 @@ public class SlotStatus
                 this.name,
                 this.self,
                 this.externalUri,
+                this.instanceId,
                 this.location,
                 this.state,
                 this.assignment,
@@ -264,6 +295,9 @@ public class SlotStatus
             return false;
         }
         if (!name.equals(that.name)) {
+            return false;
+        }
+        if (instanceId != null ? !instanceId.equals(that.instanceId) : that.instanceId != null) {
             return false;
         }
         if (!location.equals(that.location)) {
@@ -301,6 +335,7 @@ public class SlotStatus
         result = 31 * result + name.hashCode();
         result = 31 * result + self.hashCode();
         result = 31 * result + externalUri.hashCode();
+        result = 31 * result + instanceId.hashCode();
         result = 31 * result + location.hashCode();
         result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
         result = 31 * result + state.hashCode();
@@ -321,6 +356,7 @@ public class SlotStatus
         sb.append(", name='").append(name).append('\'');
         sb.append(", self=").append(self);
         sb.append(", externalUri=").append(externalUri);
+        sb.append(", instanceId='").append(instanceId).append('\'');
         sb.append(", location='").append(location).append('\'');
         sb.append(", assignment=").append(assignment);
         sb.append(", state=").append(state);
@@ -334,6 +370,17 @@ public class SlotStatus
         return sb.toString();
     }
 
+    public static Function<SlotStatus, String> idGetter()
+    {
+        return new Function<SlotStatus, String>()
+        {
+            public String apply(SlotStatus input)
+            {
+                return input.getId().toString();
+            }
+        };
+    }
+
     public static Function<SlotStatus, UUID> uuidGetter()
     {
         return new Function<SlotStatus, UUID>()
@@ -341,6 +388,17 @@ public class SlotStatus
             public UUID apply(SlotStatus input)
             {
                 return input.getId();
+            }
+        };
+    }
+
+    public static Function<SlotStatus, String> locationGetter()
+    {
+        return new Function<SlotStatus, String>()
+        {
+            public String apply(SlotStatus input)
+            {
+                return input.getLocation();
             }
         };
     }

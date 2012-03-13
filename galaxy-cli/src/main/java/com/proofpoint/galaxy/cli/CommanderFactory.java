@@ -56,6 +56,7 @@ public class CommanderFactory
     private final List<String> mavenDefaultGroupIds = newArrayList();
     private String agentId = "local";
     private String location;
+    private String instanceId = "local";
     private String instanceType = "local";
     private InetAddress internalIp;
     private String externalAddress;
@@ -293,7 +294,7 @@ public class CommanderFactory
             AgentStatus agentStatus = agent.getAgentStatus();
             return new AgentStatus(agentStatus.getAgentId(),
                     agentStatus.getState(),
-                    agentStatus.getAgentId(),
+                    instanceId,
                     agentStatus.getInternalUri(),
                     agentStatus.getExternalUri(),
                     agentStatus.getLocation(),
@@ -307,7 +308,7 @@ public class CommanderFactory
         {
             ImmutableList.Builder<RemoteSlot> builder = ImmutableList.builder();
             for (Slot slot : agent.getAllSlots()) {
-                builder.add(new LocalRemoteSlot(slot));
+                builder.add(new LocalRemoteSlot(slot, instanceId));
             }
             return builder.build();
         }
@@ -321,16 +322,17 @@ public class CommanderFactory
         public void setServiceInventory(List<ServiceDescriptor> serviceInventory)
         {
         }
-
     }
 
     private static class LocalRemoteSlot implements RemoteSlot
     {
         private final Slot slot;
+        private final String instanceId;
 
-        public LocalRemoteSlot(Slot slot)
+        public LocalRemoteSlot(Slot slot, String instanceId)
         {
             this.slot = slot;
+            this.instanceId = instanceId;
         }
 
         @Override
@@ -342,37 +344,37 @@ public class CommanderFactory
         @Override
         public SlotStatus terminate()
         {
-            return slot.terminate();
+            return slot.terminate().changeInstanceId(instanceId);
         }
 
         @Override
         public SlotStatus assign(Installation installation)
         {
-            return slot.assign(installation);
+            return slot.assign(installation).changeInstanceId(instanceId);
         }
 
         @Override
         public SlotStatus status()
         {
-            return slot.status();
+            return slot.status().changeInstanceId(instanceId);
         }
 
         @Override
         public SlotStatus start()
         {
-            return slot.start();
+            return slot.start().changeInstanceId(instanceId);
         }
 
         @Override
         public SlotStatus restart()
         {
-            return slot.restart();
+            return slot.restart().changeInstanceId(instanceId);
         }
 
         @Override
         public SlotStatus stop()
         {
-            return slot.stop();
+            return slot.stop().changeInstanceId(instanceId);
         }
     }
 

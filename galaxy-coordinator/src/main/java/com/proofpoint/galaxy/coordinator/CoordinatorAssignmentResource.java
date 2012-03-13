@@ -34,9 +34,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
-import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
-import static com.proofpoint.galaxy.coordinator.StringFunctions.toStringFunction;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
@@ -74,8 +71,7 @@ public class CoordinatorAssignmentResource
         List<SlotStatus> results = coordinator.upgrade(slotFilter, upgradeVersions, expectedSlotsVersion);
 
         // build response
-        int prefixSize = shortestUniquePrefix(transform(uuids, toStringFunction()), MIN_PREFIX_SIZE);
-        return Response.ok(transform(results, fromSlotStatus(prefixSize, repository)))
+        return Response.ok(transform(results, fromSlotStatus(coordinator.getAllSlotStatus(), repository)))
                 .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(results))
                 .build();
     }

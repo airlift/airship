@@ -162,8 +162,10 @@ public class TestServer
         expected.put("externalUri", urlFor(slotStatus));
         expected.put("version", slotStatus.getVersion());
         expected.put("location", slotStatus.getLocation());
+        expected.put("shortLocation", slotStatus.getLocation());
         expected.put("installPath", slotStatus.getInstallPath());
-        // agent does not return expected status
+        // agent does not return instance id or expected status
+        expected.remove("instanceId");
         expected.remove("expectedBinary");
         expected.remove("expectedConfig");
         expected.remove("expectedStatus");
@@ -203,6 +205,7 @@ public class TestServer
         expected.get(0).put("self", urlFor(appleSlotStatus));
         expected.get(0).put("externalUri", urlFor(appleSlotStatus));
         expected.get(0).put("location", appleSlotStatus.getLocation());
+        expected.get(0).put("shortLocation", appleSlotStatus.getLocation());
         expected.get(0).put("installPath", appleSlotStatus.getInstallPath());
         expected.get(0).put("resources", ImmutableMap.<String,Integer>of("memory", 512));
         expected.get(1).put("id", bananaSlotStatus.getId().toString());
@@ -212,6 +215,7 @@ public class TestServer
         expected.get(1).put("self", urlFor(bananaSlotStatus));
         expected.get(1).put("externalUri", urlFor(bananaSlotStatus));
         expected.get(1).put("location", bananaSlotStatus.getLocation());
+        expected.get(1).put("shortLocation", bananaSlotStatus.getLocation());
         expected.get(1).put("installPath", bananaSlotStatus.getInstallPath());
         expected.get(1).put("resources", ImmutableMap.<String,Integer>of("cpu", 1));
 
@@ -246,6 +250,7 @@ public class TestServer
                 .put("self", urlFor(slot))
                 .put("externalUri", urlFor(slot))
                 .put("location", slot.status().getLocation())
+                .put("shortLocation", slot.status().getLocation())
                 .put("status", STOPPED.toString())
                 .put("version", slot.status().getVersion())
                 .put("installPath", slot.status().getInstallPath())
@@ -277,6 +282,7 @@ public class TestServer
                 .put("self", urlFor(slotStatus))
                 .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
+                .put("shortLocation", slotStatus.getLocation())
                 .put("status", TERMINATED.toString())
                 .put("version", VersionsUtil.createSlotVersion(slotStatus.getId(), TERMINATED, null))
                 .put("resources", ImmutableMap.<String,Integer>of())
@@ -339,6 +345,7 @@ public class TestServer
                 .put("self", urlFor(slotStatus))
                 .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
+                .put("shortLocation", slotStatus.getLocation())
                 .put("status", STOPPED.toString())
                 .put("version", slotStatus.getVersion())
                 .put("installPath", slotStatus.getInstallPath())
@@ -374,6 +381,7 @@ public class TestServer
                 .put("self", urlFor(slotStatus))
                 .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
+                .put("shortLocation", slotStatus.getLocation())
                 .put("status", RUNNING.toString())
                 .put("version", VersionsUtil.createSlotVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
                 .put("installPath", slotStatus.getInstallPath())
@@ -410,6 +418,7 @@ public class TestServer
                 .put("self", urlFor(slotStatus))
                 .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
+                .put("shortLocation", slotStatus.getLocation())
                 .put("status", STOPPED.toString())
                 .put("version", slotStatus.getVersion())
                 .put("installPath", slotStatus.getInstallPath())
@@ -445,6 +454,7 @@ public class TestServer
                 .put("self", urlFor(slotStatus))
                 .put("externalUri", urlFor(slotStatus))
                 .put("location", slotStatus.getLocation())
+                .put("shortLocation", slotStatus.getLocation())
                 .put("status", RUNNING.toString())
                 .put("version", VersionsUtil.createSlotVersion(slotStatus.getId(), RUNNING, appleInstallation.getAssignment()))
                 .put("installPath", slotStatus.getInstallPath())

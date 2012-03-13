@@ -43,7 +43,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         bananaInstallation = installationHelper.getBananaInstallation();
         tempDir = Files.createTempDir().getCanonicalFile();
         final AgentConfig config = new AgentConfig();
-        manager = new DirectoryDeploymentManager("slot", tempDir, "location/test", config.getTarTimeout());
+        manager = new DirectoryDeploymentManager("slot", tempDir, "/location/test", config.getTarTimeout());
     }
 
     @AfterMethod

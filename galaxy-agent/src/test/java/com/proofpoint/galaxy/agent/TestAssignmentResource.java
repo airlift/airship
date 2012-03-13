@@ -149,7 +149,7 @@ public class TestAssignmentResource
         SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) response.getEntity();
         SlotStatus expectedStatus = slotStatus.changeAssignment(STOPPED, APPLE_V2, slotStatus.getResources());
         assertEquals(actualStatus, SlotStatusRepresentation.from(expectedStatus));
-        assertEquals(actualStatus.toSlotStatus(), expectedStatus);
+        assertEquals(actualStatus.toSlotStatus(null), expectedStatus);
         assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
         assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
