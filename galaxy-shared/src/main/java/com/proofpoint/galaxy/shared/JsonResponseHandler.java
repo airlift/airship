@@ -15,16 +15,16 @@ import java.net.URI;
 
 public class JsonResponseHandler<T> implements ResponseHandler<T, RuntimeException>
 {
-    public static <T> JsonResponseHandler<T> create(JsonCodec<T> slotsCodec)
+    public static <T> JsonResponseHandler<T> create(JsonCodec<T> jsonCodec)
     {
-        return new JsonResponseHandler<T>(slotsCodec);
+        return new JsonResponseHandler<T>(jsonCodec);
     }
 
     private final JsonCodec<T> jsonCodec;
 
-    public JsonResponseHandler(JsonCodec<T> slotsCodec)
+    public JsonResponseHandler(JsonCodec<T> jsonCodec)
     {
-        jsonCodec = slotsCodec;
+        this.jsonCodec = jsonCodec;
     }
 
     @Override
