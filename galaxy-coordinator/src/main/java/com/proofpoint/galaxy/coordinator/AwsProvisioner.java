@@ -548,7 +548,7 @@ public class AwsProvisioner implements Provisioner
     {
         String zone = instance.getPlacement().getAvailabilityZone();
         String region = zone.substring(0, zone.length() - 1);
-        return Joiner.on('/').join("ec2", region, zone, instance.getInstanceId(), role);
+        return Joiner.on('/').join("", "ec2", region, zone, instance.getInstanceId(), role);
     }
 
     private static String encodeBase64(String s)
