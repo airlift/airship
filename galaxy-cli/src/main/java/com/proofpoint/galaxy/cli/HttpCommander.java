@@ -207,7 +207,7 @@ public class HttpCommander implements Commander
         if (waitForStartup) {
             List<String> instanceIds = newArrayList();
             for (CoordinatorStatusRepresentation coordinator : coordinators) {
-                instanceIds.add(coordinator.getCoordinatorId());
+                instanceIds.add(coordinator.getInstanceId());
             }
             coordinators = waitForCoordinatorsToStart(instanceIds);
         }
@@ -227,7 +227,7 @@ public class HttpCommander implements Commander
                 Map<String, CoordinatorStatusRepresentation> runningCoordinators = newHashMap();
                 for (CoordinatorStatusRepresentation coordinator : coordinators) {
                     if (coordinator.getState() == CoordinatorLifecycleState.ONLINE) {
-                        runningCoordinators.put(coordinator.getCoordinatorId(), coordinator);
+                        runningCoordinators.put(coordinator.getInstanceId(), coordinator);
                     }
                 }
                 if (runningCoordinators.keySet().containsAll(instanceIds)) {
@@ -302,7 +302,7 @@ public class HttpCommander implements Commander
         if (waitForStartup) {
             List<String> instanceIds = newArrayList();
             for (AgentStatusRepresentation agent : agents) {
-                instanceIds.add(agent.getAgentId());
+                instanceIds.add(agent.getInstanceId());
             }
             agents = waitForAgentsToStart(instanceIds);
         }
@@ -322,7 +322,7 @@ public class HttpCommander implements Commander
                 Map<String, AgentStatusRepresentation> runningAgents = newHashMap();
                 for (AgentStatusRepresentation agent : agents) {
                     if (agent.getState() == AgentLifecycleState.ONLINE) {
-                        runningAgents.put(agent.getAgentId(), agent);
+                        runningAgents.put(agent.getInstanceId(), agent);
                     }
                 }
                 if (runningAgents.keySet().containsAll(instanceIds)) {
