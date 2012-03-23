@@ -3,7 +3,6 @@ package com.proofpoint.galaxy.cli;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.proofpoint.galaxy.coordinator.AgentProvisioningRepresentation;
 import com.proofpoint.galaxy.coordinator.CoordinatorProvisioningRepresentation;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
@@ -18,6 +17,7 @@ import com.proofpoint.galaxy.shared.JsonResponseHandler;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.BodyGenerator;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.client.HttpClientConfig;
@@ -25,11 +25,11 @@ import com.proofpoint.http.client.Request;
 import com.proofpoint.http.client.RequestBuilder;
 import com.proofpoint.json.JsonCodec;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
@@ -57,10 +57,11 @@ public class HttpCommander implements Commander
     private final URI coordinatorUri;
 
     public HttpCommander(URI coordinatorUri)
+            throws IOException
     {
         Preconditions.checkNotNull(coordinatorUri, "coordinatorUri is null");
         this.coordinatorUri = coordinatorUri;
-        this.client = new HttpClient(Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("http-%s").setDaemon(true).build()), new HttpClientConfig());
+        this.client = new ApacheHttpClient(new HttpClientConfig());
     }
 
     @Override
@@ -71,7 +72,7 @@ public class HttpCommander implements Commander
                 .setUri(uri)
                 .build();
 
-        JsonResponse<List<SlotStatusRepresentation>> response = client.execute(request, FullJsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        JsonResponse<List<SlotStatusRepresentation>> response = client.execute(request, FullJsonResponseHandler.create(SLOTS_CODEC));
         return createCommanderResponse(response.getHeader(GALAXY_SLOTS_VERSION_HEADER), response.getValue());
     }
 
@@ -87,7 +88,7 @@ public class HttpCommander implements Commander
             requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
-        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC));
         return slots;
     }
 
@@ -103,7 +104,7 @@ public class HttpCommander implements Commander
             requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
-        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC));
         return slots;
     }
 
@@ -118,7 +119,7 @@ public class HttpCommander implements Commander
             requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
-        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC));
         return slots;
     }
 
@@ -131,7 +132,7 @@ public class HttpCommander implements Commander
             requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
-        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC));
         return slots;
     }
 
@@ -144,7 +145,7 @@ public class HttpCommander implements Commander
             requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
-        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), JsonResponseHandler.create(SLOTS_CODEC));
         return slots;
     }
 
@@ -156,7 +157,7 @@ public class HttpCommander implements Commander
                 .setUri(uri)
                 .build();
 
-        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC)).checkedGet();
+        List<SlotStatusRepresentation> slots = client.execute(request, JsonResponseHandler.create(SLOTS_CODEC));
         if (slots.isEmpty()) {
             return false;
         }
@@ -172,7 +173,7 @@ public class HttpCommander implements Commander
                 .setUri(uri)
                 .build();
 
-        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC));
         return coordinators;
     }
 
@@ -203,7 +204,7 @@ public class HttpCommander implements Commander
                 .setBodyGenerator(jsonBodyGenerator(COORDINATOR_PROVISIONING_CODEC, coordinatorProvisioning))
                 .build();
 
-        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC));
         if (waitForStartup) {
             List<String> instanceIds = newArrayList();
             for (CoordinatorStatusRepresentation coordinator : coordinators) {
@@ -222,7 +223,7 @@ public class HttpCommander implements Commander
                 Request request = RequestBuilder.prepareGet()
                         .setUri(uri)
                         .build();
-                List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+                List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC));
 
                 Map<String, CoordinatorStatusRepresentation> runningCoordinators = newHashMap();
                 for (CoordinatorStatusRepresentation coordinator : coordinators) {
@@ -251,7 +252,7 @@ public class HttpCommander implements Commander
                 .setUri(uri)
                 .build();
 
-        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC)).checkedGet();
+        List<CoordinatorStatusRepresentation> coordinators = client.execute(request, JsonResponseHandler.create(COORDINATORS_CODEC));
         if (coordinators.isEmpty()) {
             return false;
         }
@@ -267,7 +268,7 @@ public class HttpCommander implements Commander
                 .setUri(uri)
                 .build();
 
-        JsonResponse<List<AgentStatusRepresentation>> response = client.execute(request, FullJsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
+        JsonResponse<List<AgentStatusRepresentation>> response = client.execute(request, FullJsonResponseHandler.create(AGENTS_CODEC));
         return CommanderResponse.createCommanderResponse(response.getHeader(GALAXY_AGENTS_VERSION_HEADER), response.getValue());
     }
 
@@ -298,7 +299,7 @@ public class HttpCommander implements Commander
                 .setBodyGenerator(jsonBodyGenerator(AGENT_PROVISIONING_CODEC, agentProvisioning))
                 .build();
 
-        List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
+        List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC));
         if (waitForStartup) {
             List<String> instanceIds = newArrayList();
             for (AgentStatusRepresentation agent : agents) {
@@ -317,7 +318,7 @@ public class HttpCommander implements Commander
                 Request request = RequestBuilder.prepareGet()
                         .setUri(uri)
                         .build();
-                List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
+                List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC));
 
                 Map<String, AgentStatusRepresentation> runningAgents = newHashMap();
                 for (AgentStatusRepresentation agent : agents) {
@@ -348,7 +349,7 @@ public class HttpCommander implements Commander
                 .setBodyGenerator(textBodyGenerator(agentId))
                 .build();
 
-        AgentStatusRepresentation agents = client.execute(request, JsonResponseHandler.create(AGENT_CODEC)).checkedGet();
+        AgentStatusRepresentation agents = client.execute(request, JsonResponseHandler.create(AGENT_CODEC));
         return agents;
     }
 
@@ -360,7 +361,7 @@ public class HttpCommander implements Commander
                 .setUri(uri)
                 .build();
 
-        List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC)).checkedGet();
+        List<AgentStatusRepresentation> agents = client.execute(request, JsonResponseHandler.create(AGENTS_CODEC));
         if (agents.isEmpty()) {
             return false;
         }

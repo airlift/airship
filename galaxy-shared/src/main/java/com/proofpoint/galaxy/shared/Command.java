@@ -344,7 +344,7 @@ public class Command
 
     private static <T> ListenableFuture<T> submit(Executor executor, Callable<T> task)
     {
-        ListenableFutureTask<T> future = new ListenableFutureTask<T>(task);
+        ListenableFutureTask<T> future = ListenableFutureTask.create(task);
         executor.execute(future);
         return future;
     }

@@ -107,7 +107,7 @@ public class StaticProvisioner implements Provisioner
                     .build();
 
             try {
-                AgentStatusRepresentation agent = httpClient.execute(request, JsonResponseHandler.create(agentCodec)).checkedGet();
+                AgentStatusRepresentation agent = httpClient.execute(request, JsonResponseHandler.create(agentCodec));
 
                 instances.add(new Instance(instanceId,
                         firstNonNull(agent.getInstanceType(), "unknown"),

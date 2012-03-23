@@ -28,6 +28,7 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.event.client.NullEventModule;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.json.JsonModule;
@@ -112,6 +113,7 @@ public class TestCoordinatorServer
                 new TestingNodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
+                new NullEventModule(),
                 Modules.override(new LocalProvisionerModule()).with(new Module()
                 {
                     @Override

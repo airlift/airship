@@ -27,6 +27,7 @@ import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
+import com.proofpoint.event.client.NullEventModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.Slot;
@@ -148,6 +149,7 @@ public class TestServerIntegration
                 new NodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
+                new NullEventModule(),
                 new CoordinatorMainModule(),
                 Modules.override(new LocalProvisionerModule()).with(new Module()
                 {
@@ -185,6 +187,7 @@ public class TestServerIntegration
                 new TestingDiscoveryModule(),
                 new JsonModule(),
                 new JaxrsModule(),
+                new NullEventModule(),
                 new AgentMainModule(),
                 new ConfigurationModule(new ConfigurationFactory(agentProperties)));
 

@@ -24,6 +24,7 @@ import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
+import com.proofpoint.event.client.NullEventModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.DeploymentManagerFactory;
@@ -104,6 +105,7 @@ public class TestRemoteSlot
                 new TestingNodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
+                new NullEventModule(),
                 new ConfigurationModule(new ConfigurationFactory(properties)),
                 Modules.override(new AgentMainModule()).with(new Module()
                 {

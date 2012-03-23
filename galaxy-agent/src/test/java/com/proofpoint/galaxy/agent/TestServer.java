@@ -23,6 +23,7 @@ import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
+import com.proofpoint.event.client.NullEventModule;
 import com.proofpoint.galaxy.shared.InstallationHelper;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.VersionsUtil;
@@ -98,6 +99,7 @@ public class TestServer
                 new JsonModule(),
                 new TestingHttpServerModule(),
                 new JaxrsModule(),
+                new NullEventModule(),
                 new AgentMainModule(),
                 new ConfigurationModule(new ConfigurationFactory(properties)));
 
