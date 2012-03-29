@@ -26,8 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 public class CoordinatorConfig
 {
-    private static final String DEFAULT_VERSION_PATTERN = "([0-9][0-9.]*[0-9](?:-SNAPSHOT)?)[^\\/]*$";
-
     private String galaxyVersion;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
@@ -37,8 +35,8 @@ public class CoordinatorConfig
     private List<String> defaultRepositoryGroupId = ImmutableList.of();
 
     private String httpShortNamePattern = "([^\\/]+?)(?:-[0-9][0-9.]*(?:-SNAPSHOT)?)?(?:\\.config)?$";
-    private String httpRepoBinaryVersionPattern = DEFAULT_VERSION_PATTERN;
-    private String httpRepoConfigVersionPattern = DEFAULT_VERSION_PATTERN;
+    private String httpRepoBinaryVersionPattern;
+    private String httpRepoConfigVersionPattern;
 
     @NotNull
     public String getGalaxyVersion()
