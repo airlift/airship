@@ -28,7 +28,7 @@ public class AddComponentCommand
 
         Model model = new Model(git);
 
-        Preconditions.checkArgument(model.getBundle(component) != null, "Component already exists: %s", component);
+        Preconditions.checkArgument(model.getBundle(component) == null, "Component already exists: %s", component);
 
         Bundle bundle = model.createBundle(component);
         model.activateBundle(bundle);
