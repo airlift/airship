@@ -66,7 +66,7 @@ public class LocalCommander implements Commander
         // update just in case something changed
         updateServiceInventory();
 
-        return createCommanderResponse(createSlotsVersion(allSlotStatus), transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository)));
+        return createCommanderResponse(createSlotsVersion(slots), transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository)));
     }
 
     @Override
