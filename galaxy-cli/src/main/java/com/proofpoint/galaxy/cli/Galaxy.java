@@ -939,7 +939,7 @@ public class Galaxy
 
         @Arguments(usage = "<ref> <path>",
                 description = "Reference name and path for the environment")
-        public List<String> args;
+        public List<String> args = newArrayList();
 
         public void execute()
                 throws Exception
