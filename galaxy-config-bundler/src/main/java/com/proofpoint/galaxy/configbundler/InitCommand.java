@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 @Command(name = "init", description = "Initialize a git config repository")
-class InitCommand
+public class InitCommand
         implements Callable<Void>
 {
     @Option(name = "--groupId", description = "Maven group id")

@@ -12,7 +12,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 @Command(name = "add", description = "Add config for a component")
-class AddComponentCommand
+public class AddComponentCommand
         implements Callable<Void>
 {
     @Arguments(required = true)

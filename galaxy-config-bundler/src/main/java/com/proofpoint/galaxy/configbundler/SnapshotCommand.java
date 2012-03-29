@@ -19,7 +19,7 @@ import static com.google.common.io.CharStreams.newReaderSupplier;
 import static java.lang.String.format;
 
 @Command(name = "snapshot", description = "Deploy a snapshot config bundle")
-class SnapshotCommand
+public class SnapshotCommand
         implements Callable<Void>
 {
     @Arguments

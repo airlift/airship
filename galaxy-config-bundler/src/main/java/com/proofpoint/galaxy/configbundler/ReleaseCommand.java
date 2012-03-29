@@ -17,7 +17,7 @@ import static java.lang.String.format;
 
 
 @Command(name = "release", description = "Build and release a config bundle")
-class ReleaseCommand
+public class ReleaseCommand
         implements Callable<Void>
 {
     public static final String ARTIFACT_TYPE = "config";
