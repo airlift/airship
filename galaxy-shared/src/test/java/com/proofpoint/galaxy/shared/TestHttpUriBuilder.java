@@ -8,7 +8,7 @@ import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilder;
 import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static org.testng.Assert.assertEquals;
 
-public class TestUriBuilder
+public class TestHttpUriBuilder
 {
     @Test
     public void testCreateFromUri()
