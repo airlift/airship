@@ -240,7 +240,7 @@ public class TestServer
 
         assertEquals(response.getStatusCode(), Status.CREATED.getStatusCode());
         Slot slot = agent.getAllSlots().iterator().next();
-        assertEquals(response.getHeader(HttpHeaders.LOCATION), server.getBaseUrl().resolve("/v1/agent/slot/").resolve(slot.getName()).toString());
+        assertEquals(response.getHeader(HttpHeaders.LOCATION), uriBuilderFrom(server.getBaseUrl()).appendPath("/v1/agent/slot/").appendPath(slot.getName()).toString());
         assertEquals(response.getHeader(CONTENT_TYPE), MediaType.APPLICATION_JSON);
 
         Map<String, Object> expected = ImmutableMap.<String, Object>builder()

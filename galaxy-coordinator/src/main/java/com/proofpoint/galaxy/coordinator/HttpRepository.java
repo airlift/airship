@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.MavenCoordinates.DEFAULT_BINARY_PACKAGING;
 import static com.proofpoint.galaxy.shared.MavenCoordinates.DEFAULT_CONFIG_PACKAGING;
 
@@ -267,7 +268,7 @@ public class HttpRepository implements Repository
         Set<URI> uris = newHashSet();
         for (URI baseUri : baseUris) {
             try {
-                URI uri = append(baseUri, path);
+                URI uri = uriBuilderFrom(baseUri).appendPath(path).build();
                 if (isValidLocation(uri)) {
                     uris.add(uri);
                 }
@@ -291,15 +292,6 @@ public class HttpRepository implements Repository
         }
 
         return uris.iterator().next();
-    }
-
-    private URI append(URI baseUri, String path)
-    {
-        String base = baseUri.toASCIIString();
-        if (!base.endsWith("/")) {
-            base = "/";
-        }
-        return URI.create(base + path);
     }
 
     private boolean isValidLocation(URI uri)

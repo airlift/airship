@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closeables;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerInfo;
@@ -40,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
 import static java.lang.Math.max;
 import static java.lang.String.format;
@@ -129,8 +131,8 @@ public class Agent
                 // todo bad slot
             }
             else {
-                URI slotInternalUri = internalUri.resolve("/v1/agent/slot/").resolve(slotName);
-                URI slotExternalUri = externalUri.resolve("/v1/agent/slot/").resolve(slotName);
+                URI slotInternalUri = uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
+                URI slotExternalUri = uriBuilderFrom(externalUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
                 Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManager, lifecycleManager, maxLockWait);
                 slots.put(slotName, slot);
             }
@@ -203,8 +205,8 @@ public class Agent
         // todo name selection is not thread safe
         // create slot
         String slotName = getNextSlotName(installation.getShortName());
-        URI slotInternalUri = internalUri.resolve("/v1/agent/slot/").resolve(slotName);
-        URI slotExternalUri = externalUri.resolve("/v1/agent/slot/").resolve(slotName);
+        URI slotInternalUri = uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
+        URI slotExternalUri = uriBuilderFrom(externalUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
         Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, maxLockWait);
         slots.put(slotName, slot);
 

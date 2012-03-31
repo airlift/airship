@@ -61,7 +61,6 @@ public class HttpUriBuilder
     public static HttpUriBuilder uriBuilderFrom(URI uri)
     {
         Preconditions.checkNotNull(uri, "uri is null");
-        Preconditions.checkArgument(uri.getScheme().equalsIgnoreCase("http") || uri.getScheme().equalsIgnoreCase("https"), "scheme must be either http or https");
 
         return new HttpUriBuilder(uri);
     }
@@ -69,7 +68,6 @@ public class HttpUriBuilder
     public HttpUriBuilder scheme(String scheme)
     {
         Preconditions.checkNotNull(scheme, "scheme is null");
-        Preconditions.checkArgument(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"), "scheme must be either http or https");
 
         this.scheme = scheme;
         return this;
@@ -167,7 +165,9 @@ public class HttpUriBuilder
         StringBuilder builder = new StringBuilder();
         builder.append(scheme);
         builder.append("://");
-        builder.append(host);
+        if (host != null) {
+            builder.append(host);
+        }
         if (port != -1) {
             builder.append(':');
             builder.append(port);
@@ -204,7 +204,6 @@ public class HttpUriBuilder
     public URI build()
     {
         Preconditions.checkState(scheme != null, "scheme has not been set");
-        Preconditions.checkState(host != null, "host has not been set");
         return URI.create(toString());
     }
 

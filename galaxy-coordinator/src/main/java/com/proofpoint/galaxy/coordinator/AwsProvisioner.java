@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilder;
 import static java.lang.String.format;
 import static java.util.Collections.addAll;
 
@@ -128,11 +129,11 @@ public class AwsProvisioner implements Provisioner
 
                     URI internalUri = null;
                     if (instance.getPrivateIpAddress() != null) {
-                        internalUri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
+                        internalUri = uriBuilder().host(instance.getPrivateIpAddress()).port(port).build();
                     }
                     URI externalUri = null;
                     if (instance.getPublicDnsName() != null) {
-                        externalUri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                        externalUri = uriBuilder().host(instance.getPublicDnsName()).port(port).build();
                     }
                     instances.add(toInstance(instance, internalUri, externalUri, "coordinator"));
                     invalidInstances.remove(instance.getInstanceId());
@@ -178,11 +179,11 @@ public class AwsProvisioner implements Provisioner
 
                     URI internalUri = null;
                     if (instance.getPrivateIpAddress() != null) {
-                        internalUri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
+                        internalUri = uriBuilder().host(instance.getPrivateIpAddress()).port(port).build();
                     }
                     URI externalUri = null;
                     if (instance.getPublicDnsName() != null) {
-                        externalUri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                        externalUri = uriBuilder().host(instance.getPublicDnsName()).port(port).build();
                     }
                     instances.add(toInstance(instance, internalUri, externalUri, "agent"));
                     invalidInstances.remove(instance.getInstanceId());

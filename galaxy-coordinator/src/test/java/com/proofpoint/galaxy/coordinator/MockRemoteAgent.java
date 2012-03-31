@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.*;
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 
 public class MockRemoteAgent implements RemoteAgent
@@ -85,8 +86,8 @@ public class MockRemoteAgent implements RemoteAgent
         UUID slotId = UUID.randomUUID();
         SlotStatus slotStatus = createSlotStatus(slotId,
                 "",
-                agentStatus.getInternalUri().resolve("slot/" + slotId),
-                agentStatus.getExternalUri().resolve("slot/" + slotId),
+                uriBuilderFrom(agentStatus.getInternalUri()).appendPath("slot").appendPath(slotId.toString()).build(),
+                uriBuilderFrom(agentStatus.getExternalUri()).appendPath("slot").appendPath(slotId.toString()).build(),
                 "instance",
                 "/location",
                 SlotLifecycleState.STOPPED,

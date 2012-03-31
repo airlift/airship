@@ -22,6 +22,7 @@ import java.net.URI;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
@@ -48,7 +49,7 @@ public class LauncherLifecycleManager implements LifecycleManager
                 nodeInfo.getBindIp(),
                 config.getLauncherTimeout(),
                 config.getLauncherStopTimeout(),
-                (httpServerInfo.getHttpsUri() != null ? httpServerInfo.getHttpsUri() : httpServerInfo.getHttpUri()).resolve("/v1/serviceInventory")
+                uriBuilderFrom(httpServerInfo.getHttpsUri() != null ? httpServerInfo.getHttpsUri() : httpServerInfo.getHttpUri()).appendPath("/v1/serviceInventory").build()
         );
     }
 

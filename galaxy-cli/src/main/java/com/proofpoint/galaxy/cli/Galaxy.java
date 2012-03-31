@@ -31,6 +31,7 @@ import com.proofpoint.galaxy.coordinator.MavenRepository;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
+import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.RepositorySet;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -76,6 +77,7 @@ import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
 import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
 import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
 import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -1145,11 +1147,11 @@ public class Galaxy
                             for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
                                 URI internalUri = null;
                                 if (instance.getPrivateIpAddress() != null) {
-                                    internalUri = URI.create(format("http://%s:%s", instance.getPrivateIpAddress(), port));
+                                    internalUri = uriBuilder().host(instance.getPrivateIpAddress()).port(port).build();
                                 }
                                 URI externalUri = null;
                                 if (instance.getPublicDnsName() != null) {
-                                    externalUri = URI.create(format("http://%s:%s", instance.getPublicDnsName(), port));
+                                    externalUri = uriBuilder().host(instance.getPublicDnsName()).port(port).build();
                                 }
                                 resolvedInstances.add(toInstance(instance, internalUri, externalUri, "coordinator"));
                             }

@@ -35,6 +35,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
 
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
@@ -135,6 +136,6 @@ public class SlotResource
 
     private static URI getSelfUri(String slotName, URI baseUri)
     {
-        return baseUri.resolve("/v1/agent/slot/" + slotName);
+        return uriBuilderFrom(baseUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
     }
 }

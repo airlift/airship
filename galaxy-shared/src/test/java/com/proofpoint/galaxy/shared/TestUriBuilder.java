@@ -269,14 +269,6 @@ public class TestUriBuilder
         uriBuilder().build();
     }
 
-    @Test(expectedExceptions = IllegalStateException.class, expectedExceptionsMessageRegExp = ".*host.*")
-    public void testVerifiesHostIsSet()
-    {
-        uriBuilder()
-                .scheme("http")
-                .build();
-    }
-
     @Test
     public void testQueryParametersNoPath()
     {
@@ -301,18 +293,6 @@ public class TestUriBuilder
         assertEquals(uri.toASCIIString(), "http://www.example.com/?a=%26");
     }
     
-    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = ".*scheme.*")
-    public void testRejectsNonHttpUri()
-    {
-        uriBuilder().scheme("ftp");
-    }
-
-    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = ".*scheme.*")
-    public void testRejectsNonHttpUri2()
-    {
-        uriBuilderFrom(URI.create("ftp://example.com"));
-    }
-
     @Test
     public void testAcceptsHttpAndHttpScheme()
     {

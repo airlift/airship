@@ -11,6 +11,7 @@ import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
+import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.galaxy.shared.Repository;
 
@@ -27,6 +28,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.MavenCoordinates.toBinaryGAV;
 import static com.proofpoint.galaxy.shared.MavenCoordinates.toConfigGAV;
 
@@ -255,17 +257,19 @@ public class MavenRepository implements Repository
         List<URI> checkedUris = newArrayList();
         for (URI repositoryBase : repositoryBases) {
             // build the uri
-            StringBuilder builder = new StringBuilder();
-            builder.append(coordinates.getGroupId().replace('.', '/')).append('/');
-            builder.append(coordinates.getArtifactId()).append('/');
-            builder.append(coordinates.getVersion()).append('/');
-            builder.append(coordinates.getArtifactId()).append('-').append(coordinates.getFileVersion());
-            if (coordinates.getClassifier() != null) {
-                builder.append('-').append(coordinates.getClassifier());
-            }
-            builder.append('.').append(coordinates.getPackaging());
+            HttpUriBuilder uriBuilder = uriBuilderFrom(repositoryBase);
+            uriBuilder.appendPath(coordinates.getGroupId().replace('.', '/'));
+            uriBuilder.appendPath(coordinates.getArtifactId());
+            uriBuilder.appendPath(coordinates.getVersion());
 
-            URI uri = repositoryBase.resolve(builder.toString());
+            StringBuilder fileNameBuilder = new StringBuilder().append(coordinates.getArtifactId()).append('-').append(coordinates.getFileVersion());
+            if (coordinates.getClassifier() != null) {
+                fileNameBuilder.append('-').append(coordinates.getClassifier());
+            }
+            fileNameBuilder.append('.').append(coordinates.getPackaging());
+            uriBuilder.appendPath(fileNameBuilder.toString());
+
+            URI uri = uriBuilder.build();
 
             // try to download some of the file
             if (isValidBinary(uri)) {
@@ -353,12 +357,12 @@ public class MavenRepository implements Repository
         for (URI repositoryBase : repositoryBases) {
             try {
                 // load maven metadata file
-                StringBuilder builder = new StringBuilder();
-                builder.append(groupId.replace('.', '/')).append('/');
-                builder.append(coordinates.getArtifactId()).append('/');
-                builder.append(coordinates.getVersion()).append('/');
-                builder.append("maven-metadata.xml");
-                URI uri = repositoryBase.resolve(builder.toString());
+                HttpUriBuilder uriBuilder = uriBuilderFrom(repositoryBase);
+                uriBuilder.appendPath(groupId.replace('.', '/'));
+                uriBuilder.appendPath(coordinates.getArtifactId());
+                uriBuilder.appendPath(coordinates.getVersion());
+                uriBuilder.appendPath("maven-metadata.xml");
+                URI uri = uriBuilder.build();
                 MavenMetadata metadata = MavenMetadata.unmarshalMavenMetadata(toString(uri));
 
                 for (SnapshotVersion snapshotVersion : metadata.versioning.snapshotVersions) {
