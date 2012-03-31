@@ -10,19 +10,25 @@ import java.util.List;
 
 public class LocalProvisionerConfig
 {
-    private List<String> localAgentUri = ImmutableList.of();
+    private List<String> localAgentUris = ImmutableList.of();
     private String expectedStateDir = "expected-state";
     private String authorizedKeysDir = "authorized-keys";
 
     public List<String> getLocalAgentUris()
     {
-        return localAgentUri;
+        return localAgentUris;
     }
 
     @Config("coordinator.agent-uri")
     public LocalProvisionerConfig setLocalAgentUris(String localAgentUris)
     {
-        this.localAgentUri = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(localAgentUris));
+        this.localAgentUris = ImmutableList.copyOf(Splitter.on(',').omitEmptyStrings().trimResults().split(localAgentUris));
+        return this;
+    }
+
+    public LocalProvisionerConfig setLocalAgentUris(List<String> localAgentUri)
+    {
+        this.localAgentUris = ImmutableList.copyOf(localAgentUri);
         return this;
     }
 
