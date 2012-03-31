@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.JsonResponseHandler;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.client.Request;
 import com.proofpoint.http.client.RequestBuilder;
@@ -19,6 +18,7 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import static com.google.common.base.Objects.firstNonNull;
+import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
 
 public class StaticProvisioner implements Provisioner
 {
@@ -107,7 +107,7 @@ public class StaticProvisioner implements Provisioner
                     .build();
 
             try {
-                AgentStatusRepresentation agent = httpClient.execute(request, JsonResponseHandler.create(agentCodec));
+                AgentStatusRepresentation agent = httpClient.execute(request, createJsonResponseHandler(agentCodec));
 
                 instances.add(new Instance(instanceId,
                         firstNonNull(agent.getInstanceType(), "unknown"),

@@ -20,7 +20,6 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.google.inject.util.Modules;
-import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
@@ -40,6 +39,8 @@ import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.http.client.ApacheHttpClient;
+import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -81,7 +82,7 @@ public class TestRemoteSlot
             URI.create("fake://localhost/banana.config"),
             ImmutableMap.of("cpu", 1));
 
-    private AsyncHttpClient client;
+    private HttpClient client;
     private TestingHttpServer server;
 
     private Agent agent;
@@ -121,7 +122,7 @@ public class TestRemoteSlot
         agent = injector.getInstance(Agent.class);
 
         server.start();
-        client = new AsyncHttpClient();
+        client = new ApacheHttpClient();
         remoteAgent = new HttpRemoteAgent(
                 agent.getAgentStatus(),
                 "test",
@@ -154,9 +155,6 @@ public class TestRemoteSlot
             server.stop();
         }
 
-        if (client != null) {
-            client.close();
-        }
         if (tempDir != null) {
             deleteRecursively(tempDir);
         }

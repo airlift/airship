@@ -24,21 +24,25 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.util.Modules;
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.event.client.NullEventModule;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
-import com.proofpoint.json.JsonModule;
-import com.proofpoint.jaxrs.JaxrsModule;
-import com.proofpoint.json.JsonCodec;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.HttpUriBuilder;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.http.client.ApacheHttpClient;
+import com.proofpoint.http.client.HttpClient;
+import com.proofpoint.http.client.Request;
+import com.proofpoint.http.client.RequestBuilder;
+import com.proofpoint.http.client.StatusResponseHandler.StatusResponse;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
+import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.json.JsonCodec;
+import com.proofpoint.json.JsonModule;
 import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -46,37 +50,44 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.inject.Singleton;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.collect.Lists.transform;
+import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.inject.Scopes.SINGLETON;
 import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
-import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
-import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
+import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
+import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
+import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
+import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
+import static com.proofpoint.http.client.StatusResponseHandler.createStatusResponseHandler;
+import static com.proofpoint.json.JsonCodec.jsonCodec;
+import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static java.util.Arrays.asList;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class TestCoordinatorServer
 {
-    private AsyncHttpClient client;
+    private HttpClient httpClient;
     private TestingHttpServer server;
 
     private int prefixSize;
@@ -132,8 +143,10 @@ public class TestCoordinatorServer
                         binder.bind(ServiceInventory.class).to(MockServiceInventory.class).in(Scopes.SINGLETON);
                     }
 
-                    @Provides @Singleton
-                    public RemoteAgentFactory getRemoteAgentFactory(MockProvisioner provisioner) {
+                    @Provides
+                    @Singleton
+                    public RemoteAgentFactory getRemoteAgentFactory(MockProvisioner provisioner)
+                    {
                         return provisioner.getAgentFactory();
                     }
                 }),
@@ -145,7 +158,7 @@ public class TestCoordinatorServer
         provisioner = (MockProvisioner) injector.getInstance(Provisioner.class);
 
         server.start();
-        client = new AsyncHttpClient();
+        httpClient = new ApacheHttpClient();
     }
 
     @BeforeMethod
@@ -215,24 +228,17 @@ public class TestCoordinatorServer
         if (server != null) {
             server.stop();
         }
-
-        if (client != null) {
-            client.close();
-        }
     }
 
     @Test
     public void testGetAllSlots()
             throws Exception
     {
-        Response response = client.prepareGet(urlFor("/v1/slot/?name=*"))
-                .execute()
-                .get();
+        Request request = RequestBuilder.prepareGet()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("name", "*").build())
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
-
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
 
         int prefixSize = shortestUniquePrefix(asList(
@@ -240,7 +246,6 @@ public class TestCoordinatorServer
                 agentStatus.getSlotStatus(apple2SlotId).getId().toString(),
                 agentStatus.getSlotStatus(bananaSlotId).getId().toString()),
                 MIN_PREFIX_SIZE);
-
 
         assertEqualsNoOrder(actual, ImmutableList.of(
                 SlotStatusRepresentation.from(agentStatus.getSlotStatus(apple1SotId), prefixSize, MOCK_REPO),
@@ -253,15 +258,12 @@ public class TestCoordinatorServer
             throws Exception
     {
         UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2.0");
-        String json = upgradeVersionsCodec.toJson(upgradeVersions);
-        Response response = client.preparePost(urlFor("/v1/slot/assignment?host=apple*"))
-                .setBody(json)
-                .setHeader(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.preparePost()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/assignment").addParameter("host", "apple*").build())
+                .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .setBodyGenerator(jsonBodyGenerator(upgradeVersionsCodec, upgradeVersions))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
@@ -272,7 +274,6 @@ public class TestCoordinatorServer
                 SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
                 SlotStatusRepresentation.from(apple2Status, prefixSize, MOCK_REPO));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
 
         assertEquals(apple1Status.getState(), STOPPED);
@@ -292,12 +293,10 @@ public class TestCoordinatorServer
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
 
-        Response response = client.prepareDelete(urlFor("/v1/slot?host=apple*"))
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.prepareDelete()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("host", "apple*").build())
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
         apple1Status = apple1Status.changeState(TERMINATED);
         apple2Status = apple2Status.changeState(TERMINATED);
@@ -306,7 +305,7 @@ public class TestCoordinatorServer
         List<SlotStatusRepresentation> expected = ImmutableList.of(
                 SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
                 SlotStatusRepresentation.from(apple2Status.changeState(TERMINATED), prefixSize, MOCK_REPO));
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
+
         assertEqualsNoOrder(actual, expected);
 
         assertEquals(apple1Status.getState(), TERMINATED);
@@ -318,14 +317,11 @@ public class TestCoordinatorServer
     public void testStart()
             throws Exception
     {
-        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("running")
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
-
+        Request request = RequestBuilder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("running", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
@@ -336,7 +332,6 @@ public class TestCoordinatorServer
                 SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
                 SlotStatusRepresentation.from(apple2Status, prefixSize, MOCK_REPO));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
         assertEquals(apple1Status.getState(), RUNNING);
         assertEquals(apple2Status.getState(), RUNNING);
@@ -347,13 +342,11 @@ public class TestCoordinatorServer
     public void testRestart()
             throws Exception
     {
-        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("restarting")
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("restarting", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
@@ -364,7 +357,6 @@ public class TestCoordinatorServer
                 SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
                 SlotStatusRepresentation.from(apple2Status, prefixSize, MOCK_REPO));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
         assertEquals(apple1Status.getState(), RUNNING);
         assertEquals(apple2Status.getState(), RUNNING);
@@ -377,13 +369,11 @@ public class TestCoordinatorServer
     {
         coordinator.setState(RUNNING, Predicates.<SlotStatus>alwaysTrue(), null);
 
-        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("stopped")
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("stopped", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
@@ -394,7 +384,6 @@ public class TestCoordinatorServer
                 SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
                 SlotStatusRepresentation.from(apple2Status, prefixSize, MOCK_REPO));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
         assertEquals(apple1Status.getState(), STOPPED);
         assertEquals(apple2Status.getState(), STOPPED);
@@ -405,10 +394,11 @@ public class TestCoordinatorServer
     public void testLifecycleUnknown()
             throws Exception
     {
-        Response response = client.preparePut(urlFor("/v1/slot/lifecycle"))
-                .setBody("unknown")
-                .execute()
-                .get();
+        Request request = RequestBuilder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("unknown", UTF_8))
+                .build();
+        StatusResponse response = httpClient.execute(request, createStatusResponseHandler());
 
         AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
@@ -421,8 +411,8 @@ public class TestCoordinatorServer
         assertEquals(bananaStatus.getState(), STOPPED);
     }
 
-    private String urlFor(String path)
+    private HttpUriBuilder coordinatorUriBuilder()
     {
-        return server.getBaseUrl().resolve(path).toString();
+        return uriBuilderFrom(server.getBaseUrl());
     }
 }

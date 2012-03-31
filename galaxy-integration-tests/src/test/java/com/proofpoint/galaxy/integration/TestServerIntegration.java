@@ -22,8 +22,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
@@ -31,18 +29,23 @@ import com.proofpoint.event.client.NullEventModule;
 import com.proofpoint.galaxy.agent.Agent;
 import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
-import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
-import com.proofpoint.galaxy.coordinator.MockProvisioner;
 import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
+import com.proofpoint.galaxy.coordinator.MockProvisioner;
 import com.proofpoint.galaxy.coordinator.Provisioner;
 import com.proofpoint.galaxy.coordinator.StateManager;
+import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
+import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.http.client.ApacheHttpClient;
+import com.proofpoint.http.client.HttpClient;
+import com.proofpoint.http.client.Request;
+import com.proofpoint.http.client.RequestBuilder;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -55,7 +58,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,28 +68,35 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
 
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.inject.Scopes.SINGLETON;
 import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static com.proofpoint.galaxy.shared.FileUtils.newFile;
+import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
+import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
+import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.testing.Assertions.assertNotEquals;
 import static java.util.Arrays.asList;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class TestServerIntegration
 {
-    private AsyncHttpClient client;
+    private HttpClient httpClient;
     private TestingHttpServer agentServer;
     private TestingHttpServer coordinatorServer;
 
@@ -109,7 +118,7 @@ public class TestServerIntegration
     private int prefixSize;
     private MockProvisioner provisioner;
 
-    public static Map<String,Integer> AGENT_RESOURCES = ImmutableMap.<String,Integer>builder()
+    public static Map<String, Integer> AGENT_RESOURCES = ImmutableMap.<String, Integer>builder()
             .put("cpu", 8)
             .put("memory", 1024)
             .build();
@@ -168,7 +177,7 @@ public class TestServerIntegration
         provisioner = (MockProvisioner) coordinatorInjector.getInstance(Provisioner.class);
 
         coordinatorServer.start();
-        client = new AsyncHttpClient();
+        httpClient = new ApacheHttpClient();
 
         tempDir = createTempDir("agent");
         File resourcesFile = new File(tempDir, "slots/galaxy-resources.properties");
@@ -194,7 +203,7 @@ public class TestServerIntegration
         agentServer = agentInjector.getInstance(TestingHttpServer.class);
         agent = agentInjector.getInstance(Agent.class);
         agentServer.start();
-        client = new AsyncHttpClient();
+        httpClient = new ApacheHttpClient();
     }
 
     public static void writeResources(Map<String, Integer> resources, File resourcesFile)
@@ -268,9 +277,6 @@ public class TestServerIntegration
             coordinatorServer.stop();
         }
 
-        if (client != null) {
-            client.close();
-        }
         if (tempDir != null) {
             deleteRecursively(tempDir);
         }
@@ -286,20 +292,17 @@ public class TestServerIntegration
     public void testStart()
             throws Exception
     {
-        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("running")
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "*:apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("running", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
         String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
         List<SlotStatusRepresentation> expected = ImmutableList.of(
                 SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
                 SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
         assertEquals(bananaSlot.status().getState(), STOPPED);
@@ -311,22 +314,18 @@ public class TestServerIntegration
             throws Exception
     {
         UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "@2.0");
-        String json = upgradeVersionsCodec.toJson(upgradeVersions);
-        Response response = client.preparePost(urlFor("/v1/slot/assignment?binary=*:apple:*"))
-                .setBody(json)
-                .setHeader(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.preparePost()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/assignment").addParameter("binary", "*:apple:*").build())
+                .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .setBodyGenerator(jsonBodyGenerator(upgradeVersionsCodec, upgradeVersions))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
         String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
         List<SlotStatusRepresentation> expected = ImmutableList.of(
                 SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
                 SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
 
         assertEquals(appleSlot1.status().getState(), STOPPED);
@@ -341,19 +340,16 @@ public class TestServerIntegration
     public void testTerminate()
             throws Exception
     {
-        Response response = client.prepareDelete(urlFor("/v1/slot?binary=*:apple:*"))
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.prepareDelete()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("binary", "*:apple:*").build())
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
         String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
         List<SlotStatusRepresentation> expected = ImmutableList.of(
                 SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
                 SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), TERMINATED);
         assertEquals(appleSlot2.status().getState(), TERMINATED);
@@ -371,13 +367,11 @@ public class TestServerIntegration
         File pidFile = newFile(appleSlot1.status().getInstallPath(), "..", "deployment", "launcher.pid").getCanonicalFile();
         String pidBeforeRestart = Files.readFirstLine(pidFile, Charsets.UTF_8);
 
-        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("restarting")
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "*:apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("restarting", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
 
         String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
@@ -385,7 +379,6 @@ public class TestServerIntegration
                 SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
                 SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
@@ -404,13 +397,11 @@ public class TestServerIntegration
         bananaSlot.start();
         coordinator.updateAllAgents();
 
-        Response response = client.preparePut(urlFor("/v1/slot/lifecycle?binary=*:apple:*"))
-                .setBody("stopped")
-                .execute()
-                .get();
-
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        assertEquals(response.getContentType(), MediaType.APPLICATION_JSON);
+        Request request = RequestBuilder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "*:apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("stopped", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
 
 
         String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
@@ -418,15 +409,14 @@ public class TestServerIntegration
                 SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
                 SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
 
-        List<SlotStatusRepresentation> actual = agentStatusRepresentationsCodec.fromJson(response.getResponseBody());
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), STOPPED);
         assertEquals(appleSlot2.status().getState(), STOPPED);
         assertEquals(bananaSlot.status().getState(), RUNNING);
     }
 
-    private String urlFor(String path)
+    private HttpUriBuilder coordinatorUriBuilder()
     {
-        return coordinatorServer.getBaseUrl().resolve(path).toString();
+        return uriBuilderFrom(coordinatorServer.getBaseUrl());
     }
 }

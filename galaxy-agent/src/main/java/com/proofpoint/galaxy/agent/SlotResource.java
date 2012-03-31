@@ -82,7 +82,7 @@ public class SlotResource
 
         Slot slot = agent.getSlot(id);
         if (slot == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("[" + id + "]").build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         checkAgentVersion(agent.getAgentStatus(), agentVersion);
@@ -108,7 +108,7 @@ public class SlotResource
 
         Slot slot = agent.getSlot(slotName);
         if (slot == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         SlotStatus slotStatus = slot.status();

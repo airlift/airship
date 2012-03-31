@@ -3,7 +3,6 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-import com.ning.http.client.AsyncHttpClient;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
@@ -11,13 +10,15 @@ import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.http.client.ApacheHttpClient;
+import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.node.NodeInfo;
 
 public class HttpRemoteAgentFactory implements RemoteAgentFactory
 {
     private final String environment;
-    private final AsyncHttpClient httpClient;
+    private final HttpClient httpClient;
     private final JsonCodec<InstallationRepresentation> installationCodec;
     private final JsonCodec<AgentStatusRepresentation> agentStatusCodec;
     private final JsonCodec<SlotStatusRepresentation> slotStatusCodec;
@@ -32,7 +33,7 @@ public class HttpRemoteAgentFactory implements RemoteAgentFactory
     {
         environment = nodeInfo.getEnvironment();
         this.agentStatusCodec = agentStatusCodec;
-        this.httpClient = new AsyncHttpClient();
+        this.httpClient = new ApacheHttpClient();
         this.installationCodec = installationCodec;
         this.slotStatusCodec = slotStatusCodec;
         this.serviceDescriptorsCodec = serviceDescriptorsCodec;
