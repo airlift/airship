@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 
 public class CoordinatorConfig
 {
+    public static final String DEFAULT_HTTP_SHORT_NAME_PATTERN = "([^\\/]+?)(?:-[0-9][0-9.]*(?:-SNAPSHOT)?)?(?:\\.config)?$";
+
     private String galaxyVersion;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
@@ -34,7 +36,7 @@ public class CoordinatorConfig
     private List<String> repositories = ImmutableList.of();
     private List<String> defaultRepositoryGroupId = ImmutableList.of();
 
-    private String httpShortNamePattern = "([^\\/]+?)(?:-[0-9][0-9.]*(?:-SNAPSHOT)?)?(?:\\.config)?$";
+    private String httpShortNamePattern = DEFAULT_HTTP_SHORT_NAME_PATTERN;
     private String httpRepoBinaryVersionPattern;
     private String httpRepoConfigVersionPattern;
 
@@ -122,9 +124,10 @@ public class CoordinatorConfig
     }
 
     @Config("coordinator.http-repo.short-name-pattern")
-    public void setHttpShortNamePattern(String httpShortNamePattern)
+    public CoordinatorConfig setHttpShortNamePattern(String httpShortNamePattern)
     {
         this.httpShortNamePattern = httpShortNamePattern;
+        return this;
     }
 
     public String getHttpRepoBinaryVersionPattern()
