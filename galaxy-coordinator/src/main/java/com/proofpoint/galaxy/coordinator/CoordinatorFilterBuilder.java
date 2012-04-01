@@ -213,7 +213,7 @@ public class CoordinatorFilterBuilder
 
         public MachinePredicate(String machineGlob)
         {
-            predicate = new GlobPredicate(machineGlob.toLowerCase());
+            predicate = new GlobPredicate(machineGlob);
         }
 
         @Override

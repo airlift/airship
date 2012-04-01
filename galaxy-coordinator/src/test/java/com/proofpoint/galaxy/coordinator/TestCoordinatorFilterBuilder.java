@@ -2,6 +2,7 @@ package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Predicate;
 import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.HostPredicate;
+import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.MachinePredicate;
 import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.StatePredicate;
 import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.UuidPredicate;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
@@ -78,5 +79,19 @@ public class TestCoordinatorFilterBuilder
         assertTrue(buildFilter("host", "10.0.0.1").apply(status));
         assertFalse(new HostPredicate("10.1.2.3").apply(status));
         assertFalse(buildFilter("host", "10.1.2.3").apply(status));
+    }
+
+    @Test
+    public void testMachineSpecPredicate()
+    {
+        assertTrue(new MachinePredicate("coordinator-instance").apply(status));
+        assertTrue(buildFilter("machine", "coordinator-instance").apply(status));
+        assertTrue(new MachinePredicate("coo*").apply(status));
+        assertTrue(buildFilter("machine", "coo*").apply(status));
+
+        assertFalse(new MachinePredicate("COORDINATOR-INSTANCE").apply(status));
+        assertFalse(buildFilter("machine", "COORDINATOR-INSTANCE").apply(status));
+        assertFalse(new MachinePredicate("COO*").apply(status));
+        assertFalse(buildFilter("machine", "COO*").apply(status));
     }
 }
