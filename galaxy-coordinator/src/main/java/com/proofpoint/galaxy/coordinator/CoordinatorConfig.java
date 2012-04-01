@@ -31,6 +31,8 @@ public class CoordinatorConfig
     private String galaxyVersion;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
+    private String serviceInventoryCacheDir = "service-inventory-cache";
+
     private String agentDefaultConfig;
 
     private List<String> repositories = ImmutableList.of();
@@ -63,6 +65,19 @@ public class CoordinatorConfig
     public CoordinatorConfig setStatusExpiration(Duration statusExpiration)
     {
         this.statusExpiration = statusExpiration;
+        return this;
+    }
+
+    @NotNull
+    public String getServiceInventoryCacheDir()
+    {
+        return serviceInventoryCacheDir;
+    }
+
+    @Config("coordinator.service-inventory.cache-dir")
+    public CoordinatorConfig setServiceInventoryCacheDir(String serviceInventoryCacheDir)
+    {
+        this.serviceInventoryCacheDir = serviceInventoryCacheDir;
         return this;
     }
 

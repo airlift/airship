@@ -53,9 +53,9 @@ public class HttpServiceInventory implements ServiceInventory
     private final File cacheDir;
 
     @Inject
-    public HttpServiceInventory(Repository repository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec)
+    public HttpServiceInventory(Repository repository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec, CoordinatorConfig config)
     {
-        this(repository, descriptorsJsonCodec, new File("service-inventory-cache"));
+        this(repository, descriptorsJsonCodec, new File(config.getServiceInventoryCacheDir()));
     }
 
     public HttpServiceInventory(Repository repository, JsonCodec<List<ServiceDescriptor>> descriptorsJsonCodec, File cacheDir)

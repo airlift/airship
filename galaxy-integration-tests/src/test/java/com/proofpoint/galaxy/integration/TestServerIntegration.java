@@ -113,6 +113,8 @@ public class TestServerIntegration
 
     private File binaryRepoDir;
     private File localBinaryRepoDir;
+    private File expectedStateDir;
+    private File serviceInventoryCacheDir;
     private Repository repository;
 
     private int prefixSize;
@@ -136,6 +138,8 @@ public class TestServerIntegration
         }
 
         localBinaryRepoDir = createTempDir("localBinaryRepoDir");
+        expectedStateDir = createTempDir("expected-state");
+        serviceInventoryCacheDir = createTempDir("service-inventory-cache");
 
         Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
                 .put("node.environment", "prod")
@@ -151,7 +155,8 @@ public class TestServerIntegration
                 .put("coordinator.aws.agent.keypair", "keypair")
                 .put("coordinator.aws.agent.security-group", "default")
                 .put("coordinator.aws.agent.default-instance-type", "t1.micro")
-                .put("coordinator.expected-state.dir", createTempDir("expected-state").getAbsolutePath())
+                .put("coordinator.expected-state.dir", expectedStateDir.getAbsolutePath())
+                .put("coordinator.service-inventory.cache-dir", serviceInventoryCacheDir.getAbsolutePath())
                 .build();
 
         Injector coordinatorInjector = Guice.createInjector(new TestingHttpServerModule(),
@@ -282,6 +287,12 @@ public class TestServerIntegration
         }
         if (binaryRepoDir != null) {
             deleteRecursively(binaryRepoDir);
+        }
+        if (expectedStateDir != null) {
+            deleteRecursively(expectedStateDir);
+        }
+        if (serviceInventoryCacheDir != null) {
+            deleteRecursively(serviceInventoryCacheDir);
         }
         if (localBinaryRepoDir != null) {
             deleteRecursively(localBinaryRepoDir);
