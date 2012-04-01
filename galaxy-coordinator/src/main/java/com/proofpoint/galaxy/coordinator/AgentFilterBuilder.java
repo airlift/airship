@@ -344,7 +344,7 @@ public class AgentFilterBuilder
         }
     }
 
-    private static class AssignablePredicate implements Predicate<AgentStatus>
+    public static class AssignablePredicate implements Predicate<AgentStatus>
     {
         private final Assignment assignment;
         private final boolean allowDuplicateInstallationsOnAnAgent;

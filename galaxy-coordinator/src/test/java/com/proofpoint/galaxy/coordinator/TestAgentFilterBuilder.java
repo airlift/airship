@@ -3,13 +3,17 @@ package com.proofpoint.galaxy.coordinator;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.AssignablePredicate;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.HostPredicate;
+import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.MachinePredicate;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.SlotUuidPredicate;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.StatePredicate;
 import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.UuidPredicate;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.MockUriInfo;
+import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.net.URI;
@@ -20,6 +24,7 @@ import java.util.UUID;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 import static java.util.Arrays.asList;
@@ -28,25 +33,33 @@ import static org.testng.Assert.assertTrue;
 
 public class TestAgentFilterBuilder
 {
-    AgentStatus status = new AgentStatus("agent-id",
-            ONLINE,
-            "instance-id",
-            URI.create("internal://10.0.0.1"),
-            URI.create("external://localhost"),
-            "unknown/location",
-            "instance.type",
-            ImmutableList.<SlotStatus>of(createSlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
-                    "slotName",
-                    URI.create("fake://localhost"),
-                    URI.create("fake://localhost"),
-                    "instance",
-                    "/location",
-                    UNKNOWN,
-                    APPLE_ASSIGNMENT,
-                    "/slotName",
-                    ImmutableMap.<String, Integer>of())),
-            ImmutableMap.<String, Integer>of());
+    private AgentStatus status;
 
+    @BeforeMethod
+    public void setUp()
+            throws Exception
+    {
+        status = new AgentStatus("agent-id",
+                ONLINE,
+                "instance-id",
+                URI.create("internal://10.0.0.1"),
+                URI.create("external://localhost"),
+                "unknown/location",
+                "instance.type",
+                ImmutableList.<SlotStatus>of(createSlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
+                        "slotName",
+                        URI.create("fake://localhost"),
+                        URI.create("fake://localhost"),
+                        "instance",
+                        "/location",
+                        UNKNOWN,
+                        APPLE_ASSIGNMENT,
+                        "/slotName",
+                        ImmutableMap.<String, Integer>of())),
+                ImmutableMap.<String, Integer>of(
+                        "memory", 2048,
+                        "cpu", 4));
+    }
 
     private Predicate<AgentStatus> buildFilter(String key, String value, List<UUID> uuids)
     {
@@ -56,6 +69,14 @@ public class TestAgentFilterBuilder
     private Predicate<AgentStatus> buildFilter(String key, String value)
     {
         return buildFilter(key, value, Collections.<UUID>emptyList());
+    }
+
+    private Predicate<AgentStatus> buildFilter(String key,
+            String value,
+            boolean allowDuplicateInstallationsOnAnAgent,
+            Repository repository)
+    {
+        return AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value), Collections.<UUID>emptyList(), allowDuplicateInstallationsOnAnAgent, repository);
     }
 
     @Test
@@ -115,5 +136,57 @@ public class TestAgentFilterBuilder
         assertTrue(buildFilter("host", "10.0.0.1").apply(status));
         assertFalse(new HostPredicate("10.1.2.3").apply(status));
         assertFalse(buildFilter("host", "10.1.2.3").apply(status));
+    }
+
+    @Test
+    public void testMachineSpecPredicate()
+    {
+        assertTrue(new MachinePredicate("instance-id").apply(status));
+        assertTrue(buildFilter("machine", "instance-id").apply(status));
+        assertTrue(new MachinePredicate("inst*").apply(status));
+        assertTrue(buildFilter("machine", "inst*").apply(status));
+
+        assertFalse(new MachinePredicate("INSTANCE-ID").apply(status));
+        assertFalse(buildFilter("machine", "INSTANCE-ID").apply(status));
+        assertFalse(new MachinePredicate("INST*").apply(status));
+        assertFalse(buildFilter("machine", "INST*").apply(status));
+    }
+
+    @Test
+    public void testAssignablePredicate()
+            throws Exception
+    {
+        TestingMavenRepository repository = new TestingMavenRepository();
+        try {
+            assertTrue(new AssignablePredicate(BANANA_ASSIGNMENT, true, repository).apply(status));
+            assertTrue(buildFilter("assignable", BANANA_ASSIGNMENT.getBinary() + BANANA_ASSIGNMENT.getConfig(), true, repository).apply(status));
+            assertTrue(new AssignablePredicate(BANANA_ASSIGNMENT, false, repository).apply(status));
+            assertTrue(buildFilter("assignable", BANANA_ASSIGNMENT.getBinary() + BANANA_ASSIGNMENT.getConfig(), false, repository).apply(status));
+            assertTrue(new AssignablePredicate(APPLE_ASSIGNMENT, true, repository).apply(status));
+            assertTrue(buildFilter("assignable", APPLE_ASSIGNMENT.getBinary() + APPLE_ASSIGNMENT.getConfig(), true, repository).apply(status));
+            assertFalse(new AssignablePredicate(APPLE_ASSIGNMENT, false, repository).apply(status));
+            assertFalse(buildFilter("assignable", APPLE_ASSIGNMENT.getBinary() + APPLE_ASSIGNMENT.getConfig(), false, repository).apply(status));
+
+            status = status.changeSlotStatus(createSlotStatus(UUID.fromString("99999999-1234-1234-1234-123456789012"),
+                    "new-slot",
+                    URI.create("fake://localhost"),
+                    URI.create("fake://localhost"),
+                    "instance",
+                    "/location",
+                    UNKNOWN,
+                    APPLE_ASSIGNMENT,
+                    "/slotName",
+                    ImmutableMap.<String, Integer>of(
+                            "memory", 2048,
+                            "cpu", 4
+                    ))
+            );
+
+            assertFalse(new AssignablePredicate(BANANA_ASSIGNMENT, true, repository).apply(status));
+            assertFalse(buildFilter("assignable", BANANA_ASSIGNMENT.getBinary() + BANANA_ASSIGNMENT.getConfig(), true, repository).apply(status));
+        }
+        finally {
+            repository.destroy();
+        }
     }
 }
