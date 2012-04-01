@@ -222,7 +222,16 @@ public class Coordinator
         return agentStatuses;
     }
 
-    public AgentStatus getAgentStatus(String agentId)
+    public AgentStatus getAgent(String instanceId)
+    {
+        RemoteAgent remoteAgent = agents.get(instanceId);
+        if (remoteAgent == null) {
+            return null;
+        }
+        return remoteAgent.status();
+    }
+
+    public AgentStatus getAgentByAgentId(String agentId)
     {
         for (RemoteAgent remoteAgent : agents.values()) {
             AgentStatus status = remoteAgent.status();
@@ -241,7 +250,7 @@ public class Coordinator
             instanceIds.add(instance.getInstanceId());
             // todo add remote coordinator to get real status
             CoordinatorStatus coordinatorStatus = new CoordinatorStatus(instance.getInstanceId(),
-                    CoordinatorLifecycleState.ONLINE,
+                    instance.getInternalUri() != null ? CoordinatorLifecycleState.ONLINE : CoordinatorLifecycleState.OFFLINE,
                     instance.getInstanceId(),
                     instance.getInternalUri(),
                     instance.getExternalUri(),
@@ -250,7 +259,8 @@ public class Coordinator
 
             CoordinatorStatus existing = coordinators.putIfAbsent(instance.getInstanceId(), coordinatorStatus);
             if (existing != null) {
-                if (existing.getState() == CoordinatorLifecycleState.PROVISIONING) {
+                // if coordinator was provisioning and is now ONLINE...
+                if (existing.getState() == CoordinatorLifecycleState.PROVISIONING && coordinatorStatus.getState() == CoordinatorLifecycleState.ONLINE) {
                     // replace the temporary provisioning instance with a current state
                     coordinators.replace(instance.getInstanceId(), existing, coordinatorStatus);
                 }
@@ -274,7 +284,8 @@ public class Coordinator
             RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance);
             RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgent);
             if (existing != null) {
-                if (existing.status().getState() == AgentLifecycleState.PROVISIONING) {
+                // if agent was provisioning and is now ONLINE...
+                if (existing.status().getState() == AgentLifecycleState.PROVISIONING && remoteAgent.status().getState() == AgentLifecycleState.ONLINE) {
                     // replace the temporary provisioning instance with a real remote factory
                     agents.replace(instance.getInstanceId(), existing, remoteAgent);
                 } else {
@@ -282,11 +293,7 @@ public class Coordinator
                 }
             }
         }
-        for (RemoteAgent agent : agents.values()) {
-            if (agent.status().getState() == AgentLifecycleState.PROVISIONING) {
-                instanceIds.add(agent.status().getInstanceId());
-            }
-        }
+
         // remove any agents in the provisioner list
         agents.keySet().retainAll(instanceIds);
 

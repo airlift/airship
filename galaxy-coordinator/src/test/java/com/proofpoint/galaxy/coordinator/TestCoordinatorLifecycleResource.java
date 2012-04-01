@@ -130,7 +130,7 @@ public class TestCoordinatorLifecycleResource
                 bananaSlotStatus.getId().toString()),
                 MIN_PREFIX_SIZE);
 
-        provisioner.addAgent(agentStatus);
+        provisioner.addAgents(agentStatus);
         coordinator.updateAllAgents();
     }
 
@@ -227,7 +227,7 @@ public class TestCoordinatorLifecycleResource
     {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
         for (UUID slotId : slotIds) {
             SlotStatus slotStatus = agentStatus.getSlotStatus(slotId);
@@ -240,7 +240,7 @@ public class TestCoordinatorLifecycleResource
 
     private void assertSlotState(UUID slotId, SlotLifecycleState state)
     {
-        assertEquals(coordinator.getAgentStatus(agentId).getSlotStatus(slotId).getState(), state);
+        assertEquals(coordinator.getAgentByAgentId(agentId).getSlotStatus(slotId).getState(), state);
 
     }
 }

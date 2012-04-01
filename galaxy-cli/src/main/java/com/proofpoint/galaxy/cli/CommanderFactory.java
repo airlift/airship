@@ -244,7 +244,7 @@ public class CommanderFactory
         }
 
         @Override
-        public void terminateAgents(List<String> instanceIds)
+        public void terminateAgents(Iterable<String> instanceIds)
         {
             throw new UnsupportedOperationException("Agents can not be terminated in local mode");
         }

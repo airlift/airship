@@ -1,38 +1,55 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MockProvisioner implements Provisioner
 {
     private final Map<String, Instance> coordinators = new ConcurrentHashMap<String, Instance>();
     private final Map<String, AgentStatus> agents = new ConcurrentHashMap<String, AgentStatus>();
     private final RemoteAgentFactory agentFactory = new MockRemoteAgentFactory(agents);
+    private final AtomicInteger nextInstanceId = new AtomicInteger();
 
     public RemoteAgentFactory getAgentFactory()
     {
         return agentFactory;
     }
 
-    public void addCoordinator(Instance instance)
+    public void addCoordinators(Instance... instances)
     {
-        coordinators.put(instance.getInstanceId(), instance);
+        addCoordinators(ImmutableList.copyOf(instances));
     }
 
-    public void removeCoordinator(String coordinatorId)
+    public void addCoordinators(Iterable<Instance> instances)
     {
-        coordinators.remove(coordinatorId);
+        for (Instance instance : instances) {
+            coordinators.put(instance.getInstanceId(), instance);
+        }
+    }
+
+    public void removeCoordinators(String... coordinatorIds)
+    {
+        removeCoordinators(ImmutableList.copyOf(coordinatorIds));
+    }
+
+    public void removeCoordinators(Iterable<String> coordinatorIds)
+    {
+        for (String coordinatorId : coordinatorIds) {
+            coordinators.remove(coordinatorId);
+        }
     }
 
     @Override
@@ -50,7 +67,15 @@ public class MockProvisioner implements Provisioner
             String keyPair,
             String securityGroup)
     {
-        throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
+        ImmutableList.Builder<Instance> provisionedCoordinators = ImmutableList.builder();
+        for (int i = 0; i < coordinatorCount; i++) {
+            String coordinatorInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
+            String location = String.format("/mock/%s/coordinator", coordinatorInstanceId);
+            Instance instance = new Instance(coordinatorInstanceId, instanceType, location, null, null);
+            provisionedCoordinators.add(instance);
+        }
+        addCoordinators(provisionedCoordinators.build());
+        return provisionedCoordinators.build();
     }
 
     public void addAgent(String id, URI agentUri)
@@ -60,25 +85,42 @@ public class MockProvisioner implements Provisioner
 
     public void addAgent(String id, URI agentUri, Map<String, Integer> resources)
     {
-        addAgent(new AgentStatus(id,
-                ONLINE,
-                id,
+        String agentInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
+        String location = String.format("/mock/%s/agent", agentInstanceId);
+
+        addAgents(new AgentStatus(id,
+                agentUri != null ? AgentLifecycleState.ONLINE : AgentLifecycleState.OFFLINE,
+                agentInstanceId,
                 agentUri,
                 agentUri,
-                "location",
-                "test.type",
+                location,
+                "unknown",
                 ImmutableList.<SlotStatus>of(),
                 resources));
     }
 
-    public void addAgent(AgentStatus agentStatus)
+    public void addAgents(AgentStatus... agentStatuses)
     {
-        agents.put(agentStatus.getInstanceId(), agentStatus);
+        addAgents(ImmutableList.copyOf(agentStatuses));
     }
 
-    public void removeAgent(String instanceId)
+    public void addAgents(Iterable<AgentStatus> agentStatuses)
     {
-        agents.remove(instanceId);
+        for (AgentStatus agentStatus : agentStatuses) {
+            agents.put(agentStatus.getInstanceId(), agentStatus);
+        }
+    }
+
+    public void removeAgents(String... instanceIds)
+    {
+        removeAgents(ImmutableList.copyOf(instanceIds));
+    }
+
+    public void removeAgents(Iterable<String> instanceIds)
+    {
+        for (String instanceId : instanceIds) {
+            agents.remove(instanceId);
+        }
     }
 
     public void clearAgents()
@@ -95,7 +137,7 @@ public class MockProvisioner implements Provisioner
             public Instance apply(AgentStatus agentStatus)
             {
                 return new Instance(agentStatus.getInstanceId(),
-                        "unknown",
+                        agentStatus.getInstanceType(),
                         agentStatus.getLocation(),
                         agentStatus.getInternalUri(),
                         agentStatus.getExternalUri());
@@ -112,14 +154,56 @@ public class MockProvisioner implements Provisioner
             String keyPair,
             String securityGroup)
     {
-        throw new UnsupportedOperationException("Agents can not be provisioned in local mode");
+        ImmutableList.Builder<Instance> instances = ImmutableList.builder();
+        for (int i = 0; i < agentCount; i++) {
+            String agentInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
+            String location = String.format("/mock/%s/agent", agentInstanceId);
+
+            AgentStatus agentStatus = new AgentStatus(null,
+                    AgentLifecycleState.OFFLINE,
+                    agentInstanceId,
+                    null,
+                    null,
+                    location,
+                    instanceType,
+                    ImmutableList.<SlotStatus>of(),
+                    ImmutableMap.<String, Integer>of());
+
+            instances.add(new Instance(agentStatus.getInstanceId(),
+                        agentStatus.getInstanceType(),
+                        agentStatus.getLocation(),
+                        null,
+                        null));
+
+            addAgents(agentStatus);
+        }
+
+        return instances.build();
     }
 
     @Override
-    public void terminateAgents(List<String> instanceIds)
+    public void terminateAgents(Iterable<String> instanceIds)
     {
-        throw new UnsupportedOperationException("Agents can not be termination in local mode");
+        removeAgents(instanceIds);
     }
 
+    public AgentStatus startAgent(String instanceId) {
+        AgentStatus agentStatus = agents.get(instanceId);
+        Preconditions.checkNotNull(agentStatus, "agentStatus is null");
 
+        String agentId = UUID.randomUUID().toString();
+        URI uri = URI.create("fake:/" + agentId);
+        AgentStatus newAgentStatus = new AgentStatus(agentId,
+                AgentLifecycleState.ONLINE,
+                instanceId,
+                uri,
+                uri,
+                agentStatus.getLocation(),
+                agentStatus.getInstanceType(),
+                agentStatus.getSlotStatuses(),
+                agentStatus.getResources());
+
+        agents.put(instanceId, newAgentStatus);
+        return newAgentStatus;
+    }
 }

@@ -139,7 +139,7 @@ public class StaticProvisioner implements Provisioner
     }
 
     @Override
-    public void terminateAgents(List<String> instanceIds)
+    public void terminateAgents(Iterable<String> instanceIds)
     {
         throw new UnsupportedOperationException("Static provisioner does not support agent termination");
     }

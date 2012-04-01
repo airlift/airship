@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.InstallationRepresentation;
@@ -14,6 +13,9 @@ import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.node.NodeInfo;
+
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
+import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 
 public class HttpRemoteAgentFactory implements RemoteAgentFactory
 {
@@ -43,7 +45,7 @@ public class HttpRemoteAgentFactory implements RemoteAgentFactory
     public RemoteAgent createRemoteAgent(Instance instance)
     {
         AgentStatus agentStatus = new AgentStatus("unknown",
-                AgentLifecycleState.ONLINE,
+                instance.getInternalUri() != null ? ONLINE : OFFLINE,
                 instance.getInstanceId(),
                 instance.getInternalUri(),
                 instance.getExternalUri(),

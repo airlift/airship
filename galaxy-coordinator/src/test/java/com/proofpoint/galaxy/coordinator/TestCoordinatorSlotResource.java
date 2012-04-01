@@ -100,7 +100,7 @@ public class TestCoordinatorSlotResource
                 "instance.type",
                 ImmutableList.of(slot1, slot2),
                 ImmutableMap.<String, Integer>of());
-        provisioner.addAgent(agentStatus);
+        provisioner.addAgents(agentStatus);
         coordinator.updateAllAgents();
 
         int prefixSize = shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString()), MIN_PREFIX_SIZE);
@@ -145,7 +145,7 @@ public class TestCoordinatorSlotResource
                 "instance.type",
                 ImmutableList.of(slot1, slot2),
                 ImmutableMap.<String, Integer>of());
-        provisioner.addAgent(agentStatus);
+        provisioner.addAgents(agentStatus);
         coordinator.updateAllAgents();
 
         int prefixSize = shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString()), MIN_PREFIX_SIZE);

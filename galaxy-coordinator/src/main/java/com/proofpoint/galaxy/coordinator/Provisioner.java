@@ -24,5 +24,5 @@ public interface Provisioner
             String keyPair,
             String securityGroup);
 
-    void terminateAgents(List<String> instanceIds);
+    void terminateAgents(Iterable<String> instanceIds);
 }

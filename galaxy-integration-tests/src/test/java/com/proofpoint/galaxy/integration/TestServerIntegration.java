@@ -24,23 +24,26 @@ import com.google.inject.Module;
 import com.google.inject.util.Modules;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.event.client.NullEventModule;
 import com.proofpoint.galaxy.agent.Agent;
-import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.Slot;
+import com.proofpoint.galaxy.coordinator.AgentProvisioningRepresentation;
 import com.proofpoint.galaxy.coordinator.Coordinator;
 import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
 import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
+import com.proofpoint.galaxy.coordinator.Instance;
 import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
-import com.proofpoint.galaxy.coordinator.MockProvisioner;
 import com.proofpoint.galaxy.coordinator.Provisioner;
 import com.proofpoint.galaxy.coordinator.StateManager;
 import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
+import com.proofpoint.galaxy.integration.MockLocalProvisioner.AgentServer;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import com.proofpoint.galaxy.shared.SlotStatusRepresentation.SlotStatusRepresentationFactory;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.HttpClient;
@@ -52,7 +55,6 @@ import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.node.NodeModule;
-import com.proofpoint.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -60,18 +62,12 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.UUID;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.inject.Scopes.SINGLETON;
-import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
@@ -82,33 +78,34 @@ import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
 import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
 import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static com.proofpoint.testing.Assertions.assertNotEquals;
-import static java.util.Arrays.asList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class TestServerIntegration
 {
     private HttpClient httpClient;
-    private TestingHttpServer agentServer;
-    private TestingHttpServer coordinatorServer;
 
-    private Agent agent;
+    private TestingHttpServer coordinatorServer;
     private Coordinator coordinator;
+    private InMemoryStateManager stateManager;
+    private MockLocalProvisioner provisioner;
 
     private Slot appleSlot1;
     private Slot appleSlot2;
     private Slot bananaSlot;
-    private File tempDir;
 
-    private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
+    private final JsonCodec<List<AgentStatusRepresentation>> agentStatusesCodec = listJsonCodec(AgentStatusRepresentation.class);
+    private final JsonCodec<AgentProvisioningRepresentation> agentProvisioningCodec = jsonCodec(AgentProvisioningRepresentation.class);
+    private final JsonCodec<List<SlotStatusRepresentation>> slotStatusesCodec = listJsonCodec(SlotStatusRepresentation.class);
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
 
     private File binaryRepoDir;
@@ -117,13 +114,10 @@ public class TestServerIntegration
     private File serviceInventoryCacheDir;
     private Repository repository;
 
-    private int prefixSize;
-    private MockProvisioner provisioner;
-
-    public static Map<String, Integer> AGENT_RESOURCES = ImmutableMap.<String, Integer>builder()
-            .put("cpu", 8)
-            .put("memory", 1024)
-            .build();
+    // initial agent created during test setup
+    private Agent agent;
+    private String instanceId;
+    private SlotStatusRepresentationFactory slotStatusRepresentationFactory;
 
     @BeforeClass
     public void startServer()
@@ -171,7 +165,7 @@ public class TestServerIntegration
                     public void configure(Binder binder)
                     {
                         binder.bind(StateManager.class).to(InMemoryStateManager.class).in(SINGLETON);
-                        binder.bind(Provisioner.class).to(MockProvisioner.class).in(SINGLETON);
+                        binder.bind(Provisioner.class).to(MockLocalProvisioner.class).in(SINGLETON);
                     }
                 }),
                 new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
@@ -179,70 +173,60 @@ public class TestServerIntegration
         coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
         coordinator = coordinatorInjector.getInstance(Coordinator.class);
         repository = coordinatorInjector.getInstance(Repository.class);
-        provisioner = (MockProvisioner) coordinatorInjector.getInstance(Provisioner.class);
+        stateManager = (InMemoryStateManager) coordinatorInjector.getInstance(StateManager.class);
+        provisioner = (MockLocalProvisioner) coordinatorInjector.getInstance(Provisioner.class);
 
         coordinatorServer.start();
+
         httpClient = new ApacheHttpClient();
-
-        tempDir = createTempDir("agent");
-        File resourcesFile = new File(tempDir, "slots/galaxy-resources.properties");
-        writeResources(AGENT_RESOURCES, resourcesFile);
-
-        Map<String, String> agentProperties = ImmutableMap.<String, String>builder()
-                .put("agent.id", UUID.randomUUID().toString())
-                .put("agent.coordinator-uri", coordinatorServer.getBaseUrl().toString())
-                .put("agent.slots-dir", new File(tempDir, "slots").getAbsolutePath())
-                .put("agent.resources-file", resourcesFile.getAbsolutePath())
-                .put("discovery.uri", "fake://server")
-                .build();
-
-        Injector agentInjector = Guice.createInjector(new TestingHttpServerModule(),
-                new TestingNodeModule(),
-                new TestingDiscoveryModule(),
-                new JsonModule(),
-                new JaxrsModule(),
-                new NullEventModule(),
-                new AgentMainModule(),
-                new ConfigurationModule(new ConfigurationFactory(agentProperties)));
-
-        agentServer = agentInjector.getInstance(TestingHttpServer.class);
-        agent = agentInjector.getInstance(Agent.class);
-        agentServer.start();
-        httpClient = new ApacheHttpClient();
-    }
-
-    public static void writeResources(Map<String, Integer> resources, File resourcesFile)
-            throws IOException
-    {
-        Properties properties = new Properties();
-        for (Entry<String, Integer> entry : resources.entrySet()) {
-            properties.setProperty(entry.getKey(), String.valueOf(entry.getValue()));
-        }
-        resourcesFile.getParentFile().mkdirs();
-        FileOutputStream out = new FileOutputStream(resourcesFile);
-        try {
-            properties.store(out, "");
-        }
-        finally {
-            out.close();
-        }
     }
 
     @BeforeMethod
     public void resetState()
             throws Exception
     {
-        for (Slot slot : agent.getAllSlots()) {
-            if (slot.status().getAssignment() != null) {
-                slot.stop();
-            }
-            agent.terminateSlot(slot.getName());
-        }
         provisioner.clearAgents();
         coordinator.updateAllAgents();
-        assertTrue(agent.getAllSlots().isEmpty());
+        stateManager.clearAll();
+        assertTrue(provisioner.getAllAgents().isEmpty());
         assertTrue(coordinator.getAgents().isEmpty());
+        assertTrue(coordinator.getAllSlotStatus().isEmpty());
+    }
 
+    @AfterClass
+    public void stopServer()
+            throws Exception
+    {
+        provisioner.clearAgents();
+
+        if (coordinatorServer != null) {
+            coordinatorServer.stop();
+        }
+
+        if (binaryRepoDir != null) {
+            deleteRecursively(binaryRepoDir);
+        }
+        if (expectedStateDir != null) {
+            deleteRecursively(expectedStateDir);
+        }
+        if (serviceInventoryCacheDir != null) {
+            deleteRecursively(serviceInventoryCacheDir);
+        }
+        if (localBinaryRepoDir != null) {
+            deleteRecursively(localBinaryRepoDir);
+        }
+    }
+
+    private void initializeOneAgent()
+            throws Exception
+    {
+        List<Instance> instances = provisioner.provisionAgents("agent:config:1", 1, "instance-type", null, null, null, null);
+        assertEquals(instances.size(), 1);
+        AgentServer agentServer = provisioner.getAgent(instances.get(0).getInstanceId());
+        assertNotNull(agentServer);
+        agentServer.start();
+        instanceId = agentServer.getInstanceId();
+        agent = agentServer.getAgent();
 
         appleSlot1 = agent.getSlot(agent.install(new Installation("apple",
                 APPLE_ASSIGNMENT,
@@ -260,59 +244,133 @@ public class TestServerIntegration
                 repository.configToHttpUri(BANANA_ASSIGNMENT.getConfig()),
                 ImmutableMap.of("memory", 512))).getName());
 
-        provisioner.addAgent(agent.getAgentId(), agentServer.getBaseUrl());
         coordinator.updateAllAgents();
+        assertEquals(coordinator.getAgents().size(), 1);
+        assertNotNull(coordinator.getAgent(agentServer.getInstanceId()));
+        assertEquals(coordinator.getAgent(agentServer.getInstanceId()).getState(), AgentLifecycleState.ONLINE);
+        assertNotNull(coordinator.getAgent(agentServer.getInstanceId()).getInternalUri());
+        assertNotNull(coordinator.getAgent(agentServer.getInstanceId()).getExternalUri());
 
-        prefixSize = shortestUniquePrefix(asList(
-                appleSlot1.getId().toString(),
-                appleSlot2.getId().toString(),
-                bananaSlot.getId().toString()),
-                MIN_PREFIX_SIZE);
+        slotStatusRepresentationFactory = new SlotStatusRepresentationFactory(ImmutableList.of(appleSlot1.status(), appleSlot2.status(), bananaSlot.status()), repository);
     }
 
-    @AfterClass
-    public void stopServer()
+    @Test
+    public void testGetAllAgentsEmpty()
+    {
+        Request request = RequestBuilder.prepareGet()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
+                .build();
+
+        List<AgentStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusesCodec, Status.OK.getStatusCode()));
+        assertEquals(actual.size(), 0);
+    }
+
+    @Test
+    public void testGetAllAgentsSingle()
             throws Exception
     {
-        if (agentServer != null) {
-            agentServer.stop();
-        }
+        // directly add a new agent and start it
+        List<Instance> instances = provisioner.provisionAgents("agent:config:1", 1, "instance-type", null, null, null, null);
+        assertEquals(instances.size(), 1);
+        AgentServer agentServer = provisioner.getAgent(instances.get(0).getInstanceId());
+        agentServer.start();
+        coordinator.updateAllAgents();
 
-        if (coordinatorServer != null) {
-            coordinatorServer.stop();
-        }
+        // get list of all agents
+        Request request = RequestBuilder.prepareGet()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
+                .build();
 
-        if (tempDir != null) {
-            deleteRecursively(tempDir);
-        }
-        if (binaryRepoDir != null) {
-            deleteRecursively(binaryRepoDir);
-        }
-        if (expectedStateDir != null) {
-            deleteRecursively(expectedStateDir);
-        }
-        if (serviceInventoryCacheDir != null) {
-            deleteRecursively(serviceInventoryCacheDir);
-        }
-        if (localBinaryRepoDir != null) {
-            deleteRecursively(localBinaryRepoDir);
-        }
+        // verify agents list contains only the agent provisioned above
+        List<AgentStatusRepresentation> agents = httpClient.execute(request, createJsonResponseHandler(agentStatusesCodec, Status.OK.getStatusCode()));
+        assertEquals(agents.size(), 1);
+        AgentStatusRepresentation actual = agents.get(0);
+        assertEquals(actual.getAgentId(), agentServer.getAgent().getAgentId());
+        assertEquals(actual.getState(), AgentLifecycleState.ONLINE);
+        assertEquals(actual.getInstanceId(), agentServer.getInstance().getInstanceId());
+        assertEquals(actual.getLocation(), agentServer.getInstance().getLocation());
+        assertEquals(actual.getInstanceType(), agentServer.getInstance().getInstanceType());
+        assertNotNull(actual.getSelf());
+        assertEquals(actual.getSelf(), agentServer.getInstance().getInternalUri());
+        assertNotNull(actual.getExternalUri());
+        assertEquals(actual.getExternalUri(), agentServer.getInstance().getExternalUri());
+        assertEquals(actual.getResources(), agentServer.getAgent().getResources());
+    }
+
+    @Test
+    public void testAgentProvision()
+            throws Exception
+    {
+        // provision the agent and verify
+        String instanceType = "instance-type";
+        AgentProvisioningRepresentation agentProvisioningRepresentation = new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null);
+        Request request = RequestBuilder.preparePost()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
+                .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .setBodyGenerator(jsonBodyGenerator(agentProvisioningCodec, agentProvisioningRepresentation))
+                .build();
+        List<AgentStatusRepresentation> agents = httpClient.execute(request, createJsonResponseHandler(agentStatusesCodec, Status.OK.getStatusCode()));
+
+        assertEquals(agents.size(), 1);
+        String instanceId = agents.get(0).getInstanceId();
+        assertNotNull(instanceId);
+        String location = agents.get(0).getLocation();
+        assertNotNull(location);
+        assertEquals(agents.get(0).getInstanceType(), instanceType);
+        assertNull(agents.get(0).getAgentId());
+        assertNull(agents.get(0).getSelf());
+        assertNull(agents.get(0).getExternalUri());
+        assertEquals(agents.get(0).getState(), AgentLifecycleState.PROVISIONING);
+
+        // start the agent and verify
+        AgentServer agentServer = provisioner.getAgent(agents.get(0).getInstanceId());
+        agentServer.start();
+        coordinator.updateAllAgents();
+        assertEquals(coordinator.getAgents().size(), 1);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
+        assertEquals(coordinator.getAgent(instanceId).getLocation(), location);
+        assertEquals(coordinator.getAgent(instanceId).getAgentId(), agentServer.getAgent().getAgentId());
+        assertNotNull(coordinator.getAgent(instanceId).getInternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getInternalUri(), agentServer.getInstance().getInternalUri());
+        assertNotNull(coordinator.getAgent(instanceId).getExternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getExternalUri(), agentServer.getInstance().getExternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.ONLINE);
+
+        request = RequestBuilder.prepareGet()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
+                .build();
+
+        agents = httpClient.execute(request, createJsonResponseHandler(agentStatusesCodec, Status.OK.getStatusCode()));
+        assertEquals(agents.size(), 1);
+
+        AgentStatusRepresentation actual = agents.get(0);
+        assertEquals(actual.getInstanceId(), instanceId);
+        assertEquals(actual.getInstanceType(), instanceType);
+        assertEquals(actual.getLocation(), location);
+        assertEquals(actual.getAgentId(), agentServer.getAgent().getAgentId());
+        assertNotNull(actual.getSelf());
+        assertEquals(actual.getSelf(), agentServer.getInstance().getInternalUri());
+        assertNotNull(actual.getExternalUri());
+        assertEquals(actual.getExternalUri(), agentServer.getInstance().getExternalUri());
+        assertEquals(actual.getState(), AgentLifecycleState.ONLINE);
     }
 
     @Test
     public void testStart()
             throws Exception
     {
+        initializeOneAgent();
+
         Request request = RequestBuilder.preparePut()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "*:apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("running", UTF_8))
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-        String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
-                SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
+                slotStatusRepresentationFactory.create(appleSlot1.status().changeInstanceId(instanceId)),
+                slotStatusRepresentationFactory.create(appleSlot2.status().changeInstanceId(instanceId)));
 
         assertEquals(appleSlot1.status().getState(), RUNNING);
         assertEquals(appleSlot2.status().getState(), RUNNING);
@@ -324,18 +382,19 @@ public class TestServerIntegration
     public void testUpgrade()
             throws Exception
     {
+        initializeOneAgent();
+
         UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "@2.0");
         Request request = RequestBuilder.preparePost()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/assignment").addParameter("binary", "*:apple:*").build())
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .setBodyGenerator(jsonBodyGenerator(upgradeVersionsCodec, upgradeVersions))
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-        String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
-                SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
+                slotStatusRepresentationFactory.create(appleSlot1.status().changeInstanceId(instanceId)),
+                slotStatusRepresentationFactory.create(appleSlot2.status().changeInstanceId(instanceId)));
 
         assertEqualsNoOrder(actual, expected);
 
@@ -351,15 +410,16 @@ public class TestServerIntegration
     public void testTerminate()
             throws Exception
     {
+        initializeOneAgent();
+
         Request request = RequestBuilder.prepareDelete()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("binary", "*:apple:*").build())
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-        String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
-                SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
+                slotStatusRepresentationFactory.create(appleSlot1.status().changeInstanceId(instanceId)),
+                slotStatusRepresentationFactory.create(appleSlot2.status().changeInstanceId(instanceId)));
 
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), TERMINATED);
@@ -371,6 +431,8 @@ public class TestServerIntegration
     public void testRestart()
             throws Exception
     {
+        initializeOneAgent();
+
         appleSlot1.start();
         coordinator.updateAllAgents();
         assertEquals(appleSlot1.status().getState(), RUNNING);
@@ -382,13 +444,11 @@ public class TestServerIntegration
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "*:apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("restarting", UTF_8))
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-
-        String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
-                SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
+                slotStatusRepresentationFactory.create(appleSlot1.status().changeInstanceId(instanceId)),
+                slotStatusRepresentationFactory.create(appleSlot2.status().changeInstanceId(instanceId)));
 
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), RUNNING);
@@ -403,6 +463,8 @@ public class TestServerIntegration
     public void testStop()
             throws Exception
     {
+        initializeOneAgent();
+
         appleSlot1.start();
         appleSlot2.start();
         bananaSlot.start();
@@ -412,13 +474,11 @@ public class TestServerIntegration
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "*:apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("stopped", UTF_8))
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-
-        String agentInstanceId = coordinator.getAgentStatus(agent.getAgentId()).getInstanceId();
         List<SlotStatusRepresentation> expected = ImmutableList.of(
-                SlotStatusRepresentation.from(appleSlot1.status().changeInstanceId(agentInstanceId), prefixSize, repository),
-                SlotStatusRepresentation.from(appleSlot2.status().changeInstanceId(agentInstanceId), prefixSize, repository));
+                slotStatusRepresentationFactory.create(appleSlot1.status().changeInstanceId(instanceId)),
+                slotStatusRepresentationFactory.create(appleSlot2.status().changeInstanceId(instanceId)));
 
         assertEqualsNoOrder(actual, expected);
         assertEquals(appleSlot1.status().getState(), STOPPED);

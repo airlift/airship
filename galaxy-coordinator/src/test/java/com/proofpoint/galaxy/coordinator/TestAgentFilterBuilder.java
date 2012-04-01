@@ -44,7 +44,7 @@ public class TestAgentFilterBuilder
                 "instance-id",
                 URI.create("internal://10.0.0.1"),
                 URI.create("external://localhost"),
-                "unknown/location",
+                "/unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(createSlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
                         "slotName",

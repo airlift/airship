@@ -385,9 +385,9 @@ public class AwsProvisioner implements Provisioner
     }
 
     @Override
-    public void terminateAgents(List<String> instanceIds)
+    public void terminateAgents(Iterable<String> instanceIds)
     {
-        ec2Client.terminateInstances(new TerminateInstancesRequest(instanceIds));
+        ec2Client.terminateInstances(new TerminateInstancesRequest(ImmutableList.copyOf(instanceIds)));
     }
 
     private void createInstanceTagsWithRetry(List<String> instanceIds, List<Tag> tags)

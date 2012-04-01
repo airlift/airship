@@ -125,7 +125,7 @@ public class TestCoordinatorAssignmentResource
                 bananaSlotStatus.getId().toString()),
                 MIN_PREFIX_SIZE);
 
-        provisioner.addAgent(agentStatus);
+        provisioner.addAgents(agentStatus);
         coordinator.updateAllAgents();
     }
 
@@ -152,7 +152,7 @@ public class TestCoordinatorAssignmentResource
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.upgrade(upgradeVersions, uriInfo, null);
 
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SlotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);

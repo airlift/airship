@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +25,8 @@ import static com.proofpoint.galaxy.shared.AssignmentHelper.RESOLVED_APPLE_ASSIG
 import static com.proofpoint.galaxy.shared.AssignmentHelper.SHORT_APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
@@ -68,51 +71,119 @@ public class TestCoordinator
     }
 
     @Test
-    public void testOneAgent()
+    public void testAgentDiscovery()
             throws Exception
     {
         String agentId = UUID.randomUUID().toString();
-        URI agentUri = URI.create("fake://agent/" + agentId);
+        URI internalUri = URI.create("fake://agent/" + agentId + "/internal");
+        URI externalUri = URI.create("fake://agent/" + agentId + "/external");
+        String instanceId = "instance-id";
+        String location = "/unknown/location";
+        String instanceType = "instance.type";
+        Map<String, Integer> resources = ImmutableMap.of("cpu", 8, "memory", 1024);
 
         AgentStatus status = new AgentStatus(agentId,
                 AgentLifecycleState.ONLINE,
-                "instance-id",
-                agentUri,
-                agentUri,
-                "unknown/location",
-                "instance.type",
+                instanceId,
+                internalUri,
+                externalUri,
+                location,
+                instanceType,
                 ImmutableList.<SlotStatus>of(),
-                ImmutableMap.of("cpu", 8, "memory", 1024));
-        provisioner.addAgent(status);
-        coordinator.updateAllAgents();
+                resources);
 
+        // add the agent to the provisioner
+        provisioner.addAgents(status);
+
+        // coordinator won't see it until it update is called
+        assertTrue(coordinator.getAgents().isEmpty());
+
+        // update the coordinator and verify
+        coordinator.updateAllAgents();
         assertEquals(coordinator.getAgents(), ImmutableList.of(status));
-        assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
-        assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
+        AgentStatus actual = coordinator.getAgents().get(0);
+        assertEquals(actual.getAgentId(), agentId);
+        assertEquals(actual.getState(), AgentLifecycleState.ONLINE);
+        assertEquals(actual.getInstanceId(), instanceId);
+        assertEquals(actual.getLocation(), location);
+        assertEquals(actual.getInstanceType(), instanceType);
+        assertEquals(actual.getInternalUri(), internalUri);
+        assertEquals(actual.getExternalUri(), externalUri);
+        assertEquals(actual.getResources(), resources);
     }
 
     @Test
     public void testAgentProvision()
             throws Exception
     {
-        String agentId = UUID.randomUUID().toString();
-        URI agentUri = URI.create("fake://agent/" + agentId);
+        // provision the agent and verify
+        String instanceType = "instance-type";
+        List<AgentStatus> agents = coordinator.provisionAgents("agent:config:1", 1, instanceType, null, null, null, null);
+        assertNotNull(agents);
+        assertEquals(agents.size(), 1);
+        String instanceId = agents.get(0).getInstanceId();
+        assertNotNull(instanceId);
+        String location = agents.get(0).getLocation();
+        assertNotNull(location);
+        assertEquals(agents.get(0).getInstanceType(), instanceType);
+        assertNull(agents.get(0).getAgentId());
+        assertNull(agents.get(0).getInternalUri());
+        assertNull(agents.get(0).getExternalUri());
+        assertEquals(agents.get(0).getState(), AgentLifecycleState.PROVISIONING);
 
-        // provision the agent
-        provisioner.addAgent(agentId, agentUri);
+        // coordinator will initially report the agent as PROVISIONING
+        assertEquals(coordinator.getAgents().size(), 1);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
+        assertEquals(coordinator.getAgent(instanceId).getLocation(), location);
+        assertNull(coordinator.getAgent(instanceId).getAgentId());
+        assertNull(coordinator.getAgent(instanceId).getInternalUri());
+        assertNull(coordinator.getAgent(instanceId).getExternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.PROVISIONING);
 
-        // coordinator won't see it until it update is called
-        assertTrue(coordinator.getAgents().isEmpty());
-
-        // announce the new agent and verify
+        // update coordinator, and verify the agent is still PROVISIONING
         coordinator.updateAllAgents();
-        assertEquals(coordinator.getAgentStatus(agentId).getAgentId(), agentId);
-        assertEquals(coordinator.getAgentStatus(agentId).getState(), AgentLifecycleState.ONLINE);
+        assertEquals(coordinator.getAgents().size(), 1);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
+        assertEquals(coordinator.getAgent(instanceId).getLocation(), location);
+        assertNull(coordinator.getAgent(instanceId).getAgentId());
+        assertNull(coordinator.getAgent(instanceId).getInternalUri());
+        assertNull(coordinator.getAgent(instanceId).getExternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.PROVISIONING);
 
-        // remove the slot from provisioner
-        provisioner.removeAgent(agentId);
+        // start the agent, but don't update
+        AgentStatus expectedAgentStatus = provisioner.startAgent(instanceId);
+        assertEquals(coordinator.getAgents().size(), 1);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
+        assertEquals(coordinator.getAgent(instanceId).getLocation(), location);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
+        assertNull(coordinator.getAgent(instanceId).getAgentId());
+        assertNull(coordinator.getAgent(instanceId).getInternalUri());
+        assertNull(coordinator.getAgent(instanceId).getExternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.PROVISIONING);
+
+        // update and verify
         coordinator.updateAllAgents();
-        assertNull(coordinator.getAgentStatus(agentId));
+        assertEquals(coordinator.getAgents().size(), 1);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
+        assertEquals(coordinator.getAgent(instanceId).getLocation(), location);
+        assertEquals(coordinator.getAgent(instanceId).getAgentId(), expectedAgentStatus.getAgentId());
+        assertEquals(coordinator.getAgent(instanceId).getInternalUri(), expectedAgentStatus.getInternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getExternalUri(), expectedAgentStatus.getExternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.ONLINE);
+
+        // update and verify nothing changed
+        coordinator.updateAllAgents();
+        assertEquals(coordinator.getAgents().size(), 1);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
+        assertEquals(coordinator.getAgent(instanceId).getLocation(), location);
+        assertEquals(coordinator.getAgent(instanceId).getAgentId(), expectedAgentStatus.getAgentId());
+        assertEquals(coordinator.getAgent(instanceId).getInternalUri(), expectedAgentStatus.getInternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getExternalUri(), expectedAgentStatus.getExternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.ONLINE);
     }
 
     @Test

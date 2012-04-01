@@ -27,7 +27,9 @@ import com.google.inject.util.Modules;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.event.client.NullEventModule;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotStatus;
@@ -83,6 +85,8 @@ import static com.proofpoint.json.JsonCodec.listJsonCodec;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class TestCoordinatorServer
@@ -93,7 +97,9 @@ public class TestCoordinatorServer
     private int prefixSize;
     private Coordinator coordinator;
 
-    private final JsonCodec<List<SlotStatusRepresentation>> agentStatusRepresentationsCodec = listJsonCodec(SlotStatusRepresentation.class);
+    private final JsonCodec<List<AgentStatusRepresentation>> agentStatusesCodec = listJsonCodec(AgentStatusRepresentation.class);
+    private final JsonCodec<List<SlotStatusRepresentation>> slotStatusesCodec = listJsonCodec(SlotStatusRepresentation.class);
+    private final JsonCodec<AgentProvisioningRepresentation> agentProvisioningCodec = jsonCodec(AgentProvisioningRepresentation.class);
     private final JsonCodec<UpgradeVersions> upgradeVersionsCodec = jsonCodec(UpgradeVersions.class);
     private String agentId;
     private InMemoryStateManager stateManager;
@@ -214,7 +220,7 @@ public class TestCoordinatorServer
                 ImmutableList.of(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus),
                 ImmutableMap.of("cpu", 8, "memory", 1024));
 
-        provisioner.addAgent(agentStatus);
+        provisioner.addAgents(agentStatus);
         coordinator.updateAllAgents();
 
         prefixSize = shortestUniquePrefix(transform(transform(asList(appleSlotStatus1, appleSlotStatus2, bananaSlotStatus), uuidGetter()), toStringFunction()), MIN_PREFIX_SIZE);
@@ -231,15 +237,134 @@ public class TestCoordinatorServer
     }
 
     @Test
+    public void testGetAllAgentsEmpty()
+    {
+        provisioner.clearAgents();
+        coordinator.updateAllAgents();
+        assertTrue(coordinator.getAgents().isEmpty());
+
+        Request request = RequestBuilder.prepareGet()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
+                .build();
+
+        List<AgentStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusesCodec, Status.OK.getStatusCode()));
+        assertEquals(actual.size(), 0);
+    }
+
+    @Test
+    public void testGetAllAgentsSingle()
+            throws Exception
+    {
+        provisioner.clearAgents();
+
+        String agentId = UUID.randomUUID().toString();
+        URI internalUri = URI.create("fake://agent/" + agentId + "/internal");
+        URI externalUri = URI.create("fake://agent/" + agentId + "/external");
+        String instanceId = "instance-id";
+        String location = "/unknown/location";
+        String instanceType = "instance.type";
+        Map<String, Integer> resources = ImmutableMap.of("cpu", 8, "memory", 1024);
+
+        AgentStatus status = new AgentStatus(agentId,
+                AgentLifecycleState.ONLINE,
+                instanceId,
+                internalUri,
+                externalUri,
+                location,
+                instanceType,
+                ImmutableList.<SlotStatus>of(),
+                resources);
+
+        // add the agent
+        provisioner.addAgents(status);
+        coordinator.updateAllAgents();
+
+        Request request = RequestBuilder.prepareGet()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
+                .build();
+
+        List<AgentStatusRepresentation> agents = httpClient.execute(request, createJsonResponseHandler(agentStatusesCodec, Status.OK.getStatusCode()));
+        assertEquals(agents.size(), 1);
+
+        AgentStatusRepresentation actual = agents.get(0);
+        assertEquals(actual.getAgentId(), agentId);
+        assertEquals(actual.getState(), AgentLifecycleState.ONLINE);
+        assertEquals(actual.getInstanceId(), instanceId);
+        assertEquals(actual.getLocation(), location);
+        assertEquals(actual.getInstanceType(), instanceType);
+        assertEquals(actual.getSelf(), internalUri);
+        assertEquals(actual.getExternalUri(), externalUri);
+        assertEquals(actual.getResources(), resources);
+    }
+
+    @Test
+    public void testAgentProvision()
+            throws Exception
+    {
+        provisioner.clearAgents();
+        coordinator.updateAllAgents();
+        assertTrue(coordinator.getAgents().isEmpty());
+
+        // provision the agent and verify
+        String instanceType = "instance-type";
+        AgentProvisioningRepresentation agentProvisioningRepresentation = new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null);
+        Request request = RequestBuilder.preparePost()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
+                .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .setBodyGenerator(jsonBodyGenerator(agentProvisioningCodec, agentProvisioningRepresentation))
+                .build();
+        List<AgentStatusRepresentation> agents = httpClient.execute(request, createJsonResponseHandler(agentStatusesCodec, Status.OK.getStatusCode()));
+
+        assertEquals(agents.size(), 1);
+        String instanceId = agents.get(0).getInstanceId();
+        assertNotNull(instanceId);
+        String location = agents.get(0).getLocation();
+        assertNotNull(location);
+        assertEquals(agents.get(0).getInstanceType(), instanceType);
+        assertNull(agents.get(0).getAgentId());
+        assertNull(agents.get(0).getSelf());
+        assertNull(agents.get(0).getExternalUri());
+        assertEquals(agents.get(0).getState(), AgentLifecycleState.PROVISIONING);
+
+        // start the agent and verify
+        AgentStatus expectedAgentStatus = provisioner.startAgent(instanceId);
+        coordinator.updateAllAgents();
+        assertEquals(coordinator.getAgents().size(), 1);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
+        assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
+        assertEquals(coordinator.getAgent(instanceId).getLocation(), location);
+        assertEquals(coordinator.getAgent(instanceId).getAgentId(), expectedAgentStatus.getAgentId());
+        assertEquals(coordinator.getAgent(instanceId).getInternalUri(), expectedAgentStatus.getInternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getExternalUri(), expectedAgentStatus.getExternalUri());
+        assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.ONLINE);
+
+        request = RequestBuilder.prepareGet()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
+                .build();
+
+        agents = httpClient.execute(request, createJsonResponseHandler(agentStatusesCodec, Status.OK.getStatusCode()));
+        assertEquals(agents.size(), 1);
+
+        AgentStatusRepresentation actual = agents.get(0);
+        assertEquals(actual.getInstanceId(), instanceId);
+        assertEquals(actual.getInstanceType(), instanceType);
+        assertEquals(actual.getLocation(), location);
+        assertEquals(actual.getAgentId(), expectedAgentStatus.getAgentId());
+        assertEquals(actual.getSelf(), expectedAgentStatus.getInternalUri());
+        assertEquals(actual.getExternalUri(), expectedAgentStatus.getExternalUri());
+        assertEquals(actual.getState(), AgentLifecycleState.ONLINE);
+    }
+
+    @Test
     public void testGetAllSlots()
             throws Exception
     {
         Request request = RequestBuilder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("name", "*").build())
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
 
         int prefixSize = shortestUniquePrefix(asList(
                 agentStatus.getSlotStatus(apple1SotId).getId().toString(),
@@ -263,9 +388,9 @@ public class TestCoordinatorServer
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .setBodyGenerator(jsonBodyGenerator(upgradeVersionsCodec, upgradeVersions))
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
@@ -289,18 +414,18 @@ public class TestCoordinatorServer
     public void testTerminate()
             throws Exception
     {
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
 
         Request request = RequestBuilder.prepareDelete()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("host", "apple*").build())
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
         apple1Status = apple1Status.changeState(TERMINATED);
         apple2Status = apple2Status.changeState(TERMINATED);
-        SlotStatus bananaStatus = coordinator.getAgentStatus(agentId).getSlotStatus(bananaSlotId);
+        SlotStatus bananaStatus = coordinator.getAgentByAgentId(agentId).getSlotStatus(bananaSlotId);
 
         List<SlotStatusRepresentation> expected = ImmutableList.of(
                 SlotStatusRepresentation.from(apple1Status, prefixSize, MOCK_REPO),
@@ -321,9 +446,9 @@ public class TestCoordinatorServer
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("running", UTF_8))
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
@@ -346,9 +471,9 @@ public class TestCoordinatorServer
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("restarting", UTF_8))
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
@@ -373,9 +498,9 @@ public class TestCoordinatorServer
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("stopped", UTF_8))
                 .build();
-        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(agentStatusRepresentationsCodec, Status.OK.getStatusCode()));
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
@@ -400,7 +525,7 @@ public class TestCoordinatorServer
                 .build();
         StatusResponse response = httpClient.execute(request, createStatusResponseHandler());
 
-        AgentStatus agentStatus = coordinator.getAgentStatus(agentId);
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
         SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);

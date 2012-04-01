@@ -11,20 +11,16 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Random;
-
-import static java.lang.Character.MIN_RADIX;
 
 public class ProvisioningRemoteAgent implements RemoteAgent
 {
-    private static final Random RANDOM = new Random();
-    private AgentStatus agentStatus;
+    private final AgentStatus agentStatus;
 
     public ProvisioningRemoteAgent(Instance instance)
     {
         Preconditions.checkNotNull(instance, "instance is null");
         agentStatus = new AgentStatus(
-                "provisioning-" + Integer.toString(RANDOM.nextInt(), MIN_RADIX),
+                null,
                 AgentLifecycleState.PROVISIONING,
                 instance.getInstanceId(),
                 null,

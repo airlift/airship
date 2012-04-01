@@ -23,7 +23,7 @@ public class TestCoordinatorFilterBuilder
             "coordinator-instance",
             URI.create("internal://10.0.0.1"),
             URI.create("external://localhost"),
-            "unknown/location",
+            "/unknown/location",
             "instance.type");
 
     private Predicate<CoordinatorStatus> buildFilter(String key, String value)
