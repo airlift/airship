@@ -13,12 +13,6 @@
  */
 package com.proofpoint.galaxy.shared;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
-
-import java.util.Map;
-
 public enum AgentLifecycleState
 {
     PROVISIONING, ONLINE, OFFLINE, TERMINATED
