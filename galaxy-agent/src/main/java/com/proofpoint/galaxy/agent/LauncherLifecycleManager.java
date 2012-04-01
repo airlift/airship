@@ -176,7 +176,7 @@ public class LauncherLifecycleManager implements LifecycleManager
         map.put("service-inventory.uri", serviceInventoryUri.toString());
 
         File nodeConfig = new File(deployment.getDeploymentDir(), "etc/node.properties");
-        nodeConfig.getParentFile().mkdir();
+        nodeConfig.getParentFile().mkdirs();
 
         try {
             String data = Joiner.on("\n").withKeyValueSeparator("=").join(map.build()) + "\n";

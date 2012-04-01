@@ -109,7 +109,7 @@ public class FileUtils
         baseName += System.currentTimeMillis() + "-";
         for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
             File tempDir = new File(parentDir, baseName + counter);
-            if (tempDir.mkdir()) {
+            if (tempDir.mkdirs()) {
                 return tempDir;
             }
         }
