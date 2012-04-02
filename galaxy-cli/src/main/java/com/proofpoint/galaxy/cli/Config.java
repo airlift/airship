@@ -1,5 +1,6 @@
 package com.proofpoint.galaxy.cli;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -15,7 +16,8 @@ import java.util.List;
 
 public class Config
 {
-    private LinkedListMultimap<String, String> configuration;
+    private final LinkedListMultimap<String, String> configuration;
+    private final File file;
 
     public static Config loadConfig(File file)
             throws IOException
@@ -35,12 +37,20 @@ public class Config
             }
         }
 
-        return new Config(config);
+        return new Config(config, file);
     }
 
-    public Config(LinkedListMultimap<String, String> configuration)
+    @VisibleForTesting
+    public Config()
+    {
+        this.configuration = LinkedListMultimap.create();
+        this.file = null;
+    }
+
+    public Config(LinkedListMultimap<String, String> configuration, File file)
     {
         this.configuration = configuration;
+        this.file = file;
     }
 
     public String get(String key)
@@ -68,12 +78,14 @@ public class Config
         configuration.put(key, value);
     }
 
-    public void save(File file)
+    public void save()
             throws IOException
     {
-        file.getAbsoluteFile().getParentFile().mkdirs();
-        String data = Joiner.on('\n').withKeyValueSeparator(" = ").useForNull("").join(configuration.entries()) + "\n";
-        Files.write(data, file, Charsets.UTF_8);
+        if (file != null) {
+            file.getAbsoluteFile().getParentFile().mkdirs();
+            String data = Joiner.on('\n').withKeyValueSeparator(" = ").useForNull("").join(configuration.entries()) + "\n";
+            Files.write(data, file, Charsets.UTF_8);
+        }
     }
 
     @Override

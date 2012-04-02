@@ -75,7 +75,7 @@ public class LocalCommander implements Commander
     public List<SlotStatusRepresentation> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedAgentsVersion)
     {
         // select the target agents
-        Predicate<AgentStatus> agentsPredicate = agentFilter.toAgentPredicate(transform(coordinator.getAllSlotStatus(), uuidGetter()), false, repository);
+        Predicate<AgentStatus> agentsPredicate = agentFilter.toAgentPredicate(transform(coordinator.getAllSlotStatus(), uuidGetter()), true, repository);
         List<AgentStatus> agents = coordinator.getAgents(agentsPredicate);
 
         // verify the expected status of agents

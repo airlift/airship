@@ -13,6 +13,7 @@ import com.amazonaws.services.identitymanagement.model.CreateAccessKeyRequest;
 import com.amazonaws.services.identitymanagement.model.CreateAccessKeyResult;
 import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
 import com.amazonaws.services.identitymanagement.model.PutUserPolicyRequest;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -75,9 +76,9 @@ public class Galaxy
 {
     private static final File CONFIG_FILE = new File(System.getProperty("user.home", "."), ".galaxyconfig");
 
-    public static void main(String[] args)
-            throws Exception
-    {
+    public static final Cli<GalaxyCommand> GALAXY_PARSER;
+
+    static {
         CliBuilder<GalaxyCommand> builder = buildCli("galaxy", GalaxyCommand.class)
                 .withDescription("cloud management system")
                 .withDefaultCommand(HelpCommand.class)
@@ -124,10 +125,14 @@ public class Galaxy
                         ConfigAdd.class,
                         ConfigUnset.class);
 
-        Cli<GalaxyCommand> galaxyParser = builder.build();
+        GALAXY_PARSER = builder.build();
+    }
 
+    public static void main(String[] args)
+            throws Exception
+    {
         try {
-            galaxyParser.parse(args).call();
+            GALAXY_PARSER.parse(args).call();
         }
         catch (ParseException e) {
             System.out.println(firstNonNull(e.getMessage(), "Unknown command line parser error"));
@@ -139,12 +144,16 @@ public class Galaxy
         @Inject
         public GlobalOptions globalOptions = new GlobalOptions();
 
+        @VisibleForTesting
+        protected Config config;
+
         @Override
         public final Void call()
                 throws Exception
         {
             initializeLogging(globalOptions.debug);
 
+            config = Config.loadConfig(CONFIG_FILE);
 
             try {
                 execute();
@@ -165,7 +174,6 @@ public class Galaxy
 
     public static abstract class GalaxyCommanderCommand extends GalaxyCommand
     {
-        protected Config config;
         protected String environmentRef;
         protected OutputFormat outputFormat;
         protected InteractiveUser interactiveUser;
@@ -174,11 +182,7 @@ public class Galaxy
         public void execute()
                 throws Exception
         {
-            interactiveUser = new RealInteractiveUser();
-
-            config = Config.loadConfig(CONFIG_FILE);
-
-            environmentRef = globalOptions.environment;
+            String environmentRef = globalOptions.environment;
             if (environmentRef == null) {
                 environmentRef = config.get("environment.default");
             }
@@ -186,7 +190,20 @@ public class Galaxy
                 throw new RuntimeException("You must specify an environment.");
             }
 
-            outputFormat = new TableOutputFormat(environmentRef, config);
+            OutputFormat outputFormat = new TableOutputFormat(environmentRef, config);
+
+            InteractiveUser interactiveUser = new RealInteractiveUser();
+
+            execute(environmentRef, outputFormat, interactiveUser);
+        }
+
+        @VisibleForTesting
+        public void execute(String environmentRef, OutputFormat outputFormat, InteractiveUser interactiveUser)
+                throws Exception
+        {
+            this.environmentRef = environmentRef;
+            this.outputFormat = outputFormat;
+            this.interactiveUser = interactiveUser;
 
             String environment = config.get("environment." + environmentRef + ".name");
             if (environment == null) {
@@ -420,7 +437,7 @@ public class Galaxy
             }
 
             // install software
-            List<SlotStatusRepresentation> slots = commander.install(agentFilter, count, assignment, response.getVersion());
+            List<SlotStatusRepresentation> slots = commander.install(uuidFilter, count, assignment, response.getVersion());
             displaySlots(slots);
         }
 
@@ -701,7 +718,7 @@ public class Galaxy
                     config.add(coordinatorProperty, uri.toASCIIString());
                 }
             }
-            config.save(CONFIG_FILE);
+            config.save();
 
             displayCoordinators(coordinators);
         }
@@ -934,7 +951,6 @@ public class Galaxy
             String repositoryProperty = "environment." + ref + ".repository";
             String mavenGroupIdProperty = "environment." + ref + ".maven-group-id";
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             if (config.get(nameProperty) != null) {
                 throw new RuntimeException("Environment " + ref + " already exists");
             }
@@ -970,7 +986,7 @@ public class Galaxy
             if (config.get("environment.default") == null) {
                 config.set("environment.default", ref);
             }
-            config.save(CONFIG_FILE);
+            config.save();
         }
     }
 
@@ -1021,7 +1037,6 @@ public class Galaxy
 
             String nameProperty = "environment." + ref + ".name";
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             if (config.get(nameProperty) != null) {
                 throw new RuntimeException("Environment " + ref + " already exists");
             }
@@ -1104,7 +1119,7 @@ public class Galaxy
             if (config.get("environment.default") == null) {
                 config.set("environment.default", ref);
             }
-            config.save(CONFIG_FILE);
+            config.save();
         }
 
         private static List<Instance> waitForInstancesToStart(AmazonEC2Client ec2Client, List<Instance> instances, int port)
@@ -1249,14 +1264,13 @@ public class Galaxy
 
             String nameProperty = "environment." + ref + ".name";
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             if (config.get(nameProperty) != null) {
                 throw new RuntimeException("Environment " + ref + " already exists");
             }
 
             config.set(nameProperty, environment);
             config.set("environment." + ref + ".coordinator", coordinatorUrl);
-            config.save(CONFIG_FILE);
+            config.save();
         }
     }
 
@@ -1274,12 +1288,11 @@ public class Galaxy
 
             String nameProperty = "environment." + ref + ".name";
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             if (config.get(nameProperty) == null) {
                 throw new IllegalArgumentException("Unknown environment " + ref);
             }
             config.set("environment.default", ref);
-            config.save(CONFIG_FILE);
+            config.save();
         }
     }
 
@@ -1295,7 +1308,6 @@ public class Galaxy
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             List<String> values = config.getAll(key);
             Preconditions.checkArgument(values.size() < 2, "More than one value for the key %s", key);
             if (!values.isEmpty()) {
@@ -1316,7 +1328,6 @@ public class Galaxy
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             List<String> values = config.getAll(key);
             for (String value : values) {
                 System.out.println(value);
@@ -1342,9 +1353,8 @@ public class Galaxy
             String key = args.get(0);
             String value = args.get(1);
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             config.set(key, value);
-            config.save(CONFIG_FILE);
+            config.save();
         }
     }
 
@@ -1366,9 +1376,8 @@ public class Galaxy
             String key = args.get(0);
             String value = args.get(1);
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             config.add(key, value);
-            config.save(CONFIG_FILE);
+            config.save();
         }
     }
 
@@ -1384,9 +1393,8 @@ public class Galaxy
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
 
-            Config config = Config.loadConfig(CONFIG_FILE);
             config.unset(key);
-            config.save(CONFIG_FILE);
+            config.save();
         }
     }
 
