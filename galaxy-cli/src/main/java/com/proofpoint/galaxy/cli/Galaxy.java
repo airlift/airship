@@ -17,7 +17,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.NullOutputStream;
 import com.google.common.io.Resources;
@@ -62,25 +61,12 @@ import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
-import static com.proofpoint.galaxy.cli.Column.externalHost;
-import static com.proofpoint.galaxy.cli.Column.instanceType;
-import static com.proofpoint.galaxy.cli.Column.internalHost;
-import static com.proofpoint.galaxy.cli.Column.machine;
-import static com.proofpoint.galaxy.cli.Column.shortBinary;
-import static com.proofpoint.galaxy.cli.Column.shortConfig;
-import static com.proofpoint.galaxy.cli.Column.shortLocation;
-import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
-import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
 import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
 import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
 import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilder;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.cli.Column.shortId;
-import static com.proofpoint.galaxy.cli.Column.status;
-import static com.proofpoint.galaxy.cli.Column.statusMessage;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.iq80.cli.Cli.buildCli;
@@ -181,6 +167,7 @@ public class Galaxy
     {
         protected Config config;
         protected String environmentRef;
+        protected OutputFormat outputFormat;
         protected InteractiveUser interactiveUser;
 
         @Override
@@ -198,6 +185,9 @@ public class Galaxy
             if (environmentRef == null) {
                 throw new RuntimeException("You must specify an environment.");
             }
+
+            outputFormat = new TableOutputFormat(environmentRef, config);
+
             String environment = config.get("environment." + environmentRef + ".name");
             if (environment == null) {
                 throw new RuntimeException("Unknown environment " + environmentRef);
@@ -288,52 +278,25 @@ public class Galaxy
             slotExecution.execute(commander, uuidFilter, response.getVersion());
         }
 
-        protected interface SlotExecution {
-            void execute(Commander commander, SlotFilter slotFilter, String expectedVersion);
-        }
-
         public void displaySlots(Iterable<SlotStatusRepresentation> slots)
         {
-            if (Iterables.isEmpty(slots)) {
-                System.out.println("No slots match the provided filters.");
-            }
-            else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), machine, status, shortBinary, shortConfig, statusMessage);
-                tablePrinter.print(toSlotRecords(slots));
-            }
+            outputFormat.displaySlots(slots);
         }
 
         public void displayAgents(Iterable<AgentStatusRepresentation> agents)
         {
-            if (Iterables.isEmpty(agents)) {
-                System.out.println("No agents match the provided filters.");
-            }
-            else {
-                TablePrinter tablePrinter = new TablePrinter(shortId, getHostColumn(), machine, status, instanceType, shortLocation);
-                tablePrinter.print(toAgentRecords(agents));
-            }
+            outputFormat.displayAgents(agents);
         }
 
         public void displayCoordinators(Iterable<CoordinatorStatusRepresentation> coordinators)
         {
-            if (Iterables.isEmpty(coordinators)) {
-                System.out.println("No coordinators match the provided filters.");
-            }
-            else {
-                // todo add short id once coordinator is update to get coordinator id from remote coordinators
-                TablePrinter tablePrinter = new TablePrinter(machine, getHostColumn(), status, instanceType, shortLocation);
-                tablePrinter.print(toCoordinatorRecords(coordinators));
-            }
+            outputFormat.displayCoordinators(coordinators);
         }
 
-        private Column getHostColumn()
-        {
-            if ("true".equalsIgnoreCase(config.get("environment." + environmentRef + ".use-internal-address"))) {
-                return internalHost;
-            } else {
-                return externalHost;
-            }
+        protected interface SlotExecution {
+            void execute(Commander commander, SlotFilter slotFilter, String expectedVersion);
         }
+
     }
 
     @Command(name = "help", description = "Display help information about galaxy")
