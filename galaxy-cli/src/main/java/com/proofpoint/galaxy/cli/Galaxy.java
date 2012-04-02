@@ -50,10 +50,8 @@ import org.iq80.cli.Option;
 import org.iq80.cli.ParseException;
 
 import javax.inject.Inject;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URL;
@@ -161,6 +159,7 @@ public class Galaxy
         {
             initializeLogging(globalOptions.debug);
 
+
             try {
                 execute();
             }
@@ -182,12 +181,13 @@ public class Galaxy
     {
         protected Config config;
         protected String environmentRef;
+        protected InteractiveUser interactiveUser;
 
         @Override
         public void execute()
                 throws Exception
         {
-            initializeLogging(globalOptions.debug);
+            interactiveUser = new RealInteractiveUser();
 
             config = Config.loadConfig(CONFIG_FILE);
 
@@ -252,6 +252,11 @@ public class Galaxy
         public abstract void execute(Commander commander)
                 throws Exception;
 
+
+        public boolean ask(String question, boolean defaultValue)
+        {
+            return interactiveUser.ask(question, defaultValue);
+        }
 
         public void verifySlotExecution(Commander commander, SlotFilter slotFilter, String question, boolean defaultValue, SlotExecution slotExecution)
         {
@@ -1419,41 +1424,6 @@ public class Galaxy
             Config config = Config.loadConfig(CONFIG_FILE);
             config.unset(key);
             config.save(CONFIG_FILE);
-        }
-    }
-
-    public static boolean ask(String question, boolean defaultValue)
-    {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-        try {
-            while (true) {
-                System.out.print(question + (defaultValue ? " [Y/n] " : " [y/N] "));
-                String line = null;
-                try {
-                    line = reader.readLine();
-                }
-                catch (IOException ignored) {
-                }
-
-                if (line == null) {
-                    throw new IllegalArgumentException("Error reading from standard in");
-                }
-
-                line = line.trim().toLowerCase();
-                if (line.isEmpty()) {
-                    return defaultValue;
-                }
-                if ("y".equalsIgnoreCase(line) || "yes".equalsIgnoreCase(line)) {
-                    return true;
-                }
-                if ("n".equalsIgnoreCase(line) || "no".equalsIgnoreCase(line)) {
-                    return false;
-                }
-            }
-        }
-        finally {
-            System.out.println();
         }
     }
 
