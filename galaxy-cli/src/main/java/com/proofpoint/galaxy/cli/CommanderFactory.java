@@ -227,7 +227,8 @@ public class CommanderFactory
         @Override
         public List<Instance> listCoordinators()
         {
-            return ImmutableList.of(new Instance(agentId, instanceType, location, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
+            String coordinatorLocation = location == null ? Joiner.on('/').join("", "local", coordinatorId, "coordinator") : location;
+            return ImmutableList.of(new Instance(agentId, instanceType, coordinatorLocation, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
         }
 
         @Override
@@ -245,7 +246,8 @@ public class CommanderFactory
         @Override
         public List<Instance> listAgents()
         {
-            return ImmutableList.of(new Instance(agentId, instanceType, location, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
+            String agentLocation = location == null ? Joiner.on('/').join("", "local", agentId, "agent") : location;
+            return ImmutableList.of(new Instance(agentId, instanceType, agentLocation, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
         }
 
         @Override
