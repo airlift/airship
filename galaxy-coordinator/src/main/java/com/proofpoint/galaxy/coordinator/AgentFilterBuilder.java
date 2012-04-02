@@ -375,11 +375,14 @@ public class AgentFilterBuilder
                 }
             }
 
-            // verify that required resources are available
-            Installation installation = toInstallation(repository, assignment);
-            Map<String, Integer> availableResources = getAvailableResources(status);
-            if (!resourcesAreAvailable(availableResources, installation.getResources())) {
-                return false;
+            // agents without declared resources are considered to have unlimited resources
+            if (!status.getResources().isEmpty()) {
+                // verify that required resources are available
+                Installation installation = toInstallation(repository, assignment);
+                Map<String, Integer> availableResources = getAvailableResources(status);
+                if (!resourcesAreAvailable(availableResources, installation.getResources())) {
+                    return false;
+                }
             }
 
             return true;

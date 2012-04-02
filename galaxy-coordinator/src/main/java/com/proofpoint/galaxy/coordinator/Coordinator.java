@@ -423,10 +423,13 @@ public class Coordinator
                 continue;
             }
 
-            // verify that required resources are available
-            Map<String, Integer> availableResources = InstallationUtils.getAvailableResources(status);
-            if (!InstallationUtils.resourcesAreAvailable(availableResources, installation.getResources())) {
-                continue;
+            // agents without declared resources are considered to have unlimited resources
+            if (!status.getResources().isEmpty()) {
+                // verify that required resources are available
+                Map<String, Integer> availableResources = InstallationUtils.getAvailableResources(status);
+                if (!InstallationUtils.resourcesAreAvailable(availableResources, installation.getResources())) {
+                    continue;
+                }
             }
 
             targetAgents.add(agent);

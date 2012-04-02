@@ -370,11 +370,27 @@ public class TestCoordinator
     }
 
     @Test
-    public void testInstallNotEnoughResources()
+    public void testInstallWithinUnlimitedResources()
     {
         URI agentUri = URI.create("fake://appleServer1/");
 
         provisioner.addAgent("instance-id", agentUri);
+        coordinator.updateAllAgents();
+
+        List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
+
+        assertEquals(slots.size(), 1);
+        for (SlotStatus slot : slots) {
+            assertAppleSlot(slot);
+        }
+    }
+
+    @Test
+    public void testInstallNotEnoughResources()
+    {
+        URI agentUri = URI.create("fake://appleServer1/");
+
+        provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 0, "memory", 0));
         coordinator.updateAllAgents();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
