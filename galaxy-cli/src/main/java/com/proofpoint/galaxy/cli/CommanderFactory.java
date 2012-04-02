@@ -304,7 +304,7 @@ public class CommanderFactory
         @Override
         public SlotStatus install(Installation installation)
         {
-            return agent.install(installation);
+            return agent.install(installation).changeInstanceId(instanceId);
         }
 
         @Override
