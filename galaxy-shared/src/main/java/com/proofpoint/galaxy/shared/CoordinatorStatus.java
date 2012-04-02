@@ -1,6 +1,7 @@
 package com.proofpoint.galaxy.shared;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
@@ -19,11 +20,17 @@ public class CoordinatorStatus
 
     public CoordinatorStatus(String coordinatorId, CoordinatorLifecycleState state, String instanceId, URI internalUri, URI externalUri, String location, String instanceType)
     {
+        Preconditions.checkNotNull(coordinatorId, "coordinatorId is null");
+        Preconditions.checkNotNull(state, "state is null");
+        Preconditions.checkNotNull(instanceId, "instanceId is null");
+        Preconditions.checkNotNull(location, "location is null");
+        Preconditions.checkArgument(location.startsWith("/"), "location must start with a '/'");
+
+        this.coordinatorId = coordinatorId;
+        this.state = state;
+        this.instanceId = instanceId;
         this.internalUri = internalUri;
         this.externalUri = externalUri;
-        this.instanceId = instanceId;
-        this.state = state;
-        this.coordinatorId = coordinatorId;
         this.location = location;
         this.instanceType = instanceType;
         this.version = VersionsUtil.createVersion(coordinatorId, state);

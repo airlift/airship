@@ -22,6 +22,8 @@ import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.http.server.HttpServerConfig;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.BeforeMethod;
@@ -66,6 +68,7 @@ public class TestCoordinatorAssignmentResource
 
         MockProvisioner provisioner = new MockProvisioner();
         coordinator = new Coordinator(nodeInfo,
+                new HttpServerInfo(new HttpServerConfig(), nodeInfo),
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
                 provisioner.getAgentFactory(),
                 MOCK_REPO,

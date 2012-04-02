@@ -6,9 +6,11 @@ import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
+import com.proofpoint.galaxy.shared.CoordinatorStatus;
+import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
 import com.proofpoint.galaxy.shared.MockUriInfo;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -32,23 +34,31 @@ public class TestAdminResource
     private Coordinator coordinator;
     private TestingMavenRepository repository;
     private MockProvisioner provisioner;
+    private CoordinatorStatus coordinatorStatus;
 
     @BeforeMethod
     public void setUp()
             throws Exception
     {
-        NodeInfo nodeInfo = new NodeInfo("testing");
+        coordinatorStatus = new CoordinatorStatus(UUID.randomUUID().toString(),
+                CoordinatorLifecycleState.ONLINE,
+                "this-coordinator-instance-id",
+                URI.create("fake://coordinator/internal"),
+                URI.create("fake://coordinator/external"),
+                "/test/location",
+                "this-coordinator-instance-type");
 
         repository = new TestingMavenRepository();
 
         provisioner = new MockProvisioner();
-        coordinator = new Coordinator(nodeInfo,
-                new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
+        coordinator = new Coordinator(coordinatorStatus,
                 provisioner.getAgentFactory(),
                 repository,
                 provisioner,
                 new InMemoryStateManager(),
-                new MockServiceInventory());
+                new MockServiceInventory(),
+                new Duration(1, TimeUnit.DAYS),
+                false);
         resource = new AdminResource(coordinator, repository);
     }
 
@@ -57,6 +67,129 @@ public class TestAdminResource
             throws Exception
     {
         repository.destroy();
+    }
+
+    @Test
+    public void testGetCoordinatorsDefault()
+    {
+        URI requestUri = URI.create("http://localhost/v1/admin/coordinator");
+        Response response = resource.getAllCoordinators(MockUriInfo.from(requestUri));
+        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
+
+        Iterable<CoordinatorStatusRepresentation> coordinators = (Iterable<CoordinatorStatusRepresentation>) response.getEntity();
+        assertEquals(Iterables.size(coordinators), 1);
+        CoordinatorStatusRepresentation actual = coordinators.iterator().next();
+        assertEquals(actual.getCoordinatorId(), coordinatorStatus.getCoordinatorId());
+        assertEquals(actual.getState(), CoordinatorLifecycleState.ONLINE);
+        assertEquals(actual.getInstanceId(), coordinatorStatus.getInstanceId());
+        assertEquals(actual.getLocation(), coordinatorStatus.getLocation());
+        assertEquals(actual.getInstanceType(), coordinatorStatus.getInstanceType());
+        assertEquals(actual.getSelf(), coordinatorStatus.getInternalUri());
+        assertEquals(actual.getExternalUri(), coordinatorStatus.getExternalUri());
+    }
+
+    @Test
+    public void testGetAllCoordinatorsSingle()
+            throws Exception
+    {
+        String instanceId = "instance-id";
+        URI internalUri = URI.create("fake://coordinator/" + instanceId + "/internal");
+        URI externalUri = URI.create("fake://coordinator/" + instanceId + "/external");
+        String location = "/unknown/location";
+        String instanceType = "instance.type";
+
+        // add the coordinator to the provisioner
+        Instance instance = new Instance(instanceId, instanceType, location, internalUri, externalUri);
+        provisioner.addCoordinators(instance);
+        coordinator.updateAllCoordinators();
+
+        URI requestUri = URI.create("http://localhost/v1/admin/coordinator");
+        Response response = resource.getAllCoordinators(MockUriInfo.from(requestUri));
+        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
+
+        // locate the new coordinator
+        List<CoordinatorStatusRepresentation> coordinators = ImmutableList.copyOf((Iterable<CoordinatorStatusRepresentation>) response.getEntity());
+        CoordinatorStatusRepresentation actual = getNonMainCoordinator(coordinators);
+
+        assertEquals(actual.getCoordinatorId(), instanceId); // for now coordinator id is instance id
+        assertEquals(actual.getState(), CoordinatorLifecycleState.ONLINE);
+        assertEquals(actual.getInstanceId(), instanceId);
+        assertEquals(actual.getLocation(), location);
+        assertEquals(actual.getInstanceType(), instanceType);
+        assertEquals(actual.getSelf(), internalUri);
+        assertEquals(actual.getExternalUri(), externalUri);
+    }
+
+    private CoordinatorStatusRepresentation getNonMainCoordinator(List<CoordinatorStatusRepresentation> coordinators)
+    {
+        assertEquals(coordinators.size(), 2);
+        CoordinatorStatusRepresentation actual;
+        if (coordinators.get(0).getInstanceId().equals(coordinatorStatus.getInstanceId())) {
+            actual = coordinators.get(1);
+        }
+        else {
+            actual = coordinators.get(0);
+            assertEquals(coordinators.get(1).getInstanceId(), coordinatorStatus.getInstanceId());
+        }
+        return actual;
+    }
+
+    @Test
+    public void testCoordinatorProvision()
+            throws Exception
+    {
+        // provision the coordinator and verify
+        String instanceType = "instance-type";
+        URI requestUri = URI.create("http://localhost/v1/admin/coordinator");
+        Response response = resource.provisionCoordinator(
+                new CoordinatorProvisioningRepresentation("coordinator:config:1", 1, instanceType, null, null, null, null),
+                MockUriInfo.from(requestUri)
+        );
+        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
+
+        List<CoordinatorStatusRepresentation> coordinators = ImmutableList.copyOf((Iterable<CoordinatorStatusRepresentation>) response.getEntity());
+        assertEquals(coordinators.size(), 1);
+        String instanceId = coordinators.get(0).getInstanceId();
+        assertNotNull(instanceId);
+        String location = coordinators.get(0).getLocation();
+        assertNotNull(location);
+        assertEquals(coordinators.get(0).getInstanceType(), instanceType);
+        assertEquals(coordinators.get(0).getCoordinatorId(), instanceId);
+        assertNull(coordinators.get(0).getSelf());
+        assertNull(coordinators.get(0).getExternalUri());
+        assertEquals(coordinators.get(0).getState(), CoordinatorLifecycleState.PROVISIONING);
+
+        // start the coordinator and verify
+        Instance expectedCoordinatorInstance = provisioner.startCoordinator(instanceId);
+        coordinator.updateAllCoordinators();
+        assertEquals(coordinator.getCoordinators().size(), 2);
+        assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
+        assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
+        assertEquals(coordinator.getCoordinator(instanceId).getLocation(), location);
+        assertEquals(coordinator.getCoordinator(instanceId).getCoordinatorId(), expectedCoordinatorInstance.getInstanceId());
+        assertEquals(coordinator.getCoordinator(instanceId).getInternalUri(), expectedCoordinatorInstance.getInternalUri());
+        assertEquals(coordinator.getCoordinator(instanceId).getExternalUri(), expectedCoordinatorInstance.getExternalUri());
+        assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
+
+
+        requestUri = URI.create("http://localhost/v1/admin/coordinator");
+        response = resource.getAllCoordinators(MockUriInfo.from(requestUri));
+        assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
+
+        coordinators = ImmutableList.copyOf((Iterable<CoordinatorStatusRepresentation>) response.getEntity());
+        CoordinatorStatusRepresentation actual = getNonMainCoordinator(coordinators);
+
+        assertEquals(actual.getInstanceId(), instanceId);
+        assertEquals(actual.getInstanceType(), instanceType);
+        assertEquals(actual.getLocation(), location);
+        assertEquals(actual.getCoordinatorId(), expectedCoordinatorInstance.getInstanceId());
+        assertEquals(actual.getSelf(), expectedCoordinatorInstance.getInternalUri());
+        assertEquals(actual.getExternalUri(), expectedCoordinatorInstance.getExternalUri());
+        assertEquals(actual.getState(), CoordinatorLifecycleState.ONLINE);
     }
 
     @Test

@@ -27,6 +27,8 @@ import com.proofpoint.galaxy.coordinator.RemoteSlot;
 import com.proofpoint.galaxy.coordinator.ServiceInventory;
 import com.proofpoint.galaxy.coordinator.StateManager;
 import com.proofpoint.galaxy.shared.AgentStatus;
+import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
+import com.proofpoint.galaxy.shared.CoordinatorStatus;
 import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.Repository;
@@ -47,13 +49,14 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class CommanderFactory
 {
-    private static final URI AGENT_URI = URI.create("java://localhost");
+    private static final URI FAKE_LOCAL_URI = URI.create("java://localhost");
     private static final Duration COMMAND_TIMEOUT = new Duration(5, TimeUnit.MINUTES);
 
     private String environment;
     private URI coordinatorUri;
     private final List<String> repositories = newArrayList();
     private final List<String> mavenDefaultGroupIds = newArrayList();
+    private String coordinatorId = "local";
     private String agentId = "local";
     private String location;
     private String instanceId = "local";
@@ -85,6 +88,13 @@ public class CommanderFactory
         this.mavenDefaultGroupIds.clear();
         this.mavenDefaultGroupIds.addAll(mavenDefaultGroupIds);
         return this;
+    }
+
+    public void setCoordinatorId(String coordinatorId)
+    {
+        Preconditions.checkNotNull(coordinatorId, "coordinatorId is null");
+        Preconditions.checkArgument(!coordinatorId.isEmpty(), "coordinatorId is empty");
+        this.coordinatorId = coordinatorId;
     }
 
     public void setAgentId(String agentId)
@@ -143,14 +153,12 @@ public class CommanderFactory
         Preconditions.checkNotNull(environment, "environment is null");
         Preconditions.checkNotNull(this.repositories, "binaryRepositories is null");
 
-        if (location == null) {
-            location = Joiner.on('/').join("", "local", agentId, "agent");
-        }
         //
         // Create agent
         //
         String slotsDir = coordinatorUri.getPath();
-        DeploymentManagerFactory deploymentManagerFactory = new DirectoryDeploymentManagerFactory(location, slotsDir, COMMAND_TIMEOUT);
+        String agentLocation = this.location == null ? Joiner.on('/').join("", "local", agentId, "agent") : location;
+        DeploymentManagerFactory deploymentManagerFactory = new DirectoryDeploymentManagerFactory(agentLocation, slotsDir, COMMAND_TIMEOUT);
 
         LifecycleManager lifecycleManager = new LauncherLifecycleManager(
                 environment,
@@ -162,10 +170,10 @@ public class CommanderFactory
                 new File(slotsDir, "service-inventory.json").toURI());
 
         Agent agent = new Agent(agentId,
-                location,
+                agentLocation,
                 slotsDir,
-                AGENT_URI,
-                AGENT_URI,
+                FAKE_LOCAL_URI,
+                FAKE_LOCAL_URI,
                 null,
                 deploymentManagerFactory,
                 lifecycleManager,
@@ -193,7 +201,16 @@ public class CommanderFactory
 
         RemoteAgentFactory remoteAgentFactory = new LocalRemoteAgentFactory(agent);
 
-        Coordinator coordinator = new Coordinator(environment,
+        String coordinatorLocation = this.location == null ? Joiner.on('/').join("", "local", coordinatorId, "coordinator") : location;
+        CoordinatorStatus coordinatorStatus = new CoordinatorStatus(coordinatorId,
+                CoordinatorLifecycleState.ONLINE,
+                instanceId,
+                FAKE_LOCAL_URI,
+                FAKE_LOCAL_URI,
+                coordinatorLocation,
+                instanceType);
+
+        Coordinator coordinator = new Coordinator(coordinatorStatus,
                 remoteAgentFactory,
                 repository,
                 provisioner,
@@ -202,7 +219,7 @@ public class CommanderFactory
                 new Duration(100, TimeUnit.DAYS),
                 true);
 
-        return new LocalCommander(new File(slotsDir), coordinator, repository, serviceInventory);
+        return new LocalCommander(environment, new File(slotsDir), coordinator, repository, serviceInventory);
     }
 
     private class LocalProvisioner implements Provisioner
@@ -210,7 +227,7 @@ public class CommanderFactory
         @Override
         public List<Instance> listCoordinators()
         {
-            return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI, AGENT_URI));
+            return ImmutableList.of(new Instance(agentId, instanceType, location, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
         }
 
         @Override
@@ -228,7 +245,7 @@ public class CommanderFactory
         @Override
         public List<Instance> listAgents()
         {
-            return ImmutableList.of(new Instance(agentId, instanceType, location, AGENT_URI, AGENT_URI));
+            return ImmutableList.of(new Instance(agentId, instanceType, location, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
         }
 
         @Override
@@ -279,7 +296,7 @@ public class CommanderFactory
         @Override
         public void setInternalUri(URI uri)
         {
-            Preconditions.checkArgument(AGENT_URI.equals(uri), "uri is not '" + AGENT_URI + "'");
+            Preconditions.checkArgument(FAKE_LOCAL_URI.equals(uri), "uri is not '" + FAKE_LOCAL_URI + "'");
         }
 
         @Override

@@ -40,13 +40,15 @@ public class LocalCommander implements Commander
 {
     private static final JsonCodec<ServiceDescriptorsRepresentation> SERVICE_DESCRIPTORS_CODEC = JsonCodec.jsonCodec(ServiceDescriptorsRepresentation.class);
 
+    private final String environment;
     private final File localDirectory;
     private final Coordinator coordinator;
     private final Repository repository;
     private final ServiceInventory serviceInventory;
 
-    public LocalCommander(File localDirectory, Coordinator coordinator, Repository repository, ServiceInventory serviceInventory)
+    public LocalCommander(String environment, File localDirectory, Coordinator coordinator, Repository repository, ServiceInventory serviceInventory)
     {
+        this.environment = environment;
         this.localDirectory = localDirectory;
         this.coordinator = coordinator;
         this.repository = repository;
@@ -254,7 +256,7 @@ public class LocalCommander implements Commander
     private void updateServiceInventory()
     {
         List<ServiceDescriptor> inventory = serviceInventory.getServiceInventory(coordinator.getAllSlotStatus());
-        ServiceDescriptorsRepresentation serviceDescriptors = new ServiceDescriptorsRepresentation(coordinator.getEnvironment(), inventory);
+        ServiceDescriptorsRepresentation serviceDescriptors = new ServiceDescriptorsRepresentation(environment, inventory);
 
         File serviceInventoryFile = new File(localDirectory, "service-inventory.json");
         try {

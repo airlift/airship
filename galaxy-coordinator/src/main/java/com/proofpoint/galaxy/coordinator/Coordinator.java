@@ -27,6 +27,7 @@ import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
@@ -70,7 +71,7 @@ public class Coordinator
     private final ConcurrentMap<String, CoordinatorStatus> coordinators = new ConcurrentHashMap<String, CoordinatorStatus>();
     private final ConcurrentMap<String, RemoteAgent> agents = new ConcurrentHashMap<String, RemoteAgent>();
 
-    private final String environment;
+    private final CoordinatorStatus coordinatorStatus;
     private final Repository repository;
     private final ScheduledExecutorService timerService;
     private final Duration statusExpiration;
@@ -82,13 +83,21 @@ public class Coordinator
 
     @Inject
     public Coordinator(NodeInfo nodeInfo,
+            HttpServerInfo httpServerInfo,
             CoordinatorConfig config,
             RemoteAgentFactory remoteAgentFactory,
             Repository repository,
             Provisioner provisioner,
             StateManager stateManager, ServiceInventory serviceInventory)
     {
-        this(nodeInfo.getEnvironment(),
+        this(
+                new CoordinatorStatus(nodeInfo.getInstanceId(),
+                        CoordinatorLifecycleState.ONLINE,
+                        nodeInfo.getInstanceId(),
+                        httpServerInfo.getHttpUri(),
+                        httpServerInfo.getHttpExternalUri(),
+                        nodeInfo.getLocation(),
+                        null),
                 remoteAgentFactory,
                 repository,
                 provisioner,
@@ -98,7 +107,7 @@ public class Coordinator
                 false);
     }
 
-    public Coordinator(String environment,
+    public Coordinator(CoordinatorStatus coordinatorStatus,
             RemoteAgentFactory remoteAgentFactory,
             Repository repository,
             Provisioner provisioner,
@@ -107,7 +116,7 @@ public class Coordinator
             Duration statusExpiration,
             boolean allowDuplicateInstallationsOnAnAgent)
     {
-        Preconditions.checkNotNull(environment, "environment is null");
+        Preconditions.checkNotNull(coordinatorStatus, "coordinatorStatus is null");
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(repository, "repository is null");
         Preconditions.checkNotNull(provisioner, "provisioner is null");
@@ -115,7 +124,7 @@ public class Coordinator
         Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
         Preconditions.checkNotNull(statusExpiration, "statusExpiration is null");
 
-        this.environment = environment;
+        this.coordinatorStatus = coordinatorStatus;
         this.remoteAgentFactory = remoteAgentFactory;
         this.repository = repository;
         this.provisioner = provisioner;
@@ -154,19 +163,30 @@ public class Coordinator
         }, 0, (long) statusExpiration.toMillis(), TimeUnit.MILLISECONDS);
     }
 
-    public String getEnvironment()
+    public CoordinatorStatus status()
     {
-        return environment;
+        return coordinatorStatus;
+    }
+
+    public CoordinatorStatus getCoordinator(String instanceId)
+    {
+        if (coordinatorStatus.getInstanceId().equals(instanceId)) {
+            return status();
+        }
+        return coordinators.get(instanceId);
     }
 
     public List<CoordinatorStatus> getCoordinators()
     {
-        return ImmutableList.copyOf(this.coordinators.values());
+        return ImmutableList.<CoordinatorStatus>builder()
+                .add(coordinatorStatus)
+                .addAll(coordinators.values())
+                .build();
     }
 
     public List<CoordinatorStatus> getCoordinators(Predicate<CoordinatorStatus> coordinatorFilter)
     {
-        return ImmutableList.copyOf(filter(this.coordinators.values(), coordinatorFilter));
+        return ImmutableList.copyOf(filter(getCoordinators(), coordinatorFilter));
     }
 
     public List<CoordinatorStatus> provisionCoordinators(String coordinatorConfigSpec,
@@ -189,8 +209,12 @@ public class Coordinator
         for (Instance instance : instances) {
             String instanceId = instance.getInstanceId();
 
+            if (instanceId.equals(this.coordinatorStatus.getInstanceId())) {
+                throw new IllegalStateException("Provisioner created a coordinator with the same is as this coordinator");
+            }
+
             CoordinatorStatus coordinatorStatus = new CoordinatorStatus(
-                    null,
+                    instanceId,
                     CoordinatorLifecycleState.PROVISIONING,
                     instanceId,
                     null,
@@ -257,6 +281,11 @@ public class Coordinator
                     instance.getLocation(),
                     instance.getInstanceType());
 
+            // skip this server since it is automatically managed
+            if (instance.getInstanceId().equals(this.coordinatorStatus.getInstanceId())) {
+                continue;
+            }
+
             CoordinatorStatus existing = coordinators.putIfAbsent(instance.getInstanceId(), coordinatorStatus);
             if (existing != null) {
                 // if coordinator was provisioning and is now ONLINE...
@@ -288,7 +317,8 @@ public class Coordinator
                 if (existing.status().getState() == AgentLifecycleState.PROVISIONING && remoteAgent.status().getState() == AgentLifecycleState.ONLINE) {
                     // replace the temporary provisioning instance with a real remote factory
                     agents.replace(instance.getInstanceId(), existing, remoteAgent);
-                } else {
+                }
+                else {
                     existing.setInternalUri(instance.getInternalUri());
                 }
             }
@@ -559,7 +589,7 @@ public class Coordinator
             SlotStatus fullSlotStatus;
             if (actualState == null) {
                 // skip terminated slots
-                if (expectedState == null || expectedState.getStatus() == SlotLifecycleState.TERMINATED)  {
+                if (expectedState == null || expectedState.getStatus() == SlotLifecycleState.TERMINATED) {
                     continue;
                 }
                 // missing slot
@@ -655,6 +685,7 @@ public class Coordinator
             }
         };
     }
+
     private Function<RemoteAgent, AgentStatus> getAgentStatus()
     {
         return new Function<RemoteAgent, AgentStatus>()

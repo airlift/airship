@@ -31,7 +31,6 @@ import com.proofpoint.galaxy.coordinator.MavenRepository;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.RepositorySet;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
@@ -216,6 +215,9 @@ public class Galaxy
                     .setRepositories(config.getAll("environment." + environmentRef + ".repository"))
                     .setMavenDefaultGroupIds(config.getAll("environment." + environmentRef + ".maven-group-id"));
 
+            if (config.get("environment." + environmentRef + ".coordinator-id") != null) {
+                commanderFactory.setCoordinatorId(config.get("environment." + environmentRef + ".coordinator-id"));
+            }
             if (config.get("environment." + environmentRef + ".agent-id") != null) {
                 commanderFactory.setAgentId(config.get("environment." + environmentRef + ".agent-id"));
             }
@@ -924,6 +926,9 @@ public class Galaxy
         @Option(name = "--maven-default-group-id", description = "Default maven group-id")
         public final List<String> mavenDefaultGroupId = newArrayList();
 
+        @Option(name = "--coordinator-id", description = "Coordinator identifier")
+        public String coordinatorId;
+
         @Option(name = "--agent-id", description = "Agent identifier")
         public String agentId;
 
@@ -975,6 +980,9 @@ public class Galaxy
             }
             for (String groupId : mavenDefaultGroupId) {
                 config.add(mavenGroupIdProperty, groupId);
+            }
+            if (coordinatorId != null) {
+                config.set("environment." + ref + ".coordinator-id", coordinatorId);
             }
             if (agentId != null) {
                 config.set("environment." + ref + ".agent-id", agentId);

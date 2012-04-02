@@ -30,6 +30,7 @@ import com.proofpoint.node.testing.TestingNodeModule;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -70,6 +71,11 @@ public class MockLocalProvisioner implements Provisioner
         }
     }
 
+    public void clearCoordinators()
+    {
+        coordinators.clear();
+    }
+
     @Override
     public List<Instance> listCoordinators()
     {
@@ -94,6 +100,23 @@ public class MockLocalProvisioner implements Provisioner
         }
         addCoordinators(provisionedCoordinators.build());
         return provisionedCoordinators.build();
+    }
+
+    public Instance startCoordinator(String instanceId) {
+        Instance instance = coordinators.get(instanceId);
+        Preconditions.checkNotNull(instance, "instance is null");
+
+        URI internalUri = URI.create("fake:/" + instanceId + "/internal");
+        URI externalUri = URI.create("fake:/" + instanceId + "/external");
+        Instance newCoordinatorInstance = new Instance(
+                instanceId,
+                instance.getInstanceType(),
+                instance.getLocation(),
+                internalUri,
+                externalUri);
+
+        coordinators.put(instanceId, newCoordinatorInstance);
+        return newCoordinatorInstance;
     }
 
     @Override

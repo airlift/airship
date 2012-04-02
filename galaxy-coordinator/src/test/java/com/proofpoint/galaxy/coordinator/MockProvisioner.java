@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotStatus;
+import com.proofpoint.node.NodeInfo;
 
 import java.net.URI;
 import java.util.List;
@@ -52,6 +53,11 @@ public class MockProvisioner implements Provisioner
         }
     }
 
+    public void clearCoordinators()
+    {
+        coordinators.clear();
+    }
+
     @Override
     public List<Instance> listCoordinators()
     {
@@ -76,6 +82,23 @@ public class MockProvisioner implements Provisioner
         }
         addCoordinators(provisionedCoordinators.build());
         return provisionedCoordinators.build();
+    }
+
+    public Instance startCoordinator(String instanceId) {
+        Instance instance = coordinators.get(instanceId);
+        Preconditions.checkNotNull(instance, "instance is null");
+
+        URI internalUri = URI.create("fake:/" + instanceId + "/internal");
+        URI externalUri = URI.create("fake:/" + instanceId + "/external");
+        Instance newCoordinatorInstance = new Instance(
+                instanceId,
+                instance.getInstanceType(),
+                instance.getLocation(),
+                internalUri,
+                externalUri);
+
+        coordinators.put(instanceId, newCoordinatorInstance);
+        return newCoordinatorInstance;
     }
 
     public void addAgent(String id, URI agentUri)
@@ -192,12 +215,13 @@ public class MockProvisioner implements Provisioner
         Preconditions.checkNotNull(agentStatus, "agentStatus is null");
 
         String agentId = UUID.randomUUID().toString();
-        URI uri = URI.create("fake:/" + agentId);
+        URI internalUri = URI.create("fake:/" + agentId + "/internal");
+        URI externalUri = URI.create("fake:/" + agentId + "/external");
         AgentStatus newAgentStatus = new AgentStatus(agentId,
                 AgentLifecycleState.ONLINE,
                 instanceId,
-                uri,
-                uri,
+                internalUri,
+                externalUri,
                 agentStatus.getLocation(),
                 agentStatus.getInstanceType(),
                 agentStatus.getSlotStatuses(),
