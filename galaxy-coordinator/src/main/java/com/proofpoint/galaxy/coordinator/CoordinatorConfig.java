@@ -34,6 +34,7 @@ public class CoordinatorConfig
     private String serviceInventoryCacheDir = "service-inventory-cache";
 
     private String agentDefaultConfig;
+    private boolean allowDuplicateInstallationsOnAnAgent;
 
     private List<String> repositories = ImmutableList.of();
     private List<String> defaultRepositoryGroupId = ImmutableList.of();
@@ -41,6 +42,7 @@ public class CoordinatorConfig
     private String httpShortNamePattern = DEFAULT_HTTP_SHORT_NAME_PATTERN;
     private String httpRepoBinaryVersionPattern;
     private String httpRepoConfigVersionPattern;
+
 
     @NotNull
     public String getGalaxyVersion()
@@ -99,6 +101,19 @@ public class CoordinatorConfig
     public String getAgentDefaultConfig()
     {
         return agentDefaultConfig;
+    }
+
+    @Config("coordinator.allow-duplicate-installations-on-an-agent")
+    @ConfigDescription("Default config for provisioned agents")
+    public CoordinatorConfig setAllowDuplicateInstallationsOnAnAgent(boolean allowDuplicateInstallationsOnAnAgent)
+    {
+        this.allowDuplicateInstallationsOnAnAgent = allowDuplicateInstallationsOnAnAgent;
+        return this;
+    }
+
+    public boolean isAllowDuplicateInstallationsOnAnAgent()
+    {
+        return allowDuplicateInstallationsOnAnAgent;
     }
 
     @Config("coordinator.repository")

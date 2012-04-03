@@ -104,7 +104,7 @@ public class Coordinator
                 stateManager,
                 serviceInventory,
                 checkNotNull(config, "config is null").getStatusExpiration(),
-                false);
+                config.isAllowDuplicateInstallationsOnAnAgent());
     }
 
     public Coordinator(CoordinatorStatus coordinatorStatus,
