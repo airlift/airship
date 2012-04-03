@@ -3,8 +3,10 @@ package com.proofpoint.galaxy.shared;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 import java.util.Collection;
@@ -102,6 +104,9 @@ public class Strings
         if (strings.size() < 2) {
             return minSize;
         }
+
+        // remove nulls
+        strings = ImmutableList.copyOf(Iterables.filter(strings, Predicates.notNull()));
 
         SortedSet<String> sorted = Sets.newTreeSet(strings);
         if (sorted.size() != strings.size()) {
