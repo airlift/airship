@@ -38,6 +38,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 
@@ -46,6 +47,8 @@ public class MockLocalProvisioner implements Provisioner
     private final Map<String, Instance> coordinators = new ConcurrentHashMap<String, Instance>();
     private final Map<String, AgentServer> agents = new ConcurrentHashMap<String, AgentServer>();
     private final AtomicInteger nextInstanceId = new AtomicInteger();
+
+    public boolean autoStartInstances;
 
     public void addCoordinators(Instance... instances)
     {
@@ -91,15 +94,24 @@ public class MockLocalProvisioner implements Provisioner
             String keyPair,
             String securityGroup)
     {
-        ImmutableList.Builder<Instance> provisionedCoordinators = ImmutableList.builder();
+        List<Instance> instances = newArrayList();
         for (int i = 0; i < coordinatorCount; i++) {
             String coordinatorInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
             String location = String.format("/mock/%s/coordinator", coordinatorInstanceId);
             Instance instance = new Instance(coordinatorInstanceId, instanceType, location, null, null);
-            provisionedCoordinators.add(instance);
+            instances.add(instance);
         }
-        addCoordinators(provisionedCoordinators.build());
-        return provisionedCoordinators.build();
+        addCoordinators(instances);
+
+        if (autoStartInstances) {
+            List<Instance> runningInstances = newArrayList();
+            for (Instance instance : instances) {
+                runningInstances.add(startCoordinator(instance.getInstanceId()));
+            }
+            instances = runningInstances;
+        }
+
+        return ImmutableList.copyOf(instances);
     }
 
     public Instance startCoordinator(String instanceId) {
@@ -134,7 +146,7 @@ public class MockLocalProvisioner implements Provisioner
             String keyPair,
             String securityGroup)
     {
-        ImmutableList.Builder<Instance> instances = ImmutableList.builder();
+        List<Instance> instances = newArrayList();
         for (int i = 0; i < agentCount; i++) {
             String agentInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
             String location = String.format("/mock/%s/agent", agentInstanceId);
@@ -156,10 +168,18 @@ public class MockLocalProvisioner implements Provisioner
                     null);
             AgentServer agentServer = new AgentServer(instance);
             instances.add(instance);
+            if (autoStartInstances) {
+                try {
+                    agentServer.start();
+                }
+                catch (Exception e) {
+                    throw Throwables.propagate(e);
+                }
+            }
             agents.put(agentInstanceId, agentServer);
         }
 
-        return instances.build();
+        return ImmutableList.copyOf(instances);
     }
 
     @Override
@@ -190,8 +210,8 @@ public class MockLocalProvisioner implements Provisioner
     public static class AgentServer
     {
         public static Map<String, Integer> AGENT_RESOURCES = ImmutableMap.<String, Integer>builder()
-                .put("cpu", 8)
-                .put("memory", 1024)
+                .put("cpu", 16)
+                .put("memory", 64000)
                 .build();
 
         private Instance instance;

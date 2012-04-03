@@ -1,73 +1,189 @@
-package com.proofpoint.galaxy.cli;
+package com.proofpoint.galaxy.integration;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
+import com.proofpoint.configuration.ConfigurationFactory;
+import com.proofpoint.configuration.ConfigurationModule;
+import com.proofpoint.event.client.NullEventModule;
+import com.proofpoint.galaxy.cli.Config;
+import com.proofpoint.galaxy.cli.Galaxy;
 import com.proofpoint.galaxy.cli.Galaxy.GalaxyCommand;
 import com.proofpoint.galaxy.cli.Galaxy.GalaxyCommanderCommand;
+import com.proofpoint.galaxy.cli.InteractiveUser;
+import com.proofpoint.galaxy.cli.OutputFormat;
+import com.proofpoint.galaxy.coordinator.Coordinator;
+import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
+import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
+import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
+import com.proofpoint.galaxy.coordinator.Provisioner;
+import com.proofpoint.galaxy.coordinator.StateManager;
 import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
 import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.FileUtils;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import org.testng.annotations.AfterMethod;
+import com.proofpoint.http.server.testing.TestingHttpServer;
+import com.proofpoint.http.server.testing.TestingHttpServerModule;
+import com.proofpoint.jaxrs.JaxrsModule;
+import com.proofpoint.json.JsonModule;
+import com.proofpoint.node.NodeModule;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import static com.google.inject.Scopes.SINGLETON;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT_2;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT_EXACT;
+import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-public class TestGalaxy
+public class TestCliIntegration
 {
-    private File tempDir;
+    private TestingHttpServer coordinatorServer;
+    private Coordinator coordinator;
+    private InMemoryStateManager stateManager;
+    private MockLocalProvisioner provisioner;
+
+    private File binaryRepoDir;
+    private File localBinaryRepoDir;
+    private File expectedStateDir;
+    private File serviceInventoryCacheDir;
 
     private Config config;
-    private TestingMavenRepository repo;
     private MockInteractiveUser interactiveUser;
     private MockOutputFormat outputFormat;
 
-    @BeforeMethod
+    @BeforeClass
     public void setUp()
             throws Exception
     {
-        tempDir = FileUtils.createTempDir("galaxy");
+        try {
+            binaryRepoDir = TestingMavenRepository.createBinaryRepoDir();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        localBinaryRepoDir = createTempDir("localBinaryRepoDir");
+        expectedStateDir = createTempDir("expected-state");
+        serviceInventoryCacheDir = createTempDir("service-inventory-cache");
+
+        Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
+                .put("node.environment", "prod")
+                .put("galaxy.version", "123")
+                .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
+                .put("coordinator.default-group-id", "prod")
+                .put("coordinator.binary-repo.local", localBinaryRepoDir.toString())
+                .put("coordinator.status.expiration", "1s")
+                .put("coordinator.agent.default-config", "@agent.config")
+                .put("coordinator.aws.access-key", "my-access-key")
+                .put("coordinator.aws.secret-key", "my-secret-key")
+                .put("coordinator.aws.agent.ami", "ami-0123abcd")
+                .put("coordinator.aws.agent.keypair", "keypair")
+                .put("coordinator.aws.agent.security-group", "default")
+                .put("coordinator.aws.agent.default-instance-type", "t1.micro")
+                .put("coordinator.expected-state.dir", expectedStateDir.getAbsolutePath())
+                .put("coordinator.service-inventory.cache-dir", serviceInventoryCacheDir.getAbsolutePath())
+                .build();
+
+        Injector coordinatorInjector = Guice.createInjector(new TestingHttpServerModule(),
+                new NodeModule(),
+                new JsonModule(),
+                new JaxrsModule(),
+                new NullEventModule(),
+                new CoordinatorMainModule(),
+                Modules.override(new LocalProvisionerModule()).with(new Module()
+                {
+                    @Override
+                    public void configure(Binder binder)
+                    {
+                        binder.bind(StateManager.class).to(InMemoryStateManager.class).in(SINGLETON);
+                        binder.bind(Provisioner.class).to(MockLocalProvisioner.class).in(SINGLETON);
+                    }
+                }),
+                new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
+
+        coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
+        coordinator = coordinatorInjector.getInstance(Coordinator.class);
+        stateManager = (InMemoryStateManager) coordinatorInjector.getInstance(StateManager.class);
+        provisioner = (MockLocalProvisioner) coordinatorInjector.getInstance(Provisioner.class);
+        provisioner.autoStartInstances = true;
+
+        coordinator.start();
+        coordinatorServer.start();
+    }
+
+    @BeforeMethod
+    public void resetState()
+            throws Exception
+    {
+        provisioner.clearCoordinators();
+        coordinator.updateAllCoordinators();
+        assertEquals(coordinator.getCoordinators().size(), 1);
+
+        provisioner.clearAgents();
+        coordinator.updateAllAgents();
+        assertTrue(coordinator.getAgents().isEmpty());
+
+        stateManager.clearAll();
+        assertTrue(coordinator.getAllSlotStatus().isEmpty());
 
         config = new Config();
-        repo = new TestingMavenRepository();
         interactiveUser = new MockInteractiveUser(true);
         outputFormat = new MockOutputFormat();
     }
 
-    @AfterMethod
-    public void tearDown()
+    @AfterClass
+    public void stopServer()
             throws Exception
     {
-        FileUtils.deleteRecursively(tempDir);
-        repo.destroy();
+        provisioner.clearAgents();
+        provisioner.clearCoordinators();
+
+        if (coordinatorServer != null) {
+            coordinatorServer.stop();
+        }
+
+        if (binaryRepoDir != null) {
+            deleteRecursively(binaryRepoDir);
+        }
+        if (expectedStateDir != null) {
+            deleteRecursively(expectedStateDir);
+        }
+        if (serviceInventoryCacheDir != null) {
+            deleteRecursively(serviceInventoryCacheDir);
+        }
+        if (localBinaryRepoDir != null) {
+            deleteRecursively(localBinaryRepoDir);
+        }
     }
 
     @Test
     public void testLocalModeHappyPath()
             throws Exception
     {
-        File targetRepo = repo.getTargetRepo();
-        execute("environment", "provision-local", "local", new File(tempDir, "env").getAbsolutePath(),
-                "--name", "monkey",
-                "--repository", targetRepo.toURI().toASCIIString()
-        );
+        execute("environment", "add", "local", coordinatorServer.getBaseUrl().toASCIIString());
 
         execute("show");
 
@@ -77,6 +193,13 @@ public class TestGalaxy
         assertNull(outputFormat.agents);
 
         execute("agent", "show");
+
+        assertNull(outputFormat.slots);
+        assertNull(outputFormat.slots);
+        assertNull(outputFormat.coordinators);
+        assertEquals(outputFormat.agents.size(), 0);
+
+        execute("agent", "provision");
 
         assertNull(outputFormat.slots);
         assertNull(outputFormat.slots);
@@ -205,13 +328,16 @@ public class TestGalaxy
     public void testSlotFilter()
             throws Exception
     {
-        File targetRepo = repo.getTargetRepo();
-        execute("environment", "provision-local", "local", new File(tempDir, "env").getAbsolutePath(),
-                "--name", "monkey",
-                "--repository", targetRepo.toURI().toASCIIString()
-        );
+        execute("environment", "add", "local", coordinatorServer.getBaseUrl().toASCIIString());
 
-        execute("agent", "show");
+        execute("agent", "provision");
+
+        assertNull(outputFormat.slots);
+        assertNull(outputFormat.slots);
+        assertNull(outputFormat.coordinators);
+        assertEquals(outputFormat.agents.size(), 1);
+
+        execute("agent", "provision");
 
         assertNull(outputFormat.slots);
         assertNull(outputFormat.slots);
@@ -225,12 +351,6 @@ public class TestGalaxy
         execute("install", APPLE_ASSIGNMENT.getConfig(), APPLE_ASSIGNMENT.getBinary());
         assertNotNull(outputFormat.slots);
         assertEquals(outputFormat.slots.size(), 1);
-        execute("install", APPLE_ASSIGNMENT_2.getConfig(), APPLE_ASSIGNMENT_2.getBinary());
-        assertNotNull(outputFormat.slots);
-        assertEquals(outputFormat.slots.size(), 1);
-        execute("install", APPLE_ASSIGNMENT_2.getConfig(), APPLE_ASSIGNMENT_2.getBinary());
-        assertNotNull(outputFormat.slots);
-        assertEquals(outputFormat.slots.size(), 1);
         execute("install", BANANA_ASSIGNMENT.getConfig(), BANANA_ASSIGNMENT.getBinary());
         assertNotNull(outputFormat.slots);
         assertEquals(outputFormat.slots.size(), 1);
@@ -242,99 +362,81 @@ public class TestGalaxy
         execute("show");
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
         String appleSlotId = slots.get(APPLE_ASSIGNMENT).get(0).getId().toString();
         String appleShortSlotId = slots.get(APPLE_ASSIGNMENT).get(0).getShortId();
-        String apple2SlotId = slots.get(APPLE_ASSIGNMENT_2).get(0).getId().toString();
-        String apple2ShortSlotId = slots.get(APPLE_ASSIGNMENT_2).get(0).getShortId();
         String bananaSlotId = slots.get(BANANA_ASSIGNMENT_EXACT).get(0).getId().toString();
         String bananaShortSlotId = slots.get(BANANA_ASSIGNMENT_EXACT).get(0).getShortId();
 
         execute("show", "--all");
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
         execute("show", "-u", appleSlotId);
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 1);
         assertEquals(slots.get(APPLE_ASSIGNMENT).get(0).getId().toString(), appleSlotId);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
 
-        execute("show", "-u", appleShortSlotId, "-u", apple2ShortSlotId, "-u", bananaShortSlotId);
+        execute("show", "-u", appleShortSlotId, "-u", bananaShortSlotId);
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 1);
         assertEquals(slots.get(APPLE_ASSIGNMENT).get(0).getId().toString(), appleSlotId);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 1);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).get(0).getId().toString(), apple2SlotId);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 1);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).get(0).getId().toString(), bananaSlotId);
 
-        execute("show", "-u", appleSlotId, "-u", apple2SlotId, "-u", bananaSlotId);
+        execute("show", "-u", appleSlotId, "-u", bananaSlotId);
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 1);
         assertEquals(slots.get(APPLE_ASSIGNMENT).get(0).getId().toString(), appleSlotId);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 1);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).get(0).getId().toString(), apple2SlotId);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 1);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).get(0).getId().toString(), bananaSlotId);
 
         execute("show", "-c", APPLE_ASSIGNMENT.getConfig());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
 
         execute("show", "-b", APPLE_ASSIGNMENT.getBinary());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
 
         execute("show", "-h", agent.getInternalHost());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
         execute("show", "-h", agent.getInternalIp());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
         execute("show", "-h", agent.getExternalHost());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
         execute("show", "-m", agent.getInstanceId());
         slots = slotsByAssignment();
-        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
-        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 1);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 1);
 
         execute("start", "-b", BANANA_ASSIGNMENT_EXACT.getBinary());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
         execute("start", "-s", SlotLifecycleState.RUNNING.toString());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
         execute("start", "-s", SlotLifecycleState.STOPPED.toString());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
     }
 
@@ -358,7 +460,7 @@ public class TestGalaxy
         if (expectedState != SlotLifecycleState.TERMINATED) {
             assertEquals(slot.getBinary(), expectedAssignment.getBinary());
             assertEquals(slot.getConfig(), expectedAssignment.getConfig());
-            assertTrue(slot.getInstallPath().startsWith(tempDir.getAbsolutePath()));
+            assertNotNull(slot.getInstallPath());
         }
         else {
             assertNull(slot.getBinary());

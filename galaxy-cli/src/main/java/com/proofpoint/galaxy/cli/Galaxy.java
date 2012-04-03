@@ -145,7 +145,7 @@ public class Galaxy
         public GlobalOptions globalOptions = new GlobalOptions();
 
         @VisibleForTesting
-        protected Config config;
+        public Config config;
 
         @Override
         public final Void call()
@@ -169,7 +169,8 @@ public class Galaxy
             return null;
         }
 
-        protected abstract void execute() throws Exception;
+        @VisibleForTesting
+        public abstract void execute() throws Exception;
     }
 
     public static abstract class GalaxyCommanderCommand extends GalaxyCommand
@@ -323,7 +324,7 @@ public class Galaxy
         public Help help;
 
         @Override
-        protected void execute()
+        public void execute()
                 throws Exception
         {
             help.call();
@@ -1248,7 +1249,7 @@ public class Galaxy
         public List<String> args;
 
         @Override
-        protected void execute()
+        public void execute()
                 throws Exception
         {
             if (args.size() != 2) {
@@ -1281,7 +1282,7 @@ public class Galaxy
         public String ref;
 
         @Override
-        protected void execute()
+        public void execute()
                 throws Exception
         {
             Preconditions.checkNotNull(ref, "You must specify an environment");
@@ -1303,7 +1304,7 @@ public class Galaxy
         public String key;
 
         @Override
-        protected void execute()
+        public void execute()
                 throws Exception
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
@@ -1323,7 +1324,7 @@ public class Galaxy
         public String key;
 
         @Override
-        protected void execute()
+        public void execute()
                 throws Exception
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
@@ -1343,7 +1344,7 @@ public class Galaxy
         public List<String> args;
 
         @Override
-        protected void execute()
+        public void execute()
                 throws Exception
         {
             if (args.size() != 2) {
@@ -1366,7 +1367,7 @@ public class Galaxy
         public List<String> args;
 
         @Override
-        protected void execute()
+        public void execute()
                 throws Exception
         {
             if (args.size() != 2) {
@@ -1388,7 +1389,7 @@ public class Galaxy
         public String key;
 
         @Override
-        protected void execute()
+        public void execute()
                 throws Exception
         {
             Preconditions.checkNotNull(key, "You must specify a key.");
