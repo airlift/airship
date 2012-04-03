@@ -47,14 +47,13 @@ public class TestAgentFilterBuilder
                 "/unknown/location",
                 "instance.type",
                 ImmutableList.<SlotStatus>of(createSlotStatus(UUID.fromString("12345678-1234-1234-1234-123456789012"),
-                        "slotName",
                         URI.create("fake://localhost"),
                         URI.create("fake://localhost"),
                         "instance",
                         "/location",
                         UNKNOWN,
                         APPLE_ASSIGNMENT,
-                        "/slotName",
+                        "/install-path",
                         ImmutableMap.<String, Integer>of())),
                 ImmutableMap.<String, Integer>of(
                         "memory", 2048,
@@ -168,14 +167,13 @@ public class TestAgentFilterBuilder
             assertFalse(buildFilter("assignable", APPLE_ASSIGNMENT.getBinary() + APPLE_ASSIGNMENT.getConfig(), false, repository).apply(status));
 
             status = status.changeSlotStatus(createSlotStatus(UUID.fromString("99999999-1234-1234-1234-123456789012"),
-                    "new-slot",
                     URI.create("fake://localhost"),
                     URI.create("fake://localhost"),
                     "instance",
                     "/location",
                     UNKNOWN,
                     APPLE_ASSIGNMENT,
-                    "/slotName",
+                    "/install-path",
                     ImmutableMap.<String, Integer>of(
                             "memory", 2048,
                             "cpu", 4

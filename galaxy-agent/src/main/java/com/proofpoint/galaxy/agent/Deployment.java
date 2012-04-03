@@ -25,7 +25,6 @@ import java.util.UUID;
 @Immutable
 public class Deployment
 {
-    private final String slotName;
     private final UUID nodeId;
     private final String location;
     private final File deploymentDir;
@@ -33,27 +32,20 @@ public class Deployment
     private final Assignment assignment;
     private final Map<String, Integer> resources;
 
-    public Deployment(String slotName, UUID nodeId, String location, File deploymentDir, File dataDir, Assignment assignment, Map<String, Integer> resources)
+    public Deployment(UUID nodeId, String location, File deploymentDir, File dataDir, Assignment assignment, Map<String, Integer> resources)
     {
-        Preconditions.checkNotNull(slotName, "slotName is null");
         Preconditions.checkNotNull(nodeId, "nodeId is null");
         Preconditions.checkNotNull(deploymentDir, "deploymentDir is null");
         Preconditions.checkNotNull(dataDir, "dataDir is null");
         Preconditions.checkNotNull(assignment, "assignment is null");
         Preconditions.checkNotNull(resources, "resources is null");
 
-        this.slotName = slotName;
         this.nodeId = nodeId;
         this.location = location;
         this.deploymentDir = deploymentDir;
         this.dataDir = dataDir;
         this.assignment = assignment;
         this.resources = ImmutableMap.copyOf(resources);
-    }
-
-    public String getSlotName()
-    {
-        return slotName;
     }
 
     public UUID getNodeId()
@@ -116,9 +108,6 @@ public class Deployment
         if (resources != null ? !resources.equals(that.resources) : that.resources != null) {
             return false;
         }
-        if (slotName != null ? !slotName.equals(that.slotName) : that.slotName != null) {
-            return false;
-        }
 
         return true;
     }
@@ -126,8 +115,7 @@ public class Deployment
     @Override
     public int hashCode()
     {
-        int result = slotName != null ? slotName.hashCode() : 0;
-        result = 31 * result + (nodeId != null ? nodeId.hashCode() : 0);
+        int result = (nodeId != null ? nodeId.hashCode() : 0);
         result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + (deploymentDir != null ? deploymentDir.hashCode() : 0);
         result = 31 * result + (dataDir != null ? dataDir.hashCode() : 0);
@@ -141,8 +129,7 @@ public class Deployment
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("Deployment");
-        sb.append("{slotName='").append(slotName).append('\'');
-        sb.append(", nodeId=").append(nodeId);
+        sb.append("{nodeId=").append(nodeId);
         sb.append(", location=").append(location);
         sb.append(", deploymentDir=").append(deploymentDir);
         sb.append(", dataDir=").append(dataDir);

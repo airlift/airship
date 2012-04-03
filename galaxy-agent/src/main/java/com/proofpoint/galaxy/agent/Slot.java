@@ -10,8 +10,6 @@ public interface Slot
 {
     UUID getId();
 
-    String getName();
-
     URI getSelf();
 
     URI getExternalUri();

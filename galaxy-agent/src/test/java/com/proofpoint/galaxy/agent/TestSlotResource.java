@@ -32,6 +32,7 @@ import javax.ws.rs.core.UriInfo;
 import java.io.File;
 import java.net.URI;
 import java.util.Collection;
+import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
@@ -74,8 +75,8 @@ public class TestSlotResource
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
 
-        URI requestUri = URI.create("http://localhost/v1/agent/slot/" + slotStatus.getName());
-        Response response = resource.getSlotStatus(slotStatus.getName(), MockUriInfo.from(requestUri));
+        URI requestUri = URI.create("http://localhost/v1/agent/slot/" + slotStatus.getId().toString());
+        Response response = resource.getSlotStatus(slotStatus.getId(), MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(slotStatus));
         assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
@@ -86,7 +87,7 @@ public class TestSlotResource
     @Test
     public void testGetSlotStatusUnknown()
     {
-        Response response = resource.getSlotStatus("unknown", MockUriInfo.from("http://localhost/v1/agent/slot/unknown"));
+        Response response = resource.getSlotStatus(UUID.randomUUID(), MockUriInfo.from("http://localhost/v1/agent/slot/unknown"));
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
     }
 
@@ -142,7 +143,7 @@ public class TestSlotResource
         Slot slot = agent.getAllSlots().iterator().next();
 
         assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
-        assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/agent/slot/" + slot.getName()));
+        assertEquals(response.getMetadata().getFirst(HttpHeaders.LOCATION), URI.create("http://localhost/v1/agent/slot/" + slot.getId().toString()));
 
         SlotStatus status = slot.status();
         SlotStatus expectedStatus = status.changeAssignment(STOPPED, APPLE_ASSIGNMENT, status.getResources());
@@ -176,7 +177,7 @@ public class TestSlotResource
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
 
-        Response response = resource.terminateSlot(null, null, slotStatus.getName());
+        Response response = resource.terminateSlot(null, null, slotStatus.getId());
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
         SlotStatus expectedStatus = slotStatus.changeState(TERMINATED);
@@ -185,13 +186,13 @@ public class TestSlotResource
         assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
-        assertNull(agent.getSlot(slotStatus.getName()));
+        assertNull(agent.getSlot(slotStatus.getId()));
     }
 
     @Test
     public void testTerminateUnknownSlot()
     {
-        Response response = resource.terminateSlot(null, null, "unknown");
+        Response response = resource.terminateSlot(null, null, UUID.randomUUID());
         assertEquals(response.getStatus(), Status.NOT_FOUND.getStatusCode());
     }
 

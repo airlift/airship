@@ -25,6 +25,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
@@ -56,7 +57,7 @@ public class TestLifecycleResource
         );
 
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
-        slot = agent.getSlot(slotStatus.getName());
+        slot = agent.getSlot(slotStatus.getId());
 
         resource = new LifecycleResource(agent);
     }
@@ -69,27 +70,27 @@ public class TestLifecycleResource
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.start => running
-        assertOkResponse(resource.setState(null, slot.getName(), "running"), RUNNING);
+        assertOkResponse(resource.setState(null, slot.getId(), "running"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.start => running
-        assertOkResponse(resource.setState(null, slot.getName(), "running"), RUNNING);
+        assertOkResponse(resource.setState(null, slot.getId(), "running"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.stop => stopped
-        assertOkResponse(resource.setState(null, slot.getName(), "stopped"), STOPPED);
+        assertOkResponse(resource.setState(null, slot.getId(), "stopped"), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.stop => stopped
-        assertOkResponse(resource.setState(null, slot.getName(), "stopped"), STOPPED);
+        assertOkResponse(resource.setState(null, slot.getId(), "stopped"), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.restart => running
-        assertOkResponse(resource.setState(null, slot.getName(), "restarting"), RUNNING);
+        assertOkResponse(resource.setState(null, slot.getId(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.restart => running
-        assertOkResponse(resource.setState(null, slot.getName(), "restarting"), RUNNING);
+        assertOkResponse(resource.setState(null, slot.getId(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
     }
 
@@ -100,47 +101,47 @@ public class TestLifecycleResource
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.start => running
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "running"), RUNNING);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "running"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.start => running
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "running"), RUNNING);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "running"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.stop => stopped
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "stopped"), STOPPED);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "stopped"), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.stop => stopped
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "stopped"), STOPPED);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "stopped"), STOPPED);
         assertEquals(slot.status().getState(), STOPPED);
 
         // stopped.restart => running
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "restarting"), RUNNING);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
 
         // running.restart => running
-        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getName(), "restarting"), RUNNING);
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
     }
 
     @Test
     public void testSetStateUnknown()
     {
-        Response response = resource.setState(null, "unknown", "start");
+        Response response = resource.setState(null, UUID.randomUUID(), "start");
         assertEquals(response.getStatus(), Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void testSetStateUnknownState()
     {
-        Response response = resource.setState(null, slot.getName(), "unknown");
+        Response response = resource.setState(null, slot.getId(), "unknown");
         assertEquals(response.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertNull(response.getEntity());
     }
 
     @Test(expectedExceptions = NullPointerException.class)
-    public void testSetStateNullSlotName()
+    public void testSetStateNullSlotId()
     {
         resource.setState(null, null, "start");
     }
@@ -148,14 +149,14 @@ public class TestLifecycleResource
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetStateNullState()
     {
-        resource.setState(null, slot.getName(), null);
+        resource.setState(null, slot.getId(), null);
     }
 
     @Test
     public void testInvalidVersion()
     {
         try {
-            resource.setState("invalid-version", slot.getName(), "running");
+            resource.setState("invalid-version", slot.getId(), "running");
             fail("Expected VersionConflictException");
         }
         catch (VersionConflictException e) {

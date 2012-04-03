@@ -11,7 +11,6 @@ import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 
 import java.net.URI;
 import java.util.List;
@@ -85,7 +84,6 @@ public class MockRemoteAgent implements RemoteAgent
 
         UUID slotId = UUID.randomUUID();
         SlotStatus slotStatus = createSlotStatus(slotId,
-                "",
                 uriBuilderFrom(agentStatus.getInternalUri()).appendPath("slot").appendPath(slotId.toString()).build(),
                 uriBuilderFrom(agentStatus.getExternalUri()).appendPath("slot").appendPath(slotId.toString()).build(),
                 "instance",

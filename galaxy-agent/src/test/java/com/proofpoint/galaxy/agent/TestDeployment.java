@@ -34,7 +34,7 @@ public class TestDeployment
     public void testConstructor()
     {
         UUID nodeId = UUID.randomUUID();
-        Deployment deployment = new Deployment("slot", nodeId, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES);
+        Deployment deployment = new Deployment(nodeId, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES);
 
         assertEquals(deployment.getNodeId(), nodeId);
         assertEquals(deployment.getAssignment(), APPLE_ASSIGNMENT);
@@ -47,31 +47,25 @@ public class TestDeployment
     public void testNullConstructorArgs()
     {
         try {
-            new Deployment(null, UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES);
+            new Deployment(UUID.randomUUID(), "location", null, new File("data"), APPLE_ASSIGNMENT, RESOURCES);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("slot", UUID.randomUUID(), "location", null, new File("data"), APPLE_ASSIGNMENT, RESOURCES);
+            new Deployment(UUID.randomUUID(), "location", new File("one"), null, APPLE_ASSIGNMENT, RESOURCES);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("slot", UUID.randomUUID(), "location", new File("one"), null, APPLE_ASSIGNMENT, RESOURCES);
+            new Deployment(UUID.randomUUID(), "location", new File("one"), new File("data"), null, RESOURCES);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
         }
         try {
-            new Deployment("slot", UUID.randomUUID(), "location", new File("one"), new File("data"), null, RESOURCES);
-            fail("expected NullPointerException");
-        }
-        catch (NullPointerException expected) {
-        }
-        try {
-            new Deployment("slot", UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, null);
+            new Deployment(UUID.randomUUID(), "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, null);
             fail("expected NullPointerException");
         }
         catch (NullPointerException expected) {
@@ -81,41 +75,36 @@ public class TestDeployment
     @Test
     public void testEquivalence()
     {
-        // identity is only based on deploymentId
         UUID nodeId1 = UUID.randomUUID();
         UUID nodeId2 = UUID.randomUUID();
         EquivalenceTester.equivalenceTester()
                 .addEquivalentGroup(asList(
-                        new Deployment("slot", nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
-                        new Deployment("slot", nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
+                        new Deployment(nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
+                        new Deployment(nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
                 ))
                 .addEquivalentGroup(asList(
-                        new Deployment("different", nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
-                        new Deployment("different", nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
+                        new Deployment(nodeId2, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
+                        new Deployment(nodeId2, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
                 ))
                 .addEquivalentGroup(asList(
-                        new Deployment("slot", nodeId2, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
-                        new Deployment("slot", nodeId2, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
+                        new Deployment(nodeId1, "different", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
+                        new Deployment(nodeId1, "different", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
                 ))
                 .addEquivalentGroup(asList(
-                        new Deployment("slot", nodeId1, "different", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
-                        new Deployment("slot", nodeId1, "different", new File("one"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
+                        new Deployment(nodeId1, "location", new File("different"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
+                        new Deployment(nodeId1, "location", new File("different"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
                 ))
                 .addEquivalentGroup(asList(
-                        new Deployment("slot", nodeId1, "location", new File("different"), new File("data"), APPLE_ASSIGNMENT, RESOURCES),
-                        new Deployment("slot", nodeId1, "location", new File("different"), new File("data"), APPLE_ASSIGNMENT, RESOURCES)
+                        new Deployment(nodeId1, "location", new File("one"), new File("different"), APPLE_ASSIGNMENT, RESOURCES),
+                        new Deployment(nodeId1, "location", new File("one"), new File("different"), APPLE_ASSIGNMENT, RESOURCES)
                 ))
                 .addEquivalentGroup(asList(
-                        new Deployment("slot", nodeId1, "location", new File("one"), new File("different"), APPLE_ASSIGNMENT, RESOURCES),
-                        new Deployment("slot", nodeId1, "location", new File("one"), new File("different"), APPLE_ASSIGNMENT, RESOURCES)
+                        new Deployment(nodeId1, "location", new File("one"), new File("data"), BANANA_ASSIGNMENT, RESOURCES),
+                        new Deployment(nodeId1, "location", new File("one"), new File("data"), BANANA_ASSIGNMENT, RESOURCES)
                 ))
                 .addEquivalentGroup(asList(
-                        new Deployment("slot", nodeId1, "location", new File("one"), new File("data"), BANANA_ASSIGNMENT, RESOURCES),
-                        new Deployment("slot", nodeId1, "location", new File("one"), new File("data"), BANANA_ASSIGNMENT, RESOURCES)
-                ))
-                .addEquivalentGroup(asList(
-                        new Deployment("slot", nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, ImmutableMap.<String, Integer>of("different", 1)),
-                        new Deployment("slot", nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, ImmutableMap.<String, Integer>of("different", 1))
+                        new Deployment(nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, ImmutableMap.<String, Integer>of("different", 1)),
+                        new Deployment(nodeId1, "location", new File("one"), new File("data"), APPLE_ASSIGNMENT, ImmutableMap.<String, Integer>of("different", 1))
                 ))
                 .check();
     }

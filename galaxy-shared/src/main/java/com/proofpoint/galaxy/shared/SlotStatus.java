@@ -29,7 +29,6 @@ import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
 public class SlotStatus
 {
     public static SlotStatus createSlotStatus(UUID id,
-            String name,
             URI self,
             URI externalUri,
             String instanceId,
@@ -39,11 +38,10 @@ public class SlotStatus
             String installPath,
             Map<String, Integer> resources)
     {
-        return new SlotStatus(id, name, self, externalUri, instanceId, location, state, assignment, installPath, resources, null, null, null);
+        return new SlotStatus(id, self, externalUri, instanceId, location, state, assignment, installPath, resources, null, null, null);
     }
 
     public static SlotStatus createSlotStatusWithExpectedState(UUID id,
-            String name,
             URI self,
             URI externalUri,
             String instanceId,
@@ -56,11 +54,10 @@ public class SlotStatus
             Assignment expectedAssignment,
             String statusMessage)
     {
-        return new SlotStatus(id, name, self, externalUri, instanceId, location, state, assignment, installPath, resources, expectedState, expectedAssignment, statusMessage);
+        return new SlotStatus(id, self, externalUri, instanceId, location, state, assignment, installPath, resources, expectedState, expectedAssignment, statusMessage);
     }
 
     private final UUID id;
-    private final String name;
     private final URI self;
     private final URI externalUri;
     private final String instanceId;
@@ -79,7 +76,6 @@ public class SlotStatus
     private final Map<String, Integer> resources;
 
     private SlotStatus(UUID id,
-            String name,
             URI self,
             URI externalUri,
             String instanceId, String location,
@@ -92,7 +88,6 @@ public class SlotStatus
             String statusMessage)
     {
         Preconditions.checkNotNull(id, "id is null");
-        Preconditions.checkNotNull(name, "name is null");
         Preconditions.checkNotNull(location, "location is null");
         Preconditions.checkArgument(location.startsWith("/"), "location must start with a /");
         Preconditions.checkNotNull(state, "state is null");
@@ -102,7 +97,6 @@ public class SlotStatus
         Preconditions.checkNotNull(resources, "resources is null");
 
         this.id = id;
-        this.name = name;
         this.self = self;
         this.externalUri = externalUri;
         this.instanceId = instanceId;
@@ -121,11 +115,6 @@ public class SlotStatus
     public UUID getId()
     {
         return id;
-    }
-
-    public String getName()
-    {
-        return name;
     }
 
     public URI getSelf()
@@ -191,7 +180,6 @@ public class SlotStatus
     public SlotStatus changeState(SlotLifecycleState state)
     {
         return createSlotStatusWithExpectedState(this.id,
-                this.name,
                 this.self,
                 this.externalUri,
                 this.instanceId,
@@ -208,7 +196,6 @@ public class SlotStatus
     public SlotStatus changeInstanceId(String instanceId)
     {
         return createSlotStatusWithExpectedState(this.id,
-                this.name,
                 this.self,
                 this.externalUri,
                 instanceId,
@@ -225,7 +212,6 @@ public class SlotStatus
     public SlotStatus changeAssignment(SlotLifecycleState state, Assignment assignment, Map<String, Integer> resources)
     {
         return createSlotStatusWithExpectedState(this.id,
-                this.name,
                 this.self,
                 this.externalUri,
                 this.instanceId,
@@ -242,7 +228,6 @@ public class SlotStatus
     public SlotStatus changeExpectedState(SlotLifecycleState expectedState, Assignment expectedAssignment)
     {
         return createSlotStatusWithExpectedState(this.id,
-                this.name,
                 this.self,
                 this.externalUri,
                 this.instanceId,
@@ -259,7 +244,6 @@ public class SlotStatus
     public SlotStatus changeStatusMessage(String statusMessage)
     {
         return createSlotStatusWithExpectedState(this.id,
-                this.name,
                 this.self,
                 this.externalUri,
                 this.instanceId,
@@ -292,9 +276,6 @@ public class SlotStatus
             return false;
         }
         if (installPath != null ? !installPath.equals(that.installPath) : that.installPath != null) {
-            return false;
-        }
-        if (!name.equals(that.name)) {
             return false;
         }
         if (instanceId != null ? !instanceId.equals(that.instanceId) : that.instanceId != null) {
@@ -332,7 +313,6 @@ public class SlotStatus
     public int hashCode()
     {
         int result = id.hashCode();
-        result = 31 * result + name.hashCode();
         result = 31 * result + self.hashCode();
         result = 31 * result + externalUri.hashCode();
         result = 31 * result + instanceId.hashCode();
@@ -353,7 +333,6 @@ public class SlotStatus
         final StringBuilder sb = new StringBuilder();
         sb.append("SlotStatus");
         sb.append("{id=").append(id);
-        sb.append(", name='").append(name).append('\'');
         sb.append(", self=").append(self);
         sb.append(", externalUri=").append(externalUri);
         sb.append(", instanceId='").append(instanceId).append('\'');

@@ -134,7 +134,7 @@ public class TestServer
             if (slot.status().getAssignment() != null) {
                 slot.stop();
             }
-            agent.terminateSlot(slot.getName());
+            agent.terminateSlot(slot.getId());
         }
         assertTrue(agent.getAllSlots().isEmpty());
     }
@@ -161,13 +161,12 @@ public class TestServer
     {
         SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Request request = RequestBuilder.prepareGet().setUri(urlFor("/v1/agent/slot", slotStatus.getName())).build();
+        Request request = RequestBuilder.prepareGet().setUri(urlFor("/v1/agent/slot", slotStatus.getId().toString())).build();
         Map<String, Object> response = client.execute(request, createJsonResponseHandler(mapCodec, Status.OK.getStatusCode()));
 
         Map<String, Object> expected = mapCodec.fromJson(Resources.toString(Resources.getResource("slot-status.json"), UTF_8));
         expected.put("id", slotStatus.getId().toString());
         expected.put("shortId", slotStatus.getId().toString());
-        expected.put("name", slotStatus.getName());
         expected.put("self", urlFor(slotStatus).toASCIIString());
         expected.put("externalUri", urlFor(slotStatus).toASCIIString());
         expected.put("version", slotStatus.getVersion());
@@ -205,7 +204,6 @@ public class TestServer
         List<Map<String, Object>> expected = listCodec.fromJson(Resources.toString(Resources.getResource("slot-status-list.json"), UTF_8));
         expected.get(0).put("id", appleSlotStatus.getId().toString());
         expected.get(0).put("shortId", appleSlotStatus.getId().toString());
-        expected.get(0).put("name", appleSlotStatus.getName());
         expected.get(0).put("version", appleSlotStatus.getVersion());
         expected.get(0).put("self", urlFor(appleSlotStatus).toASCIIString());
         expected.get(0).put("externalUri", urlFor(appleSlotStatus).toASCIIString());
@@ -215,7 +213,6 @@ public class TestServer
         expected.get(0).put("resources", ImmutableMap.<String, Integer>of("memory", 512));
         expected.get(1).put("id", bananaSlotStatus.getId().toString());
         expected.get(1).put("shortId", bananaSlotStatus.getId().toString());
-        expected.get(1).put("name", bananaSlotStatus.getName());
         expected.get(1).put("version", bananaSlotStatus.getVersion());
         expected.get(1).put("self", urlFor(bananaSlotStatus).toASCIIString());
         expected.get(1).put("externalUri", urlFor(bananaSlotStatus).toASCIIString());
@@ -240,13 +237,12 @@ public class TestServer
 
         assertEquals(response.getStatusCode(), Status.CREATED.getStatusCode());
         Slot slot = agent.getAllSlots().iterator().next();
-        assertEquals(response.getHeader(HttpHeaders.LOCATION), uriBuilderFrom(server.getBaseUrl()).appendPath("/v1/agent/slot/").appendPath(slot.getName()).toString());
+        assertEquals(response.getHeader(HttpHeaders.LOCATION), uriBuilderFrom(server.getBaseUrl()).appendPath("/v1/agent/slot/").appendPath(slot.getId().toString()).toString());
         assertEquals(response.getHeader(CONTENT_TYPE), MediaType.APPLICATION_JSON);
 
         Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slot.getId().toString())
                 .put("shortId", slot.getId().toString())
-                .put("name", slot.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("shortBinary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
@@ -272,16 +268,15 @@ public class TestServer
         SlotStatus slotStatus = agent.install(appleInstallation);
 
         Request request = RequestBuilder.prepareDelete()
-                .setUri(urlFor("/v1/agent/slot", slotStatus.getName()))
+                .setUri(urlFor("/v1/agent/slot", slotStatus.getId().toString()))
                 .build();
         Map<String, Object> response = client.execute(request, createJsonResponseHandler(mapCodec, Status.OK.getStatusCode()));
 
-        assertNull(agent.getSlot(slotStatus.getName()));
+        assertNull(agent.getSlot(slotStatus.getId()));
 
         Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
-                .put("name", slotStatus.getName())
                 .put("self", urlFor(slotStatus).toASCIIString())
                 .put("externalUri", urlFor(slotStatus).toASCIIString())
                 .put("location", slotStatus.getLocation())
@@ -320,7 +315,7 @@ public class TestServer
 
         assertEquals(response.getStatusCode(), NOT_ALLOWED);
 
-        assertNull(agent.getSlot("slot1"));
+        assertNull(agent.getSlot(UUID.randomUUID()));
     }
 
     @Test
@@ -340,7 +335,6 @@ public class TestServer
         Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
-                .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("shortBinary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
@@ -373,7 +367,6 @@ public class TestServer
         Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
-                .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("shortBinary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
@@ -396,7 +389,7 @@ public class TestServer
             throws Exception
     {
         SlotStatus slotStatus = agent.install(appleInstallation);
-        agent.getSlot(slotStatus.getName()).start();
+        agent.getSlot(slotStatus.getId()).start();
 
         Request request = RequestBuilder.preparePut()
                 .setUri(urlFor(slotStatus, "lifecycle"))
@@ -407,7 +400,6 @@ public class TestServer
         Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
-                .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("shortBinary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
@@ -440,7 +432,6 @@ public class TestServer
         Map<String, Object> expected = ImmutableMap.<String, Object>builder()
                 .put("id", slotStatus.getId().toString())
                 .put("shortId", slotStatus.getId().toString())
-                .put("name", slotStatus.getName())
                 .put("binary", appleInstallation.getAssignment().getBinary())
                 .put("shortBinary", appleInstallation.getAssignment().getBinary())
                 .put("config", appleInstallation.getAssignment().getConfig())
@@ -491,7 +482,7 @@ public class TestServer
     {
         HttpUriBuilder builder = uriBuilderFrom(server.getBaseUrl())
                 .appendPath("/v1/agent/slot/")
-                .appendPath(slotStatus.getName());
+                .appendPath(slotStatus.getId().toString());
         for (String pathPart : pathParts) {
             builder.appendPath(pathPart);
         }

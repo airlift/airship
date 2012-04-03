@@ -26,11 +26,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.util.UUID;
+
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
 
-@Path("/v1/agent/slot/{slotName: [a-z0-9_.-]+}/lifecycle")
+@Path("/v1/agent/slot/{slotId}/lifecycle")
 public class LifecycleResource
 {
     private final Agent agent;
@@ -46,15 +48,15 @@ public class LifecycleResource
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     public Response setState(@HeaderParam(GALAXY_SLOT_VERSION_HEADER) String slotVersion,
-            @PathParam("slotName") String slotName,
+            @PathParam("slotId") UUID slotId,
             String newState)
     {
-        Preconditions.checkNotNull(slotName, "slotName must not be null");
+        Preconditions.checkNotNull(slotId, "slotId must not be null");
         Preconditions.checkNotNull(newState, "newState must not be null");
 
-        Slot slot = agent.getSlot(slotName);
+        Slot slot = agent.getSlot(slotId);
         if (slot == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         checkSlotVersion(slot.status(), slotVersion);

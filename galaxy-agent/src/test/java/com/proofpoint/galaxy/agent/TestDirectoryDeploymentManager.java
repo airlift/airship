@@ -15,14 +15,11 @@ package com.proofpoint.galaxy.agent;
 
 import com.google.common.io.Files;
 import com.proofpoint.galaxy.shared.InstallationHelper;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 
 import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
 import static org.testng.Assert.assertEquals;
@@ -43,7 +40,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         bananaInstallation = installationHelper.getBananaInstallation();
         tempDir = Files.createTempDir().getCanonicalFile();
         final AgentConfig config = new AgentConfig();
-        manager = new DirectoryDeploymentManager("slot", tempDir, "/location/test", config.getTarTimeout());
+        manager = new DirectoryDeploymentManager(tempDir, "/location/test", config.getTarTimeout());
     }
 
     @AfterMethod
@@ -66,7 +63,7 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
 
         // replace the deployment manager with a new one, which will cause the persistent data to reload
         final AgentConfig config = new AgentConfig();
-        manager = new DirectoryDeploymentManager(appleDeployment.getSlotName(), tempDir, appleDeployment.getLocation(), config.getTarTimeout());
+        manager = new DirectoryDeploymentManager(tempDir, appleDeployment.getLocation(), config.getTarTimeout());
 
         // active deployment should still be apple
         assertEquals(manager.getDeployment(), appleDeployment);

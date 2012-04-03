@@ -29,14 +29,13 @@ import static org.testng.Assert.assertTrue;
 public class TestSlotFilterBuilder
 {
     private final SlotStatus status = SlotStatus.createSlotStatusWithExpectedState(UUID.fromString("12345678-1234-1234-1234-123456789012"),
-            "slotName",
             URI.create("fake://localhost"),
             URI.create("fake://localhost"),
             "instance",
             "/location",
             UNKNOWN,
             APPLE_ASSIGNMENT,
-            "/slotName",
+            "/install-path",
             ImmutableMap.<String, Integer>of(),
             null,
             null,
@@ -149,14 +148,13 @@ public class TestSlotFilterBuilder
     public void testFullBinarySpecPredicate()
     {
         SlotStatus status = createSlotStatus(UUID.randomUUID(),
-                "slotName",
                 URI.create("fake://localhost"),
                 URI.create("fake://localhost"),
                 "instance",
                 "/location",
                 UNKNOWN,
                 new Assignment("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT", APPLE_ASSIGNMENT.getConfig()),
-                "/slotName",
+                "/install-path",
                 ImmutableMap.<String, Integer>of());
 
         assertTrue(new BinarySpecPredicate("*:*:*:*:*").apply(status));

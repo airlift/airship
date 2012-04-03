@@ -25,7 +25,6 @@ import java.util.UUID;
 
 public class DeploymentRepresentation
 {
-    private final String slotName;
     private final UUID nodeId;
     private final AssignmentRepresentation assignment;
     private final Map<String, Integer> resources;
@@ -33,7 +32,6 @@ public class DeploymentRepresentation
     public static DeploymentRepresentation from(Deployment deployment)
     {
         return new DeploymentRepresentation(
-                deployment.getSlotName(),
                 deployment.getNodeId(),
                 AssignmentRepresentation.from(deployment.getAssignment()),
                 deployment.getResources());
@@ -41,16 +39,13 @@ public class DeploymentRepresentation
 
     @JsonCreator
     public DeploymentRepresentation(
-            @JsonProperty("slotName") String slotName,
             @JsonProperty("nodeId") UUID nodeId,
             @JsonProperty("assignment") AssignmentRepresentation assignment,
             @JsonProperty("resources") Map<String, Integer> resources)
     {
-        Preconditions.checkNotNull(slotName, "slotName is null");
         Preconditions.checkNotNull(nodeId, "nodeId is null");
         Preconditions.checkNotNull(assignment, "assignment is null");
 
-        this.slotName = slotName;
         this.nodeId = nodeId;
         this.assignment = assignment;
         if (resources == null) {
@@ -58,12 +53,6 @@ public class DeploymentRepresentation
         } else {
             this.resources = ImmutableMap.copyOf(resources);
         }
-    }
-
-    @JsonProperty
-    public String getSlotName()
-    {
-        return slotName;
     }
 
     @JsonProperty
@@ -86,7 +75,7 @@ public class DeploymentRepresentation
 
     public Deployment toDeployment(File deploymentDir, File dataDir, String location)
     {
-        return new Deployment(slotName, nodeId, location, deploymentDir, dataDir, assignment.toAssignment(), resources);
+        return new Deployment(nodeId, location, deploymentDir, dataDir, assignment.toAssignment(), resources);
     }
 
     @Override
@@ -110,9 +99,6 @@ public class DeploymentRepresentation
         if (resources != null ? !resources.equals(that.resources) : that.resources != null) {
             return false;
         }
-        if (slotName != null ? !slotName.equals(that.slotName) : that.slotName != null) {
-            return false;
-        }
 
         return true;
     }
@@ -120,8 +106,7 @@ public class DeploymentRepresentation
     @Override
     public int hashCode()
     {
-        int result = slotName != null ? slotName.hashCode() : 0;
-        result = 31 * result + (nodeId != null ? nodeId.hashCode() : 0);
+        int result = (nodeId != null ? nodeId.hashCode() : 0);
         result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
         result = 31 * result + (resources != null ? resources.hashCode() : 0);
         return result;
@@ -132,8 +117,7 @@ public class DeploymentRepresentation
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("DeploymentRepresentation");
-        sb.append("{slotName='").append(slotName).append('\'');
-        sb.append(", nodeId=").append(nodeId);
+        sb.append("{nodeId=").append(nodeId);
         sb.append(", assignment=").append(assignment);
         sb.append(", resources=").append(resources);
         sb.append('}');

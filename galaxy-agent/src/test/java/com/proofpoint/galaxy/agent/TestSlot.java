@@ -38,7 +38,7 @@ public class TestSlot
             throws Exception
     {
         MockLifecycleManager lifecycleManager = new MockLifecycleManager();
-        MockDeploymentManager deploymentManager = new MockDeploymentManager("slot");
+        MockDeploymentManager deploymentManager = new MockDeploymentManager();
 
         // create slot with initial apple assignment
         Slot slot = new DeploymentSlot(URI.create("fake://localhost"),
@@ -47,10 +47,8 @@ public class TestSlot
                 lifecycleManager,
                 APPLE_INSTALLATION,
                 new Duration(1, SECONDS));
-        assertEquals(slot.getName(), "slot");
         SlotStatus status = slot.status();
         assertNotNull(status);
-        assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
         assertEquals(slot.status(), status);
@@ -59,7 +57,6 @@ public class TestSlot
         // assign banana and verify state
         status = slot.assign(BANANA_INSTALLATION);
         assertNotNull(status);
-        assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), BANANA_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
         assertEquals(slot.status(), status);
@@ -68,7 +65,6 @@ public class TestSlot
         // terminate and verify terminated
         status = slot.terminate();
         assertNotNull(status);
-        assertEquals(status.getName(), "slot");
         assertEquals(status.getAssignment(), null);
         assertEquals(status.getState(), TERMINATED);
         assertEquals(slot.status(), status);
@@ -80,7 +76,7 @@ public class TestSlot
     {
         Slot slot = new DeploymentSlot(URI.create("fake://localhost"),
                 URI.create("fake://localhost"),
-                new MockDeploymentManager("slot"),
+                new MockDeploymentManager(),
                 new MockLifecycleManager(),
                 APPLE_INSTALLATION,
                 new Duration(1, SECONDS));

@@ -140,11 +140,11 @@ public class TestRemoteSlot
             if (slot.status().getAssignment() != null) {
                 slot.stop();
             }
-            agent.terminateSlot(slot.getName());
+            agent.terminateSlot(slot.getId());
         }
         assertTrue(agent.getAllSlots().isEmpty());
 
-        slot = agent.getSlot(agent.install(APPLE_INSTALLATION).getName());
+        slot = agent.getSlot(agent.install(APPLE_INSTALLATION).getId());
     }
 
     @AfterClass
@@ -201,7 +201,6 @@ public class TestRemoteSlot
 
         // verify
         SlotStatus expected = createSlotStatus(slot.getId(),
-                slot.getName(),
                 slot.getSelf(),
                 slot.getExternalUri(),
                 slot.status().getInstanceId(),

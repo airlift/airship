@@ -30,7 +30,6 @@ public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
     {
         manager = new MockLifecycleManager();
         appleDeployment = new Deployment(
-                "slot",
                 UUID.randomUUID(),
                 "location/apple",
                 new File("apple"),
@@ -38,7 +37,6 @@ public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
                 APPLE_ASSIGNMENT,
                 ImmutableMap.<String, Integer>of( "memory", 512));
         bananaDeployment = new Deployment(
-                "slot",
                 UUID.randomUUID(),
                 "location/banana",
                 new File("banana"),

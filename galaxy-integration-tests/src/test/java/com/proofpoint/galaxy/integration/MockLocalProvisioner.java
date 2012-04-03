@@ -25,7 +25,6 @@ import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.node.NodeModule;
-import com.proofpoint.node.testing.TestingNodeModule;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -269,7 +268,7 @@ public class MockLocalProvisioner implements Provisioner
                     if (slot.status().getAssignment() != null) {
                         slot.stop();
                     }
-                    agent.terminateSlot(slot.getName());
+                    agent.terminateSlot(slot.getId());
                 }
 
                 try {

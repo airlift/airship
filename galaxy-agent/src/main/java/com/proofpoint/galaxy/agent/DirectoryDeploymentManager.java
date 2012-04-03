@@ -30,7 +30,6 @@ public class DirectoryDeploymentManager implements DeploymentManager
     private final JsonCodec<DeploymentRepresentation> jsonCodec = jsonCodec(DeploymentRepresentation.class);
 
     private final UUID slotId;
-    private final String slotName;
     private final String location;
     private final Duration tarTimeout;
 
@@ -38,12 +37,10 @@ public class DirectoryDeploymentManager implements DeploymentManager
     private final File deploymentFile;
     private Deployment deployment;
 
-    public DirectoryDeploymentManager(String slotName, File baseDir, String location, Duration tarTimeout)
+    public DirectoryDeploymentManager(File baseDir, String location, Duration tarTimeout)
     {
-        Preconditions.checkNotNull(slotName, "slotName is null");
         Preconditions.checkNotNull(location, "location is null");
         Preconditions.checkArgument(location.startsWith("/"), "location must start with /");
-        this.slotName = slotName;
         this.location = location;
         this.tarTimeout = tarTimeout;
 
@@ -69,7 +66,6 @@ public class DirectoryDeploymentManager implements DeploymentManager
             catch (IOException e) {
                 throw new IllegalArgumentException("Invalid deployment file: " + deploymentFile.getAbsolutePath(), e);
             }
-            Preconditions.checkArgument(slotName.equals(deployment.getSlotName()), "Slot name in deployment info is %s, but expected %s", deployment.getSlotName(), slotName);
         }
 
         // load slot-id
@@ -108,12 +104,6 @@ public class DirectoryDeploymentManager implements DeploymentManager
     }
 
     @Override
-    public String getSlotName()
-    {
-        return slotName;
-    }
-
-    @Override
     public UUID getSlotId()
     {
         return slotId;
@@ -136,7 +126,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
         File dataDir = getDataDir();
 
-        Deployment deployment = new Deployment(slotName, slotId, location, deploymentDir, dataDir, assignment, installation.getResources());
+        Deployment deployment = new Deployment(slotId, location, deploymentDir, dataDir, assignment, installation.getResources());
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary

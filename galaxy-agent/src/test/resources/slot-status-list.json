@@ -1,6 +1,5 @@
 [
     {
-        "name": "slot1",
         "binary": "food.fruit:apple:1.0",
         "shortBinary": "food.fruit:apple:1.0",
         "config": "@prod:apple:1.0",
@@ -8,7 +7,6 @@
         "status": "STOPPED"
     },
     {
-        "name": "slot2",
         "binary": "food.fruit:banana:2.0-SNAPSHOT",
         "shortBinary": "food.fruit:banana:2.0-SNAPSHOT",
         "config": "@prod:banana:2.0-SNAPSHOT",

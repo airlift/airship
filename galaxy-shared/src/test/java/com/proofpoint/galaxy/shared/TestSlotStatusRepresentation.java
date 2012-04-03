@@ -19,7 +19,6 @@ public class TestSlotStatusRepresentation
 
     private final SlotStatusRepresentation expected = new SlotStatusRepresentation(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
             "aaaaa",
-            "slot1",
             URI.create("internal://apple"),
             URI.create("external://apple"),
             "instance",

@@ -75,7 +75,6 @@ public class TestCoordinatorSlotResource
     public void testGetAllSlots()
     {
         SlotStatus slot1 = createSlotStatus(UUID.randomUUID(),
-                "slot1",
                 URI.create("fake://localhost/v1/agent/slot/slot1"),
                 URI.create("fake://localhost/v1/agent/slot/slot1"),
                 "instance-id",
@@ -85,7 +84,6 @@ public class TestCoordinatorSlotResource
                 "/slot1",
                 ImmutableMap.<String, Integer>of());
         SlotStatus slot2 = createSlotStatus(UUID.randomUUID(),
-                "slot2",
                 URI.create("fake://localhost/v1/agent/slot/slot2"),
                 URI.create("fake://localhost/v1/agent/slot/slot2"),
                 "instance-id",
@@ -120,7 +118,6 @@ public class TestCoordinatorSlotResource
     public void testGetAllSlotsWithFilter()
     {
         SlotStatus slot1 = createSlotStatus(UUID.randomUUID(),
-                "slot1",
                 URI.create("fake://foo/v1/agent/slot/slot1"),
                 URI.create("fake://foo/v1/agent/slot/slot1"),
                 "instance-id",
@@ -130,7 +127,6 @@ public class TestCoordinatorSlotResource
                 "/slot1",
                 ImmutableMap.<String, Integer>of());
         SlotStatus slot2 = createSlotStatus(UUID.randomUUID(),
-                "slot2",
                 URI.create("fake://bar/v1/agent/slot/slot2"),
                 URI.create("fake://bar/v1/agent/slot/slot2"),
                 "instance-id",

@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentVersion;
@@ -66,22 +67,22 @@ public class SlotResource
         SlotStatus slotStatus = agent.install(installation.toInstallation());
 
         return Response
-                .created(getSelfUri(slotStatus.getName(), uriInfo.getBaseUri()))
+                .created(getSelfUri(slotStatus.getId(), uriInfo.getBaseUri()))
                 .entity(SlotStatusRepresentation.from(slotStatus))
                 .header(GALAXY_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
                 .header(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
                 .build();
     }
 
-    @Path("{slotName: [a-z0-9_.-]+}")
+    @Path("{slotId}")
     @DELETE
     public Response terminateSlot(@HeaderParam(GALAXY_AGENT_VERSION_HEADER) String agentVersion,
             @HeaderParam(GALAXY_SLOT_VERSION_HEADER) String slotVersion,
-            @PathParam("slotName") String id)
+            @PathParam("slotId") UUID slotId)
     {
-        Preconditions.checkNotNull(id, "id must not be null");
+        Preconditions.checkNotNull(slotId, "slotId must not be null");
 
-        Slot slot = agent.getSlot(id);
+        Slot slot = agent.getSlot(slotId);
         if (slot == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -89,7 +90,7 @@ public class SlotResource
         checkAgentVersion(agent.getAgentStatus(), agentVersion);
         checkSlotVersion(slot.status(), slotVersion);
 
-        SlotStatus slotStatus = agent.terminateSlot(id);
+        SlotStatus slotStatus = agent.terminateSlot(slotId);
         if (slotStatus == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -100,14 +101,14 @@ public class SlotResource
                 .build();
     }
 
-    @Path("{slotName: [a-z0-9_.-]+}")
+    @Path("{slotId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getSlotStatus(@PathParam("slotName") String slotName, @Context UriInfo uriInfo)
+    public Response getSlotStatus(@PathParam("slotId") UUID slotId, @Context UriInfo uriInfo)
     {
-        Preconditions.checkNotNull(slotName, "slotName must not be null");
+        Preconditions.checkNotNull(slotId, "slotId must not be null");
 
-        Slot slot = agent.getSlot(slotName);
+        Slot slot = agent.getSlot(slotId);
         if (slot == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -134,8 +135,8 @@ public class SlotResource
     }
 
 
-    private static URI getSelfUri(String slotName, URI baseUri)
+    private static URI getSelfUri(UUID slotId, URI baseUri)
     {
-        return uriBuilderFrom(baseUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
+        return uriBuilderFrom(baseUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
     }
 }

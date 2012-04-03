@@ -1,13 +1,21 @@
 package com.proofpoint.galaxy.agent;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.proofpoint.galaxy.shared.FileUtils;
+import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import static com.proofpoint.galaxy.shared.FileUtils.listFiles;
 
@@ -41,20 +49,65 @@ public class DirectoryDeploymentManagerFactory implements DeploymentManagerFacto
     }
 
     @Override
-    public List<DeploymentManager>  loadSlots()
+    public List<DeploymentManager> loadSlots()
     {
         ImmutableList.Builder<DeploymentManager> builder = ImmutableList.builder();
         for (File dir : listFiles(slotDir)) {
             if (dir.isDirectory() && new File(dir, "galaxy-slot-id.txt").canRead()) {
-                builder.add(createDeploymentManager(dir.getName()));
+                DirectoryDeploymentManager deploymentManager = new DirectoryDeploymentManager(dir, location + "/" + dir.getName(), tarTimeout);
+                builder.add(deploymentManager);
             }
         }
         return builder.build();
     }
 
     @Override
-    public DirectoryDeploymentManager createDeploymentManager(String slotName)
+    public DirectoryDeploymentManager createDeploymentManager(Installation installation)
     {
-        return new DirectoryDeploymentManager(slotName, new File(slotDir, slotName), location + "/" + slotName, tarTimeout);
+        File slotDirectory = getSlotDirectory(installation);
+        return new DirectoryDeploymentManager(slotDirectory, location + "/" + slotDirectory.getName(), tarTimeout);
     }
+
+    private synchronized File getSlotDirectory(Installation installation)
+    {
+        String baseName = toBaseName(installation);
+        baseName = baseName.replace("[^a-zA-Z0-9_.-]", "_");
+
+        Set<String> fileNames = ImmutableSet.copyOf(Lists.transform(FileUtils.listFiles(slotDir), new Function<File, String>()
+        {
+            @Override
+            public String apply(@Nullable File file)
+            {
+                return file.getName();
+            }
+        }));
+        if (!fileNames.contains(baseName)) {
+            return new File(slotDir, baseName);
+        }
+
+        for (int i = 0; i < 10000; i++) {
+            String directoryName = baseName + i;
+            if (!fileNames.contains(directoryName)) {
+                return new File(slotDir, directoryName);
+            }
+        }
+        throw new IllegalStateException("Could not find an valid slot directory name");
+    }
+
+    private String toBaseName(Installation installation)
+    {
+        String configSpec = installation.getAssignment().getConfig();
+        MavenCoordinates mavenCoordinates = MavenCoordinates.fromConfigGAV(configSpec);
+        String baseName;
+        if (mavenCoordinates != null) {
+            baseName = mavenCoordinates.getArtifactId();
+        } else if (configSpec.startsWith("@")) {
+
+            baseName = configSpec.substring(1);
+        } else {
+            baseName = configSpec;
+        }
+        return baseName;
+    }
+
 }

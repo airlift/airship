@@ -14,8 +14,8 @@
 package com.proofpoint.galaxy.agent;
 
 import com.google.common.collect.ImmutableList;
+import com.proofpoint.galaxy.shared.Installation;
 
-import java.io.File;
 import java.util.List;
 
 public class MockDeploymentManagerFactory implements DeploymentManagerFactory
@@ -27,8 +27,8 @@ public class MockDeploymentManagerFactory implements DeploymentManagerFactory
     }
 
     @Override
-    public DeploymentManager createDeploymentManager(String slotName)
+    public DeploymentManager createDeploymentManager(Installation installation)
     {
-        return new MockDeploymentManager(slotName);
+        return new MockDeploymentManager();
     }
 }

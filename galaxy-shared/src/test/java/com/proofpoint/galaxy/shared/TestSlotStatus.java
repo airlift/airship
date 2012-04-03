@@ -34,39 +34,37 @@ public class TestSlotStatus
     public void testEquivalence()
     {
         UUID appleId = UUID.randomUUID();
-        String appleSlotName = "apple";
         URI appleSelf = URI.create("internal://apple");
         URI appleExternalUri = URI.create("external://apple");
         String applePath = "/apple";
 
         UUID bananaId = UUID.randomUUID();
-        String bananaSlotName = "banana";
         URI bananaSelf = URI.create("internal://banana");
         URI bananaExternalUri = URI.create("external://banana");
         String bananaPath = "/banana";
 
         equivalenceTester()
                 .addEquivalentGroup(
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()),
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()))
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()),
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        createSlotStatus(bananaId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()),
-                        createSlotStatus(bananaId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()))
+                        createSlotStatus(bananaId, appleSelf, appleExternalUri, "instance", "/location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()),
+                        createSlotStatus(bananaId, appleSelf, appleExternalUri, "instance", "/location", TERMINATED, null, applePath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", RUNNING, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", RUNNING, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", RUNNING, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", RUNNING, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        createSlotStatus(bananaId, bananaSlotName, bananaSelf, bananaExternalUri, "instance", "/location", RUNNING, APPLE_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()),
-                        createSlotStatus(bananaId, bananaSlotName, bananaSelf, bananaExternalUri, "instance", "/location", RUNNING, APPLE_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()))
+                        createSlotStatus(bananaId, bananaSelf, bananaExternalUri, "instance", "/location", RUNNING, APPLE_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()),
+                        createSlotStatus(bananaId, bananaSelf, bananaExternalUri, "instance", "/location", RUNNING, APPLE_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", RUNNING, BANANA_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()),
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", RUNNING, BANANA_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()))
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", RUNNING, BANANA_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()),
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", RUNNING, BANANA_ASSIGNMENT, bananaPath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", STOPPED, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", STOPPED, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", STOPPED, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", STOPPED, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
                 .addEquivalentGroup(
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", UNKNOWN, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
-                        createSlotStatus(appleId, appleSlotName, appleSelf, appleExternalUri, "instance", "/location", UNKNOWN, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", UNKNOWN, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()),
+                        createSlotStatus(appleId, appleSelf, appleExternalUri, "instance", "/location", UNKNOWN, APPLE_ASSIGNMENT, applePath, ImmutableMap.<String, Integer>of()))
                 .check();
     }
 }

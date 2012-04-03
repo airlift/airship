@@ -47,7 +47,6 @@ public class TestAgentStatusRepresentation
             ImmutableList.of(
                     new SlotStatusRepresentation(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             null,
-                            "slot1",
                             URI.create("internal://apple"),
                             URI.create("external://apple"),
                             "instance",
@@ -67,7 +66,6 @@ public class TestAgentStatusRepresentation
                             null),
                     new SlotStatusRepresentation(UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             null,
-                            "slot2",
                             URI.create("internal://banana"),
                             URI.create("external://banana"),
                             "instance",

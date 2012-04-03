@@ -597,7 +597,6 @@ public class Coordinator
                 }
                 // missing slot
                 fullSlotStatus = SlotStatus.createSlotStatusWithExpectedState(uuid,
-                        "unknown",
                         null,
                         null,
                         null,

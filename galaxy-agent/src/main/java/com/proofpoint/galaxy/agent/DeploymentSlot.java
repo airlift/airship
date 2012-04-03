@@ -40,7 +40,6 @@ public class DeploymentSlot implements Slot
     private static final Logger log = Logger.get(DeploymentSlot.class);
 
     private final UUID id;
-    private final String name;
     private final String location;
     private final URI self;
     private final URI externalUri;
@@ -66,7 +65,6 @@ public class DeploymentSlot implements Slot
         Preconditions.checkNotNull(lifecycleManager, "lifecycleManager is null");
         Preconditions.checkNotNull(maxLockWait, "maxLockWait is null");
 
-        this.name = deploymentManager.getSlotName();
         this.location = deploymentManager.getLocation();
         this.deploymentManager = deploymentManager;
         this.lifecycleManager = lifecycleManager;
@@ -77,11 +75,10 @@ public class DeploymentSlot implements Slot
         this.externalUri = externalUri;
 
         Deployment deployment = deploymentManager.getDeployment();
-        Preconditions.checkState(deployment != null, "No deployment for slot %s", name);
+        Preconditions.checkState(deployment != null, "No deployment for slot %s", deploymentManager.getSlotId());
 
         SlotLifecycleState state = lifecycleManager.status(deployment);
         SlotStatus slotStatus = createSlotStatus(id,
-                name,
                 self,
                 externalUri,
                 null,
@@ -105,7 +102,6 @@ public class DeploymentSlot implements Slot
         Preconditions.checkNotNull(installation, "installation is null");
         Preconditions.checkNotNull(maxLockWait, "maxLockWait is null");
 
-        this.name = deploymentManager.getSlotName();
         this.location = deploymentManager.getLocation();
         this.deploymentManager = deploymentManager;
         this.lifecycleManager = lifecycleManager;
@@ -126,7 +122,6 @@ public class DeploymentSlot implements Slot
 
             // set initial status
             lastSlotStatus = new AtomicReference<SlotStatus>(createSlotStatus(id,
-                    name,
                     self,
                     externalUri,
                     null,
@@ -146,12 +141,6 @@ public class DeploymentSlot implements Slot
     public UUID getId()
     {
         return id;
-    }
-
-    @Override
-    public String getName()
-    {
-        return name;
     }
 
     @Override
@@ -196,7 +185,6 @@ public class DeploymentSlot implements Slot
             lifecycleManager.updateNodeConfig(deployment);
 
             SlotStatus slotStatus = createSlotStatus(id,
-                    name,
                     self,
                     externalUri,
                     null,
@@ -402,7 +390,7 @@ public class DeploymentSlot implements Slot
         final StringBuilder sb = new StringBuilder();
         sb.append("Slot");
         sb.append("{slotId=").append(id);
-        sb.append(", name='").append(name).append('\'');
+        sb.append(", location='").append(location).append('\'');
         sb.append('}');
         return sb.toString();
     }

@@ -241,17 +241,17 @@ public class TestServerIntegration
                 APPLE_ASSIGNMENT,
                 repository.binaryToHttpUri(APPLE_ASSIGNMENT.getBinary()),
                 repository.configToHttpUri(APPLE_ASSIGNMENT.getConfig()),
-                ImmutableMap.of("memory", 512))).getName());
+                ImmutableMap.of("memory", 512))).getId());
         appleSlot2 = agent.getSlot(agent.install(new Installation("apple",
                 APPLE_ASSIGNMENT,
                 repository.binaryToHttpUri(APPLE_ASSIGNMENT.getBinary()),
                 repository.configToHttpUri(APPLE_ASSIGNMENT.getConfig()),
-                ImmutableMap.of("memory", 512))).getName());
+                ImmutableMap.of("memory", 512))).getId());
         bananaSlot = agent.getSlot(agent.install(new Installation("banana",
                 BANANA_ASSIGNMENT,
                 repository.binaryToHttpUri(BANANA_ASSIGNMENT.getBinary()),
                 repository.configToHttpUri(BANANA_ASSIGNMENT.getConfig()),
-                ImmutableMap.of("memory", 512))).getName());
+                ImmutableMap.of("memory", 512))).getId());
 
         coordinator.updateAllAgents();
         assertEquals(coordinator.getAgents().size(), 1);

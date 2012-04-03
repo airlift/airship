@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closeables;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.Installation;
 import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerInfo;
@@ -35,24 +34,21 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static java.lang.Math.max;
 import static java.lang.String.format;
 
 public class Agent
 {
     private final String agentId;
-    private final ConcurrentMap<String, Slot> slots;
+    private final ConcurrentMap<UUID, Slot> slots;
     private final DeploymentManagerFactory deploymentManagerFactory;
     private final LifecycleManager lifecycleManager;
-    private final File slotsDir;
     private final String location;
     private final Map<String, Integer> resources;
     private final Duration maxLockWait;
@@ -81,7 +77,7 @@ public class Agent
     public Agent(
             String agentId,
             String location,
-            String slotsDir,
+            String slotsDirName,
             URI internalUri,
             URI externalUri,
             String resourcesFilename,
@@ -91,7 +87,7 @@ public class Agent
     {
         Preconditions.checkNotNull(agentId, "agentId is null");
         Preconditions.checkNotNull(location, "location is null");
-        Preconditions.checkNotNull(slotsDir, "slotsDir is null");
+        Preconditions.checkNotNull(slotsDirName, "slotsDirName is null");
         Preconditions.checkNotNull(internalUri, "internalUri is null");
         Preconditions.checkNotNull(externalUri, "externalUri is null");
         Preconditions.checkNotNull(deploymentManagerFactory, "deploymentManagerFactory is null");
@@ -107,34 +103,27 @@ public class Agent
         this.deploymentManagerFactory = deploymentManagerFactory;
         this.lifecycleManager = lifecycleManager;
 
-        slots = new ConcurrentHashMap<String, Slot>();
+        slots = new ConcurrentHashMap<UUID, Slot>();
 
-        this.slotsDir = new File(slotsDir);
-        if (!this.slotsDir.isDirectory()) {
-            this.slotsDir.mkdirs();
-            Preconditions.checkArgument(this.slotsDir.isDirectory(), format("Slots directory %s is not a directory", this.slotsDir));
-        }
-
-        // Assure data dir exists or can be created
-        File dataDir = new File(slotsDir);
-        if (!dataDir.isDirectory()) {
-            dataDir.mkdirs();
-            Preconditions.checkArgument(dataDir.isDirectory(), format("Data directory %s is not a directory", dataDir));
+        File slotsDir = new File(slotsDirName);
+        if (!slotsDir.isDirectory()) {
+            slotsDir.mkdirs();
+            Preconditions.checkArgument(slotsDir.isDirectory(), format("Slots directory %s is not a directory", slotsDir));
         }
 
         //
         // Load existing slots
         //
         for (DeploymentManager deploymentManager : this.deploymentManagerFactory.loadSlots()) {
-            String slotName = deploymentManager.getSlotName();
+            UUID slotId = deploymentManager.getSlotId();
             if (deploymentManager.getDeployment() == null) {
                 // todo bad slot
             }
             else {
-                URI slotInternalUri = uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
-                URI slotExternalUri = uriBuilderFrom(externalUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
+                URI slotInternalUri = uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
+                URI slotExternalUri = uriBuilderFrom(externalUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
                 Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManager, lifecycleManager, maxLockWait);
-                slots.put(slotName, slot);
+                slots.put(slotId, slot);
             }
         }
 
@@ -192,11 +181,11 @@ public class Agent
         return agentStatus;
     }
 
-    public Slot getSlot(String name)
+    public Slot getSlot(UUID slotId)
     {
-        Preconditions.checkNotNull(name, "name must not be null");
+        Preconditions.checkNotNull(slotId, "slotId must not be null");
 
-        Slot slot = slots.get(name);
+        Slot slot = slots.get(slotId);
         return slot;
     }
 
@@ -204,28 +193,30 @@ public class Agent
     {
         // todo name selection is not thread safe
         // create slot
-        String slotName = getNextSlotName(installation.getShortName());
-        URI slotInternalUri = uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
-        URI slotExternalUri = uriBuilderFrom(externalUri).appendPath("/v1/agent/slot/").appendPath(slotName).build();
-        Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManagerFactory.createDeploymentManager(slotName), lifecycleManager, installation, maxLockWait);
-        slots.put(slotName, slot);
+        DeploymentManager deploymentManager = deploymentManagerFactory.createDeploymentManager(installation);
+        UUID slotId = deploymentManager.getSlotId();
+
+        URI slotInternalUri = uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
+        URI slotExternalUri = uriBuilderFrom(externalUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
+        Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManager, lifecycleManager, installation, maxLockWait);
+        slots.put(slotId, slot);
 
         // return last slot status
         return slot.getLastSlotStatus();
     }
 
-    public SlotStatus terminateSlot(String name)
+    public SlotStatus terminateSlot(UUID slotId)
     {
-        Preconditions.checkNotNull(name, "name must not be null");
+        Preconditions.checkNotNull(slotId, "slotId must not be null");
 
-        Slot slot = slots.get(name);
+        Slot slot = slots.get(slotId);
         if (slot == null) {
             return null;
         }
 
         SlotStatus status = slot.terminate();
         if (status.getState() == TERMINATED) {
-            slots.remove(name);
+            slots.remove(slotId);
         }
         return status;
     }
@@ -233,37 +224,6 @@ public class Agent
     public Collection<Slot> getAllSlots()
     {
         return ImmutableList.copyOf(slots.values());
-    }
-
-    private String getNextSlotName(String baseName)
-    {
-        baseName = baseName.replace("[^a-zA-Z0-9_.-]", "_");
-        if (!slots.containsKey(baseName)) {
-            return baseName;
-        }
-
-        Pattern pattern = Pattern.compile(baseName + "(\\d+)");
-
-        int nextId = 1;
-        for (String deploymentId : slots.keySet()) {
-            Matcher matcher = pattern.matcher(deploymentId);
-            if (matcher.matches()) {
-                try {
-                    int id = Integer.parseInt(matcher.group(1));
-                    nextId = max(nextId, id + 1);
-                }
-                catch (NumberFormatException ignored) {
-                }
-            }
-        }
-
-        for (int i = 0; i < 10000; i++) {
-            String deploymentId = baseName + (nextId + i);
-            if (!new File(slotsDir, deploymentId).exists()) {
-                return deploymentId;
-            }
-        }
-        throw new IllegalStateException("Could not find an valid slot name");
     }
 }
 

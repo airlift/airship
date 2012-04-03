@@ -28,12 +28,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.util.UUID;
+
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotVersion;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
 
-@Path("/v1/agent/slot/{slotName: [a-z0-9_.-]+}/assignment")
+@Path("/v1/agent/slot/{slotId}/assignment")
 public class AssignmentResource
 {
     private final Agent agent;
@@ -51,15 +53,15 @@ public class AssignmentResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response assign(@HeaderParam(GALAXY_AGENT_VERSION_HEADER) String agentVersion,
             @HeaderParam(GALAXY_SLOT_VERSION_HEADER) String slotVersion,
-            @PathParam("slotName") String slotName,
+            @PathParam("slotId") UUID slotId,
             InstallationRepresentation installation)
     {
-        Preconditions.checkNotNull(slotName, "slotName must not be null");
+        Preconditions.checkNotNull(slotId, "slotId must not be null");
         Preconditions.checkNotNull(installation, "installation must not be null");
 
-        Slot slot = agent.getSlot(slotName);
+        Slot slot = agent.getSlot(slotId);
         if (slot == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity("[" + slotName + "]").build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         checkAgentVersion(agent.getAgentStatus(), agentVersion);

@@ -84,7 +84,6 @@ public class TestCoordinatorLifecycleResource
 
         apple1SlotId = UUID.randomUUID();
         SlotStatus appleSlotStatus1 = createSlotStatus(apple1SlotId,
-                "apple1",
                 URI.create("fake://foo/v1/agent/slot/apple1"),
                 URI.create("fake://foo/v1/agent/slot/apple1"),
                 "instance",
@@ -95,7 +94,6 @@ public class TestCoordinatorLifecycleResource
                 ImmutableMap.<String, Integer>of());
         apple2SlotId = UUID.randomUUID();
         SlotStatus appleSlotStatus2 = createSlotStatus(apple2SlotId,
-                "apple2",
                 URI.create("fake://foo/v1/agent/slot/apple1"),
                 URI.create("fake://foo/v1/agent/slot/apple1"),
                 "instance",
@@ -106,7 +104,6 @@ public class TestCoordinatorLifecycleResource
                 ImmutableMap.<String, Integer>of());
         bananaSlotId = UUID.randomUUID();
         SlotStatus bananaSlotStatus = createSlotStatus(bananaSlotId,
-                "banana",
                 URI.create("fake://foo/v1/agent/slot/banana"),
                 URI.create("fake://foo/v1/agent/slot/banana"),
                 "instance",

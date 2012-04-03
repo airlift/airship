@@ -98,7 +98,6 @@ public class SlotStatusRepresentation
 
             return new SlotStatusRepresentation(status.getId(),
                     safeTruncate(status.getId().toString(), shortIdPrefixSize),
-                    status.getName(),
                     status.getSelf(),
                     status.getExternalUri(),
                     status.getInstanceId(),
@@ -121,7 +120,6 @@ public class SlotStatusRepresentation
 
     private final UUID id;
     private final String shortId;
-    private final String name;
     private final URI self;
     private final URI externalUri;
     private final String instanceId;
@@ -193,7 +191,6 @@ public class SlotStatusRepresentation
 
         return new SlotStatusRepresentation(slotStatus.getId(),
                 safeTruncate(slotStatus.getId().toString(), shortIdPrefixSize),
-                slotStatus.getName(),
                 slotStatus.getSelf(),
                 slotStatus.getExternalUri(),
                 slotStatus.getInstanceId(),
@@ -217,7 +214,6 @@ public class SlotStatusRepresentation
     @JsonCreator
     public SlotStatusRepresentation(@JsonProperty("id") UUID id,
             @JsonProperty("shortId") String shortId,
-            @JsonProperty("name") String name,
             @JsonProperty("self") URI self,
             @JsonProperty("externalUri") URI externalUri,
             @JsonProperty("instanceId") String instanceId,
@@ -238,7 +234,6 @@ public class SlotStatusRepresentation
     {
         this.id = id;
         this.shortId = shortId;
-        this.name = name;
         this.self = self;
         this.externalUri = externalUri;
         this.instanceId = instanceId;
@@ -270,13 +265,6 @@ public class SlotStatusRepresentation
     public String getShortId()
     {
         return shortId;
-    }
-
-    @JsonProperty
-    @NotNull(message = "is missing")
-    public String getName()
-    {
-        return name;
     }
 
     @JsonProperty
@@ -403,7 +391,6 @@ public class SlotStatusRepresentation
             expectedState = SlotLifecycleState.valueOf(expectedStatus);
         }
         return SlotStatus.createSlotStatusWithExpectedState(id,
-                name,
                 self,
                 externalUri,
                 instanceId,
@@ -480,9 +467,6 @@ public class SlotStatusRepresentation
         if (shortId != null ? !shortId.equals(that.shortId) : that.shortId != null) {
             return false;
         }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
         if (self != null ? !self.equals(that.self) : that.self != null) {
             return false;
         }
@@ -528,7 +512,6 @@ public class SlotStatusRepresentation
     {
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + (shortId != null ? shortId.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (binary != null ? binary.hashCode() : 0);
         result = 31 * result + (shortBinary != null ? shortBinary.hashCode() : 0);
         result = 31 * result + (config != null ? config.hashCode() : 0);
@@ -554,7 +537,6 @@ public class SlotStatusRepresentation
         final StringBuilder sb = new StringBuilder();
         sb.append("SlotStatusRepresentation");
         sb.append("{id=").append(id);
-        sb.append(", name='").append(name).append('\'');
         sb.append(", shortId='").append(shortId).append('\'');
         sb.append(", self=").append(self);
         sb.append(", externalUri=").append(externalUri);

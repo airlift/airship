@@ -21,21 +21,13 @@ import java.util.UUID;
 
 public class MockDeploymentManager implements DeploymentManager
 {
-    private final String slotName;
     private final String location;
     private final UUID slotId = UUID.randomUUID();
     private Deployment deployment;
 
-    public MockDeploymentManager(String slotName)
+    public MockDeploymentManager()
     {
-        this.slotName = slotName;
-        this.location = "/location/" + this.slotName;
-    }
-
-    @Override
-    public String getSlotName()
-    {
-        return slotName;
+        this.location = "/location/" + slotId;
     }
 
     @Override
@@ -44,7 +36,7 @@ public class MockDeploymentManager implements DeploymentManager
         Preconditions.checkNotNull(installation, "installation is null");
         Preconditions.checkState(deployment == null, "slot has an active deployment");
 
-        deployment = new Deployment(slotName, UUID.randomUUID(), location, new File("installation"), new File("data"), installation.getAssignment(), installation.getResources());
+        deployment = new Deployment(UUID.randomUUID(), location, new File("installation"), new File("data"), installation.getAssignment(), installation.getResources());
         return deployment;
     }
 

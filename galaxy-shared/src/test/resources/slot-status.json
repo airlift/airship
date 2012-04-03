@@ -1,7 +1,6 @@
 {
     "id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     "shortId": "aaaaa",
-    "name":"slot1",
     "self":"internal://apple",
     "externalUri":"external://apple",
     "instanceId":"instance",
