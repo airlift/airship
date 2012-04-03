@@ -121,7 +121,7 @@ public class VersionsUtil
         // canonicalize agent order
         Map<String, String> agentVersions = new TreeMap<String, String>();
         for (AgentStatus agent : agents) {
-            agentVersions.put(agent.getAgentId(), agent.getVersion());
+            agentVersions.put(agent.getAgentId() + agent.getInstanceId(), agent.getVersion());
         }
         return DigestUtils.md5Hex(agentVersions.values().toString());
     }
