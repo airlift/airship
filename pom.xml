@@ -68,7 +68,6 @@
         <module>galaxy-agent</module>
         <module>galaxy-integration-tests</module>
         <module>galaxy-cli</module>
-        <module>galaxy-configuration-repository</module>
         <module>galaxy-config-bundler</module>
         <module>galaxy-ec2</module>
     </modules>
