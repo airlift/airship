@@ -54,7 +54,7 @@ public class TestSlot
         assertEquals(status.getAssignment(), APPLE_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
         assertEquals(slot.status(), status);
-        assertTrue(lifecycleManager.getNodeConfigUpdated().contains(deploymentManager.getDeployment().getDeploymentId()));
+        assertTrue(lifecycleManager.getNodeConfigUpdated().contains(deploymentManager.getDeployment().getNodeId()));
 
         // assign banana and verify state
         status = slot.assign(BANANA_INSTALLATION);
@@ -63,7 +63,7 @@ public class TestSlot
         assertEquals(status.getAssignment(), BANANA_ASSIGNMENT);
         assertEquals(status.getState(), STOPPED);
         assertEquals(slot.status(), status);
-        assertTrue(lifecycleManager.getNodeConfigUpdated().contains(deploymentManager.getDeployment().getDeploymentId()));
+        assertTrue(lifecycleManager.getNodeConfigUpdated().contains(deploymentManager.getDeployment().getNodeId()));
 
         // terminate and verify terminated
         status = slot.terminate();

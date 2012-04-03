@@ -546,7 +546,7 @@ public class TestServerIntegration
         coordinator.updateAllAgents();
         assertEquals(appleSlot1.status().getState(), RUNNING);
 
-        File pidFile = newFile(appleSlot1.status().getInstallPath(), "..", "deployment", "launcher.pid").getCanonicalFile();
+        File pidFile = newFile(appleSlot1.status().getInstallPath(), "..", "installation", "launcher.pid").getCanonicalFile();
         String pidBeforeRestart = Files.readFirstLine(pidFile, Charsets.UTF_8);
 
         Request request = RequestBuilder.preparePut()

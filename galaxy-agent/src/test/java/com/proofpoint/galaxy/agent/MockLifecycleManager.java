@@ -19,16 +19,19 @@ import com.proofpoint.galaxy.shared.SlotLifecycleState;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
+
+import static com.google.common.collect.Maps.newHashMap;
 
 public class MockLifecycleManager implements LifecycleManager
 {
-    private final Map<String, SlotLifecycleState> states = new TreeMap<String, SlotLifecycleState>();
-    private final Set<String> nodeConfigUpdated = Sets.newHashSet();
+    private final Map<UUID, SlotLifecycleState> states = newHashMap();
+    private final Set<UUID> nodeConfigUpdated = Sets.newHashSet();
 
     @Override
     public SlotLifecycleState status(Deployment deployment)
     {
-        SlotLifecycleState state = states.get(deployment.getDeploymentId());
+        SlotLifecycleState state = states.get(deployment.getNodeId());
         if (state == null) {
             return SlotLifecycleState.STOPPED;
         }
@@ -38,31 +41,31 @@ public class MockLifecycleManager implements LifecycleManager
     @Override
     public SlotLifecycleState start(Deployment deployment)
     {
-        states.put(deployment.getDeploymentId(), SlotLifecycleState.RUNNING);
+        states.put(deployment.getNodeId(), SlotLifecycleState.RUNNING);
         return SlotLifecycleState.RUNNING;
     }
 
     @Override
     public SlotLifecycleState restart(Deployment deployment)
     {
-        states.put(deployment.getDeploymentId(), SlotLifecycleState.RUNNING);
+        states.put(deployment.getNodeId(), SlotLifecycleState.RUNNING);
         return SlotLifecycleState.RUNNING;
     }
 
     @Override
     public SlotLifecycleState stop(Deployment deployment)
     {
-        states.put(deployment.getDeploymentId(), SlotLifecycleState.STOPPED);
+        states.put(deployment.getNodeId(), SlotLifecycleState.STOPPED);
         return SlotLifecycleState.STOPPED;
     }
 
     @Override
     public void updateNodeConfig(Deployment deployment)
     {
-        nodeConfigUpdated.add(deployment.getDeploymentId());
+        nodeConfigUpdated.add(deployment.getNodeId());
     }
 
-    public Set<String> getNodeConfigUpdated()
+    public Set<UUID> getNodeConfigUpdated()
     {
         return nodeConfigUpdated;
     }

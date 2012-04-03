@@ -31,7 +31,6 @@ public class TestDeploymentRepresentation
     private final JsonCodec<DeploymentRepresentation> codec = jsonCodec(DeploymentRepresentation.class);
 
     private final DeploymentRepresentation expected = new DeploymentRepresentation(
-            "deployment1",
             "slot",
             UUID.fromString("12345678-1234-1234-1234-123456789012"),
             AssignmentRepresentation.from(APPLE_ASSIGNMENT),
@@ -56,7 +55,6 @@ public class TestDeploymentRepresentation
         assertEquals(actual, expected);
         assertEquals(actual.getNodeId(), expected.getNodeId());
         assertEquals(actual.getSlotName(), expected.getSlotName());
-        assertEquals(actual.getDeploymentId(), expected.getDeploymentId());
         assertEquals(actual.getResources(), expected.getResources());
     }
 }

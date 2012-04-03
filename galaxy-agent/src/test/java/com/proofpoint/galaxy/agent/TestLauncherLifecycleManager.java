@@ -79,7 +79,7 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
         Files.copy(newInputStreamSupplier(getResource(ArchiveHelper.class, "launcher")), launcher);
         launcher.setExecutable(true, true);
 
-        return new Deployment(name, "slot", UUID.randomUUID(), "location", deploymentDir, dataDir, assignment, ImmutableMap.<String, Integer>of("memory", 512));
+        return new Deployment("slot", UUID.randomUUID(), "location", deploymentDir, dataDir, assignment, ImmutableMap.<String, Integer>of("memory", 512));
     }
 
     @AfterMethod

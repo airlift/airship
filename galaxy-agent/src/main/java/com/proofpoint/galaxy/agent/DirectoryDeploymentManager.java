@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.UUID;
-import java.util.prefs.Preferences;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
@@ -137,7 +136,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
         File dataDir = getDataDir();
 
-        Deployment deployment = new Deployment("deployment", slotName, slotId, location, deploymentDir, dataDir, assignment, installation.getResources());
+        Deployment deployment = new Deployment(slotName, slotId, location, deploymentDir, dataDir, assignment, installation.getResources());
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary

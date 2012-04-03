@@ -29,7 +29,7 @@ public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
             throws Exception
     {
         manager = new MockLifecycleManager();
-        appleDeployment = new Deployment("apple",
+        appleDeployment = new Deployment(
                 "slot",
                 UUID.randomUUID(),
                 "location/apple",
@@ -37,7 +37,7 @@ public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
                 new File("apple-data"),
                 APPLE_ASSIGNMENT,
                 ImmutableMap.<String, Integer>of( "memory", 512));
-        bananaDeployment = new Deployment("banana",
+        bananaDeployment = new Deployment(
                 "slot",
                 UUID.randomUUID(),
                 "location/banana",

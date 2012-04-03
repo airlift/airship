@@ -26,14 +26,13 @@ import java.util.UUID;
 public class DeploymentRepresentation
 {
     private final String slotName;
-    private final String deploymentId;
     private final UUID nodeId;
     private final AssignmentRepresentation assignment;
     private final Map<String, Integer> resources;
 
     public static DeploymentRepresentation from(Deployment deployment)
     {
-        return new DeploymentRepresentation(deployment.getDeploymentId(),
+        return new DeploymentRepresentation(
                 deployment.getSlotName(),
                 deployment.getNodeId(),
                 AssignmentRepresentation.from(deployment.getAssignment()),
@@ -42,18 +41,15 @@ public class DeploymentRepresentation
 
     @JsonCreator
     public DeploymentRepresentation(
-            @JsonProperty("deploymentId") String deploymentId,
             @JsonProperty("slotName") String slotName,
             @JsonProperty("nodeId") UUID nodeId,
             @JsonProperty("assignment") AssignmentRepresentation assignment,
             @JsonProperty("resources") Map<String, Integer> resources)
     {
-        Preconditions.checkNotNull(deploymentId, "deploymentId is null");
         Preconditions.checkNotNull(slotName, "slotName is null");
         Preconditions.checkNotNull(nodeId, "nodeId is null");
         Preconditions.checkNotNull(assignment, "assignment is null");
 
-        this.deploymentId = deploymentId;
         this.slotName = slotName;
         this.nodeId = nodeId;
         this.assignment = assignment;
@@ -68,12 +64,6 @@ public class DeploymentRepresentation
     public String getSlotName()
     {
         return slotName;
-    }
-
-    @JsonProperty
-    public String getDeploymentId()
-    {
-        return deploymentId;
     }
 
     @JsonProperty
@@ -96,7 +86,7 @@ public class DeploymentRepresentation
 
     public Deployment toDeployment(File deploymentDir, File dataDir, String location)
     {
-        return new Deployment(deploymentId, slotName, nodeId, location, deploymentDir, dataDir, assignment.toAssignment(), resources);
+        return new Deployment(slotName, nodeId, location, deploymentDir, dataDir, assignment.toAssignment(), resources);
     }
 
     @Override
@@ -111,7 +101,16 @@ public class DeploymentRepresentation
 
         DeploymentRepresentation that = (DeploymentRepresentation) o;
 
-        if (!deploymentId.equals(that.deploymentId)) {
+        if (assignment != null ? !assignment.equals(that.assignment) : that.assignment != null) {
+            return false;
+        }
+        if (nodeId != null ? !nodeId.equals(that.nodeId) : that.nodeId != null) {
+            return false;
+        }
+        if (resources != null ? !resources.equals(that.resources) : that.resources != null) {
+            return false;
+        }
+        if (slotName != null ? !slotName.equals(that.slotName) : that.slotName != null) {
             return false;
         }
 
@@ -121,16 +120,19 @@ public class DeploymentRepresentation
     @Override
     public int hashCode()
     {
-        return deploymentId.hashCode();
+        int result = slotName != null ? slotName.hashCode() : 0;
+        result = 31 * result + (nodeId != null ? nodeId.hashCode() : 0);
+        result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
+        result = 31 * result + (resources != null ? resources.hashCode() : 0);
+        return result;
     }
 
     @Override
     public String toString()
     {
         final StringBuilder sb = new StringBuilder();
-        sb.append("Deployment");
+        sb.append("DeploymentRepresentation");
         sb.append("{slotName='").append(slotName).append('\'');
-        sb.append(", deploymentId='").append(deploymentId).append('\'');
         sb.append(", nodeId=").append(nodeId);
         sb.append(", assignment=").append(assignment);
         sb.append(", resources=").append(resources);

@@ -26,7 +26,6 @@ import java.util.UUID;
 public class Deployment
 {
     private final String slotName;
-    private final String deploymentId;
     private final UUID nodeId;
     private final String location;
     private final File deploymentDir;
@@ -34,9 +33,8 @@ public class Deployment
     private final Assignment assignment;
     private final Map<String, Integer> resources;
 
-    public Deployment(String deploymentId, String slotName, UUID nodeId, String location, File deploymentDir, File dataDir, Assignment assignment, Map<String, Integer> resources)
+    public Deployment(String slotName, UUID nodeId, String location, File deploymentDir, File dataDir, Assignment assignment, Map<String, Integer> resources)
     {
-        Preconditions.checkNotNull(deploymentId, "deploymentId is null");
         Preconditions.checkNotNull(slotName, "slotName is null");
         Preconditions.checkNotNull(nodeId, "nodeId is null");
         Preconditions.checkNotNull(deploymentDir, "deploymentDir is null");
@@ -45,18 +43,12 @@ public class Deployment
         Preconditions.checkNotNull(resources, "resources is null");
 
         this.slotName = slotName;
-        this.deploymentId = deploymentId;
         this.nodeId = nodeId;
         this.location = location;
         this.deploymentDir = deploymentDir;
         this.dataDir = dataDir;
         this.assignment = assignment;
         this.resources = ImmutableMap.copyOf(resources);
-    }
-
-    public String getDeploymentId()
-    {
-        return deploymentId;
     }
 
     public String getSlotName()
@@ -106,7 +98,25 @@ public class Deployment
 
         Deployment that = (Deployment) o;
 
-        if (!deploymentId.equals(that.deploymentId)) {
+        if (assignment != null ? !assignment.equals(that.assignment) : that.assignment != null) {
+            return false;
+        }
+        if (dataDir != null ? !dataDir.equals(that.dataDir) : that.dataDir != null) {
+            return false;
+        }
+        if (deploymentDir != null ? !deploymentDir.equals(that.deploymentDir) : that.deploymentDir != null) {
+            return false;
+        }
+        if (location != null ? !location.equals(that.location) : that.location != null) {
+            return false;
+        }
+        if (nodeId != null ? !nodeId.equals(that.nodeId) : that.nodeId != null) {
+            return false;
+        }
+        if (resources != null ? !resources.equals(that.resources) : that.resources != null) {
+            return false;
+        }
+        if (slotName != null ? !slotName.equals(that.slotName) : that.slotName != null) {
             return false;
         }
 
@@ -116,7 +126,14 @@ public class Deployment
     @Override
     public int hashCode()
     {
-        return deploymentId.hashCode();
+        int result = slotName != null ? slotName.hashCode() : 0;
+        result = 31 * result + (nodeId != null ? nodeId.hashCode() : 0);
+        result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + (deploymentDir != null ? deploymentDir.hashCode() : 0);
+        result = 31 * result + (dataDir != null ? dataDir.hashCode() : 0);
+        result = 31 * result + (assignment != null ? assignment.hashCode() : 0);
+        result = 31 * result + (resources != null ? resources.hashCode() : 0);
+        return result;
     }
 
     @Override
@@ -124,8 +141,7 @@ public class Deployment
     {
         final StringBuilder sb = new StringBuilder();
         sb.append("Deployment");
-        sb.append("{deploymentId='").append(deploymentId).append('\'');
-        sb.append(", slotName='").append(slotName).append('\'');
+        sb.append("{slotName='").append(slotName).append('\'');
         sb.append(", nodeId=").append(nodeId);
         sb.append(", location=").append(location);
         sb.append(", deploymentDir=").append(deploymentDir);
