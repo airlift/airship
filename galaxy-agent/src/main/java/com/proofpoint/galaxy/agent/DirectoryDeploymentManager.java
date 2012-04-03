@@ -131,7 +131,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
         Preconditions.checkNotNull(installation, "installation is null");
         Preconditions.checkState(deployment == null, "slot has an active deployment");
 
-        File deploymentDir = new File(baseDir, "deployment");
+        File deploymentDir = new File(baseDir, "installation");
 
         Assignment assignment = installation.getAssignment();
 
@@ -237,7 +237,11 @@ public class DirectoryDeploymentManager implements DeploymentManager
     {
         String json = Files.toString(deploymentFile, UTF_8);
         DeploymentRepresentation data = jsonCodec.fromJson(json);
-        Deployment deployment = data.toDeployment(new File(baseDir, data.getDeploymentId()), getDataDir(), location);
+        File deploymentDir = new File(baseDir, "installation");
+        if (!deploymentDir.isDirectory()) {
+            deploymentDir = new File(baseDir, "deployment");
+        }
+        Deployment deployment = data.toDeployment(deploymentDir, getDataDir(), location);
         return deployment;
     }
 

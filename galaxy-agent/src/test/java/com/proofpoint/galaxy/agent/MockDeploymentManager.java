@@ -45,7 +45,7 @@ public class MockDeploymentManager implements DeploymentManager
         Preconditions.checkState(deployment == null, "slot has an active deployment");
 
         String deploymentId = "deployment";
-        deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), location, new File(deploymentId), new File("data"), installation.getAssignment(), installation.getResources());
+        deployment = new Deployment(deploymentId, slotName, UUID.randomUUID(), location, new File("installation"), new File("data"), installation.getAssignment(), installation.getResources());
         return deployment;
     }
 
