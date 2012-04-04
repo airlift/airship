@@ -57,6 +57,7 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static com.proofpoint.galaxy.shared.LocationUtils.extractMachineId;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
@@ -93,7 +94,7 @@ public class Coordinator
         this(
                 new CoordinatorStatus(nodeInfo.getInstanceId(),
                         CoordinatorLifecycleState.ONLINE,
-                        nodeInfo.getInstanceId(),
+                        extractMachineId(nodeInfo.getLocation(), UUID.randomUUID().toString()),
                         httpServerInfo.getHttpUri(),
                         httpServerInfo.getHttpExternalUri(),
                         nodeInfo.getLocation(),
