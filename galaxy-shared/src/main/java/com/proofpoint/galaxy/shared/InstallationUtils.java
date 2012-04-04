@@ -19,14 +19,8 @@ public class InstallationUtils
 {
     public static Installation toInstallation(Repository repository, Assignment assignment)
     {
-        // resolve assignment
-        String resolvedBinary = repository.binaryResolve(assignment.getBinary());
-        Preconditions.checkArgument(resolvedBinary != null, "Unknown binary " + assignment.getBinary());
+        assignment = resolveAssignment(repository, assignment);
 
-        String resolvedConfig = repository.configResolve(assignment.getConfig());
-        Preconditions.checkArgument(resolvedConfig != null, "Unknown config " + assignment.getConfig());
-
-        assignment = new Assignment(resolvedBinary, resolvedConfig);
 
         // load resources
         Map<String, Integer> resources = readResources(repository, assignment);
@@ -42,6 +36,19 @@ public class InstallationUtils
                 binaryUri,
                 configUri,
                 resources);
+    }
+
+    public static Assignment resolveAssignment(Repository repository, Assignment assignment)
+    {
+        // resolve assignment
+        String resolvedBinary = repository.binaryResolve(assignment.getBinary());
+        Preconditions.checkArgument(resolvedBinary != null, "Unknown binary " + assignment.getBinary());
+
+        String resolvedConfig = repository.configResolve(assignment.getConfig());
+        Preconditions.checkArgument(resolvedConfig != null, "Unknown config " + assignment.getConfig());
+
+        assignment = new Assignment(resolvedBinary, resolvedConfig);
+        return assignment;
     }
 
     public static boolean resourcesAreAvailable(Map<String, Integer> availableResources, Map<String, Integer> requiredResources)

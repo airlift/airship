@@ -12,6 +12,7 @@ import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.Assignment;
 import com.proofpoint.galaxy.shared.HttpUriBuilder;
 import com.proofpoint.galaxy.shared.Installation;
+import com.proofpoint.galaxy.shared.InstallationUtils;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.galaxy.shared.SlotStatus;
 
@@ -352,7 +353,7 @@ public class AgentFilterBuilder
 
         public AssignablePredicate(Assignment assignment, boolean allowDuplicateInstallationsOnAnAgent, Repository repository)
         {
-            this.assignment = assignment;
+            this.assignment = InstallationUtils.resolveAssignment(repository, assignment);
             this.allowDuplicateInstallationsOnAnAgent = allowDuplicateInstallationsOnAnAgent;
             this.repository = repository;
         }
