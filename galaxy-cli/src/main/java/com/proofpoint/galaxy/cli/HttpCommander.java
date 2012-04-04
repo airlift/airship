@@ -269,6 +269,9 @@ public class HttpCommander implements Commander
                 .build();
 
         JsonResponse<List<AgentStatusRepresentation>> response = client.execute(request, createFullJsonResponseHandler(AGENTS_CODEC));
+        if (response.getStatusCode() != 200) {
+            throw new RuntimeException(response.getStatusMessage());
+        }
         return CommanderResponse.createCommanderResponse(response.getHeader(GALAXY_AGENTS_VERSION_HEADER), response.getValue());
     }
 
