@@ -15,6 +15,7 @@ package com.proofpoint.galaxy.agent;
 
 import com.proofpoint.bootstrap.Bootstrap;
 import com.proofpoint.discovery.client.DiscoveryModule;
+import com.proofpoint.event.client.HttpEventModule;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.http.server.HttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -35,6 +36,7 @@ public class AgentMain
                     new DiscoveryModule(),
                     new NodeModule(),
                     new HttpServerModule(),
+                    new HttpEventModule(),
                     new JsonModule(),
                     new JaxrsModule(),
                     new MBeanModule(),

@@ -14,6 +14,8 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.proofpoint.bootstrap.Bootstrap;
+import com.proofpoint.discovery.client.DiscoveryModule;
+import com.proofpoint.event.client.HttpEventModule;
 import com.proofpoint.http.client.HttpClientModule;
 import com.proofpoint.json.JsonModule;
 import com.proofpoint.http.server.HttpServerModule;
@@ -38,6 +40,8 @@ public class CoordinatorMain
                     new NodeModule(),
                     new HttpServerModule(),
                     new HttpClientModule(Global.class),
+                    new HttpEventModule(),
+                    new DiscoveryModule(),
                     new JsonModule(),
                     new JaxrsModule(),
                     new MBeanModule(),
