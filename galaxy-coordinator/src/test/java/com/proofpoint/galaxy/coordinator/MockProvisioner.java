@@ -8,7 +8,6 @@ import com.google.common.collect.Iterables;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.node.NodeInfo;
 
 import java.net.URI;
 import java.util.List;
@@ -183,7 +182,7 @@ public class MockProvisioner implements Provisioner
             String location = String.format("/mock/%s/agent", agentInstanceId);
 
             AgentStatus agentStatus = new AgentStatus(null,
-                    AgentLifecycleState.OFFLINE,
+                    AgentLifecycleState.PROVISIONING,
                     agentInstanceId,
                     null,
                     null,

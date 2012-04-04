@@ -26,6 +26,7 @@ import com.proofpoint.galaxy.coordinator.RemoteAgentFactory;
 import com.proofpoint.galaxy.coordinator.RemoteSlot;
 import com.proofpoint.galaxy.coordinator.ServiceInventory;
 import com.proofpoint.galaxy.coordinator.StateManager;
+import com.proofpoint.galaxy.shared.AgentLifecycleState;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
@@ -279,7 +280,7 @@ public class CommanderFactory
         }
 
         @Override
-        public RemoteAgent createRemoteAgent(Instance instance)
+        public RemoteAgent createRemoteAgent(Instance instance, AgentLifecycleState state)
         {
             Preconditions.checkNotNull(instance, "instance is null");
             return new LocalRemoteAgent(agent);

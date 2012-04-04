@@ -56,7 +56,6 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.LocationUtils.extractMachineId;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
 import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
@@ -296,11 +295,14 @@ public class Coordinator
                 }
             }
         }
+
+        // add provisioning coordinators to provisioner list
         for (CoordinatorStatus coordinatorStatus : coordinators.values()) {
             if (coordinatorStatus.getState() == CoordinatorLifecycleState.PROVISIONING) {
                 instanceIds.add(coordinatorStatus.getCoordinatorId());
             }
         }
+
         // remove any coordinators in the provisioner list
         coordinators.keySet().retainAll(instanceIds);
     }
@@ -311,21 +313,22 @@ public class Coordinator
         Set<String> instanceIds = newHashSet();
         for (Instance instance : this.provisioner.listAgents()) {
             instanceIds.add(instance.getInstanceId());
-            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance);
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance, instance.getInternalUri() != null ? AgentLifecycleState.ONLINE : AgentLifecycleState.OFFLINE);
             RemoteAgent existing = agents.putIfAbsent(instance.getInstanceId(), remoteAgent);
             if (existing != null) {
-                // if agent was provisioning and is now ONLINE...
-                if (existing.status().getState() == AgentLifecycleState.PROVISIONING && remoteAgent.status().getState() == AgentLifecycleState.ONLINE) {
-                    // replace the temporary provisioning instance with a real remote factory
-                    agents.replace(instance.getInstanceId(), existing, remoteAgent);
-                }
-                else {
-                    existing.setInternalUri(instance.getInternalUri());
-                }
+                existing.setInternalUri(instance.getInternalUri());
             }
         }
 
-        // remove any agents in the provisioner list
+        // add provisioning agents to provisioner list
+        for (RemoteAgent remoteAgent : agents.values()) {
+            if (remoteAgent.status().getState() == AgentLifecycleState.PROVISIONING) {
+                instanceIds.add(remoteAgent.status().getAgentId());
+            }
+
+        }
+
+        // remove any agents not in the provisioner list
         agents.keySet().retainAll(instanceIds);
 
         List<ServiceDescriptor> serviceDescriptors = serviceInventory.getServiceInventory(transform(getAllSlots(), getSlotStatus()));
@@ -355,7 +358,7 @@ public class Coordinator
         for (Instance instance : instances) {
             String instanceId = instance.getInstanceId();
 
-            RemoteAgent remoteAgent = new ProvisioningRemoteAgent(instance);
+            RemoteAgent remoteAgent = remoteAgentFactory.createRemoteAgent(instance, AgentLifecycleState.PROVISIONING);
             this.agents.put(instanceId, remoteAgent);
 
             agents.add(remoteAgent.status());
@@ -420,7 +423,7 @@ public class Coordinator
         for (RemoteAgent agent : allAgents) {
             // verify agent state
             AgentStatus status = agent.status();
-            if (status.getState() != ONLINE) {
+            if (status.getState() != AgentLifecycleState.ONLINE) {
                 continue;
             }
 

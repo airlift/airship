@@ -17,9 +17,6 @@ import com.proofpoint.galaxy.agent.AgentMainModule;
 import com.proofpoint.galaxy.agent.Slot;
 import com.proofpoint.galaxy.coordinator.Instance;
 import com.proofpoint.galaxy.coordinator.Provisioner;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.SlotStatus;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -150,19 +147,9 @@ public class MockLocalProvisioner implements Provisioner
             String agentInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
             String location = String.format("/mock/%s/agent", agentInstanceId);
 
-            AgentStatus agentStatus = new AgentStatus(null,
-                    AgentLifecycleState.OFFLINE,
-                    agentInstanceId,
-                    null,
-                    null,
-                    location,
+            Instance instance = new Instance(agentInstanceId,
                     instanceType,
-                    ImmutableList.<SlotStatus>of(),
-                    ImmutableMap.<String, Integer>of());
-
-            Instance instance = new Instance(agentStatus.getInstanceId(),
-                    agentStatus.getInstanceType(),
-                    agentStatus.getLocation(),
+                    location,
                     null,
                     null);
             AgentServer agentServer = new AgentServer(instance);

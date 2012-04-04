@@ -304,18 +304,8 @@ public class TestCoordinator
         assertNull(coordinator.getAgent(instanceId).getExternalUri());
         assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.PROVISIONING);
 
-        // start the agent, but don't update
+        // start the agent, update and verify
         AgentStatus expectedAgentStatus = provisioner.startAgent(instanceId);
-        assertEquals(coordinator.getAgents().size(), 1);
-        assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
-        assertEquals(coordinator.getAgent(instanceId).getLocation(), location);
-        assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
-        assertNull(coordinator.getAgent(instanceId).getAgentId());
-        assertNull(coordinator.getAgent(instanceId).getInternalUri());
-        assertNull(coordinator.getAgent(instanceId).getExternalUri());
-        assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.PROVISIONING);
-
-        // update and verify
         coordinator.updateAllAgents();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
