@@ -987,9 +987,8 @@ public class Galaxy
             if (externalAddress != null) {
                 config.set("environment." + ref + ".external-address", externalAddress);
             }
-            if (config.get("environment.default") == null) {
-                config.set("environment.default", ref);
-            }
+            // make this environment the default environment
+            config.set("environment.default", ref);
             config.save();
         }
     }
@@ -1119,10 +1118,8 @@ public class Galaxy
                 config.add(coordinatorProperty, instance.getExternalUri().toASCIIString());
             }
 
-            // make this environment the default if there are no other environments
-            if (config.get("environment.default") == null) {
-                config.set("environment.default", ref);
-            }
+            // make this environment the default environment
+            config.set("environment.default", ref);
             config.save();
         }
 
@@ -1274,6 +1271,8 @@ public class Galaxy
 
             config.set(nameProperty, environment);
             config.set("environment." + ref + ".coordinator", coordinatorUrl);
+            // make this environment the default environment
+            config.set("environment.default", ref);
             config.save();
         }
     }
@@ -1295,6 +1294,7 @@ public class Galaxy
             if (config.get(nameProperty) == null) {
                 throw new IllegalArgumentException("Unknown environment " + ref);
             }
+            // make this environment the default environment
             config.set("environment.default", ref);
             config.save();
         }
