@@ -15,6 +15,7 @@ import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
 import com.amazonaws.services.identitymanagement.model.PutUserPolicyRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -55,9 +56,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
@@ -110,8 +113,9 @@ public class Galaxy
 
         builder.withGroup("environment")
                 .withDescription("Manage environments")
-                .withDefaultCommand(HelpCommand.class)
-                .withCommands(EnvironmentProvisionLocal.class,
+                .withDefaultCommand(EnvironmentShow.class)
+                .withCommands(EnvironmentShow.class,
+                        EnvironmentProvisionLocal.class,
                         EnvironmentProvisionAws.class,
                         EnvironmentUse.class,
                         EnvironmentAdd.class);
@@ -712,7 +716,14 @@ public class Galaxy
         public void execute(Commander commander)
                 throws Exception
         {
-            List<CoordinatorStatusRepresentation> coordinators = commander.provisionCoordinators(coordinatorConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, !noWait);
+            List<CoordinatorStatusRepresentation> coordinators = commander.provisionCoordinators(coordinatorConfig,
+                    count,
+                    instanceType,
+                    availabilityZone,
+                    ami,
+                    keyPair,
+                    securityGroup,
+                    !noWait);
 
             // add the new coordinators to the config
             String coordinatorProperty = "environment." + environmentRef + ".coordinator";
@@ -1235,6 +1246,60 @@ public class Galaxy
                 }
             }
             return true;
+        }
+    }
+
+    @Command(name = "show", description = "Show environment details")
+    public static class EnvironmentShow extends GalaxyCommand
+    {
+        @Arguments(description = "Name of the environment to show")
+        public String name;
+
+        @Override
+        public void execute()
+                throws Exception
+        {
+            String defaultRef = config.get("environment.default");
+
+            if (name == null) {
+                boolean hasEnvironment = false;
+                for (Entry<String, Collection<String>> entry : config) {
+                    String property = entry.getKey();
+                    List<String> parts = ImmutableList.copyOf(Splitter.on('.').split(property));
+                    if (parts.size() == 3 && "environment".equals(parts.get(0)) && "name".equals(parts.get(2))) {
+                        String ref = parts.get(1);
+                        if (ref.equals(defaultRef)) {
+                            System.out.println("* " + ref);
+                        }
+                        else {
+                            System.out.println("  " + ref);
+                        }
+                        hasEnvironment = true;
+                    }
+                }
+                if (!hasEnvironment) {
+                    System.out.println("There are no Galaxy environments.");
+                }
+            }
+            else {
+                String realEnvironmentName = config.get("environment." + name + ".name");
+                if (realEnvironmentName == null) {
+                    throw new RuntimeException(String.format("'%s' does not appear to be a galaxy environment", name));
+                }
+                List<String> coordinators = config.getAll("environment." + name + ".coordinator");
+                boolean isDefaultRef = name.equals(defaultRef);
+
+                if (realEnvironmentName.equals(name)) {
+                    System.out.printf("* Environment: %s%n", name);
+                } else {
+                    System.out.printf("* Environment reference: %s%n", name);
+                    System.out.printf("  Environment name: %s%n", realEnvironmentName);
+                }
+                System.out.printf("  Default environment: %s%n", isDefaultRef);
+                for (String coordinator : coordinators) {
+                    System.out.printf("  Coordinator: %s%n", coordinator);
+                }
+            }
         }
     }
 

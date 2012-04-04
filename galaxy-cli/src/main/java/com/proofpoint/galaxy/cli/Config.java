@@ -5,16 +5,22 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.io.Files;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
-public class Config
+public class Config implements Iterable<Entry<String, Collection<String>>>
 {
     private final LinkedListMultimap<String, String> configuration;
     private final File file;
@@ -51,6 +57,12 @@ public class Config
     {
         this.configuration = configuration;
         this.file = file;
+    }
+
+    @Override
+    public Iterator<Entry<String, Collection<String>>> iterator()
+    {
+        return ImmutableListMultimap.copyOf(configuration).asMap().entrySet().iterator();
     }
 
     public String get(String key)
