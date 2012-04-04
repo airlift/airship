@@ -129,11 +129,11 @@ public class AwsProvisioner implements Provisioner
 
                     URI internalUri = null;
                     if (instance.getPrivateIpAddress() != null) {
-                        internalUri = uriBuilder().host(instance.getPrivateIpAddress()).port(port).build();
+                        internalUri = uriBuilder().scheme("http").host(instance.getPrivateIpAddress()).port(port).build();
                     }
                     URI externalUri = null;
                     if (instance.getPublicDnsName() != null) {
-                        externalUri = uriBuilder().host(instance.getPublicDnsName()).port(port).build();
+                        externalUri = uriBuilder().scheme("http").host(instance.getPublicDnsName()).port(port).build();
                     }
                     instances.add(toInstance(instance, internalUri, externalUri, "coordinator"));
                     invalidInstances.remove(instance.getInstanceId());
@@ -179,11 +179,11 @@ public class AwsProvisioner implements Provisioner
 
                     URI internalUri = null;
                     if (instance.getPrivateIpAddress() != null) {
-                        internalUri = uriBuilder().host(instance.getPrivateIpAddress()).port(port).build();
+                        internalUri = uriBuilder().scheme("http").host(instance.getPrivateIpAddress()).port(port).build();
                     }
                     URI externalUri = null;
                     if (instance.getPublicDnsName() != null) {
-                        externalUri = uriBuilder().host(instance.getPublicDnsName()).port(port).build();
+                        externalUri = uriBuilder().scheme("http").host(instance.getPublicDnsName()).port(port).build();
                     }
                     instances.add(toInstance(instance, internalUri, externalUri, "agent"));
                     invalidInstances.remove(instance.getInstanceId());
