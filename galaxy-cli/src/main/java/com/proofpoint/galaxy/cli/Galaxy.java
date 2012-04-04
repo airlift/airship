@@ -241,6 +241,9 @@ public class Galaxy
             if (config.get("environment." + environmentRef + ".external-address") != null) {
                 commanderFactory.setExternalAddress(config.get("environment." + environmentRef + ".external-address"));
             }
+            if ("true".equalsIgnoreCase(config.get("environment." + environmentRef + ".use-internal-address"))) {
+                commanderFactory.setUseInternalAddress(true);
+            }
 
             Commander commander = commanderFactory.build();
 

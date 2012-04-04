@@ -64,6 +64,7 @@ public class CommanderFactory
     private String instanceType = "local";
     private InetAddress internalIp;
     private String externalAddress;
+    private boolean useInternalAddress;
 
     public CommanderFactory setEnvironment(String environment)
     {
@@ -133,6 +134,11 @@ public class CommanderFactory
         this.externalAddress = externalAddress;
     }
 
+    public void setUseInternalAddress(boolean useInternalAddress)
+    {
+        this.useInternalAddress = useInternalAddress;
+    }
+
     public Commander build()
             throws IOException
     {
@@ -140,7 +146,7 @@ public class CommanderFactory
 
         String scheme = coordinatorUri.getScheme();
         if ("http".equals(scheme)) {
-            return new HttpCommander(coordinatorUri);
+            return new HttpCommander(coordinatorUri, useInternalAddress);
         }
         else if ("file".equals(scheme) || scheme == null) {
             return createLocalCommander();

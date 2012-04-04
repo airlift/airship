@@ -41,13 +41,12 @@ public class Exec
         posix.execv(shell, args);
     }
 
-    public static void execRemote(SlotStatusRepresentation slot, String command)
+    public static void execRemote(String host, String path, String command)
     {
-        String host = slot.getInternalHost();
-        command = firstNonNull(command, "exec -l $0");
-
         Preconditions.checkNotNull(host, "host is null");
-        String path = firstNonNull(slot.getInstallPath(), "$HOME");
+        path = firstNonNull(path, "$HOME");
+
+        command = firstNonNull(command, "exec -l $0");
 
         StringBuilder remoteCommandBuilder = new StringBuilder();
         remoteCommandBuilder.append("cd \"").append(path).append("\"; ").append(command);

@@ -55,13 +55,15 @@ public class HttpCommander implements Commander
 
     private final HttpClient client;
     private final URI coordinatorUri;
+    private final boolean useInternalAddress;
 
-    public HttpCommander(URI coordinatorUri)
+    public HttpCommander(URI coordinatorUri, boolean useInternalAddress)
             throws IOException
     {
         Preconditions.checkNotNull(coordinatorUri, "coordinatorUri is null");
         this.coordinatorUri = coordinatorUri;
         this.client = new ApacheHttpClient(new HttpClientConfig());
+        this.useInternalAddress = useInternalAddress;
     }
 
     @Override
@@ -161,7 +163,15 @@ public class HttpCommander implements Commander
         if (slots.isEmpty()) {
             return false;
         }
-        Exec.execRemote(slots.get(0), command);
+        SlotStatusRepresentation slot = slots.get(0);
+        String host;
+        if (useInternalAddress) {
+            host = slot.getInternalHost();
+        }
+        else {
+            host = slot.getExternalHost();
+        }
+        Exec.execRemote(host, slot.getInstallPath(), command);
         return true;
     }
 
