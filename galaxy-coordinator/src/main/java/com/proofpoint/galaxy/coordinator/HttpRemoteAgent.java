@@ -105,7 +105,7 @@ public class HttpRemoteAgent implements RemoteAgent
             URI internalUri = agentStatus.getInternalUri();
             try {
                 Request request = RequestBuilder.preparePut()
-                        .setUri(uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").build())
+                        .setUri(uriBuilderFrom(internalUri).appendPath("/v1/serviceInventory").build())
                         .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setBodyGenerator(jsonBodyGenerator(serviceDescriptorsCodec, new ServiceDescriptorsRepresentation(environment, serviceInventory)))
                         .build();
