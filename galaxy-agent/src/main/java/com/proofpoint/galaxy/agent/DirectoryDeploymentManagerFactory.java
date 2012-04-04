@@ -85,7 +85,7 @@ public class DirectoryDeploymentManagerFactory implements DeploymentManagerFacto
             return new File(slotDir, baseName);
         }
 
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 1; i < 10000; i++) {
             String directoryName = baseName + i;
             if (!fileNames.contains(directoryName)) {
                 return new File(slotDir, directoryName);
