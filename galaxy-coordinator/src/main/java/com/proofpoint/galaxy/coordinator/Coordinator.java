@@ -443,11 +443,7 @@ public class Coordinator
 
     public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions, String expectedSlotsVersion)
     {
-        // filter the slots
-        List<RemoteSlot> filteredSlots = ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)));
-
-        // verify the state of the system hasn't changed
-        checkSlotsVersion(expectedSlotsVersion, transform(filteredSlots, getSlotStatus()));
+        List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
 
         HashSet<Assignment> newAssignments = new HashSet<Assignment>();
         List<RemoteSlot> slotsToUpgrade = new ArrayList<RemoteSlot>();
@@ -497,10 +493,7 @@ public class Coordinator
         Preconditions.checkNotNull(filter, "filter is null");
 
         // filter the slots
-        List<RemoteSlot> filteredSlots = ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)));
-
-        // verify the state of the system hasn't changed
-        checkSlotsVersion(expectedSlotsVersion, transform(filteredSlots, getSlotStatus()));
+        List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
 
         ImmutableList.Builder<SlotStatus> builder = ImmutableList.builder();
         for (RemoteSlot slot : filteredSlots) {
@@ -520,10 +513,7 @@ public class Coordinator
         Preconditions.checkArgument(EnumSet.of(RUNNING, RESTARTING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);
 
         // filter the slots
-        List<RemoteSlot> filteredSlots = ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)));
-
-        // verify the state of the system hasn't changed
-        checkSlotsVersion(expectedSlotsVersion, transform(filteredSlots, getSlotStatus()));
+        List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
 
         return ImmutableList.copyOf(transform(filteredSlots, new Function<RemoteSlot, SlotStatus>()
         {
@@ -557,7 +547,7 @@ public class Coordinator
     public List<SlotStatus> resetExpectedState(Predicate<SlotStatus> filter, String expectedSlotsVersion)
     {
         // filter the slots
-        List<SlotStatus> filteredSlots = ImmutableList.copyOf(transform(filter(getAllSlots(), filterSlotsBy(filter)), getSlotStatus()));
+        List<SlotStatus> filteredSlots = getAllSlotsStatus(filter);
 
         // verify the state of the system hasn't changed
         checkSlotsVersion(expectedSlotsVersion, filteredSlots);
@@ -578,6 +568,17 @@ public class Coordinator
         }));
     }
 
+    private List<RemoteSlot> selectRemoteSlots(Predicate<SlotStatus> filter, String expectedSlotsVersion)
+    {
+        // filter the slots
+        List<RemoteSlot> filteredSlots = ImmutableList.copyOf(filter(getAllSlots(), filterSlotsBy(filter)));
+
+        // verify the state of the system hasn't changed
+        checkSlotsVersion(expectedSlotsVersion, getAllSlotsStatus(filter, filteredSlots));
+
+        return filteredSlots;
+    }
+
     public List<SlotStatus> getAllSlotStatus()
     {
         return getAllSlotsStatus(Predicates.<SlotStatus>alwaysTrue());
@@ -585,8 +586,13 @@ public class Coordinator
 
     public List<SlotStatus> getAllSlotsStatus(Predicate<SlotStatus> slotFilter)
     {
+        return getAllSlotsStatus(slotFilter, getAllSlots());
+    }
+
+    private List<SlotStatus> getAllSlotsStatus(Predicate<SlotStatus> slotFilter, List<RemoteSlot> allSlots)
+    {
         ImmutableMap<UUID, ExpectedSlotStatus> expectedStates = Maps.uniqueIndex(stateManager.getAllExpectedStates(), ExpectedSlotStatus.uuidGetter());
-        ImmutableMap<UUID, SlotStatus> actualStates = Maps.uniqueIndex(transform(getAllSlots(), getSlotStatus()), SlotStatus.uuidGetter());
+        ImmutableMap<UUID, SlotStatus> actualStates = Maps.uniqueIndex(transform(allSlots, getSlotStatus()), SlotStatus.uuidGetter());
 
         ArrayList<SlotStatus> stats = newArrayList();
         for (UUID uuid : Sets.union(actualStates.keySet(), expectedStates.keySet())) {
