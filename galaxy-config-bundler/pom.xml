@@ -9,6 +9,13 @@
     <version>0.8-SNAPSHOT</version>
     <name>galaxy-config-bundler</name>
 
+    <parent>
+        <groupId>com.proofpoint.galaxy</groupId>
+        <artifactId>galaxy-root</artifactId>
+        <version>0.8-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sonatypeOssDistMgmtSnapshotsUrl>https://oss.sonatype.org/content/repositories/snapshots/</sonatypeOssDistMgmtSnapshotsUrl>
