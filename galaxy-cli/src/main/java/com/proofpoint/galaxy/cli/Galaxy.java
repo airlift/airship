@@ -119,7 +119,8 @@ public class Galaxy
                         EnvironmentProvisionLocal.class,
                         EnvironmentProvisionAws.class,
                         EnvironmentUse.class,
-                        EnvironmentAdd.class);
+                        EnvironmentAdd.class,
+                        EnvironmentRemove.class);
 
         builder.withGroup("config")
                 .withDescription("Manage configuration")
@@ -1255,8 +1256,8 @@ public class Galaxy
     @Command(name = "show", description = "Show environment details")
     public static class EnvironmentShow extends GalaxyCommand
     {
-        @Arguments(description = "Name of the environment to show")
-        public String name;
+        @Arguments(description = "Environment to show")
+        public String ref;
 
         @Override
         public void execute()
@@ -1264,7 +1265,7 @@ public class Galaxy
         {
             String defaultRef = config.get("environment.default");
 
-            if (name == null) {
+            if (ref == null) {
                 boolean hasEnvironment = false;
                 for (Entry<String, Collection<String>> entry : config) {
                     String property = entry.getKey();
@@ -1285,17 +1286,17 @@ public class Galaxy
                 }
             }
             else {
-                String realEnvironmentName = config.get("environment." + name + ".name");
+                String realEnvironmentName = config.get("environment." + ref + ".name");
                 if (realEnvironmentName == null) {
-                    throw new RuntimeException(String.format("'%s' does not appear to be a galaxy environment", name));
+                    throw new RuntimeException(String.format("'%s' does not appear to be a galaxy environment", ref));
                 }
-                List<String> coordinators = config.getAll("environment." + name + ".coordinator");
-                boolean isDefaultRef = name.equals(defaultRef);
+                List<String> coordinators = config.getAll("environment." + ref + ".coordinator");
+                boolean isDefaultRef = ref.equals(defaultRef);
 
-                if (realEnvironmentName.equals(name)) {
-                    System.out.printf("* Environment: %s%n", name);
+                if (realEnvironmentName.equals(ref)) {
+                    System.out.printf("* Environment: %s%n", ref);
                 } else {
-                    System.out.printf("* Environment reference: %s%n", name);
+                    System.out.printf("* Environment reference: %s%n", ref);
                     System.out.printf("  Environment name: %s%n", realEnvironmentName);
                 }
                 System.out.printf("  Default environment: %s%n", isDefaultRef);
@@ -1341,6 +1342,32 @@ public class Galaxy
             config.set("environment." + ref + ".coordinator", coordinatorUrl);
             // make this environment the default environment
             config.set("environment.default", ref);
+            config.save();
+        }
+    }
+
+    @Command(name = "remove", description = "Remove an environment")
+    public static class EnvironmentRemove extends GalaxyCommand
+    {
+        @Arguments(description = "Environment to remove")
+        public String ref;
+
+        @Override
+        public void execute()
+                throws Exception
+        {
+            Preconditions.checkNotNull(ref, "You must specify and environment");
+
+            String keyPrefix = "environment." + ref + ".";
+            for (Entry<String, Collection<String>> entry : config) {
+                String property = entry.getKey();
+                if (property.startsWith(keyPrefix)) {
+                    config.unset(property);
+                }
+            }
+            if (ref.equals(config.get("environment.default"))) {
+                config.unset("environment.default");
+            }
             config.save();
         }
     }
