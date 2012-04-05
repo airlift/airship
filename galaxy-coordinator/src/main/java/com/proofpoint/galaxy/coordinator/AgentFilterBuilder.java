@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.proofpoint.galaxy.shared.AgentLifecycleState;
@@ -19,15 +20,19 @@ import com.proofpoint.galaxy.shared.SlotStatus;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import static com.proofpoint.galaxy.coordinator.StringFunctions.startsWith;
+import static com.proofpoint.galaxy.coordinator.StringFunctions.toLowerCase;
 import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.galaxy.shared.InstallationUtils.getAvailableResources;
 import static com.proofpoint.galaxy.shared.InstallationUtils.resourcesAreAvailable;
 import static com.proofpoint.galaxy.shared.InstallationUtils.toInstallation;
+import static java.lang.String.format;
 
 public class AgentFilterBuilder
 {
@@ -36,12 +41,16 @@ public class AgentFilterBuilder
         return new AgentFilterBuilder();
     }
 
-    public static Predicate<AgentStatus> build(UriInfo uriInfo, List<UUID> allUuids)
+    public static Predicate<AgentStatus> build(UriInfo uriInfo, List<String> allAgentUuids, List<UUID> allSlotUuids)
     {
-        return build(uriInfo, allUuids, false, null);
+        return build(uriInfo, allAgentUuids, allSlotUuids, false, null);
     }
 
-    public static Predicate<AgentStatus> build(UriInfo uriInfo, List<UUID> allUuids, boolean allowDuplicateInstallationsOnAnAgent, Repository repository)
+    public static Predicate<AgentStatus> build(UriInfo uriInfo,
+            List<String> allAgentUuids,
+            List<UUID> allSlotUuids,
+            boolean allowDuplicateInstallationsOnAnAgent,
+            Repository repository)
     {
         AgentFilterBuilder builder = new AgentFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
@@ -82,7 +91,7 @@ public class AgentFilterBuilder
                 builder.selectAll();
             }
         }
-        return builder.build(allUuids, allowDuplicateInstallationsOnAnAgent, repository);
+        return builder.build(allAgentUuids, allSlotUuids, allowDuplicateInstallationsOnAnAgent, repository);
     }
 
     private final List<String> uuidFilters = Lists.newArrayListWithCapacity(6);
@@ -136,7 +145,8 @@ public class AgentFilterBuilder
         this.selectAll = true;
     }
 
-    public Predicate<AgentStatus> build(final List<UUID> allUuids,
+    public Predicate<AgentStatus> build(final List<String> allAgentUuids,
+            final List<UUID> allSlotUuids,
             final boolean allowDuplicateInstallationsOnAnAgent,
             final Repository repository)
     {
@@ -147,7 +157,7 @@ public class AgentFilterBuilder
                 @Override
                 public UuidPredicate apply(String uuid)
                 {
-                    return new UuidPredicate(uuid);
+                    return new UuidPredicate(uuid, allAgentUuids);
                 }
             }));
             andPredicates.add(predicate);
@@ -169,7 +179,7 @@ public class AgentFilterBuilder
                 @Override
                 public SlotUuidPredicate apply(String slotUuidGlob)
                 {
-                    return new SlotUuidPredicate(slotUuidGlob, allUuids);
+                    return new SlotUuidPredicate(slotUuidGlob, allSlotUuids);
                 }
             }));
             andPredicates.add(predicate);
@@ -255,15 +265,30 @@ public class AgentFilterBuilder
     {
         private final String uuid;
 
-        public UuidPredicate(String uuid)
+        public UuidPredicate(String shortId, List<String> allUuids)
         {
-            this.uuid = uuid;
+            Predicate<String> startsWithPrefix = Predicates.compose(startsWith(shortId.toLowerCase()), toLowerCase());
+            Collection<String> matches = Collections2.filter(allUuids, startsWithPrefix);
+
+            if (matches.size() > 1) {
+                throw new IllegalArgumentException(format("Ambiguous expansion for id '%s': %s", shortId, matches));
+            }
+
+            if (matches.isEmpty()) {
+                uuid = null;
+            }
+            else {
+                uuid = matches.iterator().next();
+            }
         }
 
         @Override
         public boolean apply(@Nullable AgentStatus agentStatus)
         {
-            return uuid.equals(agentStatus.getAgentId());
+            return agentStatus != null &&
+                    agentStatus.getAgentId() != null &&
+                    uuid != null &&
+                    uuid.equals(agentStatus.getAgentId());
         }
     }
 

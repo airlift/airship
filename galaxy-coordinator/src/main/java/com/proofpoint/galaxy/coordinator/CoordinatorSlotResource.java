@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Lists.transform;
+import static com.proofpoint.galaxy.shared.AgentStatus.idGetter;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
 import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENTS_VERSION_HEADER;
@@ -98,6 +99,7 @@ public class CoordinatorSlotResource
 
         // select the target agents
         Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo,
+                transform(coordinator.getAgents(), idGetter()),
                 transform(coordinator.getAllSlotStatus(), uuidGetter()),
                 false,
                 repository);

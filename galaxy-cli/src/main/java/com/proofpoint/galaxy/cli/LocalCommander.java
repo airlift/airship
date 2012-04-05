@@ -28,6 +28,7 @@ import java.util.UUID;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
 import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
+import static com.proofpoint.galaxy.shared.AgentStatus.idGetter;
 import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
 import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
 import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
@@ -75,7 +76,11 @@ public class LocalCommander implements Commander
     public List<SlotStatusRepresentation> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedAgentsVersion)
     {
         // select the target agents
-        Predicate<AgentStatus> agentsPredicate = agentFilter.toAgentPredicate(transform(coordinator.getAllSlotStatus(), uuidGetter()), true, repository);
+        Predicate<AgentStatus> agentsPredicate = agentFilter.toAgentPredicate(
+                transform(coordinator.getAgents(), idGetter()),
+                transform(coordinator.getAllSlotStatus(), uuidGetter()),
+                true,
+                repository);
         List<AgentStatus> agents = coordinator.getAgents(agentsPredicate);
 
         // verify the expected status of agents
@@ -219,8 +224,11 @@ public class LocalCommander implements Commander
     @Override
     public CommanderResponse<List<AgentStatusRepresentation>> showAgents(AgentFilter agentFilter)
     {
-        List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
-        Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate(uuids, true, repository);
+        Predicate<AgentStatus> agentPredicate = agentFilter.toAgentPredicate(
+                transform(coordinator.getAgents(), idGetter()),
+                transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter()),
+                true,
+                repository);
         List<AgentStatus> agentStatuses = coordinator.getAgents(agentPredicate);
 
         // update just in case something changed

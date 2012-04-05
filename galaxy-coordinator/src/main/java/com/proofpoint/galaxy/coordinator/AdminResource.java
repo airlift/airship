@@ -1,7 +1,6 @@
 package com.proofpoint.galaxy.coordinator;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.proofpoint.galaxy.shared.AgentStatus;
 import com.proofpoint.galaxy.shared.CoordinatorStatus;
@@ -76,8 +75,11 @@ public class AdminResource
     public Response getAllAgents(@Context UriInfo uriInfo)
     {
         List<SlotStatus> allSlotStatus = coordinator.getAllSlotStatus();
-        List<UUID> uuids = Lists.transform(allSlotStatus, SlotStatus.uuidGetter());
-        Predicate<AgentStatus> agentPredicate = AgentFilterBuilder.build(uriInfo, uuids, false, repository);
+        Predicate<AgentStatus> agentPredicate = AgentFilterBuilder.build(uriInfo,
+                transform(coordinator.getAgents(), idGetter()),
+                transform(allSlotStatus, SlotStatus.uuidGetter()),
+                false,
+                repository);
 
         List<AgentStatus> agents = coordinator.getAgents(agentPredicate);
 

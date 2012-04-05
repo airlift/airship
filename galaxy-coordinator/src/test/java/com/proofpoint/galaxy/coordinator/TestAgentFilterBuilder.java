@@ -30,6 +30,7 @@ import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 public class TestAgentFilterBuilder
 {
@@ -60,14 +61,14 @@ public class TestAgentFilterBuilder
                         "cpu", 4));
     }
 
-    private Predicate<AgentStatus> buildFilter(String key, String value, List<UUID> uuids)
+    private Predicate<AgentStatus> buildFilter(String key, String value, List<String> agentUuids, List<UUID> slotUuids)
     {
-        return AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value), uuids);
+        return AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value), agentUuids, slotUuids);
     }
 
     private Predicate<AgentStatus> buildFilter(String key, String value)
     {
-        return buildFilter(key, value, Collections.<UUID>emptyList());
+        return buildFilter(key, value, ImmutableList.<String>of(), ImmutableList.<UUID>of());
     }
 
     private Predicate<AgentStatus> buildFilter(String key,
@@ -75,24 +76,43 @@ public class TestAgentFilterBuilder
             boolean allowDuplicateInstallationsOnAnAgent,
             Repository repository)
     {
-        return AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value), Collections.<UUID>emptyList(), allowDuplicateInstallationsOnAnAgent, repository);
+        return AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value), ImmutableList.<String>of(), ImmutableList.<UUID>of(), allowDuplicateInstallationsOnAnAgent, repository);
     }
 
     @Test
     public void testAll()
     {
-        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=online"), ImmutableList.<UUID>of()).apply(status));
-        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=offline"), ImmutableList.<UUID>of()).apply(status));
-        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&host=host"), ImmutableList.<UUID>of()).apply(status));
+        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=online"), ImmutableList.<String>of(), ImmutableList.<UUID>of()).apply(status));
+        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&state=offline"), ImmutableList.<String>of(), ImmutableList.<UUID>of()).apply(status));
+        assertTrue(AgentFilterBuilder.build(MockUriInfo.from("fake://localhost?all&host=host"), ImmutableList.<String>of(), ImmutableList.<UUID>of()).apply(status));
     }
 
     @Test
     public void testUuidPredicate()
     {
-        assertTrue(new UuidPredicate("agent-id").apply(status));
-        assertTrue(buildFilter("uuid", "agent-id").apply(status));
-        assertFalse(new UuidPredicate("unknown").apply(status));
-        assertFalse(buildFilter("uuid", "unknown").apply(status));
+        assertTrue(new UuidPredicate("agent-id", ImmutableList.<String>of("agent-id", "apple")).apply(status));
+        assertTrue(buildFilter("uuid", "agent-id", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
+
+        assertTrue(new UuidPredicate("age", ImmutableList.<String>of("agent-id", "apple")).apply(status));
+        assertTrue(buildFilter("uuid", "age", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
+
+        assertFalse(new UuidPredicate("unknown", ImmutableList.<String>of("agent-id", "apple")).apply(status));
+        assertFalse(buildFilter("uuid", "unknown", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
+
+        try {
+            assertFalse(new UuidPredicate("a", ImmutableList.<String>of("agent-id", "apple")).apply(status));
+            fail("expected IllegalArgumentException");
+        }
+        catch (IllegalArgumentException expected) {
+            assertTrue(expected.getMessage().toLowerCase().contains("ambiguous expansion"));
+        }
+        try {
+            assertFalse(buildFilter("uuid", "a", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
+            fail("expected IllegalArgumentException");
+        }
+        catch (IllegalArgumentException expected) {
+            assertTrue(expected.getMessage().toLowerCase().contains("ambiguous expansion"));
+        }
     }
 
     @Test
@@ -108,7 +128,7 @@ public class TestAgentFilterBuilder
     public void testSlotUuidPredicate()
     {
         assertTrue(new SlotUuidPredicate(UUID.fromString("12345678-1234-1234-1234-123456789012")).apply(status));
-        assertTrue(buildFilter("slotUuid", "12345678-1234-1234-1234-123456789012", asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
+        assertTrue(buildFilter("slotUuid", "12345678-1234-1234-1234-123456789012", ImmutableList.<String>of(), asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
         assertFalse(new SlotUuidPredicate(UUID.fromString("00000000-0000-0000-0000-000000000000")).apply(status));
         assertFalse(buildFilter("slotUuid", "00000000-0000-0000-0000-000000000000").apply(status));
     }

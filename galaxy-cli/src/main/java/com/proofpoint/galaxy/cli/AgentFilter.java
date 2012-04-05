@@ -38,9 +38,9 @@ public class AgentFilter
     // assignable filters can not be set via the CLI
     public final List<Assignment> assignableFilters = Lists.newArrayList();
 
-    public Predicate<AgentStatus> toAgentPredicate(List<UUID> allUuids, boolean allowDuplicateInstallationsOnAnAgent, Repository repository)
+    public Predicate<AgentStatus> toAgentPredicate(List<String> allAgentUuids, List<UUID> allSlotUuids, boolean allowDuplicateInstallationsOnAnAgent, Repository repository)
     {
-        return createFilterBuilder().build(allUuids, allowDuplicateInstallationsOnAnAgent, repository);
+        return createFilterBuilder().build(allAgentUuids, allSlotUuids, allowDuplicateInstallationsOnAnAgent, repository);
     }
 
     public URI toUri(URI baseUri)
