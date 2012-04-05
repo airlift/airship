@@ -81,7 +81,7 @@ public class HttpCommander implements Commander
     @Override
     public List<SlotStatusRepresentation> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedVersion)
     {
-        URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
+        URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot").addParameter("limit", String.valueOf(count)));
         RequestBuilder requestBuilder = RequestBuilder.preparePost()
                 .setUri(uri)
                 .setHeader("Content-Type", "application/json")
