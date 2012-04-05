@@ -18,9 +18,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
-import java.util.UUID;
 
-import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Lists.transform;
+import static com.proofpoint.galaxy.shared.AgentStatus.idGetter;
 import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
 import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
 import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENTS_VERSION_HEADER;

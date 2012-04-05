@@ -22,6 +22,7 @@ import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.galaxy.shared.MavenCoordinates;
 import com.proofpoint.galaxy.shared.Repository;
 import com.proofpoint.http.server.HttpServerConfig;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
@@ -49,6 +50,7 @@ public class AwsProvisioner implements Provisioner
     private final AWSCredentials awsCredentials;
     private final AmazonEC2 ec2Client;
     private final String environment;
+    private final URI coordinatorUri;
     private final String galaxyVersion;
     private List<String> repositories;
 
@@ -67,6 +69,7 @@ public class AwsProvisioner implements Provisioner
     public AwsProvisioner(AWSCredentials awsCredentials,
             AmazonEC2 ec2Client,
             NodeInfo nodeInfo,
+            HttpServerInfo httpServerInfo,
             Repository repository,
             CoordinatorConfig coordinatorConfig,
             AwsProvisionerConfig awsProvisionerConfig)
@@ -76,6 +79,9 @@ public class AwsProvisioner implements Provisioner
 
         checkNotNull(nodeInfo, "nodeInfo is null");
         this.environment = nodeInfo.getEnvironment();
+
+        checkNotNull(httpServerInfo, "httpServerInfo is null");
+        this.coordinatorUri = httpServerInfo.getHttpUri();
 
         checkNotNull(coordinatorConfig, "coordinatorConfig is null");
         galaxyVersion = coordinatorConfig.getGalaxyVersion();
@@ -448,6 +454,7 @@ public class AwsProvisioner implements Provisioner
                 property("galaxyInstallBinary", "com.proofpoint.galaxy:galaxy-agent:" + galaxyVersion),
                 property("galaxyInstallConfig", agentConfig),
                 property("galaxyRepositoryUris", Joiner.on(',').join(repositories)),
+                property("galaxyCoordinatorUri", coordinatorUri),
                 "",
                 boundaryLine,
 

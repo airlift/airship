@@ -85,7 +85,7 @@ fi
 galaxy --batch start --all
 
 # add target environment
-galaxy environment add ${galaxyEnvironment} http://127.0.0.1:64000/
+galaxy environment add ${galaxyEnvironment} ${galaxyCoordinatorUri:-http://127.0.0.1:64000/}
 galaxy environment use ${galaxyEnvironment}
 
 # target environment should show internal addresses

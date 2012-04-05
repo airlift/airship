@@ -5,6 +5,8 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
+import com.proofpoint.http.server.HttpServerConfig;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.node.NodeInfo;
 import org.testng.annotations.Test;
@@ -47,7 +49,13 @@ public class TestProvisionAgent
         AmazonEC2Client ec2Client = new AmazonEC2Client(awsCredentials);
         NodeInfo nodeInfo = createTestNodeInfo();
 
-        AwsProvisioner provisioner = new AwsProvisioner(awsCredentials, ec2Client, nodeInfo, MOCK_REPO, coordinatorConfig, awsProvisionerConfig);
+        AwsProvisioner provisioner = new AwsProvisioner(awsCredentials,
+                ec2Client,
+                nodeInfo,
+                new HttpServerInfo(new HttpServerConfig(), nodeInfo),
+                MOCK_REPO,
+                coordinatorConfig,
+                awsProvisionerConfig);
 
         int agentCount = 2;
         List<Instance> provisioned = provisioner.provisionAgents(null, agentCount, null, null, null, null, null);

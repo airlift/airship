@@ -38,6 +38,7 @@ import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
 import com.proofpoint.galaxy.shared.UpgradeVersions;
 import com.proofpoint.galaxy.cli.CommanderFactory.ToUriFunction;
 import com.proofpoint.http.server.HttpServerConfig;
+import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logging;
 import com.proofpoint.log.LoggingConfiguration;
@@ -1098,9 +1099,11 @@ public class Galaxy
             if (awsEndpoint != null) {
                 ec2Client.setEndpoint(awsEndpoint);
             }
+            NodeInfo nodeInfo = new NodeInfo(environment);
             AwsProvisioner provisioner = new AwsProvisioner(environmentCredentials,
                     ec2Client,
-                    new NodeInfo(environment),
+                    nodeInfo,
+                    new HttpServerInfo(new HttpServerConfig(), nodeInfo),
                     repository,
                     coordinatorConfig,
                     awsProvisionerConfig);
