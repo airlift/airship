@@ -101,12 +101,14 @@ public class Strings
     public static int shortestUniquePrefix(Collection<String> strings, int minSize)
     {
         Preconditions.checkNotNull(strings, "strings is null");
-        if (strings.size() < 2) {
-            return minSize;
-        }
 
         // remove nulls
         strings = ImmutableList.copyOf(Iterables.filter(strings, Predicates.notNull()));
+
+        // must have at least two strings to calculate min size
+        if (strings.size() < 2) {
+            return minSize;
+        }
 
         SortedSet<String> sorted = Sets.newTreeSet(strings);
         if (sorted.size() != strings.size()) {
