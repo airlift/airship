@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.proofpoint.galaxy</groupId>
         <artifactId>galaxy-root</artifactId>
-        <version>0.8</version>
+        <version>0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -15,7 +15,7 @@
     <name>galaxy-ec2</name>
     <description>Galaxy EC2 scripts</description>
 
-    <version>0.8</version>
+    <version>0.9-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -4,13 +4,13 @@
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-config-bundler</artifactId>
-    <version>0.8</version>
+    <version>0.9-SNAPSHOT</version>
     <name>galaxy-config-bundler</name>
 
     <parent>
         <groupId>com.proofpoint.galaxy</groupId>
         <artifactId>galaxy-root</artifactId>
-        <version>0.8</version>
+        <version>0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

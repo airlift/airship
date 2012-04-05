@@ -5,13 +5,13 @@
     <parent>
         <groupId>com.proofpoint.galaxy</groupId>
         <artifactId>galaxy-root</artifactId>
-        <version>0.8</version>
+        <version>0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>com.proofpoint.galaxy</groupId>
     <artifactId>galaxy-cli</artifactId>
-    <version>0.8</version>
+    <version>0.9-SNAPSHOT</version>
     <name>galaxy-cli</name>
 
     <properties>
@@ -66,13 +66,13 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-agent</artifactId>
-            <version>0.8</version>
+            <version>0.9-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-coordinator</artifactId>
-            <version>0.8</version>
+            <version>0.9-SNAPSHOT</version>
         </dependency>
 
         <!-- for testing -->
@@ -93,7 +93,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-shared</artifactId>
-            <version>0.8</version>
+            <version>0.9-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-coordinator</artifactId>
-            <version>0.8</version>
+            <version>0.9-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -109,7 +109,7 @@
         <dependency>
             <groupId>com.proofpoint.galaxy</groupId>
             <artifactId>galaxy-agent</artifactId>
-            <version>0.8</version>
+            <version>0.9-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
