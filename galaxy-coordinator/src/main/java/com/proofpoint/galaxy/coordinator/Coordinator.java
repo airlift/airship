@@ -417,7 +417,7 @@ public class Coordinator
         List<RemoteAgent> targetAgents = newArrayList();
         List<RemoteAgent> allAgents = newArrayList(filter(this.agents.values(), filterAgentsBy(filter)));
         if (!allowDuplicateInstallationsOnAnAgent) {
-            allAgents = newArrayList(filter(this.agents.values(), filterAgentsWithAssignment(installation)));
+            allAgents = newArrayList(filter(allAgents, filterAgentsWithAssignment(installation)));
         }
         Collections.shuffle(allAgents);
         for (RemoteAgent agent : allAgents) {
