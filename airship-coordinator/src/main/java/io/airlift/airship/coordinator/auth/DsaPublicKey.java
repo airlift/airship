@@ -1,16 +1,16 @@
-package com.proofpoint.galaxy.coordinator.auth;
+package io.airlift.airship.coordinator.auth;
 
 import com.google.common.base.Throwables;
-import com.proofpoint.galaxy.coordinator.auth.ssh.DerWriter;
-import com.proofpoint.galaxy.coordinator.auth.ssh.SshDsaPublicKey;
-import com.proofpoint.galaxy.coordinator.auth.ssh.SshKeyReader;
+import io.airlift.airship.coordinator.auth.ssh.DerWriter;
+import io.airlift.airship.coordinator.auth.ssh.SshDsaPublicKey;
+import io.airlift.airship.coordinator.auth.ssh.SshKeyReader;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.Signature;
 import java.util.Arrays;
 
-import static com.proofpoint.galaxy.coordinator.auth.ssh.DerType.SEQUENCE;
+import static io.airlift.airship.coordinator.auth.ssh.DerType.SEQUENCE;
 
 public class DsaPublicKey
         extends PublicKey

@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.Assert;

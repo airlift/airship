@@ -1,9 +1,9 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.proofpoint.discovery.client.ServiceDescriptor;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatus;
 
 import java.util.List;
 

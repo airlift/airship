@@ -3,16 +3,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.proofpoint.galaxy</groupId>
-        <artifactId>galaxy-root</artifactId>
+        <groupId>io.airlift.airship</groupId>
+        <artifactId>airship-root</artifactId>
         <version>0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>galaxy-shared</artifactId>
+    <groupId>io.airlift.airship</groupId>
+    <artifactId>airship-shared</artifactId>
     <version>0.9-SNAPSHOT</version>
-    <name>galaxy-shared</name>
+    <name>airship-shared</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

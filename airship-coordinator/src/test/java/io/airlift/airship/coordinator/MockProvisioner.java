@@ -1,13 +1,13 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.SlotStatus;
 
 import java.net.URI;
 import java.util.List;

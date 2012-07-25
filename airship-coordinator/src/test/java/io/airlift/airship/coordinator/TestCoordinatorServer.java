@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -27,17 +27,17 @@ import com.google.inject.util.Modules;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.event.client.NullEventModule;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation.SlotStatusRepresentationFactory;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.CoordinatorLifecycleState;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.HttpUriBuilder;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.SlotStatusRepresentation.SlotStatusRepresentationFactory;
+import io.airlift.airship.shared.UpgradeVersions;
 import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.client.Request;
@@ -64,18 +64,18 @@ import java.util.UUID;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.inject.Scopes.SINGLETON;
-import static com.proofpoint.galaxy.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
-import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
+import static io.airlift.airship.coordinator.CoordinatorSlotResource.MIN_PREFIX_SIZE;
+import static io.airlift.airship.coordinator.TestingMavenRepository.MOCK_REPO;
+import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.ExtraAssertions.assertEqualsNoOrder;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
+import static io.airlift.airship.shared.Strings.shortestUniquePrefix;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
 import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
 import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
@@ -117,7 +117,7 @@ public class TestCoordinatorServer
             throws Exception
     {
         Map<String, String> properties = ImmutableMap.<String, String>builder()
-                .put("galaxy.version", "123")
+                .put("airship.version", "123")
                 .put("node.id", "this-coordinator-instance-id")
                 .put("node.location", "/test/location")
                 .put("coordinator.binary-repo", "http://localhost:9999/")

@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

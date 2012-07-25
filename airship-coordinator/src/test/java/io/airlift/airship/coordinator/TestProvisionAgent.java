@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -20,7 +20,7 @@ import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.proofpoint.experimental.testing.ValidationAssertions.assertValidates;
-import static com.proofpoint.galaxy.coordinator.TestingMavenRepository.MOCK_REPO;
+import static io.airlift.airship.coordinator.TestingMavenRepository.MOCK_REPO;
 import static org.testng.Assert.assertEquals;
 
 public class TestProvisionAgent
@@ -42,7 +42,7 @@ public class TestProvisionAgent
         assertValidates(awsProvisionerConfig);
 
         CoordinatorConfig coordinatorConfig = new CoordinatorConfig()
-                .setGalaxyVersion("0.7-SNAPSHOT");
+                .setAirshipVersion("0.7-SNAPSHOT");
         assertValidates(coordinatorConfig);
 
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);

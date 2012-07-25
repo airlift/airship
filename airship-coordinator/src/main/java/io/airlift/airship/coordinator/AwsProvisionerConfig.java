@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.proofpoint.configuration.Config;
 import com.proofpoint.configuration.ConfigDescription;

@@ -1,14 +1,14 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
-import com.proofpoint.galaxy.shared.CoordinatorStatus;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.CoordinatorLifecycleState;
+import io.airlift.airship.shared.CoordinatorStatus;
+import io.airlift.airship.shared.SlotStatus;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -20,11 +20,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.RESOLVED_APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.SHORT_APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.RESOLVED_APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.SHORT_APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;

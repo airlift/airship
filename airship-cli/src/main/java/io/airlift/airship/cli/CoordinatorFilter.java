@@ -1,9 +1,9 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Predicate;
-import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder;
-import com.proofpoint.galaxy.shared.CoordinatorStatus;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
+import io.airlift.airship.coordinator.CoordinatorFilterBuilder;
+import io.airlift.airship.shared.CoordinatorStatus;
+import io.airlift.airship.shared.HttpUriBuilder;
 import org.iq80.cli.Option;
 
 import java.net.URI;

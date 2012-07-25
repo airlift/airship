@@ -1,7 +1,7 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
+import io.airlift.airship.shared.ExpectedSlotStatus;
 
 import java.util.Collection;
 import java.util.UUID;

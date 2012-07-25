@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -16,7 +16,7 @@ import java.util.UUID;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.newHashMap;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 
 @Immutable
 public class AgentStatus

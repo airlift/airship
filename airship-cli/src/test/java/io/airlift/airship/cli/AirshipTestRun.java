@@ -1,23 +1,23 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Joiner;
 
-public class GalaxyTestRun
+public class AirshipTestRun
 {
     public static void main(String[] args)
             throws Exception
     {
-//        galaxy environment provision-aws prod \
+//        airship environment provision-aws prod \
 //                --repository https://oss.sonatype.org/content/repositories/releases/ \
 //                --repository https://oss.sonatype.org/content/repositories/snapshots/ \
-//                --repository https://s3.amazonaws.com/galaxy-cloud-formation/ \
+//                --repository https://s3.amazonaws.com/airship-cloud-formation/ \
 //                --key-pair dain \
 //                --coordinator-config @coordinator.config
 
 //        execute("environment", "provision-aws", "prod",
 //                "--repository", "https://oss.sonatype.org/content/repositories/releases/",
 //                "--repository", "https://oss.sonatype.org/content/repositories/snapshots/",
-//                "--repository", "https://s3.amazonaws.com/galaxy-cloud-formation/",
+//                "--repository", "https://s3.amazonaws.com/airship-cloud-formation/",
 //                "--maven-default-group-id", "com.proofpoint.platform",
 //                "--key-pair", "dain",
 //                "--coordinator-config", "@coordinator.config"
@@ -65,7 +65,7 @@ public class GalaxyTestRun
             throws Exception
     {
         System.out.println(Joiner.on(" ").join(args));
-        Galaxy.main(args);
+        Airship.main(args);
         System.out.println();
         System.out.println();
     }

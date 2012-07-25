@@ -1,12 +1,12 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import org.testng.annotations.Test;
 
 import java.io.File;
 
-import static com.proofpoint.galaxy.shared.FileUtils.createSymbolicLink;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.isSymbolicLink;
+import static io.airlift.airship.shared.FileUtils.createSymbolicLink;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.isSymbolicLink;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 

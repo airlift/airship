@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static com.proofpoint.galaxy.shared.MavenCoordinates.fromConfigGAV;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.toConfigGAV;
+import static io.airlift.airship.shared.MavenCoordinates.fromConfigGAV;
+import static io.airlift.airship.shared.MavenCoordinates.toConfigGAV;
 
 public class TestConfigSpec
 {

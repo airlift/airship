@@ -1,7 +1,7 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.Installation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.Installation;
 
 import java.net.URI;
 import java.util.UUID;

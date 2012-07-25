@@ -11,15 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.Installation;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.Installation;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 
@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
-import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
+import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
 
 public class DeploymentSlot implements Slot
 {

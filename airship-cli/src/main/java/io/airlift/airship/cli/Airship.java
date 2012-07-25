@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
@@ -23,20 +23,20 @@ import com.google.common.collect.Lists;
 import com.google.common.io.NullOutputStream;
 import com.google.common.io.Resources;
 import com.proofpoint.configuration.ConfigurationFactory;
-import com.proofpoint.galaxy.coordinator.AwsProvisioner;
-import com.proofpoint.galaxy.coordinator.AwsProvisionerConfig;
-import com.proofpoint.galaxy.coordinator.CoordinatorConfig;
-import com.proofpoint.galaxy.coordinator.HttpRepository;
-import com.proofpoint.galaxy.coordinator.Instance;
-import com.proofpoint.galaxy.coordinator.MavenRepository;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.RepositorySet;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
-import com.proofpoint.galaxy.cli.CommanderFactory.ToUriFunction;
+import io.airlift.airship.coordinator.AwsProvisioner;
+import io.airlift.airship.coordinator.AwsProvisionerConfig;
+import io.airlift.airship.coordinator.CoordinatorConfig;
+import io.airlift.airship.coordinator.HttpRepository;
+import io.airlift.airship.coordinator.Instance;
+import io.airlift.airship.coordinator.MavenRepository;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.RepositorySet;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.UpgradeVersions;
+import io.airlift.airship.cli.CommanderFactory.ToUriFunction;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.json.JsonCodec;
@@ -66,24 +66,24 @@ import java.util.concurrent.Callable;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.coordinator.AwsProvisioner.toInstance;
-import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilder;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.coordinator.AwsProvisioner.toInstance;
+import static io.airlift.airship.shared.ConfigUtils.createConfigurationFactory;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilder;
+import static io.airlift.airship.shared.SlotLifecycleState.RESTARTING;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.iq80.cli.Cli.buildCli;
 
-public class Galaxy
+public class Airship
 {
-    private static final File CONFIG_FILE = new File(System.getProperty("user.home", "."), ".galaxyconfig");
+    private static final File CONFIG_FILE = new File(System.getProperty("user.home", "."), ".airshipconfig");
 
-    public static final Cli<GalaxyCommand> GALAXY_PARSER;
+    public static final Cli<AirshipCommand> AIRSHIP_PARSER;
 
     static {
-        CliBuilder<GalaxyCommand> builder = buildCli("galaxy", GalaxyCommand.class)
+        CliBuilder<AirshipCommand> builder = buildCli("airship", AirshipCommand.class)
                 .withDescription("cloud management system")
                 .withDefaultCommand(HelpCommand.class)
                 .withCommands(HelpCommand.class,
@@ -131,21 +131,22 @@ public class Galaxy
                         ConfigAdd.class,
                         ConfigUnset.class);
 
-        GALAXY_PARSER = builder.build();
+        AIRSHIP_PARSER = builder.build();
     }
 
     public static void main(String[] args)
             throws Exception
     {
         try {
-            GALAXY_PARSER.parse(args).call();
+            AIRSHIP_PARSER.parse(args).call();
         }
         catch (ParseException e) {
             System.out.println(firstNonNull(e.getMessage(), "Unknown command line parser error"));
         }
     }
 
-    public static abstract class GalaxyCommand implements Callable<Void>
+    public static abstract class AirshipCommand
+            implements Callable<Void>
     {
         @Inject
         public GlobalOptions globalOptions = new GlobalOptions();
@@ -179,7 +180,8 @@ public class Galaxy
         public abstract void execute() throws Exception;
     }
 
-    public static abstract class GalaxyCommanderCommand extends GalaxyCommand
+    public static abstract class AirshipCommanderCommand
+            extends AirshipCommand
     {
         protected String environmentRef;
         protected OutputFormat outputFormat;
@@ -218,7 +220,7 @@ public class Galaxy
             }
             String coordinator = config.get("environment." + environmentRef + ".coordinator");
             if (coordinator == null) {
-                throw new RuntimeException("Environment " + environmentRef + " does not have a coordinator url.  You can add a coordinator url with galaxy coordinator add <url>");
+                throw new RuntimeException("Environment " + environmentRef + " does not have a coordinator url.  You can add a coordinator url with airship coordinator add <url>");
             }
 
             URI coordinatorUri = new URI(coordinator);
@@ -326,8 +328,8 @@ public class Galaxy
 
     }
 
-    @Command(name = "help", description = "Display help information about galaxy")
-    public static class HelpCommand extends GalaxyCommand
+    @Command(name = "help", description = "Display help information about airship")
+    public static class HelpCommand extends AirshipCommand
     {
         @Inject
         public Help help;
@@ -351,7 +353,7 @@ public class Galaxy
     }
 
     @Command(name = "show", description = "Show state of all slots")
-    public static class ShowCommand extends GalaxyCommanderCommand
+    public static class ShowCommand extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -376,7 +378,7 @@ public class Galaxy
     }
 
     @Command(name = "install", description = "Install software in a new slot")
-    public static class InstallCommand extends GalaxyCommanderCommand
+    public static class InstallCommand extends AirshipCommanderCommand
     {
         @Option(name = {"--count"}, description = "Number of instances to install")
         public int count = 1;
@@ -466,7 +468,7 @@ public class Galaxy
     }
 
     @Command(name = "upgrade", description = "Upgrade software in a slot")
-    public static class UpgradeCommand extends GalaxyCommanderCommand
+    public static class UpgradeCommand extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -523,7 +525,7 @@ public class Galaxy
     }
 
     @Command(name = "terminate", description = "Terminate (remove) a slot")
-    public static class TerminateCommand extends GalaxyCommanderCommand
+    public static class TerminateCommand extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -554,7 +556,7 @@ public class Galaxy
     }
 
     @Command(name = "start", description = "Start a server")
-    public static class StartCommand extends GalaxyCommanderCommand
+    public static class StartCommand extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -574,7 +576,7 @@ public class Galaxy
     }
 
     @Command(name = "stop", description = "Stop a server")
-    public static class StopCommand extends GalaxyCommanderCommand
+    public static class StopCommand extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -594,7 +596,7 @@ public class Galaxy
     }
 
     @Command(name = "restart", description = "Restart server")
-    public static class RestartCommand extends GalaxyCommanderCommand
+    public static class RestartCommand extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -614,7 +616,7 @@ public class Galaxy
     }
 
     @Command(name = "reset-to-actual", description = "Reset slot expected state to actual")
-    public static class ResetToActualCommand extends GalaxyCommanderCommand
+    public static class ResetToActualCommand extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -634,7 +636,7 @@ public class Galaxy
     }
 
     @Command(name = "ssh", description = "ssh to slot installation")
-    public static class SshCommand extends GalaxyCommanderCommand
+    public static class SshCommand extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -662,7 +664,7 @@ public class Galaxy
     }
 
     @Command(name = "show", description = "Show coordinator details")
-    public static class CoordinatorShowCommand extends GalaxyCommanderCommand
+    public static class CoordinatorShowCommand extends AirshipCommanderCommand
     {
         @Inject
         public final CoordinatorFilter coordinatorFilter = new CoordinatorFilter();
@@ -688,7 +690,7 @@ public class Galaxy
     }
 
     @Command(name = "provision", description = "Provision a new coordinator")
-    public static class CoordinatorProvisionCommand extends GalaxyCommanderCommand
+    public static class CoordinatorProvisionCommand extends AirshipCommanderCommand
     {
         @Option(name = "--coordinator-config", description = "Configuration for the coordinator")
         public String coordinatorConfig;
@@ -758,7 +760,7 @@ public class Galaxy
     }
 
     @Command(name = "ssh", description = "ssh to coordinator host")
-    public static class CoordinatorSshCommand extends GalaxyCommanderCommand
+    public static class CoordinatorSshCommand extends AirshipCommanderCommand
     {
         @Inject
         public final CoordinatorFilter coordinatorFilter = new CoordinatorFilter();
@@ -785,7 +787,7 @@ public class Galaxy
     }
 
     @Command(name = "show", description = "Show agent details")
-    public static class AgentShowCommand extends GalaxyCommanderCommand
+    public static class AgentShowCommand extends AirshipCommanderCommand
     {
         @Inject
         public final AgentFilter agentFilter = new AgentFilter();
@@ -811,7 +813,7 @@ public class Galaxy
     }
 
     @Command(name = "provision", description = "Provision a new agent")
-    public static class AgentProvisionCommand extends GalaxyCommanderCommand
+    public static class AgentProvisionCommand extends AirshipCommanderCommand
     {
         @Option(name = "--agent-config", description = "Agent for the coordinator")
         public String agentConfig;
@@ -864,7 +866,7 @@ public class Galaxy
     }
 
     @Command(name = "terminate", description = "Terminate an agent")
-    public static class AgentTerminateCommand extends GalaxyCommanderCommand
+    public static class AgentTerminateCommand extends AirshipCommanderCommand
     {
         @Arguments(title = "agent-id", description = "Agent to terminate", required = true)
         public String agentId;
@@ -890,7 +892,7 @@ public class Galaxy
     }
 
     @Command(name = "ssh", description = "ssh to agent host")
-    public static class AgentSshCommand extends GalaxyCommanderCommand
+    public static class AgentSshCommand extends AirshipCommanderCommand
     {
         @Inject
         public final AgentFilter agentFilter = new AgentFilter();
@@ -917,7 +919,7 @@ public class Galaxy
     }
 
     @Command(name = "provision-local", description = "Provision a local environment")
-    public static class EnvironmentProvisionLocal extends GalaxyCommand
+    public static class EnvironmentProvisionLocal extends AirshipCommand
     {
         @Option(name = "--name", description = "Environment name")
         public String environment;
@@ -1007,7 +1009,7 @@ public class Galaxy
     }
 
     @Command(name = "provision-aws", description = "Provision an AWS environment")
-    public static class EnvironmentProvisionAws extends GalaxyCommand
+    public static class EnvironmentProvisionAws extends AirshipCommand
     {
         @Option(name = "--name", description = "Environment name")
         public String environment;
@@ -1060,9 +1062,9 @@ public class Galaxy
             Preconditions.checkNotNull(coordinatorConfig, "You must specify the coordinator config");
 
             String accessKey = config.get("aws.access-key");
-            Preconditions.checkNotNull(accessKey, "You must set the aws access-key with: galaxy config set aws.access-key <key>");
+            Preconditions.checkNotNull(accessKey, "You must set the aws access-key with: airship config set aws.access-key <key>");
             String secretKey = config.get("aws.secret-key");
-            Preconditions.checkNotNull(secretKey, "You must set the aws secret-key with: galaxy config set aws.secret-key <key>");
+            Preconditions.checkNotNull(secretKey, "You must set the aws secret-key with: airship config set aws.secret-key <key>");
 
             // create the repository
             List<URI> repoBases = ImmutableList.copyOf(Lists.transform(repository, new ToUriFunction()));
@@ -1183,8 +1185,8 @@ public class Galaxy
 
         private static String createIamUserForEnvironment(AmazonIdentityManagementClient iamClient, String environment)
         {
-            String username = format("galaxy-%s-%s", environment, randomUUID().toString().replace("-", ""));
-            String simpleDbName = format("galaxy-%s", environment);
+            String username = format("airship-%s-%s", environment, randomUUID().toString().replace("-", ""));
+            String simpleDbName = format("airship-%s", environment);
 
             iamClient.createUser(new CreateUserRequest(username));
 
@@ -1254,7 +1256,7 @@ public class Galaxy
     }
 
     @Command(name = "show", description = "Show environment details")
-    public static class EnvironmentShow extends GalaxyCommand
+    public static class EnvironmentShow extends AirshipCommand
     {
         @Arguments(description = "Environment to show")
         public String ref;
@@ -1282,13 +1284,13 @@ public class Galaxy
                     }
                 }
                 if (!hasEnvironment) {
-                    System.out.println("There are no Galaxy environments.");
+                    System.out.println("There are no Airship environments.");
                 }
             }
             else {
                 String realEnvironmentName = config.get("environment." + ref + ".name");
                 if (realEnvironmentName == null) {
-                    throw new RuntimeException(String.format("'%s' does not appear to be a galaxy environment", ref));
+                    throw new RuntimeException(String.format("'%s' does not appear to be a airship environment", ref));
                 }
                 List<String> coordinators = config.getAll("environment." + ref + ".coordinator");
                 boolean isDefaultRef = ref.equals(defaultRef);
@@ -1308,7 +1310,7 @@ public class Galaxy
     }
 
     @Command(name = "add", description = "Add an environment")
-    public static class EnvironmentAdd extends GalaxyCommand
+    public static class EnvironmentAdd extends AirshipCommand
     {
         @Option(name = "--name", description = "Environment name")
         public String environment;
@@ -1347,7 +1349,7 @@ public class Galaxy
     }
 
     @Command(name = "remove", description = "Remove an environment")
-    public static class EnvironmentRemove extends GalaxyCommand
+    public static class EnvironmentRemove extends AirshipCommand
     {
         @Arguments(description = "Environment to remove")
         public String ref;
@@ -1373,7 +1375,7 @@ public class Galaxy
     }
 
     @Command(name = "use", description = "Set the default environment")
-    public static class EnvironmentUse extends GalaxyCommand
+    public static class EnvironmentUse extends AirshipCommand
     {
         @Arguments(description = "Environment to make the default")
         public String ref;
@@ -1396,7 +1398,7 @@ public class Galaxy
     }
 
     @Command(name = "get", description = "Get a configuration value")
-    public static class ConfigGet extends GalaxyCommand
+    public static class ConfigGet extends AirshipCommand
     {
         @Arguments(description = "Key to get")
         public String key;
@@ -1416,7 +1418,7 @@ public class Galaxy
     }
 
     @Command(name = "get-all", description = "Get all values of configuration")
-    public static class ConfigGetAll extends GalaxyCommand
+    public static class ConfigGetAll extends AirshipCommand
     {
         @Arguments(description = "Key to get")
         public String key;
@@ -1435,7 +1437,7 @@ public class Galaxy
     }
 
     @Command(name = "set", description = "Set a configuration value")
-    public static class ConfigSet extends GalaxyCommand
+    public static class ConfigSet extends AirshipCommand
     {
         @Arguments(usage = "<key> <value>",
                 description = "Key-value pair to set")
@@ -1458,7 +1460,7 @@ public class Galaxy
     }
 
     @Command(name = "add", description = "Add a configuration value")
-    public static class ConfigAdd extends GalaxyCommand
+    public static class ConfigAdd extends AirshipCommand
     {
         @Arguments(usage = "<key> <value>",
                 description = "Key-value pair to add")
@@ -1481,7 +1483,7 @@ public class Galaxy
     }
 
     @Command(name = "unset", description = "Unset a configuration value")
-    public static class ConfigUnset extends GalaxyCommand
+    public static class ConfigUnset extends AirshipCommand
     {
         @Arguments(description = "Key to unset")
         public String key;

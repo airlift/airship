@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
@@ -10,10 +10,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.galaxy.shared.ArchiveHelper.createArchive;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
-import static com.proofpoint.galaxy.shared.FileUtils.newFile;
+import static io.airlift.airship.shared.ArchiveHelper.createArchive;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.deleteRecursively;
+import static io.airlift.airship.shared.FileUtils.newFile;
 
 public class TestingHttpRepository extends HttpRepository
 {
@@ -107,7 +107,7 @@ public class TestingHttpRepository extends HttpRepository
             resources = "memory=1024\n" +
                     "cpu=2";
         }
-        out.putNextEntry(new ZipEntry("galaxy-resources.properties"));
+        out.putNextEntry(new ZipEntry("airship-resources.properties"));
         out.write(resources.getBytes(UTF_8));
 
         out.close();

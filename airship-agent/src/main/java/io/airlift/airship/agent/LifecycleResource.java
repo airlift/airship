@@ -11,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
@@ -28,9 +28,9 @@ import javax.ws.rs.core.Response;
 
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotVersion;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.checkSlotVersion;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
 
 @Path("/v1/agent/slot/{slotId}/lifecycle")
 public class LifecycleResource
@@ -47,7 +47,7 @@ public class LifecycleResource
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    public Response setState(@HeaderParam(GALAXY_SLOT_VERSION_HEADER) String slotVersion,
+    public Response setState(@HeaderParam(AIRSHIP_SLOT_VERSION_HEADER) String slotVersion,
             @PathParam("slotId") UUID slotId,
             String newState)
     {
@@ -75,8 +75,8 @@ public class LifecycleResource
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         return Response.ok(SlotStatusRepresentation.from(status))
-                .header(GALAXY_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
-                .header(GALAXY_SLOT_VERSION_HEADER, status.getVersion())
+                .header(AIRSHIP_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
+                .header(AIRSHIP_SLOT_VERSION_HEADER, status.getVersion())
                 .build();
     }
 }

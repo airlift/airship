@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;

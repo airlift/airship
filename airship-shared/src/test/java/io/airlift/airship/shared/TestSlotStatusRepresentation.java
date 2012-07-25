@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
@@ -10,7 +10,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
 public class TestSlotStatusRepresentation

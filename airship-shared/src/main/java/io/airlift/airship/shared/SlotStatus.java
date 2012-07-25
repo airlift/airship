@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -22,8 +22,8 @@ import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
 
 @Immutable
 public class SlotStatus

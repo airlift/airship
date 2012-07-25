@@ -1,11 +1,11 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.UpgradeVersions;
 
 import java.util.List;
 

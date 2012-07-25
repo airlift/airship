@@ -3,17 +3,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.proofpoint.galaxy</groupId>
-        <artifactId>galaxy-root</artifactId>
+        <groupId>io.airlift.airship</groupId>
+        <artifactId>airship-root</artifactId>
         <version>0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>galaxy-ec2</artifactId>
+    <groupId>io.airlift.airship</groupId>
+    <artifactId>airship-ec2</artifactId>
     <packaging>pom</packaging>
-    <name>galaxy-ec2</name>
-    <description>Galaxy EC2 scripts</description>
+    <name>airship-ec2</name>
+    <description>Airship EC2 scripts</description>
 
     <version>0.9-SNAPSHOT</version>
 
@@ -50,17 +50,17 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${basedir}/galaxy-install.sh</file>
+                                    <file>${basedir}/airship-install.sh</file>
                                     <type>sh</type>
                                     <classifier>install</classifier>
                                 </artifact>
                                 <artifact>
-                                    <file>${basedir}/galaxy-install-prep.sh</file>
+                                    <file>${basedir}/airship-install-prep.sh</file>
                                     <type>sh</type>
                                     <classifier>install-prep</classifier>
                                 </artifact>
                                 <artifact>
-                                    <file>${basedir}/galaxy-part-handler.py</file>
+                                    <file>${basedir}/airship-part-handler.py</file>
                                     <type>py</type>
                                     <classifier>part-handler</classifier>
                                 </artifact>

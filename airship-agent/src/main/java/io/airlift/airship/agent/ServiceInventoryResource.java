@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableList;
 import com.proofpoint.discovery.client.DiscoveryException;

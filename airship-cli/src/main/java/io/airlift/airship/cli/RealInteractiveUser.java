@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import java.io.BufferedReader;
 import java.io.IOException;

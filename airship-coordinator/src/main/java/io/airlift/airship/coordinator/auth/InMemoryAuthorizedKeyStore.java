@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator.auth;
+package io.airlift.airship.coordinator.auth;
 
 import com.google.common.collect.ImmutableMap;
 

@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
@@ -21,12 +21,12 @@ import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.event.client.NullEventModule;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.InstallationHelper;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.VersionsUtil;
+import io.airlift.airship.shared.HttpUriBuilder;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.InstallationHelper;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.VersionsUtil;
 import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.FullJsonResponseHandler.JsonResponse;
 import com.proofpoint.http.client.HttpClient;
@@ -56,13 +56,13 @@ import java.util.UUID;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
-import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.ExtraAssertions.assertEqualsNoOrder;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.deleteRecursively;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.http.client.FullJsonResponseHandler.createFullJsonResponseHandler;
 import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
 import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;

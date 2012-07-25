@@ -1,9 +1,9 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import org.testng.annotations.Test;
 
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
 public abstract class AbstractLifecycleManagerTest

@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -8,7 +8,7 @@ import com.google.common.io.ByteProcessor;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
-import com.proofpoint.galaxy.shared.Repository;
+import io.airlift.airship.shared.Repository;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -20,9 +20,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.DEFAULT_BINARY_PACKAGING;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.DEFAULT_CONFIG_PACKAGING;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.MavenCoordinates.DEFAULT_BINARY_PACKAGING;
+import static io.airlift.airship.shared.MavenCoordinates.DEFAULT_CONFIG_PACKAGING;
 
 public class HttpRepository implements Repository
 {

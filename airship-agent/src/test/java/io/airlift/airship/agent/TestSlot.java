@@ -11,21 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatus;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.InstallationHelper.BANANA_INSTALLATION;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.InstallationHelper.APPLE_INSTALLATION;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.InstallationHelper.BANANA_INSTALLATION;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;

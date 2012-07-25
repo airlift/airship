@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.configbundler;
+package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -34,9 +34,9 @@ import java.util.Map;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.CharStreams.newReaderSupplier;
-import static com.proofpoint.galaxy.configbundler.GitUtils.getBlob;
-import static com.proofpoint.galaxy.configbundler.GitUtils.getBranch;
-import static com.proofpoint.galaxy.configbundler.GitUtils.inputStreamSupplierFunction;
+import static io.airlift.airship.configbundler.GitUtils.getBlob;
+import static io.airlift.airship.configbundler.GitUtils.getBranch;
+import static io.airlift.airship.configbundler.GitUtils.inputStreamSupplierFunction;
 
 class Model
 {

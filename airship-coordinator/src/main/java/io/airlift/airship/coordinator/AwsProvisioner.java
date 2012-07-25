@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
@@ -19,8 +19,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.proofpoint.configuration.ConfigurationFactory;
-import com.proofpoint.galaxy.shared.MavenCoordinates;
-import com.proofpoint.galaxy.shared.Repository;
+import io.airlift.airship.shared.MavenCoordinates;
+import io.airlift.airship.shared.Repository;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
@@ -38,8 +38,8 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.shared.ConfigUtils.createConfigurationFactory;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilder;
+import static io.airlift.airship.shared.ConfigUtils.createConfigurationFactory;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilder;
 import static java.lang.String.format;
 import static java.util.Collections.addAll;
 
@@ -51,7 +51,7 @@ public class AwsProvisioner implements Provisioner
     private final AmazonEC2 ec2Client;
     private final String environment;
     private final URI coordinatorUri;
-    private final String galaxyVersion;
+    private final String airshipVersion;
     private List<String> repositories;
 
     private final String agentDefaultConfig;
@@ -84,7 +84,7 @@ public class AwsProvisioner implements Provisioner
         this.coordinatorUri = httpServerInfo.getHttpUri();
 
         checkNotNull(coordinatorConfig, "coordinatorConfig is null");
-        galaxyVersion = coordinatorConfig.getGalaxyVersion();
+        airshipVersion = coordinatorConfig.getAirshipVersion();
         repositories = coordinatorConfig.getRepositories();
 
         checkNotNull(awsProvisionerConfig, "awsConfig is null");
@@ -113,11 +113,11 @@ public class AwsProvisioner implements Provisioner
                     continue;
                 }
                 Map<String, String> tags = toMap(instance.getTags());
-                if ("coordinator".equals(tags.get("galaxy:role")) && environment.equals(tags.get("galaxy:environment"))) {
-                    String portTag = tags.get("galaxy:port");
+                if ("coordinator".equals(tags.get("airship:role")) && environment.equals(tags.get("airship:environment"))) {
+                    String portTag = tags.get("airship:port");
                     if (portTag == null) {
                         if (invalidInstances.add(instance.getInstanceId())) {
-                            log.error("Instance %s does not have a galaxy:port tag", instance.getInstanceId());
+                            log.error("Instance %s does not have a airship:port tag", instance.getInstanceId());
                         }
                         continue;
                     }
@@ -128,7 +128,7 @@ public class AwsProvisioner implements Provisioner
                     }
                     catch (Exception e) {
                         if (invalidInstances.add(instance.getInstanceId())) {
-                            log.error("Instance %s galaxy:port tag is not a number", instance.getInstanceId());
+                            log.error("Instance %s airship:port tag is not a number", instance.getInstanceId());
                         }
                         continue;
                     }
@@ -163,11 +163,11 @@ public class AwsProvisioner implements Provisioner
                     continue;
                 }
                 Map<String, String> tags = toMap(instance.getTags());
-                if ("agent".equals(tags.get("galaxy:role")) && environment.equals(tags.get("galaxy:environment"))) {
-                    String portTag = tags.get("galaxy:port");
+                if ("agent".equals(tags.get("airship:role")) && environment.equals(tags.get("airship:environment"))) {
+                    String portTag = tags.get("airship:port");
                     if (portTag == null) {
                         if (invalidInstances.add(instance.getInstanceId())) {
-                            log.error("Instance %s does not have a galaxy:port tag", instance.getInstanceId());
+                            log.error("Instance %s does not have a airship:port tag", instance.getInstanceId());
                         }
                         continue;
                     }
@@ -178,7 +178,7 @@ public class AwsProvisioner implements Provisioner
                     }
                     catch (Exception e) {
                         if (invalidInstances.add(instance.getInstanceId())) {
-                            log.error("Instance %s galaxy:port tag is not a number", instance.getInstanceId());
+                            log.error("Instance %s airship:port tag is not a number", instance.getInstanceId());
                         }
                         continue;
                     }
@@ -314,10 +314,10 @@ public class AwsProvisioner implements Provisioner
         }
 
         List<Tag> tags = ImmutableList.<Tag>builder()
-                .add(new Tag("Name", format("galaxy-%s-coordinator", environment)))
-                .add(new Tag("galaxy:role", "coordinator"))
-                .add(new Tag("galaxy:environment", environment))
-                .add(new Tag("galaxy:port", String.valueOf(coordinatorPort)))
+                .add(new Tag("Name", format("airship-%s-coordinator", environment)))
+                .add(new Tag("airship:role", "coordinator"))
+                .add(new Tag("airship:environment", environment))
+                .add(new Tag("airship:port", String.valueOf(coordinatorPort)))
                 .build();
         createInstanceTagsWithRetry(instanceIds, tags);
 
@@ -380,10 +380,10 @@ public class AwsProvisioner implements Provisioner
         }
 
         List<Tag> tags = ImmutableList.<Tag>builder()
-                .add(new Tag("Name", format("galaxy-%s-agent", environment)))
-                .add(new Tag("galaxy:role", "agent"))
-                .add(new Tag("galaxy:environment", environment))
-                .add(new Tag("galaxy:port", String.valueOf(httpServerConfig.getHttpPort())))
+                .add(new Tag("Name", format("airship-%s-agent", environment)))
+                .add(new Tag("airship:role", "agent"))
+                .add(new Tag("airship:environment", environment))
+                .add(new Tag("airship:port", String.valueOf(httpServerConfig.getHttpPort())))
                 .build();
         createInstanceTagsWithRetry(instanceIds, tags);
 
@@ -428,10 +428,10 @@ public class AwsProvisioner implements Provisioner
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
 
-        URI partHandler = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler", null));
-        URI galaxyCli = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-cli", galaxyVersion, "jar", "executable", null));
-        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "install", null));
-        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "install-prep", null));
+        URI partHandler = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "py", "part-handler", null));
+        URI airshipCli = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-cli", airshipVersion, "jar", "executable", null));
+        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "sh", "install", null));
+        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "sh", "install-prep", null));
 
         List<String> lines = newArrayList();
         addAll(lines,
@@ -439,31 +439,31 @@ public class AwsProvisioner implements Provisioner
                 "",
                 boundaryLine,
 
-                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-part-handler.py"), "",
+                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-part-handler.py"), "",
                 partHandler.toString(),
                 "",
                 boundaryLine,
 
-                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy"), "",
-                galaxyCli.toASCIIString(),
+                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "airship"), "",
+                airshipCli.toASCIIString(),
                 "",
                 boundaryLine,
 
                 contentTypeText, mimeVersion, encodingText, format(attachmentFormat, "installer.properties"), "",
-                property("galaxyEnvironment", environment),
-                property("galaxyInstallBinary", "com.proofpoint.galaxy:galaxy-agent:" + galaxyVersion),
-                property("galaxyInstallConfig", agentConfig),
-                property("galaxyRepositoryUris", Joiner.on(',').join(repositories)),
-                property("galaxyCoordinatorUri", coordinatorUri),
+                property("airshipEnvironment", environment),
+                property("airshipInstallBinary", "io.airlift.airship:airship-agent:" + airshipVersion),
+                property("airshipInstallConfig", agentConfig),
+                property("airshipRepositoryUris", Joiner.on(',').join(repositories)),
+                property("airshipCoordinatorUri", coordinatorUri),
                 "",
                 boundaryLine,
 
-                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-install.sh"), "",
+                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-install.sh"), "",
                 coordinatorInstall.toASCIIString(),
                 "",
                 boundaryLine ,
 
-                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-install-prep.sh"), "",
+                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-install-prep.sh"), "",
                 coordinatorInstallPrep.toASCIIString(),
                 "",
                 boundaryLine
@@ -489,10 +489,10 @@ public class AwsProvisioner implements Provisioner
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
 
-        URI partHandler = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "py", "part-handler", null));
-        URI galaxyCli = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-cli", galaxyVersion, "jar", "executable", null));
-        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "install", null));
-        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("com.proofpoint.galaxy", "galaxy-ec2", galaxyVersion, "sh", "install-prep", null));
+        URI partHandler = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "py", "part-handler", null));
+        URI airshipCli = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-cli", airshipVersion, "jar", "executable", null));
+        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "sh", "install", null));
+        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "sh", "install-prep", null));
 
         List<String> lines = newArrayList();
         addAll(lines,
@@ -500,13 +500,13 @@ public class AwsProvisioner implements Provisioner
                 "",
                 boundaryLine,
 
-                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-part-handler.py"), "",
+                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-part-handler.py"), "",
                 partHandler.toString(),
                 "",
                 boundaryLine,
 
-                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy"), "",
-                galaxyCli.toASCIIString(),
+                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "airship"), "",
+                airshipCli.toASCIIString(),
                 "",
                 boundaryLine,
 
@@ -517,20 +517,20 @@ public class AwsProvisioner implements Provisioner
                 boundaryLine,
 
                 contentTypeText, mimeVersion, encodingText, format(attachmentFormat, "installer.properties"), "",
-                property("galaxyEnvironment", environment),
-                property("galaxyInstallBinary", "com.proofpoint.galaxy:galaxy-coordinator:" + galaxyVersion),
-                property("galaxyInstallConfig", coordinatorConfig),
-                property("galaxyRepositoryUris", Joiner.on(',').join(repositories)),
-                property("galaxyAwsCredentialsFile", awsCredentialsFile),
+                property("airshipEnvironment", environment),
+                property("airshipInstallBinary", "io.airlift.airship:airship-coordinator:" + airshipVersion),
+                property("airshipInstallConfig", coordinatorConfig),
+                property("airshipRepositoryUris", Joiner.on(',').join(repositories)),
+                property("airshipAwsCredentialsFile", awsCredentialsFile),
                 "",
                 boundaryLine,
 
-                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-install.sh"), "",
+                contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-install.sh"), "",
                 coordinatorInstall.toASCIIString(),
                 "",
                 boundaryLine ,
 
-                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "galaxy-install-prep.sh"), "",
+                contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-install-prep.sh"), "",
                 coordinatorInstallPrep.toASCIIString(),
                 "",
                 boundaryLine

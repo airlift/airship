@@ -1,9 +1,9 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.proofpoint.discovery.client.ServiceDescriptor;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.SlotStatus;
 
 import java.net.URI;
 import java.util.List;

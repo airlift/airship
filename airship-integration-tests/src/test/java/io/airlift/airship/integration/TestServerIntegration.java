@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.integration;
+package io.airlift.airship.integration;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -25,29 +25,29 @@ import com.google.inject.util.Modules;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.event.client.NullEventModule;
-import com.proofpoint.galaxy.agent.Agent;
-import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.coordinator.AgentProvisioningRepresentation;
-import com.proofpoint.galaxy.coordinator.Coordinator;
-import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
-import com.proofpoint.galaxy.coordinator.CoordinatorProvisioningRepresentation;
-import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
-import com.proofpoint.galaxy.coordinator.Instance;
-import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
-import com.proofpoint.galaxy.coordinator.Provisioner;
-import com.proofpoint.galaxy.coordinator.StateManager;
-import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
-import com.proofpoint.galaxy.integration.MockLocalProvisioner.AgentServer;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation.SlotStatusRepresentationFactory;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
+import io.airlift.airship.agent.Agent;
+import io.airlift.airship.agent.Slot;
+import io.airlift.airship.coordinator.AgentProvisioningRepresentation;
+import io.airlift.airship.coordinator.Coordinator;
+import io.airlift.airship.coordinator.CoordinatorMainModule;
+import io.airlift.airship.coordinator.CoordinatorProvisioningRepresentation;
+import io.airlift.airship.coordinator.InMemoryStateManager;
+import io.airlift.airship.coordinator.Instance;
+import io.airlift.airship.coordinator.LocalProvisionerModule;
+import io.airlift.airship.coordinator.Provisioner;
+import io.airlift.airship.coordinator.StateManager;
+import io.airlift.airship.coordinator.TestingMavenRepository;
+import io.airlift.airship.integration.MockLocalProvisioner.AgentServer;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.CoordinatorLifecycleState;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.HttpUriBuilder;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.SlotStatusRepresentation.SlotStatusRepresentationFactory;
+import io.airlift.airship.shared.UpgradeVersions;
 import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.client.Request;
@@ -72,16 +72,16 @@ import java.util.Map;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.inject.Scopes.SINGLETON;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
-import static com.proofpoint.galaxy.shared.FileUtils.newFile;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.ExtraAssertions.assertEqualsNoOrder;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.deleteRecursively;
+import static io.airlift.airship.shared.FileUtils.newFile;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
 import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
 import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
@@ -141,7 +141,7 @@ public class TestServerIntegration
 
         Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
                 .put("node.environment", "prod")
-                .put("galaxy.version", "123")
+                .put("airship.version", "123")
                 .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
                 .put("coordinator.default-group-id", "prod")
                 .put("coordinator.binary-repo.local", localBinaryRepoDir.toString())

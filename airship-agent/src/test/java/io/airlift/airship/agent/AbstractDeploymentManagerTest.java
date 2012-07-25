@@ -1,6 +1,6 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
-import com.proofpoint.galaxy.shared.Installation;
+import io.airlift.airship.shared.Installation;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;

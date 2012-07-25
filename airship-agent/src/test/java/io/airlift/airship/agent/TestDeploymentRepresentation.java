@@ -11,19 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.proofpoint.json.JsonCodec;
-import com.proofpoint.galaxy.shared.AssignmentRepresentation;
+import io.airlift.airship.shared.AssignmentRepresentation;
 import org.testng.annotations.Test;
 
 import java.util.UUID;
 
 import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static org.testng.Assert.assertEquals;
 
 public class TestDeploymentRepresentation

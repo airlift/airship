@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -36,11 +36,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentVersion;
-import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotVersion;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.VersionsUtil.checkAgentVersion;
+import static io.airlift.airship.shared.VersionsUtil.checkSlotVersion;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
 
 @Path("/v1/agent/slot")
 public class SlotResource
@@ -58,7 +58,7 @@ public class SlotResource
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response installSlot(@HeaderParam(GALAXY_AGENT_VERSION_HEADER) String agentVersion, InstallationRepresentation installation, @Context UriInfo uriInfo)
+    public Response installSlot(@HeaderParam(AIRSHIP_AGENT_VERSION_HEADER) String agentVersion, InstallationRepresentation installation, @Context UriInfo uriInfo)
     {
         Preconditions.checkNotNull(installation, "installation must not be null");
 
@@ -69,15 +69,15 @@ public class SlotResource
         return Response
                 .created(getSelfUri(slotStatus.getId(), uriInfo.getBaseUri()))
                 .entity(SlotStatusRepresentation.from(slotStatus))
-                .header(GALAXY_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
-                .header(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
+                .header(AIRSHIP_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
+                .header(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
                 .build();
     }
 
     @Path("{slotId}")
     @DELETE
-    public Response terminateSlot(@HeaderParam(GALAXY_AGENT_VERSION_HEADER) String agentVersion,
-            @HeaderParam(GALAXY_SLOT_VERSION_HEADER) String slotVersion,
+    public Response terminateSlot(@HeaderParam(AIRSHIP_AGENT_VERSION_HEADER) String agentVersion,
+            @HeaderParam(AIRSHIP_SLOT_VERSION_HEADER) String slotVersion,
             @PathParam("slotId") UUID slotId)
     {
         Preconditions.checkNotNull(slotId, "slotId must not be null");
@@ -96,8 +96,8 @@ public class SlotResource
         }
 
         return Response.ok(SlotStatusRepresentation.from(slotStatus))
-                .header(GALAXY_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
-                .header(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
+                .header(AIRSHIP_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
+                .header(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
                 .build();
     }
 
@@ -115,8 +115,8 @@ public class SlotResource
 
         SlotStatus slotStatus = slot.status();
         return Response.ok(SlotStatusRepresentation.from(slotStatus))
-                .header(GALAXY_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
-                .header(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
+                .header(AIRSHIP_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
+                .header(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
                 .build();
     }
 
@@ -130,7 +130,7 @@ public class SlotResource
             representations.add(SlotStatusRepresentation.from(slotStatus));
         }
         return Response.ok(representations)
-                .header(GALAXY_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
+                .header(AIRSHIP_AGENT_VERSION_HEADER, agent.getAgentStatus().getVersion())
                 .build();
     }
 

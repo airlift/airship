@@ -1,6 +1,6 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.AgentStatusRepresentation;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
@@ -10,8 +10,8 @@ import org.testng.annotations.Test;
 import javax.ws.rs.core.Response;
 import java.io.File;
 
-import static com.proofpoint.galaxy.agent.ResourcesUtil.TEST_RESOURCES;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static io.airlift.airship.agent.ResourcesUtil.TEST_RESOURCES;
+import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
 import static org.testng.Assert.assertEquals;
 
 public class TestAgentResource

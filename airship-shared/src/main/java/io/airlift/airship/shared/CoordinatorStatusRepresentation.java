@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Function;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
@@ -13,12 +13,12 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 import static com.google.common.collect.Lists.transform;
-import static com.proofpoint.galaxy.shared.CoordinatorStatus.idGetter;
-import static com.proofpoint.galaxy.shared.CoordinatorStatus.locationGetter;
-import static com.proofpoint.galaxy.shared.Strings.commonPrefixSegments;
-import static com.proofpoint.galaxy.shared.Strings.safeTruncate;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
-import static com.proofpoint.galaxy.shared.Strings.trimLeadingSegments;
+import static io.airlift.airship.shared.CoordinatorStatus.idGetter;
+import static io.airlift.airship.shared.CoordinatorStatus.locationGetter;
+import static io.airlift.airship.shared.Strings.commonPrefixSegments;
+import static io.airlift.airship.shared.Strings.safeTruncate;
+import static io.airlift.airship.shared.Strings.shortestUniquePrefix;
+import static io.airlift.airship.shared.Strings.trimLeadingSegments;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class CoordinatorStatusRepresentation

@@ -11,17 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.shared.Installation;
+import io.airlift.airship.shared.Installation;
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertEquals;
 

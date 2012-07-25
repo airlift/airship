@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -12,11 +12,11 @@ import java.util.UUID;
 
 public class VersionsUtil
 {
-    public static final String GALAXY_SLOTS_VERSION_HEADER = "x-galaxy-slots-version";
-    public static final String GALAXY_SLOT_VERSION_HEADER = "x-galaxy-slot-version";
+    public static final String AIRSHIP_SLOTS_VERSION_HEADER = "x-airship-slots-version";
+    public static final String AIRSHIP_SLOT_VERSION_HEADER = "x-airship-slot-version";
 
-    public static final String GALAXY_AGENTS_VERSION_HEADER = "x-galaxy-agents-version";
-    public static final String GALAXY_AGENT_VERSION_HEADER = "x-galaxy-agent-version";
+    public static final String AIRSHIP_AGENTS_VERSION_HEADER = "x-airship-agents-version";
+    public static final String AIRSHIP_AGENT_VERSION_HEADER = "x-airship-agent-version";
 
     private VersionsUtil()
     {
@@ -31,7 +31,7 @@ public class VersionsUtil
         }
 
         if (!expectedSlotVersion.equals(slotStatus.getVersion())) {
-            throw new VersionConflictException(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion());
+            throw new VersionConflictException(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion());
         }
     }
 
@@ -45,7 +45,7 @@ public class VersionsUtil
 
         String actualSlotsVersion = createSlotsVersion(slotStatuses);
         if (!expectedSlotsVersion.equals(actualSlotsVersion)) {
-            throw new VersionConflictException(GALAXY_SLOTS_VERSION_HEADER, actualSlotsVersion);
+            throw new VersionConflictException(AIRSHIP_SLOTS_VERSION_HEADER, actualSlotsVersion);
         }
     }
 
@@ -58,7 +58,7 @@ public class VersionsUtil
         }
 
         if (!expectedAgentStatus.equals(agentStatus.getVersion())) {
-            throw new VersionConflictException(GALAXY_AGENT_VERSION_HEADER, agentStatus.getVersion());
+            throw new VersionConflictException(AIRSHIP_AGENT_VERSION_HEADER, agentStatus.getVersion());
         }
     }
 
@@ -72,7 +72,7 @@ public class VersionsUtil
 
         String actualAgentsVersion = createAgentsVersion(agentStatuses);
         if (!expectedAgentsVersion.equals(actualAgentsVersion)) {
-            throw new VersionConflictException(GALAXY_AGENTS_VERSION_HEADER, actualAgentsVersion);
+            throw new VersionConflictException(AIRSHIP_AGENTS_VERSION_HEADER, actualAgentsVersion);
         }
     }
 

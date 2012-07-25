@@ -1,6 +1,6 @@
-package com.proofpoint.galaxy.coordinator.auth;
+package io.airlift.airship.coordinator.auth;
 
-import com.proofpoint.galaxy.coordinator.auth.ssh.SshRsaPublicKey;
+import io.airlift.airship.coordinator.auth.ssh.SshRsaPublicKey;
 
 import java.security.Signature;
 

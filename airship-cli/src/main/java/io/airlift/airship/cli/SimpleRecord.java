@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.collect.ImmutableMap;
 import org.fusesource.jansi.Ansi.Color;
@@ -6,7 +6,7 @@ import org.fusesource.jansi.Ansi.Color;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.proofpoint.galaxy.cli.Ansi.colorize;
+import static io.airlift.airship.cli.Ansi.colorize;
 
 public class SimpleRecord implements Record
 {

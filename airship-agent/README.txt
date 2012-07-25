@@ -1,1 +1,1 @@
-galaxy-agent
+airship-agent

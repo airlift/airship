@@ -1,16 +1,16 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 import org.fusesource.jansi.Ansi.Color;
 
 import java.util.List;
 
-import static com.proofpoint.galaxy.cli.Ansi.colorize;
+import static io.airlift.airship.cli.Ansi.colorize;
 
 public class SlotRecord implements Record
 {

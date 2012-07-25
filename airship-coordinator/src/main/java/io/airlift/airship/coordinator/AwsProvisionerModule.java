@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -27,8 +27,8 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.galaxy.coordinator.auth.AuthorizedKeyStore;
-import com.proofpoint.galaxy.coordinator.auth.S3AuthorizedKeyStore;
+import io.airlift.airship.coordinator.auth.AuthorizedKeyStore;
+import io.airlift.airship.coordinator.auth.S3AuthorizedKeyStore;
 
 import javax.inject.Singleton;
 import java.io.File;

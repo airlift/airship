@@ -1,23 +1,23 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.collect.Iterables;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 
-import static com.proofpoint.galaxy.cli.AgentRecord.toAgentRecords;
-import static com.proofpoint.galaxy.cli.Column.externalHost;
-import static com.proofpoint.galaxy.cli.Column.instanceType;
-import static com.proofpoint.galaxy.cli.Column.internalHost;
-import static com.proofpoint.galaxy.cli.Column.machine;
-import static com.proofpoint.galaxy.cli.Column.shortBinary;
-import static com.proofpoint.galaxy.cli.Column.shortConfig;
-import static com.proofpoint.galaxy.cli.Column.shortId;
-import static com.proofpoint.galaxy.cli.Column.shortLocation;
-import static com.proofpoint.galaxy.cli.Column.status;
-import static com.proofpoint.galaxy.cli.Column.statusMessage;
-import static com.proofpoint.galaxy.cli.CoordinatorRecord.toCoordinatorRecords;
-import static com.proofpoint.galaxy.cli.SlotRecord.toSlotRecords;
+import static io.airlift.airship.cli.AgentRecord.toAgentRecords;
+import static io.airlift.airship.cli.Column.externalHost;
+import static io.airlift.airship.cli.Column.instanceType;
+import static io.airlift.airship.cli.Column.internalHost;
+import static io.airlift.airship.cli.Column.machine;
+import static io.airlift.airship.cli.Column.shortBinary;
+import static io.airlift.airship.cli.Column.shortConfig;
+import static io.airlift.airship.cli.Column.shortId;
+import static io.airlift.airship.cli.Column.shortLocation;
+import static io.airlift.airship.cli.Column.status;
+import static io.airlift.airship.cli.Column.statusMessage;
+import static io.airlift.airship.cli.CoordinatorRecord.toCoordinatorRecords;
+import static io.airlift.airship.cli.SlotRecord.toSlotRecords;
 
 public class TableOutputFormat implements OutputFormat
 {

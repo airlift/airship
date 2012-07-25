@@ -1,7 +1,7 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.Installation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.Installation;
 
 import java.util.UUID;
 

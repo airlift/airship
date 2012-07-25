@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -28,7 +28,7 @@ public class CoordinatorConfig
 {
     public static final String DEFAULT_HTTP_SHORT_NAME_PATTERN = "([^\\/]+?)(?:-[0-9][0-9.]*(?:-SNAPSHOT)?)?(?:\\.config)?$";
 
-    private String galaxyVersion;
+    private String airshipVersion;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
     private String serviceInventoryCacheDir = "service-inventory-cache";
@@ -45,15 +45,15 @@ public class CoordinatorConfig
 
 
     @NotNull
-    public String getGalaxyVersion()
+    public String getAirshipVersion()
     {
-        return galaxyVersion;
+        return airshipVersion;
     }
 
-    @Config("galaxy.version")
-    public CoordinatorConfig setGalaxyVersion(String galaxyVersion)
+    @Config("airship.version")
+    public CoordinatorConfig setAirshipVersion(String airshipVersion)
     {
-        this.galaxyVersion = galaxyVersion;
+        this.airshipVersion = airshipVersion;
         return this;
     }
 

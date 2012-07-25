@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator.auth;
+package io.airlift.airship.coordinator.auth;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -57,7 +57,7 @@ public class AuthFilter
     /**
      * Verify authorization header:
      * <pre>
-     * Authorization: Galaxy fingerprint:signature
+     * Authorization: Airship fingerprint:signature
      * fingerprint = hex md5 of private key
      * signature = base64 signature of [ts, method, uri, bodyMd5]
      * </pre>
@@ -124,7 +124,7 @@ public class AuthFilter
 
             // parse authorization header
             List<String> authTokens = ImmutableList.copyOf(Splitter.on(' ').omitEmptyStrings().split(authorization));
-            if ((authTokens.size() != 2) || (!authTokens.get(0).equals("Galaxy"))) {
+            if ((authTokens.size() != 2) || (!authTokens.get(0).equals("Airship"))) {
                 sendError(response, BAD_REQUEST, "Invalid Authorization header");
                 return;
             }

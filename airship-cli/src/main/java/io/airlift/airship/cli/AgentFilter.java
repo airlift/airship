@@ -1,12 +1,12 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
-import com.proofpoint.galaxy.coordinator.AgentFilterBuilder;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
-import com.proofpoint.galaxy.shared.Repository;
+import io.airlift.airship.coordinator.AgentFilterBuilder;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.HttpUriBuilder;
+import io.airlift.airship.shared.Repository;
 import org.iq80.cli.Option;
 
 import java.net.URI;

@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;

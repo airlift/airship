@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.net.InetAddress;
 
-import static com.proofpoint.galaxy.agent.ResourcesUtil.TEST_RESOURCES;
+import static io.airlift.airship.agent.ResourcesUtil.TEST_RESOURCES;
 import static org.testng.Assert.assertEquals;
 
 public class TestAgent

@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 public class InvalidSlotFilterException extends RuntimeException
 {

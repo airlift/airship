@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -33,8 +33,8 @@ import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 
-import static com.proofpoint.galaxy.shared.MockUriInfo.GuavaMultivaluedMap.createGuavaMultivaluedMap;
-import static com.proofpoint.galaxy.shared.MockUriInfo.GuavaMultivaluedMap.emptyMultivaluedMap;
+import static io.airlift.airship.shared.MockUriInfo.GuavaMultivaluedMap.createGuavaMultivaluedMap;
+import static io.airlift.airship.shared.MockUriInfo.GuavaMultivaluedMap.emptyMultivaluedMap;
 
 public class MockUriInfo implements UriInfo
 {

@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
-import com.proofpoint.galaxy.shared.InstallationHelper;
+import io.airlift.airship.shared.InstallationHelper;
 import org.testng.annotations.BeforeMethod;
 
 public class TestMockDeploymentManager extends AbstractDeploymentManagerTest

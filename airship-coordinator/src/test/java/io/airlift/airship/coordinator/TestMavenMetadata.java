@@ -1,11 +1,11 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import org.testng.annotations.Test;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.galaxy.coordinator.MavenMetadata.unmarshalMavenMetadata;
+import static io.airlift.airship.coordinator.MavenMetadata.unmarshalMavenMetadata;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;

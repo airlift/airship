@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.proofpoint.bootstrap.Bootstrap;
 import com.proofpoint.discovery.client.DiscoveryModule;
@@ -25,7 +25,7 @@ import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeModule;
 import org.weakref.jmx.guice.MBeanModule;
 
-import static com.proofpoint.galaxy.coordinator.ConditionalModule.installIfPropertyEquals;
+import static io.airlift.airship.coordinator.ConditionalModule.installIfPropertyEquals;
 
 
 public class CoordinatorMain

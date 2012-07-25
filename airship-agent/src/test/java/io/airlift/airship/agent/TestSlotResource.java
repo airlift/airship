@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableMultiset;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.MockUriInfo;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.VersionConflictException;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.MockUriInfo;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.VersionConflictException;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
@@ -35,13 +35,13 @@ import java.util.Collection;
 import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.ExtraAssertions.assertEqualsNoOrder;
-import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.ExtraAssertions.assertEqualsNoOrder;
+import static io.airlift.airship.shared.InstallationHelper.APPLE_INSTALLATION;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
 import static com.proofpoint.testing.Assertions.assertInstanceOf;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -79,8 +79,8 @@ public class TestSlotResource
         Response response = resource.getSlotStatus(slotStatus.getId(), MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(slotStatus));
-        assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
-        assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), slotStatus.getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_SLOT_VERSION_HEADER).get(0), slotStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -104,7 +104,7 @@ public class TestSlotResource
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         assertInstanceOf(response.getEntity(), Collection.class);
         assertEquals((Collection<?>) response.getEntity(), newArrayList());
-        assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
     }
 
     @Test
@@ -120,7 +120,7 @@ public class TestSlotResource
                 SlotStatusRepresentation.from(slotStatus1),
                 SlotStatusRepresentation.from(slotStatus2)
         ));
-        assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
     }
 
     @Test
@@ -148,8 +148,8 @@ public class TestSlotResource
         SlotStatus status = slot.status();
         SlotStatus expectedStatus = status.changeAssignment(STOPPED, APPLE_ASSIGNMENT, status.getResources());
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
-        assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
-        assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 
@@ -161,7 +161,7 @@ public class TestSlotResource
             fail("Expected WebApplicationException");
         }
         catch (VersionConflictException e) {
-            assertEquals(e.getName(), GALAXY_AGENT_VERSION_HEADER);
+            assertEquals(e.getName(), AIRSHIP_AGENT_VERSION_HEADER);
             assertEquals(e.getVersion(), agent.getAgentStatus().getVersion());
         }
     }
@@ -182,8 +182,8 @@ public class TestSlotResource
 
         SlotStatus expectedStatus = slotStatus.changeState(TERMINATED);
         assertEquals(response.getEntity(), SlotStatusRepresentation.from(expectedStatus));
-        assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
-        assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
 
         assertNull(agent.getSlot(slotStatus.getId()));

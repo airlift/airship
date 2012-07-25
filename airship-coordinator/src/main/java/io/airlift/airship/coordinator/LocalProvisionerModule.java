@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.galaxy.coordinator.auth.AuthorizedKeyStore;
-import com.proofpoint.galaxy.coordinator.auth.FileAuthorizedKeyStore;
+import io.airlift.airship.coordinator.auth.AuthorizedKeyStore;
+import io.airlift.airship.coordinator.auth.FileAuthorizedKeyStore;
 
 public class LocalProvisionerModule
         implements Module

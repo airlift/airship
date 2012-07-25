@@ -1,15 +1,15 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.json.JsonCodec;

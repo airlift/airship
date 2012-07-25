@@ -1,14 +1,14 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.CoordinatorLifecycleState;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
 import org.fusesource.jansi.Ansi.Color;
 
-import static com.proofpoint.galaxy.cli.Ansi.colorize;
+import static io.airlift.airship.cli.Ansi.colorize;
 
 public class CoordinatorRecord implements Record
 {

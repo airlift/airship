@@ -1,1 +1,1 @@
-galaxy-coordinator
+airship-coordinator

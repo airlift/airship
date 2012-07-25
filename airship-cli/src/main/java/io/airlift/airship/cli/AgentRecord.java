@@ -1,16 +1,16 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatusRepresentation;
 import org.fusesource.jansi.Ansi.Color;
 
 import java.util.List;
 
-import static com.proofpoint.galaxy.cli.Ansi.colorize;
+import static io.airlift.airship.cli.Ansi.colorize;
 
 public class AgentRecord implements Record
 {

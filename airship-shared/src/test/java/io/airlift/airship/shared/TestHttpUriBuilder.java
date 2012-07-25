@@ -1,11 +1,11 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import org.testng.annotations.Test;
 
 import java.net.URI;
 
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilder;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilder;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static org.testng.Assert.assertEquals;
 
 public class TestHttpUriBuilder

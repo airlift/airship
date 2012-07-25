@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -6,9 +6,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.FileUtils;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.MavenCoordinates;
+import io.airlift.airship.shared.FileUtils;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.MavenCoordinates;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
 
@@ -17,7 +17,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static com.proofpoint.galaxy.shared.FileUtils.listFiles;
+import static io.airlift.airship.shared.FileUtils.listFiles;
 
 public class DirectoryDeploymentManagerFactory implements DeploymentManagerFactory
 {
@@ -53,7 +53,7 @@ public class DirectoryDeploymentManagerFactory implements DeploymentManagerFacto
     {
         ImmutableList.Builder<DeploymentManager> builder = ImmutableList.builder();
         for (File dir : listFiles(slotDir)) {
-            if (dir.isDirectory() && new File(dir, "galaxy-slot-id.txt").canRead()) {
+            if (dir.isDirectory() && new File(dir, "airship-slot-id.txt").canRead()) {
                 DirectoryDeploymentManager deploymentManager = new DirectoryDeploymentManager(dir, location + "/" + dir.getName(), tarTimeout);
                 builder.add(deploymentManager);
             }

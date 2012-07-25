@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -6,9 +6,9 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.HttpUriBuilder;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatus;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
@@ -19,8 +19,8 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import static com.google.common.base.Functions.compose;
-import static com.proofpoint.galaxy.coordinator.StringFunctions.startsWith;
-import static com.proofpoint.galaxy.coordinator.StringFunctions.toLowerCase;
+import static io.airlift.airship.coordinator.StringFunctions.startsWith;
+import static io.airlift.airship.coordinator.StringFunctions.toLowerCase;
 import static java.lang.String.format;
 
 public class SlotFilterBuilder

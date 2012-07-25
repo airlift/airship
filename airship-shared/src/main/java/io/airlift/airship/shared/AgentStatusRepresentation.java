@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -17,12 +17,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.transform;
-import static com.proofpoint.galaxy.shared.AgentStatus.idGetter;
-import static com.proofpoint.galaxy.shared.AgentStatus.locationGetter;
-import static com.proofpoint.galaxy.shared.Strings.commonPrefixSegments;
-import static com.proofpoint.galaxy.shared.Strings.safeTruncate;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
-import static com.proofpoint.galaxy.shared.Strings.trimLeadingSegments;
+import static io.airlift.airship.shared.AgentStatus.idGetter;
+import static io.airlift.airship.shared.AgentStatus.locationGetter;
+import static io.airlift.airship.shared.Strings.commonPrefixSegments;
+import static io.airlift.airship.shared.Strings.safeTruncate;
+import static io.airlift.airship.shared.Strings.shortestUniquePrefix;
+import static io.airlift.airship.shared.Strings.trimLeadingSegments;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation

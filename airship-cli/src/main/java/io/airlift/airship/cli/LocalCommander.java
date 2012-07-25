@@ -1,22 +1,22 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.io.Files;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
-import com.proofpoint.galaxy.coordinator.Coordinator;
-import com.proofpoint.galaxy.coordinator.ServiceInventory;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.CoordinatorStatus;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
+import io.airlift.airship.coordinator.Coordinator;
+import io.airlift.airship.coordinator.ServiceInventory;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.CoordinatorStatus;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.UpgradeVersions;
 import com.proofpoint.json.JsonCodec;
 
 import java.io.File;
@@ -27,15 +27,15 @@ import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
-import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
-import static com.proofpoint.galaxy.shared.AgentStatus.idGetter;
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
-import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
-import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
-import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentsVersion;
-import static com.proofpoint.galaxy.shared.VersionsUtil.createAgentsVersion;
-import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
+import static io.airlift.airship.cli.CommanderResponse.createCommanderResponse;
+import static io.airlift.airship.shared.AgentStatus.idGetter;
+import static io.airlift.airship.shared.AgentStatusRepresentation.fromAgentStatus;
+import static io.airlift.airship.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
+import static io.airlift.airship.shared.SlotStatus.uuidGetter;
+import static io.airlift.airship.shared.SlotStatusRepresentation.fromSlotStatus;
+import static io.airlift.airship.shared.VersionsUtil.checkAgentsVersion;
+import static io.airlift.airship.shared.VersionsUtil.createAgentsVersion;
+import static io.airlift.airship.shared.VersionsUtil.createSlotsVersion;
 
 public class LocalCommander implements Commander
 {

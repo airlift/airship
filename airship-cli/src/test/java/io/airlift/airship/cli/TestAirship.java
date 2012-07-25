@@ -1,18 +1,17 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
-import com.proofpoint.galaxy.cli.Galaxy.GalaxyCommand;
-import com.proofpoint.galaxy.cli.Galaxy.GalaxyCommanderCommand;
-import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.FileUtils;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.cli.Airship.AirshipCommand;
+import io.airlift.airship.cli.Airship.AirshipCommanderCommand;
+import io.airlift.airship.coordinator.TestingMavenRepository;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.FileUtils;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -21,16 +20,16 @@ import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT_2;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT_EXACT;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT_2;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT_EXACT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-public class TestGalaxy
+public class TestAirship
 {
     private File tempDir;
 
@@ -43,7 +42,7 @@ public class TestGalaxy
     public void setUp()
             throws Exception
     {
-        tempDir = FileUtils.createTempDir("galaxy");
+        tempDir = FileUtils.createTempDir("airship");
 
         config = new Config();
         repo = new TestingMavenRepository();
@@ -378,11 +377,11 @@ public class TestGalaxy
     {
         outputFormat.clear();
 
-        GalaxyCommand command = Galaxy.GALAXY_PARSER.parse(ImmutableList.<String>builder().add("--debug").add(args).build());
+        AirshipCommand command = Airship.AIRSHIP_PARSER.parse(ImmutableList.<String>builder().add("--debug").add(args).build());
         command.config = config;
-        if (command instanceof GalaxyCommanderCommand) {
-            GalaxyCommanderCommand galaxyCommanderCommand = (GalaxyCommanderCommand) command;
-            galaxyCommanderCommand.execute("local", outputFormat, interactiveUser);
+        if (command instanceof AirshipCommanderCommand) {
+            Airship.AirshipCommanderCommand airshipCommanderCommand = (Airship.AirshipCommanderCommand) command;
+            airshipCommanderCommand.execute("local", outputFormat, interactiveUser);
         }
         else {
             command.execute();

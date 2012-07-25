@@ -8,13 +8,13 @@
     </parent>
 
     <properties>
-        <main-class>com.proofpoint.galaxy.coordinator.CoordinatorMain</main-class>
+        <main-class>io.airlift.airship.coordinator.CoordinatorMain</main-class>
     </properties>
 
-    <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>galaxy-coordinator</artifactId>
+    <groupId>io.airlift.airship</groupId>
+    <artifactId>airship-coordinator</artifactId>
     <version>0.9-SNAPSHOT</version>
-    <name>galaxy-coordinator</name>
+    <name>airship-coordinator</name>
 
     <distributionManagement>
         <snapshotRepository>
@@ -31,8 +31,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>galaxy-shared</artifactId>
+            <groupId>io.airlift.airship</groupId>
+            <artifactId>airship-shared</artifactId>
             <version>0.9-SNAPSHOT</version>
         </dependency>
 
@@ -141,8 +141,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>galaxy-shared</artifactId>
+            <groupId>io.airlift.airship</groupId>
+            <artifactId>airship-shared</artifactId>
             <version>0.9-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>

@@ -1,12 +1,12 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
-import com.proofpoint.galaxy.coordinator.MavenMetadata.Snapshot;
-import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
-import com.proofpoint.galaxy.coordinator.MavenMetadata.Versioning;
-import com.proofpoint.galaxy.shared.MavenCoordinates;
-import com.proofpoint.galaxy.shared.Repository;
+import io.airlift.airship.coordinator.MavenMetadata.Snapshot;
+import io.airlift.airship.coordinator.MavenMetadata.SnapshotVersion;
+import io.airlift.airship.coordinator.MavenMetadata.Versioning;
+import io.airlift.airship.shared.MavenCoordinates;
+import io.airlift.airship.shared.Repository;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,12 +18,12 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.newInputStreamSupplier;
-import static com.proofpoint.galaxy.shared.ArchiveHelper.createArchive;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
-import static com.proofpoint.galaxy.shared.FileUtils.newFile;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.toConfigGAV;
+import static io.airlift.airship.shared.ArchiveHelper.createArchive;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.deleteRecursively;
+import static io.airlift.airship.shared.FileUtils.newFile;
+import static io.airlift.airship.shared.MavenCoordinates.toBinaryGAV;
+import static io.airlift.airship.shared.MavenCoordinates.toConfigGAV;
 
 public class TestingMavenRepository extends MavenRepository
 {
@@ -230,7 +230,7 @@ public class TestingMavenRepository extends MavenRepository
             resources = "memory=1024\n" +
                     "cpu=2";
         }
-        out.putNextEntry(new ZipEntry("galaxy-resources.properties"));
+        out.putNextEntry(new ZipEntry("airship-resources.properties"));
         out.write(resources.getBytes(UTF_8));
 
         out.close();

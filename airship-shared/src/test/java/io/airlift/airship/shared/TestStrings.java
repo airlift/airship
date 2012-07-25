@@ -1,12 +1,12 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.collect.ImmutableList;
 import org.testng.annotations.Test;
 
 import static com.google.common.collect.ImmutableList.of;
-import static com.proofpoint.galaxy.shared.Strings.commonPrefixSegments;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
-import static com.proofpoint.galaxy.shared.Strings.trimLeadingSegments;
+import static io.airlift.airship.shared.Strings.commonPrefixSegments;
+import static io.airlift.airship.shared.Strings.shortestUniquePrefix;
+import static io.airlift.airship.shared.Strings.trimLeadingSegments;
 import static org.testng.Assert.assertEquals;
 
 public class TestStrings

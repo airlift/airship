@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closeables;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.SlotStatus;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
 import com.proofpoint.units.Duration;
@@ -38,9 +38,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static java.lang.String.format;
 
 public class Agent

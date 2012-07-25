@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.proofpoint.galaxy.coordinator.CoordinatorConfig.DEFAULT_HTTP_SHORT_NAME_PATTERN;
+import static io.airlift.airship.coordinator.CoordinatorConfig.DEFAULT_HTTP_SHORT_NAME_PATTERN;
 
 public class TestCoordinatorConfig
 {
@@ -17,7 +17,7 @@ public class TestCoordinatorConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(CoordinatorConfig.class)
-                .setGalaxyVersion(null)
+                .setAirshipVersion(null)
                 .setStatusExpiration(new Duration(30, TimeUnit.SECONDS))
                 .setServiceInventoryCacheDir("service-inventory-cache")
                 .setAgentDefaultConfig(null)
@@ -34,7 +34,7 @@ public class TestCoordinatorConfig
     public void testExplicitPropertyMappings()
     {
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
-                .put("galaxy.version", "99.9")
+                .put("airship.version", "99.9")
                 .put("coordinator.status.expiration", "1m")
                 .put("coordinator.service-inventory.cache-dir", "si-cache")
                 .put("coordinator.agent.default-config", "agent:config:1")
@@ -47,7 +47,7 @@ public class TestCoordinatorConfig
                 .build();
 
         CoordinatorConfig expected = new CoordinatorConfig()
-                .setGalaxyVersion("99.9")
+                .setAirshipVersion("99.9")
                 .setStatusExpiration(new Duration(1, TimeUnit.MINUTES))
                 .setServiceInventoryCacheDir("si-cache")
                 .setAgentDefaultConfig("agent:config:1")

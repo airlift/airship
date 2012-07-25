@@ -1,9 +1,9 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.AgentStatusRepresentation;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.client.Request;
 import com.proofpoint.http.client.RequestBuilder;

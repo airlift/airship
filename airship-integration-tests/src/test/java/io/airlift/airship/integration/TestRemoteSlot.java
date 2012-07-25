@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.integration;
+package io.airlift.airship.integration;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
@@ -24,21 +24,21 @@ import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
 import com.proofpoint.event.client.NullEventModule;
-import com.proofpoint.galaxy.agent.Agent;
-import com.proofpoint.galaxy.agent.AgentMainModule;
-import com.proofpoint.galaxy.agent.DeploymentManagerFactory;
-import com.proofpoint.galaxy.agent.LifecycleManager;
-import com.proofpoint.galaxy.agent.MockDeploymentManagerFactory;
-import com.proofpoint.galaxy.agent.MockLifecycleManager;
-import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.coordinator.HttpRemoteAgent;
-import com.proofpoint.galaxy.coordinator.HttpRemoteSlot;
-import com.proofpoint.galaxy.coordinator.RemoteSlot;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.agent.Agent;
+import io.airlift.airship.agent.AgentMainModule;
+import io.airlift.airship.agent.DeploymentManagerFactory;
+import io.airlift.airship.agent.LifecycleManager;
+import io.airlift.airship.agent.MockDeploymentManagerFactory;
+import io.airlift.airship.agent.MockLifecycleManager;
+import io.airlift.airship.agent.Slot;
+import io.airlift.airship.coordinator.HttpRemoteAgent;
+import io.airlift.airship.coordinator.HttpRemoteSlot;
+import io.airlift.airship.coordinator.RemoteSlot;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.server.testing.TestingHttpServer;
@@ -57,14 +57,14 @@ import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.deleteRecursively;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 

@@ -1,13 +1,13 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import com.proofpoint.galaxy.shared.ConfigUtils;
+import io.airlift.airship.shared.ConfigUtils;
 import com.proofpoint.json.JsonCodec;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.CommandFailedException;
-import com.proofpoint.galaxy.shared.Installation;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.CommandFailedException;
+import io.airlift.airship.shared.Installation;
 import com.proofpoint.log.Logger;
 import com.proofpoint.units.Duration;
 
@@ -19,10 +19,10 @@ import java.util.UUID;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
-import static com.proofpoint.galaxy.shared.FileUtils.extractTar;
-import static com.proofpoint.galaxy.shared.FileUtils.listFiles;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.deleteRecursively;
+import static io.airlift.airship.shared.FileUtils.extractTar;
+import static io.airlift.airship.shared.FileUtils.listFiles;
 
 public class DirectoryDeploymentManager implements DeploymentManager
 {
@@ -50,7 +50,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
         this.baseDir = baseDir;
 
         // verify deployment file is readable and writable
-        deploymentFile = new File(baseDir, "galaxy-deployment.json");
+        deploymentFile = new File(baseDir, "airship-deployment.json");
         if (deploymentFile.exists()) {
             Preconditions.checkArgument(deploymentFile.canRead(), "Can not read slot-id file %s", deploymentFile.getAbsolutePath());
             Preconditions.checkArgument(deploymentFile.canWrite(), "Can not write slot-id file %s", deploymentFile.getAbsolutePath());
@@ -69,7 +69,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
         }
 
         // load slot-id
-        File slotIdFile = new File(baseDir, "galaxy-slot-id.txt");
+        File slotIdFile = new File(baseDir, "airship-slot-id.txt");
         UUID uuid = null;
         if (slotIdFile.exists()) {
             Preconditions.checkArgument(slotIdFile.canRead(), "can not read " + slotIdFile.getAbsolutePath());
@@ -82,7 +82,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
 
                 }
                 if (uuid == null) {
-                    log.warn("Invalid slot id [" + slotIdString + "]: attempting to delete galaxy-slot-id.txt file and recreating a new one");
+                    log.warn("Invalid slot id [" + slotIdString + "]: attempting to delete airship-slot-id.txt file and recreating a new one");
                     slotIdFile.delete();
                 }
             }
@@ -130,7 +130,7 @@ public class DirectoryDeploymentManager implements DeploymentManager
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary
-            File binary = new File(tempDir, "galaxy-binary.tar.gz");
+            File binary = new File(tempDir, "airship-binary.tar.gz");
             try {
                 Files.copy(Resources.newInputStreamSupplier(installation.getBinaryFile().toURL()), binary);
             }

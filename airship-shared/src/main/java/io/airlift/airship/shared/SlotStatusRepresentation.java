@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -29,12 +29,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.google.common.collect.Lists.transform;
-import static com.proofpoint.galaxy.shared.SlotStatus.idGetter;
-import static com.proofpoint.galaxy.shared.SlotStatus.locationGetter;
-import static com.proofpoint.galaxy.shared.Strings.commonPrefixSegments;
-import static com.proofpoint.galaxy.shared.Strings.safeTruncate;
-import static com.proofpoint.galaxy.shared.Strings.shortestUniquePrefix;
-import static com.proofpoint.galaxy.shared.Strings.trimLeadingSegments;
+import static io.airlift.airship.shared.SlotStatus.idGetter;
+import static io.airlift.airship.shared.SlotStatus.locationGetter;
+import static io.airlift.airship.shared.Strings.commonPrefixSegments;
+import static io.airlift.airship.shared.Strings.safeTruncate;
+import static io.airlift.airship.shared.Strings.shortestUniquePrefix;
+import static io.airlift.airship.shared.Strings.trimLeadingSegments;
 
 @JsonAutoDetect(JsonMethod.NONE)
 public class SlotStatusRepresentation

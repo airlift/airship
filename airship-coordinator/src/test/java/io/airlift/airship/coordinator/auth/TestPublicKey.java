@@ -1,12 +1,12 @@
-package com.proofpoint.galaxy.coordinator.auth;
+package io.airlift.airship.coordinator.auth;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.Resources;
 import com.google.common.primitives.Bytes;
-import com.proofpoint.galaxy.coordinator.auth.ssh.DerReader;
-import com.proofpoint.galaxy.coordinator.auth.ssh.PemDecoder;
-import com.proofpoint.galaxy.coordinator.auth.ssh.PemDsaPrivateKey;
-import com.proofpoint.galaxy.coordinator.auth.ssh.PemRsaPrivateKey;
+import io.airlift.airship.coordinator.auth.ssh.DerReader;
+import io.airlift.airship.coordinator.auth.ssh.PemDecoder;
+import io.airlift.airship.coordinator.auth.ssh.PemDsaPrivateKey;
+import io.airlift.airship.coordinator.auth.ssh.PemRsaPrivateKey;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -18,7 +18,7 @@ import java.security.Signature;
 import java.util.Arrays;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.galaxy.coordinator.auth.ssh.DerType.SEQUENCE;
+import static io.airlift.airship.coordinator.auth.ssh.DerType.SEQUENCE;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -26,7 +26,7 @@ import static org.testng.Assert.assertTrue;
 /*
     Change to the resource directory:
 
-       cd src/test/resources/com/proofpoint/galaxy/coordinator/auth
+       cd src/test/resources/com/proofpoint/airship/coordinator/auth
 
     Generate test keys:
 

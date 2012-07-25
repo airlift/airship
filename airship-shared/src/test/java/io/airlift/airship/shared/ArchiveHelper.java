@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.io.Files;
 
@@ -7,8 +7,8 @@ import java.io.File;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.newInputStreamSupplier;
-import static com.proofpoint.galaxy.shared.FileUtils.createTar;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.createTar;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
 
 public class ArchiveHelper
 {

@@ -2,14 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>galaxy-config-bundler</artifactId>
+    <groupId>io.airlift.airship</groupId>
+    <artifactId>airship-config-bundler</artifactId>
     <version>0.9-SNAPSHOT</version>
-    <name>galaxy-config-bundler</name>
+    <name>airship-config-bundler</name>
 
     <parent>
-        <groupId>com.proofpoint.galaxy</groupId>
-        <artifactId>galaxy-root</artifactId>
+        <groupId>io.airlift.airship</groupId>
+        <artifactId>airship-root</artifactId>
         <version>0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -132,7 +132,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.proofpoint.galaxy.configbundler.ConfigBundler</mainClass>
+                            <mainClass>io.airlift.airship.configbundler.ConfigBundler</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Implementation-Version>${project.version}</Implementation-Version>
@@ -154,7 +154,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.proofpoint.galaxy.configbundler.ConfigBundler</mainClass>
+                                    <mainClass>io.airlift.airship.configbundler.ConfigBundler</mainClass>
                                 </transformer>
                             </transformers>
                             <artifactSet>

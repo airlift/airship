@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import org.iq80.cli.Option;
 import org.iq80.cli.OptionType;
@@ -8,7 +8,7 @@ import static org.iq80.cli.OptionType.GLOBAL;
 
 public class GlobalOptions
 {
-    @Option(type = GLOBAL, name = {"-e", "--environment"}, description = "Galaxy environment")
+    @Option(type = GLOBAL, name = {"-e", "--environment"}, description = "Airship environment")
     public String environment;
 
     @Option(type = OptionType.GLOBAL, name = "--batch", description = "Do not prompt")

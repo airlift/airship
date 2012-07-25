@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Joiner;
 import com.proofpoint.units.Duration;

@@ -11,10 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.collect.Sets;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotLifecycleState;
 
 import java.util.Map;
 import java.util.Set;

@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.proofpoint.testing.EquivalenceTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static com.proofpoint.galaxy.shared.MavenCoordinates.DEFAULT_BINARY_PACKAGING;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.toBinaryGAV;
+import static io.airlift.airship.shared.MavenCoordinates.DEFAULT_BINARY_PACKAGING;
+import static io.airlift.airship.shared.MavenCoordinates.toBinaryGAV;
 
 public class TestBinarySpec
 {

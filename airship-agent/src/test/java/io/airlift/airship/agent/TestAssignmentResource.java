@@ -11,15 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.AssignmentRepresentation;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.VersionConflictException;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.AssignmentRepresentation;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.VersionConflictException;
 import com.proofpoint.http.server.HttpServerConfig;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.node.NodeInfo;
@@ -31,10 +31,10 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.InstallationHelper.APPLE_INSTALLATION;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
+import static io.airlift.airship.shared.InstallationHelper.APPLE_INSTALLATION;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
@@ -101,7 +101,7 @@ public class TestAssignmentResource
             fail("Expected VersionConflictException");
         }
         catch (VersionConflictException e) {
-            assertEquals(e.getName(), GALAXY_AGENT_VERSION_HEADER);
+            assertEquals(e.getName(), AIRSHIP_AGENT_VERSION_HEADER);
             assertEquals(e.getVersion(), agent.getAgentStatus().getVersion());
         }
         try {
@@ -109,7 +109,7 @@ public class TestAssignmentResource
             fail("Expected VersionConflictException");
         }
         catch (VersionConflictException e) {
-            assertEquals(e.getName(), GALAXY_SLOT_VERSION_HEADER);
+            assertEquals(e.getName(), AIRSHIP_SLOT_VERSION_HEADER);
             assertEquals(e.getVersion(), slotStatus.getVersion());
         }
     }
@@ -151,8 +151,8 @@ public class TestAssignmentResource
         SlotStatus expectedStatus = slotStatus.changeAssignment(STOPPED, APPLE_V2, slotStatus.getResources());
         assertEquals(actualStatus, SlotStatusRepresentation.from(expectedStatus));
         assertEquals(actualStatus.toSlotStatus(null), expectedStatus);
-        assertEquals(response.getMetadata().get(GALAXY_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
-        assertEquals(response.getMetadata().get(GALAXY_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
+        assertEquals(response.getMetadata().get(AIRSHIP_SLOT_VERSION_HEADER).get(0), expectedStatus.getVersion());
         assertNull(response.getMetadata().get("Content-Type")); // content type is set by jersey based on @Produces
     }
 }

@@ -1,7 +1,7 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 import jnr.posix.POSIX;
 import jnr.posix.util.Platform;
 
@@ -57,7 +57,7 @@ public class Exec
     public static void execRemote(String host, String command)
     {
         POSIX posix = POSIXFactory.getPOSIX();
-        String ssh = firstNonNull(getenv("GALAXY_SSH_COMMAND"), firstNonNull(findFileInPath("ssh", null), "/usr/bin/ssh"));
+        String ssh = firstNonNull(getenv("AIRSHIP_SSH_COMMAND"), firstNonNull(findFileInPath("ssh", null), "/usr/bin/ssh"));
 
         String[] args;
         if (command == null) {

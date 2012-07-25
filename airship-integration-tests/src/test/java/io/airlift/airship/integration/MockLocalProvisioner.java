@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.integration;
+package io.airlift.airship.integration;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -12,11 +12,11 @@ import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
 import com.proofpoint.event.client.NullEventModule;
-import com.proofpoint.galaxy.agent.Agent;
-import com.proofpoint.galaxy.agent.AgentMainModule;
-import com.proofpoint.galaxy.agent.Slot;
-import com.proofpoint.galaxy.coordinator.Instance;
-import com.proofpoint.galaxy.coordinator.Provisioner;
+import io.airlift.airship.agent.Agent;
+import io.airlift.airship.agent.AgentMainModule;
+import io.airlift.airship.agent.Slot;
+import io.airlift.airship.coordinator.Instance;
+import io.airlift.airship.coordinator.Provisioner;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -35,8 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 
 public class MockLocalProvisioner implements Provisioner
 {
@@ -212,7 +212,7 @@ public class MockLocalProvisioner implements Provisioner
             this.instance = instance;
 
             tempDir = createTempDir("agent");
-            resourcesFile = new File(tempDir, "slots/galaxy-resources.properties");
+            resourcesFile = new File(tempDir, "slots/airship-resources.properties");
             writeResources(AGENT_RESOURCES, resourcesFile);
         }
 

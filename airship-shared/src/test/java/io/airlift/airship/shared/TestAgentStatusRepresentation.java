@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -23,11 +23,11 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
+import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
 import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 
 public class TestAgentStatusRepresentation

@@ -11,10 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.shared.Installation;
+import io.airlift.airship.shared.Installation;
 
 import java.io.File;
 import java.util.UUID;

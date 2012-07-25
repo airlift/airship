@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator.auth;
+package io.airlift.airship.coordinator.auth;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
@@ -14,7 +14,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.proofpoint.galaxy.coordinator.AwsProvisionerConfig;
+import io.airlift.airship.coordinator.AwsProvisionerConfig;
 import com.proofpoint.units.Duration;
 
 import javax.annotation.PostConstruct;

@@ -1,8 +1,8 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.io.Resources;
-import com.proofpoint.galaxy.shared.MavenCoordinates;
-import com.proofpoint.galaxy.shared.Repository;
+import io.airlift.airship.shared.MavenCoordinates;
+import io.airlift.airship.shared.Repository;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;

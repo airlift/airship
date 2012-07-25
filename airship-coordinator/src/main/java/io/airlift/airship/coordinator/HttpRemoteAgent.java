@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -7,13 +7,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.client.Request;
 import com.proofpoint.http.client.RequestBuilder;
@@ -26,11 +26,11 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.PROVISIONING;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
+import static io.airlift.airship.shared.AgentLifecycleState.OFFLINE;
+import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
+import static io.airlift.airship.shared.AgentLifecycleState.PROVISIONING;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
 import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
 import static com.proofpoint.http.client.StatusResponseHandler.createStatusResponseHandler;
@@ -169,7 +169,7 @@ public class HttpRemoteAgent implements RemoteAgent
             Request request = RequestBuilder.preparePost()
                     .setUri(uriBuilderFrom(internalUri).replacePath("/v1/agent/slot/").build())
                     .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setHeader(GALAXY_AGENT_VERSION_HEADER, status().getVersion())
+                    .setHeader(AIRSHIP_AGENT_VERSION_HEADER, status().getVersion())
                     .setBodyGenerator(jsonBodyGenerator(installationCodec, InstallationRepresentation.from(installation)))
                     .build();
             SlotStatusRepresentation slotStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(slotStatusCodec, Status.CREATED.getStatusCode()));

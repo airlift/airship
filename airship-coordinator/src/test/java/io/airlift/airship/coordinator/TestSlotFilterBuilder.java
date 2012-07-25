@@ -1,16 +1,16 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.SlotUuidPredicate;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.MockUriInfo;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.BinarySpecPredicate;
-import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.ConfigSpecPredicate;
-import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.HostPredicate;
-import com.proofpoint.galaxy.coordinator.SlotFilterBuilder.StatePredicate;
+import io.airlift.airship.coordinator.SlotFilterBuilder.SlotUuidPredicate;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.MockUriInfo;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.coordinator.SlotFilterBuilder.BinarySpecPredicate;
+import io.airlift.airship.coordinator.SlotFilterBuilder.ConfigSpecPredicate;
+import io.airlift.airship.coordinator.SlotFilterBuilder.HostPredicate;
+import io.airlift.airship.coordinator.SlotFilterBuilder.StatePredicate;
 import org.testng.annotations.Test;
 
 import java.net.URI;
@@ -18,10 +18,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
-import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
+import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;

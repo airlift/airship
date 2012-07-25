@@ -1,11 +1,11 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Predicate;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.CoordinatorStatus;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.CoordinatorStatus;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotStatus;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -20,11 +20,11 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
 import static com.google.common.collect.Lists.transform;
-import static com.proofpoint.galaxy.shared.AgentStatus.idGetter;
-import static com.proofpoint.galaxy.shared.AgentStatusRepresentation.fromAgentStatus;
-import static com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENTS_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.VersionsUtil.createAgentsVersion;
+import static io.airlift.airship.shared.AgentStatus.idGetter;
+import static io.airlift.airship.shared.AgentStatusRepresentation.fromAgentStatus;
+import static io.airlift.airship.shared.CoordinatorStatusRepresentation.fromCoordinatorStatus;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENTS_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.createAgentsVersion;
 
 @Path("/v1/admin/")
 public class AdminResource
@@ -84,7 +84,7 @@ public class AdminResource
         List<AgentStatus> agents = coordinator.getAgents(agentPredicate);
 
         return Response.ok(transform(agents, fromAgentStatus(coordinator.getAgents(), repository)))
-                .header(GALAXY_AGENTS_VERSION_HEADER, createAgentsVersion(agents))
+                .header(AIRSHIP_AGENTS_VERSION_HEADER, createAgentsVersion(agents))
                 .build();
     }
 

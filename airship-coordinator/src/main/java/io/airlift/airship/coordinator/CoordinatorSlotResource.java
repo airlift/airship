@@ -11,17 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.AssignmentRepresentation;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.AssignmentRepresentation;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotStatus;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -40,13 +40,13 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Lists.transform;
-import static com.proofpoint.galaxy.shared.AgentStatus.idGetter;
-import static com.proofpoint.galaxy.shared.SlotStatus.uuidGetter;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENTS_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.VersionsUtil.checkAgentsVersion;
-import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
+import static io.airlift.airship.shared.AgentStatus.idGetter;
+import static io.airlift.airship.shared.SlotStatus.uuidGetter;
+import static io.airlift.airship.shared.SlotStatusRepresentation.fromSlotStatus;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENTS_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOTS_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.checkAgentsVersion;
+import static io.airlift.airship.shared.VersionsUtil.createSlotsVersion;
 
 @Path("/v1/slot")
 public class CoordinatorSlotResource
@@ -79,7 +79,7 @@ public class CoordinatorSlotResource
 
         // build response
         return Response.ok(Iterables.transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository)))
-                .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(slots))
+                .header(AIRSHIP_SLOTS_VERSION_HEADER, createSlotsVersion(slots))
                 .build();
     }
 
@@ -90,7 +90,7 @@ public class CoordinatorSlotResource
             AssignmentRepresentation assignmentRepresentation,
             @DefaultValue("1") @QueryParam("limit") int limit,
             @Context UriInfo uriInfo,
-            @HeaderParam(GALAXY_AGENTS_VERSION_HEADER) String expectedAgentsVersion)
+            @HeaderParam(AIRSHIP_AGENTS_VERSION_HEADER) String expectedAgentsVersion)
     {
         Preconditions.checkNotNull(assignmentRepresentation, "assignmentRepresentation must not be null");
         Preconditions.checkArgument(limit > 0, "limit must be at least 1");
@@ -113,14 +113,14 @@ public class CoordinatorSlotResource
 
         // calculate unique prefix size with the new slots included
         return Response.ok(transform(slots, fromSlotStatus(coordinator.getAllSlotStatus(), repository)))
-                .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(slots))
+                .header(AIRSHIP_SLOTS_VERSION_HEADER, createSlotsVersion(slots))
                 .build();
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response terminateSlots(@Context UriInfo uriInfo,
-            @HeaderParam(GALAXY_SLOTS_VERSION_HEADER) String expectedSlotsVersion)
+            @HeaderParam(AIRSHIP_SLOTS_VERSION_HEADER) String expectedSlotsVersion)
     {
         // build filter
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), uuidGetter());
@@ -131,7 +131,7 @@ public class CoordinatorSlotResource
 
         // build response
         return Response.ok(transform(result, fromSlotStatus(coordinator.getAllSlotStatus(), repository)))
-                .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(result))
+                .header(AIRSHIP_SLOTS_VERSION_HEADER, createSlotsVersion(result))
                 .build();
     }
 }

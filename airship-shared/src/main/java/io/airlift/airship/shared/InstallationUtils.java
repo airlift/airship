@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -13,7 +13,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 
-import static com.proofpoint.galaxy.shared.ConfigUtils.newConfigEntrySupplier;
+import static io.airlift.airship.shared.ConfigUtils.newConfigEntrySupplier;
 
 public class InstallationUtils
 {
@@ -78,7 +78,7 @@ public class InstallationUtils
     {
         ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
 
-        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(repository, assignment.getConfig(), "galaxy-resources.properties");
+        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(repository, assignment.getConfig(), "airship-resources.properties");
         if (resourcesFile != null) {
             try {
                 Properties resources = new Properties();

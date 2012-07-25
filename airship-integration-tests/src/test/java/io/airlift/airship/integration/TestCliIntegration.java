@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.integration;
+package io.airlift.airship.integration;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -12,24 +12,23 @@ import com.google.inject.util.Modules;
 import com.proofpoint.configuration.ConfigurationFactory;
 import com.proofpoint.configuration.ConfigurationModule;
 import com.proofpoint.event.client.NullEventModule;
-import com.proofpoint.galaxy.cli.Config;
-import com.proofpoint.galaxy.cli.Galaxy;
-import com.proofpoint.galaxy.cli.Galaxy.GalaxyCommand;
-import com.proofpoint.galaxy.cli.Galaxy.GalaxyCommanderCommand;
-import com.proofpoint.galaxy.cli.InteractiveUser;
-import com.proofpoint.galaxy.cli.OutputFormat;
-import com.proofpoint.galaxy.coordinator.Coordinator;
-import com.proofpoint.galaxy.coordinator.CoordinatorMainModule;
-import com.proofpoint.galaxy.coordinator.InMemoryStateManager;
-import com.proofpoint.galaxy.coordinator.LocalProvisionerModule;
-import com.proofpoint.galaxy.coordinator.Provisioner;
-import com.proofpoint.galaxy.coordinator.StateManager;
-import com.proofpoint.galaxy.coordinator.TestingMavenRepository;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.cli.Airship;
+import io.airlift.airship.cli.Config;
+import io.airlift.airship.cli.Airship.AirshipCommand;
+import io.airlift.airship.cli.InteractiveUser;
+import io.airlift.airship.cli.OutputFormat;
+import io.airlift.airship.coordinator.Coordinator;
+import io.airlift.airship.coordinator.CoordinatorMainModule;
+import io.airlift.airship.coordinator.InMemoryStateManager;
+import io.airlift.airship.coordinator.LocalProvisionerModule;
+import io.airlift.airship.coordinator.Provisioner;
+import io.airlift.airship.coordinator.StateManager;
+import io.airlift.airship.coordinator.TestingMavenRepository;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 import com.proofpoint.http.server.testing.TestingHttpServer;
 import com.proofpoint.http.server.testing.TestingHttpServerModule;
 import com.proofpoint.jaxrs.JaxrsModule;
@@ -46,12 +45,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.google.inject.Scopes.SINGLETON;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT_2;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT_EXACT;
-import static com.proofpoint.galaxy.shared.FileUtils.createTempDir;
-import static com.proofpoint.galaxy.shared.FileUtils.deleteRecursively;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT_2;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT_EXACT;
+import static io.airlift.airship.shared.FileUtils.createTempDir;
+import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -91,7 +90,7 @@ public class TestCliIntegration
 
         Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
                 .put("node.environment", "prod")
-                .put("galaxy.version", "123")
+                .put("airship.version", "123")
                 .put("coordinator.binary-repo", binaryRepoDir.toURI().toString())
                 .put("coordinator.default-group-id", "prod")
                 .put("coordinator.binary-repo.local", localBinaryRepoDir.toString())
@@ -480,11 +479,11 @@ public class TestCliIntegration
     {
         outputFormat.clear();
 
-        GalaxyCommand command = Galaxy.GALAXY_PARSER.parse(ImmutableList.<String>builder().add("--debug").add(args).build());
+        AirshipCommand command = Airship.AIRSHIP_PARSER.parse(ImmutableList.<String>builder().add("--debug").add(args).build());
         command.config = config;
-        if (command instanceof GalaxyCommanderCommand) {
-            GalaxyCommanderCommand galaxyCommanderCommand = (GalaxyCommanderCommand) command;
-            galaxyCommanderCommand.execute("local", outputFormat, interactiveUser);
+        if (command instanceof Airship.AirshipCommanderCommand) {
+            Airship.AirshipCommanderCommand airshipCommanderCommand = (Airship.AirshipCommanderCommand) command;
+            airshipCommanderCommand.execute("local", outputFormat, interactiveUser);
         }
         else {
             command.execute();

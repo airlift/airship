@@ -1,8 +1,8 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 
 public interface OutputFormat
 {

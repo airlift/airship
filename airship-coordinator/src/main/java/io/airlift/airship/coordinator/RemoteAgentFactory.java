@@ -1,6 +1,6 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentLifecycleState;
 
 public interface RemoteAgentFactory
 {

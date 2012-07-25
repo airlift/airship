@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;

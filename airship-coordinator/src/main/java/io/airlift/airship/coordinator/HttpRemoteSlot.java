@@ -1,10 +1,10 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.SlotStatusRepresentation;
 import com.proofpoint.http.client.HttpClient;
 import com.proofpoint.http.client.Request;
 import com.proofpoint.http.client.RequestBuilder;
@@ -16,10 +16,10 @@ import java.util.UUID;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOT_VERSION_HEADER;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
 import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
 import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
@@ -82,8 +82,8 @@ public class HttpRemoteSlot implements RemoteSlot
             Request request = RequestBuilder.preparePut()
                     .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("assignment").build())
                     .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .setHeader(GALAXY_AGENT_VERSION_HEADER, agent.status().getVersion())
-                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
+                    .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
+                    .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .setBodyGenerator(jsonBodyGenerator(installationCodec, InstallationRepresentation.from(installation)))
                     .build();
             SlotStatusRepresentation slotStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(slotStatusCodec, Status.OK.getStatusCode()));
@@ -103,8 +103,8 @@ public class HttpRemoteSlot implements RemoteSlot
         try {
             Request request = RequestBuilder.prepareDelete()
                     .setUri(slotStatus.getSelf())
-                    .setHeader(GALAXY_AGENT_VERSION_HEADER, agent.status().getVersion())
-                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
+                    .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
+                    .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .build();
             SlotStatusRepresentation slotStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(slotStatusCodec, Status.OK.getStatusCode()));
 
@@ -123,8 +123,8 @@ public class HttpRemoteSlot implements RemoteSlot
         try {
             Request request = RequestBuilder.preparePut()
                     .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("lifecycle").build())
-                    .setHeader(GALAXY_AGENT_VERSION_HEADER, agent.status().getVersion())
-                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
+                    .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
+                    .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .setBodyGenerator(createStaticBodyGenerator("running", UTF_8))
                     .build();
             SlotStatusRepresentation slotStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(slotStatusCodec, Status.OK.getStatusCode()));
@@ -144,8 +144,8 @@ public class HttpRemoteSlot implements RemoteSlot
         try {
             Request request = RequestBuilder.preparePut()
                     .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("lifecycle").build())
-                    .setHeader(GALAXY_AGENT_VERSION_HEADER, agent.status().getVersion())
-                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
+                    .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
+                    .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .setBodyGenerator(createStaticBodyGenerator("restarting", UTF_8))
                     .build();
             SlotStatusRepresentation slotStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(slotStatusCodec, Status.OK.getStatusCode()));
@@ -165,8 +165,8 @@ public class HttpRemoteSlot implements RemoteSlot
         try {
             Request request = RequestBuilder.preparePut()
                     .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("lifecycle").build())
-                    .setHeader(GALAXY_AGENT_VERSION_HEADER, agent.status().getVersion())
-                    .setHeader(GALAXY_SLOT_VERSION_HEADER, slotStatus.getVersion())
+                    .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
+                    .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
                     .setBodyGenerator(createStaticBodyGenerator("stopped", UTF_8))
                     .build();
             SlotStatusRepresentation slotStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(slotStatusCodec, Status.OK.getStatusCode()));

@@ -11,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.AgentStatusRepresentation;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -24,7 +24,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
 
 @Path("/v1/agent/")
 public class AgentResource
@@ -46,7 +46,7 @@ public class AgentResource
         AgentStatus agentStatus = agent.getAgentStatus();
         AgentStatusRepresentation agentStatusRepresentation = AgentStatusRepresentation.from(agentStatus);
         return Response.ok(agentStatusRepresentation)
-                .header(GALAXY_AGENT_VERSION_HEADER, agentStatus.getVersion())
+                .header(AIRSHIP_AGENT_VERSION_HEADER, agentStatus.getVersion())
                 .build();
     }
 }

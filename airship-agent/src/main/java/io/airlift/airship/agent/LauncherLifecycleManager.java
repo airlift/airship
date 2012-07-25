@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -7,9 +7,9 @@ import com.google.common.io.Files;
 import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.Command;
-import com.proofpoint.galaxy.shared.CommandFailedException;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
+import io.airlift.airship.shared.Command;
+import io.airlift.airship.shared.CommandFailedException;
+import io.airlift.airship.shared.SlotLifecycleState;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
@@ -22,10 +22,10 @@ import java.net.URI;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
 
 public class LauncherLifecycleManager implements LifecycleManager
 {

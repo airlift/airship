@@ -1,19 +1,19 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.galaxy.coordinator.AgentProvisioningRepresentation;
-import com.proofpoint.galaxy.coordinator.CoordinatorProvisioningRepresentation;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.AssignmentRepresentation;
-import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
-import com.proofpoint.galaxy.shared.CoordinatorStatusRepresentation;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
+import io.airlift.airship.coordinator.AgentProvisioningRepresentation;
+import io.airlift.airship.coordinator.CoordinatorProvisioningRepresentation;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.AssignmentRepresentation;
+import io.airlift.airship.shared.CoordinatorLifecycleState;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.UpgradeVersions;
 import com.proofpoint.http.client.ApacheHttpClient;
 import com.proofpoint.http.client.BodyGenerator;
 import com.proofpoint.http.client.FullJsonResponseHandler.JsonResponse;
@@ -31,11 +31,11 @@ import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
-import static com.proofpoint.galaxy.cli.CommanderResponse.createCommanderResponse;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.cli.HttpCommander.TextBodyGenerator.textBodyGenerator;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_AGENTS_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
+import static io.airlift.airship.cli.CommanderResponse.createCommanderResponse;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.cli.HttpCommander.TextBodyGenerator.textBodyGenerator;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENTS_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOTS_VERSION_HEADER;
 import static com.proofpoint.http.client.FullJsonResponseHandler.createFullJsonResponseHandler;
 import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
 import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
@@ -75,7 +75,7 @@ public class HttpCommander implements Commander
                 .build();
 
         JsonResponse<List<SlotStatusRepresentation>> response = client.execute(request, createFullJsonResponseHandler(SLOTS_CODEC));
-        return createCommanderResponse(response.getHeader(GALAXY_SLOTS_VERSION_HEADER), response.getValue());
+        return createCommanderResponse(response.getHeader(AIRSHIP_SLOTS_VERSION_HEADER), response.getValue());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class HttpCommander implements Commander
                 .setHeader("Content-Type", "application/json")
                 .setBodyGenerator(jsonBodyGenerator(ASSIGNMENT_CODEC, AssignmentRepresentation.from(assignment)));
         if (expectedVersion != null) {
-            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+            requestBuilder.setHeader(AIRSHIP_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), createJsonResponseHandler(SLOTS_CODEC));
@@ -103,7 +103,7 @@ public class HttpCommander implements Commander
                 .setHeader("Content-Type", "application/json")
                 .setBodyGenerator(jsonBodyGenerator(UPGRADE_VERSIONS_CODEC, upgradeVersions));
         if (expectedVersion != null) {
-            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+            requestBuilder.setHeader(AIRSHIP_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), createJsonResponseHandler(SLOTS_CODEC));
@@ -118,7 +118,7 @@ public class HttpCommander implements Commander
                 .setUri(uri)
                 .setBodyGenerator(textBodyGenerator(state.name()));
         if (expectedVersion != null) {
-            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+            requestBuilder.setHeader(AIRSHIP_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), createJsonResponseHandler(SLOTS_CODEC));
@@ -131,7 +131,7 @@ public class HttpCommander implements Commander
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
         RequestBuilder requestBuilder = RequestBuilder.prepareDelete().setUri(uri);
         if (expectedVersion != null) {
-            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+            requestBuilder.setHeader(AIRSHIP_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), createJsonResponseHandler(SLOTS_CODEC));
@@ -144,7 +144,7 @@ public class HttpCommander implements Commander
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/expected-state"));
         RequestBuilder requestBuilder = RequestBuilder.prepareDelete().setUri(uri);
         if (expectedVersion != null) {
-            requestBuilder.setHeader(GALAXY_SLOTS_VERSION_HEADER, expectedVersion);
+            requestBuilder.setHeader(AIRSHIP_SLOTS_VERSION_HEADER, expectedVersion);
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), createJsonResponseHandler(SLOTS_CODEC));
@@ -282,7 +282,7 @@ public class HttpCommander implements Commander
         if (response.getStatusCode() != 200) {
             throw new RuntimeException(response.getStatusMessage());
         }
-        return CommanderResponse.createCommanderResponse(response.getHeader(GALAXY_AGENTS_VERSION_HEADER), response.getValue());
+        return CommanderResponse.createCommanderResponse(response.getHeader(AIRSHIP_AGENTS_VERSION_HEADER), response.getValue());
     }
 
     @Override

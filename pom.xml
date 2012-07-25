@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>galaxy-root</artifactId>
+    <groupId>io.airlift.airship</groupId>
+    <artifactId>airship-root</artifactId>
     <version>0.9-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>galaxy-root</name>
+    <name>airship-root</name>
 
-    <description>Galaxy</description>
-    <url>http://github.com/dain/galaxy-server</url>
+    <description>Airship</description>
+    <url>http://github.com/airlift/airship</url>
 
     <inceptionYear>2011</inceptionYear>
 
@@ -39,9 +39,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/dain/galaxy-server.git</connection>
-        <developerConnection>scm:git:git@github.com:dain/galaxy-server.git</developerConnection>
-        <url>http://github.com/dain/galaxy-server/tree/master</url>
+        <connection>scm:git:git://github.com/airlift/airship.git</connection>
+        <developerConnection>scm:git:git@github.com:airlift/airship.git</developerConnection>
+        <url>http://github.com/airlift/airship/tree/master</url>
     </scm>
 
     <properties>
@@ -63,13 +63,13 @@
     </distributionManagement>
 
     <modules>
-        <module>galaxy-shared</module>
-        <module>galaxy-coordinator</module>
-        <module>galaxy-agent</module>
-        <module>galaxy-integration-tests</module>
-        <module>galaxy-cli</module>
-        <module>galaxy-config-bundler</module>
-        <module>galaxy-ec2</module>
+        <module>airship-shared</module>
+        <module>airship-coordinator</module>
+        <module>airship-agent</module>
+        <module>airship-integration-tests</module>
+        <module>airship-cli</module>
+        <module>airship-config-bundler</module>
+        <module>airship-ec2</module>
     </modules>
 
     <build>

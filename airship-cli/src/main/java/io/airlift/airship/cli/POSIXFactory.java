@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.cli;
+package io.airlift.airship.cli;
 
 import com.proofpoint.log.Logger;
 import jnr.constants.platform.Errno;

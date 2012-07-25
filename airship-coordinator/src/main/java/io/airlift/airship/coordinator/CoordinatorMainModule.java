@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -19,16 +19,16 @@ import com.google.inject.Scopes;
 import com.google.inject.multibindings.Multibinder;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
-import com.proofpoint.galaxy.coordinator.auth.AuthConfig;
-import com.proofpoint.galaxy.coordinator.auth.AuthFilter;
-import com.proofpoint.galaxy.coordinator.auth.SignatureVerifier;
-import com.proofpoint.galaxy.shared.AgentStatusRepresentation;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
-import com.proofpoint.galaxy.shared.InstallationRepresentation;
-import com.proofpoint.galaxy.shared.RepositorySet;
-import com.proofpoint.galaxy.shared.SlotStatusRepresentation;
-import com.proofpoint.galaxy.shared.VersionConflictExceptionMapper;
+import io.airlift.airship.coordinator.auth.AuthConfig;
+import io.airlift.airship.coordinator.auth.AuthFilter;
+import io.airlift.airship.coordinator.auth.SignatureVerifier;
+import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.ExpectedSlotStatus;
+import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.RepositorySet;
+import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.airship.shared.VersionConflictExceptionMapper;
 import com.proofpoint.http.server.TheServlet;
 import com.proofpoint.json.JsonCodecBinder;
 

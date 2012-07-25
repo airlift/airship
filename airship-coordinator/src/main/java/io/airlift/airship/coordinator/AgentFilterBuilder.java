@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -8,14 +8,14 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.InstallationUtils;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.HttpUriBuilder;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.InstallationUtils;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotStatus;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
@@ -26,12 +26,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.coordinator.StringFunctions.startsWith;
-import static com.proofpoint.galaxy.coordinator.StringFunctions.toLowerCase;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.galaxy.shared.InstallationUtils.getAvailableResources;
-import static com.proofpoint.galaxy.shared.InstallationUtils.resourcesAreAvailable;
-import static com.proofpoint.galaxy.shared.InstallationUtils.toInstallation;
+import static io.airlift.airship.coordinator.StringFunctions.startsWith;
+import static io.airlift.airship.coordinator.StringFunctions.toLowerCase;
+import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
+import static io.airlift.airship.shared.InstallationUtils.getAvailableResources;
+import static io.airlift.airship.shared.InstallationUtils.resourcesAreAvailable;
+import static io.airlift.airship.shared.InstallationUtils.toInstallation;
 import static java.lang.String.format;
 
 public class AgentFilterBuilder

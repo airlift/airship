@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
@@ -11,9 +11,9 @@ import com.amazonaws.services.simpledb.model.ReplaceableAttribute;
 import com.amazonaws.services.simpledb.model.SelectRequest;
 import com.amazonaws.services.simpledb.model.SelectResult;
 import com.google.common.base.Preconditions;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.ExpectedSlotStatus;
+import io.airlift.airship.shared.SlotLifecycleState;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
 
@@ -36,7 +36,7 @@ public class SimpleDbStateManager implements StateManager
     public SimpleDbStateManager(AmazonSimpleDB simpleDb, NodeInfo nodeInfo)
     {
         this.simpleDb = simpleDb;
-        domainName = "galaxy-" + nodeInfo.getEnvironment();
+        domainName = "airship-" + nodeInfo.getEnvironment();
     }
 
     @Override

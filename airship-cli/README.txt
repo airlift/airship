@@ -1,1 +1,1 @@
-New galaxy cli
+New airship cli

@@ -3,16 +3,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.proofpoint.galaxy</groupId>
-        <artifactId>galaxy-root</artifactId>
+        <groupId>io.airlift.airship</groupId>
+        <artifactId>airship-root</artifactId>
         <version>0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>com.proofpoint.galaxy</groupId>
-    <artifactId>galaxy-integration-tests</artifactId>
+    <groupId>io.airlift.airship</groupId>
+    <artifactId>airship-integration-tests</artifactId>
     <version>0.9-SNAPSHOT</version>
-    <name>galaxy-integration-tests</name>
+    <name>airship-integration-tests</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -35,22 +35,22 @@
     <dependencies>
         <!-- for testing -->
         <dependency>
-            <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>galaxy-agent</artifactId>
+            <groupId>io.airlift.airship</groupId>
+            <artifactId>airship-agent</artifactId>
             <version>0.9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>galaxy-coordinator</artifactId>
+            <groupId>io.airlift.airship</groupId>
+            <artifactId>airship-coordinator</artifactId>
             <version>0.9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>galaxy-cli</artifactId>
+            <groupId>io.airlift.airship</groupId>
+            <artifactId>airship-cli</artifactId>
             <version>0.9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
@@ -70,24 +70,24 @@
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>galaxy-shared</artifactId>
+            <groupId>io.airlift.airship</groupId>
+            <artifactId>airship-shared</artifactId>
             <version>0.9-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>galaxy-coordinator</artifactId>
+            <groupId>io.airlift.airship</groupId>
+            <artifactId>airship-coordinator</artifactId>
             <version>0.9-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.galaxy</groupId>
-            <artifactId>galaxy-agent</artifactId>
+            <groupId>io.airlift.airship</groupId>
+            <artifactId>airship-agent</artifactId>
             <version>0.9-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>

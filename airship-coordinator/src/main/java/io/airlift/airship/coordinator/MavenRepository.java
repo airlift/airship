@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -10,10 +10,10 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.coordinator.MavenMetadata.SnapshotVersion;
-import com.proofpoint.galaxy.shared.HttpUriBuilder;
-import com.proofpoint.galaxy.shared.MavenCoordinates;
-import com.proofpoint.galaxy.shared.Repository;
+import io.airlift.airship.coordinator.MavenMetadata.SnapshotVersion;
+import io.airlift.airship.shared.HttpUriBuilder;
+import io.airlift.airship.shared.MavenCoordinates;
+import io.airlift.airship.shared.Repository;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,9 +28,9 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.galaxy.shared.HttpUriBuilder.uriBuilderFrom;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.toBinaryGAV;
-import static com.proofpoint.galaxy.shared.MavenCoordinates.toConfigGAV;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
+import static io.airlift.airship.shared.MavenCoordinates.toBinaryGAV;
+import static io.airlift.airship.shared.MavenCoordinates.toConfigGAV;
 
 public class MavenRepository implements Repository
 {

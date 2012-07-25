@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator.auth.ssh;
+package io.airlift.airship.coordinator.auth.ssh;
 
 public enum DerType
 {

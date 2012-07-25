@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.shared;
+package io.airlift.airship.shared;
 
 public class CommandTimeoutException extends CommandFailedException
 {

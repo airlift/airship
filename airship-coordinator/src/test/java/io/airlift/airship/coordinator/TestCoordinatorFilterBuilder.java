@@ -1,18 +1,18 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Predicate;
-import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.HostPredicate;
-import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.MachinePredicate;
-import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.StatePredicate;
-import com.proofpoint.galaxy.coordinator.CoordinatorFilterBuilder.UuidPredicate;
-import com.proofpoint.galaxy.shared.CoordinatorStatus;
-import com.proofpoint.galaxy.shared.MockUriInfo;
+import io.airlift.airship.coordinator.CoordinatorFilterBuilder.HostPredicate;
+import io.airlift.airship.coordinator.CoordinatorFilterBuilder.MachinePredicate;
+import io.airlift.airship.coordinator.CoordinatorFilterBuilder.StatePredicate;
+import io.airlift.airship.coordinator.CoordinatorFilterBuilder.UuidPredicate;
+import io.airlift.airship.shared.CoordinatorStatus;
+import io.airlift.airship.shared.MockUriInfo;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 
-import static com.proofpoint.galaxy.shared.CoordinatorLifecycleState.OFFLINE;
-import static com.proofpoint.galaxy.shared.CoordinatorLifecycleState.ONLINE;
+import static io.airlift.airship.shared.CoordinatorLifecycleState.OFFLINE;
+import static io.airlift.airship.shared.CoordinatorLifecycleState.ONLINE;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 

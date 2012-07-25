@@ -11,15 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatus;
 
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
@@ -33,10 +33,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
-import static com.proofpoint.galaxy.shared.VersionsUtil.GALAXY_SLOTS_VERSION_HEADER;
-import static com.proofpoint.galaxy.shared.SlotStatusRepresentation.fromSlotStatus;
-import static com.proofpoint.galaxy.shared.VersionsUtil.createSlotsVersion;
+import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOTS_VERSION_HEADER;
+import static io.airlift.airship.shared.SlotStatusRepresentation.fromSlotStatus;
+import static io.airlift.airship.shared.VersionsUtil.createSlotsVersion;
 
 @Path("/v1/slot/lifecycle")
 public class CoordinatorLifecycleResource
@@ -58,7 +58,7 @@ public class CoordinatorLifecycleResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response setState(String newState,
             @Context UriInfo uriInfo,
-            @HeaderParam(GALAXY_SLOTS_VERSION_HEADER) String expectedSlotsVersion)
+            @HeaderParam(AIRSHIP_SLOTS_VERSION_HEADER) String expectedSlotsVersion)
     {
         Preconditions.checkNotNull(newState, "newState must not be null");
 
@@ -76,7 +76,7 @@ public class CoordinatorLifecycleResource
 
         // build response
         return Response.ok(transform(results, fromSlotStatus(coordinator.getAllSlotStatus(), repository)))
-                .header(GALAXY_SLOTS_VERSION_HEADER, createSlotsVersion(results))
+                .header(AIRSHIP_SLOTS_VERSION_HEADER, createSlotsVersion(results))
                 .build();
      }
 }

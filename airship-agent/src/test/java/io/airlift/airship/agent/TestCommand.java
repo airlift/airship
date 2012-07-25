@@ -1,11 +1,11 @@
-package com.proofpoint.galaxy.agent;
+package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.proofpoint.galaxy.shared.Command;
-import com.proofpoint.galaxy.shared.CommandFailedException;
-import com.proofpoint.galaxy.shared.CommandTimeoutException;
+import io.airlift.airship.shared.Command;
+import io.airlift.airship.shared.CommandFailedException;
+import io.airlift.airship.shared.CommandTimeoutException;
 import com.proofpoint.testing.EquivalenceTester;
 import com.proofpoint.units.Duration;
 import org.testng.annotations.AfterClass;

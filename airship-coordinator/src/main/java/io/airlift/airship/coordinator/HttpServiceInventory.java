@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
@@ -23,12 +23,12 @@ import com.google.common.io.InputSupplier;
 import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptor;
 import com.proofpoint.discovery.client.ServiceState;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.DigestUtils;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.ConfigUtils;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.DigestUtils;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.ConfigUtils;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatus;
 import com.proofpoint.json.JsonCodec;
 import com.proofpoint.log.Logger;
 
@@ -101,7 +101,7 @@ public class HttpServiceInventory implements ServiceInventory
         for (Entry<String, String> entry : properties.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            value = value.replaceAll(Pattern.quote("${galaxy.host}"), slotStatus.getSelf().getHost());
+            value = value.replaceAll(Pattern.quote("${airship.host}"), slotStatus.getSelf().getHost());
             builder.put(key, value);
         }
         return builder.build();
@@ -130,7 +130,7 @@ public class HttpServiceInventory implements ServiceInventory
             }
         }
 
-        InputSupplier<? extends InputStream> configFile = ConfigUtils.newConfigEntrySupplier(repository, config, "galaxy-service-inventory.json");
+        InputSupplier<? extends InputStream> configFile = ConfigUtils.newConfigEntrySupplier(repository, config, "airship-service-inventory.json");
         if (configFile == null) {
             return null;
         }

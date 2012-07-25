@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.configbundler;
+package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
 

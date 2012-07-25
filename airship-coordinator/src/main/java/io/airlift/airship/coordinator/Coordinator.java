@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -15,18 +15,18 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.proofpoint.discovery.client.ServiceDescriptor;
-import com.proofpoint.galaxy.shared.AgentLifecycleState;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.Assignment;
-import com.proofpoint.galaxy.shared.CoordinatorLifecycleState;
-import com.proofpoint.galaxy.shared.CoordinatorStatus;
-import com.proofpoint.galaxy.shared.ExpectedSlotStatus;
-import com.proofpoint.galaxy.shared.Installation;
-import com.proofpoint.galaxy.shared.InstallationUtils;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotLifecycleState;
-import com.proofpoint.galaxy.shared.SlotStatus;
-import com.proofpoint.galaxy.shared.UpgradeVersions;
+import io.airlift.airship.shared.AgentLifecycleState;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.CoordinatorLifecycleState;
+import io.airlift.airship.shared.CoordinatorStatus;
+import io.airlift.airship.shared.ExpectedSlotStatus;
+import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.InstallationUtils;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotLifecycleState;
+import io.airlift.airship.shared.SlotStatus;
+import io.airlift.airship.shared.UpgradeVersions;
 import com.proofpoint.http.server.HttpServerInfo;
 import com.proofpoint.log.Logger;
 import com.proofpoint.node.NodeInfo;
@@ -56,13 +56,13 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.proofpoint.galaxy.shared.LocationUtils.extractMachineId;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RESTARTING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.RUNNING;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.STOPPED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
-import static com.proofpoint.galaxy.shared.VersionsUtil.checkSlotsVersion;
+import static io.airlift.airship.shared.LocationUtils.extractMachineId;
+import static io.airlift.airship.shared.SlotLifecycleState.RESTARTING;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
+import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
+import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
+import static io.airlift.airship.shared.VersionsUtil.checkSlotsVersion;
 
 public class Coordinator
 {

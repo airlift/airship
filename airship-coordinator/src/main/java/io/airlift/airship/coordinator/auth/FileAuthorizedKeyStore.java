@@ -1,6 +1,6 @@
-package com.proofpoint.galaxy.coordinator.auth;
+package io.airlift.airship.coordinator.auth;
 
-import com.proofpoint.galaxy.coordinator.LocalProvisionerConfig;
+import io.airlift.airship.coordinator.LocalProvisionerConfig;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -12,7 +12,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.io.Files.readLines;
-import static com.proofpoint.galaxy.shared.FileUtils.listFiles;
+import static io.airlift.airship.shared.FileUtils.listFiles;
 
 public class FileAuthorizedKeyStore
         implements AuthorizedKeyStore

@@ -1,18 +1,18 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.AssignablePredicate;
-import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.HostPredicate;
-import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.MachinePredicate;
-import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.SlotUuidPredicate;
-import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.StatePredicate;
-import com.proofpoint.galaxy.coordinator.AgentFilterBuilder.UuidPredicate;
-import com.proofpoint.galaxy.shared.AgentStatus;
-import com.proofpoint.galaxy.shared.MockUriInfo;
-import com.proofpoint.galaxy.shared.Repository;
-import com.proofpoint.galaxy.shared.SlotStatus;
+import io.airlift.airship.coordinator.AgentFilterBuilder.AssignablePredicate;
+import io.airlift.airship.coordinator.AgentFilterBuilder.HostPredicate;
+import io.airlift.airship.coordinator.AgentFilterBuilder.MachinePredicate;
+import io.airlift.airship.coordinator.AgentFilterBuilder.SlotUuidPredicate;
+import io.airlift.airship.coordinator.AgentFilterBuilder.StatePredicate;
+import io.airlift.airship.coordinator.AgentFilterBuilder.UuidPredicate;
+import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.MockUriInfo;
+import io.airlift.airship.shared.Repository;
+import io.airlift.airship.shared.SlotStatus;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -21,12 +21,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.OFFLINE;
-import static com.proofpoint.galaxy.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static com.proofpoint.galaxy.shared.SlotLifecycleState.UNKNOWN;
-import static com.proofpoint.galaxy.shared.SlotStatus.createSlotStatus;
+import static io.airlift.airship.shared.AgentLifecycleState.OFFLINE;
+import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
+import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
+import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
 import static java.util.Arrays.asList;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;

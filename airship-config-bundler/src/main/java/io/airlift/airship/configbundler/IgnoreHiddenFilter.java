@@ -1,4 +1,4 @@
-package com.proofpoint.galaxy.configbundler;
+package io.airlift.airship.configbundler;
 
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.TreeFilter;

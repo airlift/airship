@@ -1,8 +1,8 @@
-package com.proofpoint.galaxy.coordinator;
+package io.airlift.airship.coordinator;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.proofpoint.galaxy.shared.Assignment;
+import io.airlift.airship.shared.Assignment;
 
 import java.util.Set;
 
