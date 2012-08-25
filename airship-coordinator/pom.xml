@@ -126,7 +126,13 @@
             <type>tar.gz</type>
         </dependency>
 
-
+        <!-- Override the snapshot being pulled in by the Amazon SDK -->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        
         <!-- for testing -->
         <dependency>
             <groupId>org.testng</groupId>
