@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.Installation;
-import com.proofpoint.log.Logger;
-import com.proofpoint.units.Duration;
+import io.airlift.log.Logger;
+import io.airlift.units.Duration;
 
 import java.net.URI;
 import java.util.List;

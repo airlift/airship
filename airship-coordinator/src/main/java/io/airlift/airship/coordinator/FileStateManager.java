@@ -6,8 +6,8 @@ import com.google.common.io.Files;
 import com.google.common.io.PatternFilenameFilter;
 import io.airlift.airship.shared.ExpectedSlotStatus;
 import io.airlift.airship.shared.FileUtils;
-import com.proofpoint.json.JsonCodec;
-import com.proofpoint.log.Logger;
+import io.airlift.json.JsonCodec;
+import io.airlift.log.Logger;
 
 import javax.inject.Inject;
 import java.io.File;

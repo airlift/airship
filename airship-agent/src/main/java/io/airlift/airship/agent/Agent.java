@@ -22,9 +22,9 @@ import com.google.inject.Inject;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.SlotStatus;
-import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.node.NodeInfo;
-import com.proofpoint.units.Duration;
+import io.airlift.http.server.HttpServerInfo;
+import io.airlift.node.NodeInfo;
+import io.airlift.units.Duration;
 
 import java.io.File;
 import java.io.FileInputStream;

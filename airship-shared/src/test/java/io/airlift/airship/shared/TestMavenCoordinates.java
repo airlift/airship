@@ -1,6 +1,6 @@
 package io.airlift.airship.shared;
 
-import com.proofpoint.testing.EquivalenceTester;
+import io.airlift.testing.EquivalenceTester;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

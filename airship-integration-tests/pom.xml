@@ -63,9 +63,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>testing</artifactId>
-            <version>0.58</version>
+            <version>0.66</version>
             <scope>test</scope>
         </dependency>
 

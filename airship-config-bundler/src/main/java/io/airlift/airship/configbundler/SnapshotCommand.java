@@ -2,7 +2,7 @@ package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.InputSupplier;
-import com.proofpoint.http.client.BodyGenerator;
+import io.airlift.http.client.BodyGenerator;
 import org.eclipse.jgit.api.Git;
 import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;

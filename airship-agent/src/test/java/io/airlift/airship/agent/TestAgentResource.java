@@ -1,9 +1,9 @@
 package io.airlift.airship.agent;
 
 import io.airlift.airship.shared.AgentStatusRepresentation;
-import com.proofpoint.http.server.HttpServerConfig;
-import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.node.NodeInfo;
+import io.airlift.http.server.HttpServerConfig;
+import io.airlift.http.server.HttpServerInfo;
+import io.airlift.node.NodeInfo;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

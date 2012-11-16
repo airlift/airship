@@ -4,7 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.units.Duration;
+import io.airlift.units.Duration;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;

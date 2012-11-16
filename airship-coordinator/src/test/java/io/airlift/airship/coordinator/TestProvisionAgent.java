@@ -5,10 +5,10 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
-import com.proofpoint.http.server.HttpServerConfig;
-import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.json.JsonCodec;
-import com.proofpoint.node.NodeInfo;
+import io.airlift.http.server.HttpServerConfig;
+import io.airlift.http.server.HttpServerInfo;
+import io.airlift.json.JsonCodec;
+import io.airlift.node.NodeInfo;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -19,8 +19,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.proofpoint.experimental.testing.ValidationAssertions.assertValidates;
 import static io.airlift.airship.coordinator.TestingMavenRepository.MOCK_REPO;
+import static io.airlift.testing.ValidationAssertions.assertValidates;
 import static org.testng.Assert.assertEquals;
 
 public class TestProvisionAgent

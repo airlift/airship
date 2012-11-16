@@ -3,13 +3,13 @@ package io.airlift.airship.shared;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
-import com.proofpoint.json.JsonCodec;
+import io.airlift.json.JsonCodec;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.util.UUID;
 
-import static com.proofpoint.json.JsonCodec.jsonCodec;
+import static io.airlift.json.JsonCodec.jsonCodec;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 

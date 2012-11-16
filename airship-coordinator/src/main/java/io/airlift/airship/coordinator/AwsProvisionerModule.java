@@ -26,7 +26,7 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
-import com.proofpoint.configuration.ConfigurationModule;
+import io.airlift.configuration.ConfigurationModule;
 import io.airlift.airship.coordinator.auth.AuthorizedKeyStore;
 import io.airlift.airship.coordinator.auth.S3AuthorizedKeyStore;
 

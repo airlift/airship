@@ -15,7 +15,7 @@ package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableMap;
 import io.airlift.airship.shared.Installation;
-import com.proofpoint.testing.EquivalenceTester;
+import io.airlift.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
 import java.net.URI;

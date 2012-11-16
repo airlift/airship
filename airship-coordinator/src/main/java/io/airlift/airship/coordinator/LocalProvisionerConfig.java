@@ -2,8 +2,8 @@ package io.airlift.airship.coordinator;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.configuration.Config;
-import com.proofpoint.configuration.ConfigDescription;
+import io.airlift.configuration.Config;
+import io.airlift.configuration.ConfigDescription;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;

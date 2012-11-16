@@ -2,9 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.proofpoint.platform</groupId>
+        <groupId>io.airlift</groupId>
         <artifactId>rest-server-base</artifactId>
-        <version>0.58</version>
+        <version>0.66</version>
+        <relativePath/>
     </parent>
 
     <properties>
@@ -42,11 +43,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
         </dependency>
@@ -57,43 +53,38 @@
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>bootstrap</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>discovery-experimental</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>event-experimental</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>http-server</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>jaxrs</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>jmx</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>units</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-jaxrs</artifactId>
         </dependency>
 
         <dependency>
@@ -102,14 +93,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
-            <artifactId>experimental</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>
             <version>1.2.7</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -120,7 +112,7 @@
 
         <!-- for packaging -->
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>launcher</artifactId>
             <classifier>bin</classifier>
             <type>tar.gz</type>
@@ -132,7 +124,7 @@
             <artifactId>commons-logging</artifactId>
             <version>1.1.1</version>
         </dependency>
-        
+
         <!-- for testing -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -141,7 +133,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>testing</artifactId>
             <scope>test</scope>
         </dependency>
@@ -151,13 +143,6 @@
             <artifactId>airship-shared</artifactId>
             <version>0.9-SNAPSHOT</version>
             <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava-testlib</artifactId>
-            <version>11.0.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

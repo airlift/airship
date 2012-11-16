@@ -3,17 +3,17 @@ package io.airlift.airship.coordinator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
+import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
 import io.airlift.airship.shared.AgentLifecycleState;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.AgentStatusRepresentation;
 import io.airlift.airship.shared.InstallationRepresentation;
 import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.SlotStatusRepresentation;
-import com.proofpoint.http.client.ApacheHttpClient;
-import com.proofpoint.http.client.HttpClient;
-import com.proofpoint.json.JsonCodec;
-import com.proofpoint.node.NodeInfo;
+import io.airlift.http.client.ApacheHttpClient;
+import io.airlift.http.client.HttpClient;
+import io.airlift.json.JsonCodec;
+import io.airlift.node.NodeInfo;
 
 public class HttpRemoteAgentFactory implements RemoteAgentFactory
 {

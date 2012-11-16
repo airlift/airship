@@ -11,7 +11,7 @@ import io.airlift.airship.shared.CoordinatorStatus;
 import io.airlift.airship.shared.CoordinatorStatusRepresentation;
 import io.airlift.airship.shared.MockUriInfo;
 import io.airlift.airship.shared.SlotStatus;
-import com.proofpoint.units.Duration;
+import io.airlift.units.Duration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

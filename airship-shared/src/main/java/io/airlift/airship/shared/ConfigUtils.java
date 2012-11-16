@@ -6,7 +6,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
-import com.proofpoint.configuration.ConfigurationFactory;
+import io.airlift.configuration.ConfigurationFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;

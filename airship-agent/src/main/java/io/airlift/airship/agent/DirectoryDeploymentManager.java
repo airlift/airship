@@ -4,12 +4,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import io.airlift.airship.shared.ConfigUtils;
-import com.proofpoint.json.JsonCodec;
+import io.airlift.json.JsonCodec;
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.CommandFailedException;
 import io.airlift.airship.shared.Installation;
-import com.proofpoint.log.Logger;
-import com.proofpoint.units.Duration;
+import io.airlift.log.Logger;
+import io.airlift.units.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.proofpoint.json.JsonCodec.jsonCodec;
+import static io.airlift.json.JsonCodec.jsonCodec;
 import static io.airlift.airship.shared.FileUtils.createTempDir;
 import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 import static io.airlift.airship.shared.FileUtils.extractTar;

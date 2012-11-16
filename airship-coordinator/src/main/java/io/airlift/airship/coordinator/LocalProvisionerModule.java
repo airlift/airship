@@ -16,7 +16,7 @@ package io.airlift.airship.coordinator;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
-import com.proofpoint.configuration.ConfigurationModule;
+import io.airlift.configuration.ConfigurationModule;
 import io.airlift.airship.coordinator.auth.AuthorizedKeyStore;
 import io.airlift.airship.coordinator.auth.FileAuthorizedKeyStore;
 

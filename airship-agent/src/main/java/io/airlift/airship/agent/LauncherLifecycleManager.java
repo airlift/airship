@@ -10,10 +10,10 @@ import com.google.inject.Inject;
 import io.airlift.airship.shared.Command;
 import io.airlift.airship.shared.CommandFailedException;
 import io.airlift.airship.shared.SlotLifecycleState;
-import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.log.Logger;
-import com.proofpoint.node.NodeInfo;
-import com.proofpoint.units.Duration;
+import io.airlift.http.server.HttpServerInfo;
+import io.airlift.log.Logger;
+import io.airlift.node.NodeInfo;
+import io.airlift.units.Duration;
 
 import java.io.File;
 import java.io.IOException;

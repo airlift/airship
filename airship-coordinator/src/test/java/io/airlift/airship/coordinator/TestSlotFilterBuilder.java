@@ -153,35 +153,35 @@ public class TestSlotFilterBuilder
                 "instance",
                 "/location",
                 UNKNOWN,
-                new Assignment("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT", APPLE_ASSIGNMENT.getConfig()),
+                new Assignment("io.airlift:sample-server:tar.gz:distribution:0.35-SNAPSHOT", APPLE_ASSIGNMENT.getConfig()),
                 "/install-path",
                 ImmutableMap.<String, Integer>of());
 
         assertTrue(new BinarySpecPredicate("*:*:*:*:*").apply(status));
         assertTrue(buildFilter("binary", "*:*:*:*:*").apply(status));
 
-        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(new BinarySpecPredicate("io.airlift:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "io.airlift:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
 
         assertTrue(new BinarySpecPredicate("*:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
         assertTrue(buildFilter("binary", "*:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
 
-        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:*:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:*:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(new BinarySpecPredicate("io.airlift:*:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "io.airlift:*:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
 
-        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:*:distribution:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:*:distribution:0.35-SNAPSHOT").apply(status));
-        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
-        assertTrue(new BinarySpecPredicate("com.proofpoint.platform:sample-server:tar.gz:distribution:*").apply(status));
-        assertTrue(buildFilter("binary", "com.proofpoint.platform:sample-server:tar.gz:distribution:*").apply(status));
+        assertTrue(new BinarySpecPredicate("io.airlift:sample-server:*:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "io.airlift:sample-server:*:distribution:0.35-SNAPSHOT").apply(status));
+        assertTrue(new BinarySpecPredicate("io.airlift:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
+        assertTrue(buildFilter("binary", "io.airlift:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
+        assertTrue(new BinarySpecPredicate("io.airlift:sample-server:tar.gz:distribution:*").apply(status));
+        assertTrue(buildFilter("binary", "io.airlift:sample-server:tar.gz:distribution:*").apply(status));
 
 
-        assertTrue(new BinarySpecPredicate("c*:s*:t*:d*:0*").apply(status));
-        assertTrue(buildFilter("binary", "c*:s*:t*:d*:0*").apply(status));
+        assertTrue(new BinarySpecPredicate("i*:s*:t*:d*:0*").apply(status));
+        assertTrue(buildFilter("binary", "i*:s*:t*:d*:0*").apply(status));
 
-        assertFalse(new BinarySpecPredicate("com.proofpoint.platform:sample-server:distribution:0.35-SNAPSHOT").apply(status));
-        assertFalse(buildFilter("binary", "com.proofpoint.platform:sample-server:distribution:0.35-SNAPSHOT").apply(status));
+        assertFalse(new BinarySpecPredicate("io.airlift:sample-server:distribution:0.35-SNAPSHOT").apply(status));
+        assertFalse(buildFilter("binary", "io.airlift:sample-server:distribution:0.35-SNAPSHOT").apply(status));
     }
 
     @Test

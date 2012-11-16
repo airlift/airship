@@ -14,14 +14,13 @@ import io.airlift.airship.shared.CoordinatorStatusRepresentation;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.airship.shared.UpgradeVersions;
-import com.proofpoint.http.client.ApacheHttpClient;
-import com.proofpoint.http.client.BodyGenerator;
-import com.proofpoint.http.client.FullJsonResponseHandler.JsonResponse;
-import com.proofpoint.http.client.HttpClient;
-import com.proofpoint.http.client.HttpClientConfig;
-import com.proofpoint.http.client.Request;
-import com.proofpoint.http.client.RequestBuilder;
-import com.proofpoint.json.JsonCodec;
+import io.airlift.http.client.ApacheHttpClient;
+import io.airlift.http.client.BodyGenerator;
+import io.airlift.http.client.FullJsonResponseHandler.JsonResponse;
+import io.airlift.http.client.HttpClient;
+import io.airlift.http.client.HttpClientConfig;
+import io.airlift.http.client.Request;
+import io.airlift.json.JsonCodec;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -32,13 +31,13 @@ import java.util.Map;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static io.airlift.airship.cli.CommanderResponse.createCommanderResponse;
-import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.cli.HttpCommander.TextBodyGenerator.textBodyGenerator;
+import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENTS_VERSION_HEADER;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOTS_VERSION_HEADER;
-import static com.proofpoint.http.client.FullJsonResponseHandler.createFullJsonResponseHandler;
-import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
-import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static io.airlift.http.client.FullJsonResponseHandler.createFullJsonResponseHandler;
+import static io.airlift.http.client.JsonBodyGenerator.jsonBodyGenerator;
+import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
 
 public class HttpCommander implements Commander
 {
@@ -70,7 +69,7 @@ public class HttpCommander implements Commander
     public CommanderResponse<List<SlotStatusRepresentation>> show(SlotFilter slotFilter)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(uri)
                 .build();
 
@@ -82,7 +81,7 @@ public class HttpCommander implements Commander
     public List<SlotStatusRepresentation> install(AgentFilter agentFilter, int count, Assignment assignment, String expectedVersion)
     {
         URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot").addParameter("limit", String.valueOf(count)));
-        RequestBuilder requestBuilder = RequestBuilder.preparePost()
+        Request.Builder requestBuilder = Request.Builder.preparePost()
                 .setUri(uri)
                 .setHeader("Content-Type", "application/json")
                 .setBodyGenerator(jsonBodyGenerator(ASSIGNMENT_CODEC, AssignmentRepresentation.from(assignment)));
@@ -98,7 +97,7 @@ public class HttpCommander implements Commander
     public List<SlotStatusRepresentation> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/assignment"));
-        RequestBuilder requestBuilder = RequestBuilder.preparePost()
+        Request.Builder requestBuilder = Request.Builder.preparePost()
                 .setUri(uri)
                 .setHeader("Content-Type", "application/json")
                 .setBodyGenerator(jsonBodyGenerator(UPGRADE_VERSIONS_CODEC, upgradeVersions));
@@ -114,7 +113,7 @@ public class HttpCommander implements Commander
     public List<SlotStatusRepresentation> setState(SlotFilter slotFilter, SlotLifecycleState state, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/lifecycle"));
-        RequestBuilder requestBuilder = RequestBuilder.preparePut()
+        Request.Builder requestBuilder = Request.Builder.preparePut()
                 .setUri(uri)
                 .setBodyGenerator(textBodyGenerator(state.name()));
         if (expectedVersion != null) {
@@ -129,7 +128,7 @@ public class HttpCommander implements Commander
     public List<SlotStatusRepresentation> terminate(SlotFilter slotFilter, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
-        RequestBuilder requestBuilder = RequestBuilder.prepareDelete().setUri(uri);
+        Request.Builder requestBuilder = Request.Builder.prepareDelete().setUri(uri);
         if (expectedVersion != null) {
             requestBuilder.setHeader(AIRSHIP_SLOTS_VERSION_HEADER, expectedVersion);
         }
@@ -142,7 +141,7 @@ public class HttpCommander implements Commander
     public List<SlotStatusRepresentation> resetExpectedState(SlotFilter slotFilter, String expectedVersion)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/expected-state"));
-        RequestBuilder requestBuilder = RequestBuilder.prepareDelete().setUri(uri);
+        Request.Builder requestBuilder = Request.Builder.prepareDelete().setUri(uri);
         if (expectedVersion != null) {
             requestBuilder.setHeader(AIRSHIP_SLOTS_VERSION_HEADER, expectedVersion);
         }
@@ -155,7 +154,7 @@ public class HttpCommander implements Commander
     public boolean ssh(SlotFilter slotFilter, String command)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot"));
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(uri)
                 .build();
 
@@ -179,7 +178,7 @@ public class HttpCommander implements Commander
     public List<CoordinatorStatusRepresentation> showCoordinators(CoordinatorFilter coordinatorFilter)
     {
         URI uri = coordinatorFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator"));
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(uri)
                 .build();
 
@@ -208,7 +207,7 @@ public class HttpCommander implements Commander
                 keyPair,
                 securityGroup);
 
-        Request request = RequestBuilder.preparePost()
+        Request request = Request.Builder.preparePost()
                 .setUri(uri)
                 .setHeader("Content-Type", "application/json")
                 .setBodyGenerator(jsonBodyGenerator(COORDINATOR_PROVISIONING_CODEC, coordinatorProvisioning))
@@ -230,7 +229,7 @@ public class HttpCommander implements Commander
         for (int loop = 0; true; loop++) {
             try {
                 URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator").build();
-                Request request = RequestBuilder.prepareGet()
+                Request request = Request.Builder.prepareGet()
                         .setUri(uri)
                         .build();
                 List<CoordinatorStatusRepresentation> coordinators = client.execute(request, createJsonResponseHandler(COORDINATORS_CODEC));
@@ -258,7 +257,7 @@ public class HttpCommander implements Commander
     public boolean sshCoordinator(CoordinatorFilter coordinatorFilter, String command)
     {
         URI uri = coordinatorFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator"));
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(uri)
                 .build();
 
@@ -274,7 +273,7 @@ public class HttpCommander implements Commander
     public CommanderResponse<List<AgentStatusRepresentation>> showAgents(AgentFilter agentFilter)
     {
         URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent"));
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(uri)
                 .build();
 
@@ -306,7 +305,7 @@ public class HttpCommander implements Commander
                 keyPair,
                 securityGroup);
 
-        Request request = RequestBuilder.preparePost()
+        Request request = Request.Builder.preparePost()
                 .setUri(uri)
                 .setHeader("Content-Type", "application/json")
                 .setBodyGenerator(jsonBodyGenerator(AGENT_PROVISIONING_CODEC, agentProvisioning))
@@ -328,7 +327,7 @@ public class HttpCommander implements Commander
         for (int loop = 0; true; loop++) {
             try {
                 URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").build();
-                Request request = RequestBuilder.prepareGet()
+                Request request = Request.Builder.prepareGet()
                         .setUri(uri)
                         .build();
                 List<AgentStatusRepresentation> agents = client.execute(request, createJsonResponseHandler(AGENTS_CODEC));
@@ -357,7 +356,7 @@ public class HttpCommander implements Commander
     {
         URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").build();
 
-        Request request = RequestBuilder.prepareDelete()
+        Request request = Request.Builder.prepareDelete()
                 .setUri(uri)
                 .setBodyGenerator(textBodyGenerator(agentId))
                 .build();
@@ -370,7 +369,7 @@ public class HttpCommander implements Commander
     public boolean sshAgent(AgentFilter agentFilter, String command)
     {
         URI uri = agentFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent"));
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(uri)
                 .build();
 
