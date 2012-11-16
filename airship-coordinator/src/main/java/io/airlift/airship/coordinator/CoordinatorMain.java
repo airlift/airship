@@ -13,16 +13,15 @@
  */
 package io.airlift.airship.coordinator;
 
-import com.proofpoint.bootstrap.Bootstrap;
-import com.proofpoint.discovery.client.DiscoveryModule;
-import com.proofpoint.event.client.HttpEventModule;
-import com.proofpoint.http.client.HttpClientModule;
-import com.proofpoint.json.JsonModule;
-import com.proofpoint.http.server.HttpServerModule;
-import com.proofpoint.jaxrs.JaxrsModule;
-import com.proofpoint.jmx.JmxModule;
-import com.proofpoint.log.Logger;
-import com.proofpoint.node.NodeModule;
+import io.airlift.bootstrap.Bootstrap;
+import io.airlift.discovery.client.DiscoveryModule;
+import io.airlift.event.client.HttpEventModule;
+import io.airlift.http.server.HttpServerModule;
+import io.airlift.jaxrs.JaxrsModule;
+import io.airlift.jmx.JmxModule;
+import io.airlift.json.JsonModule;
+import io.airlift.log.Logger;
+import io.airlift.node.NodeModule;
 import org.weakref.jmx.guice.MBeanModule;
 
 import static io.airlift.airship.coordinator.ConditionalModule.installIfPropertyEquals;
@@ -39,7 +38,6 @@ public class CoordinatorMain
             Bootstrap app = new Bootstrap(
                     new NodeModule(),
                     new HttpServerModule(),
-                    new HttpClientModule(Global.class),
                     new HttpEventModule(),
                     new DiscoveryModule(),
                     new JsonModule(),

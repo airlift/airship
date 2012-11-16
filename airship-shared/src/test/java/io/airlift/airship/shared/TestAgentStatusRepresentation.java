@@ -17,17 +17,17 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
-import com.proofpoint.json.JsonCodec;
+import io.airlift.json.JsonCodec;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.util.UUID;
 
 import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
-import static com.proofpoint.json.JsonCodec.jsonCodec;
 import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.json.JsonCodec.jsonCodec;
 import static org.testng.Assert.assertEquals;
 
 public class TestAgentStatusRepresentation

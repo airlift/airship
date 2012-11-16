@@ -8,21 +8,20 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
-import com.google.common.collect.AbstractLinkedIterator;
+import com.google.common.collect.AbstractSequentialIterator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.airlift.airship.coordinator.AwsProvisionerConfig;
-import com.proofpoint.units.Duration;
+import io.airlift.units.Duration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Time;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.io.CharStreams.newReaderSupplier;
 
@@ -206,7 +204,7 @@ public class S3AuthorizedKeyStore
         @Override
         public Iterator<S3ObjectSummary> iterator()
         {
-            Iterator<ObjectListing> objectListings = new AbstractLinkedIterator<ObjectListing>(s3Client.listObjects(listObjectsRequest))
+            Iterator<ObjectListing> objectListings = new AbstractSequentialIterator<ObjectListing>(s3Client.listObjects(listObjectsRequest))
             {
                 @Override
                 protected ObjectListing computeNext(ObjectListing previous)

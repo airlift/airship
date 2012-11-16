@@ -1,8 +1,8 @@
 package io.airlift.airship.coordinator;
 
-import com.proofpoint.configuration.Config;
-import com.proofpoint.configuration.ConfigDescription;
-import com.proofpoint.units.Duration;
+import io.airlift.configuration.Config;
+import io.airlift.configuration.ConfigDescription;
+import io.airlift.units.Duration;
 
 import javax.validation.constraints.NotNull;
 import java.util.concurrent.TimeUnit;

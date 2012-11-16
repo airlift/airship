@@ -1,9 +1,9 @@
 package io.airlift.airship.shared;
 
-import com.proofpoint.json.JsonCodec;
+import io.airlift.json.JsonCodec;
 import org.testng.annotations.Test;
 
-import static com.proofpoint.json.JsonCodec.jsonCodec;
+import static io.airlift.json.JsonCodec.jsonCodec;
 import static org.testng.Assert.assertEquals;
 
 public class TestUpgradeVersion

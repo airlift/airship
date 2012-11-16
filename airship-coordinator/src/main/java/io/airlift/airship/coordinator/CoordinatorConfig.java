@@ -15,10 +15,10 @@ package io.airlift.airship.coordinator;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.configuration.Config;
-import com.proofpoint.configuration.ConfigDescription;
-import com.proofpoint.configuration.LegacyConfig;
-import com.proofpoint.units.Duration;
+import io.airlift.configuration.Config;
+import io.airlift.configuration.ConfigDescription;
+import io.airlift.configuration.LegacyConfig;
+import io.airlift.units.Duration;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;

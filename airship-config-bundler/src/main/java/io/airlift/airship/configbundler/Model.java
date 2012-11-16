@@ -8,7 +8,7 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.common.primitives.Ints;
-import com.proofpoint.json.JsonCodec;
+import io.airlift.json.JsonCodec;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;

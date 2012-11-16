@@ -17,24 +17,25 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.google.inject.multibindings.Multibinder;
-import com.proofpoint.discovery.client.ServiceDescriptor;
-import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
 import io.airlift.airship.coordinator.auth.AuthConfig;
 import io.airlift.airship.coordinator.auth.AuthFilter;
 import io.airlift.airship.coordinator.auth.SignatureVerifier;
 import io.airlift.airship.shared.AgentStatusRepresentation;
-import io.airlift.airship.shared.Repository;
 import io.airlift.airship.shared.ExpectedSlotStatus;
 import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.airship.shared.Repository;
 import io.airlift.airship.shared.RepositorySet;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.airship.shared.VersionConflictExceptionMapper;
-import com.proofpoint.http.server.TheServlet;
-import com.proofpoint.json.JsonCodecBinder;
+import io.airlift.discovery.client.ServiceDescriptor;
+import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
+import io.airlift.http.server.TheServlet;
+import io.airlift.json.JsonCodecBinder;
 
 import javax.servlet.Filter;
 
-import static com.proofpoint.configuration.ConfigurationModule.bindConfig;
+import static io.airlift.configuration.ConfigurationModule.bindConfig;
+import static io.airlift.http.client.HttpClientBinder.httpClientBinder;
 
 public class CoordinatorMainModule
         implements Module
@@ -75,5 +76,7 @@ public class CoordinatorMainModule
         JsonCodecBinder.jsonCodecBinder(binder).bindListJsonCodec(ServiceDescriptor.class);
 
         bindConfig(binder).to(CoordinatorConfig.class);
+
+        httpClientBinder(binder).bindHttpClient("global", Global.class);
     }
 }

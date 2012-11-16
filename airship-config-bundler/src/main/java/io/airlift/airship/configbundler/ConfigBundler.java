@@ -1,8 +1,8 @@
 package io.airlift.airship.configbundler;
 
 import com.google.common.io.NullOutputStream;
-import com.proofpoint.log.Logging;
-import com.proofpoint.log.LoggingConfiguration;
+import io.airlift.log.Logging;
+import io.airlift.log.LoggingConfiguration;
 import org.iq80.cli.Cli;
 import org.iq80.cli.Help;
 

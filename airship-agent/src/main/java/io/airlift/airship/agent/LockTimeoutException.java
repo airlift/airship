@@ -1,7 +1,7 @@
 package io.airlift.airship.agent;
 
 import com.google.common.base.Joiner;
-import com.proofpoint.units.Duration;
+import io.airlift.units.Duration;
 
 import java.util.List;
 

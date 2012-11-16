@@ -26,7 +26,7 @@ import static org.testng.Assert.assertTrue;
 /*
     Change to the resource directory:
 
-       cd src/test/resources/com/proofpoint/airship/coordinator/auth
+       cd src/test/resources/io/airlift/airship/coordinator/auth
 
     Generate test keys:
 

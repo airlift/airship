@@ -15,8 +15,8 @@ package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
-import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
-import com.proofpoint.node.NodeInfo;
+import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
+import io.airlift.node.NodeInfo;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

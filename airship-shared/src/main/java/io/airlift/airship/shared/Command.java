@@ -11,7 +11,7 @@ import com.google.common.io.Closeables;
 import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
-import com.proofpoint.units.Duration;
+import io.airlift.units.Duration;
 
 import javax.annotation.concurrent.Immutable;
 import java.io.File;

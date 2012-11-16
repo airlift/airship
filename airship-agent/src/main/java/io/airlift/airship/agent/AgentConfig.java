@@ -14,8 +14,8 @@
 package io.airlift.airship.agent;
 
 import com.google.common.base.Preconditions;
-import com.proofpoint.configuration.Config;
-import com.proofpoint.units.Duration;
+import io.airlift.configuration.Config;
+import io.airlift.units.Duration;
 
 import javax.validation.constraints.NotNull;
 import java.util.concurrent.TimeUnit;

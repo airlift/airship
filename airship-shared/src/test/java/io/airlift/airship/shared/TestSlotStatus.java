@@ -26,7 +26,7 @@ import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
 import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
-import static com.proofpoint.testing.EquivalenceTester.equivalenceTester;
+import static io.airlift.testing.EquivalenceTester.equivalenceTester;
 
 public class TestSlotStatus
 {

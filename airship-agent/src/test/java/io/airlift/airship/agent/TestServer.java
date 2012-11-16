@@ -17,29 +17,28 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.proofpoint.configuration.ConfigurationFactory;
-import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.discovery.client.testing.TestingDiscoveryModule;
-import com.proofpoint.event.client.NullEventModule;
 import io.airlift.airship.shared.HttpUriBuilder;
 import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.InstallationHelper;
 import io.airlift.airship.shared.InstallationRepresentation;
 import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.VersionsUtil;
-import com.proofpoint.http.client.ApacheHttpClient;
-import com.proofpoint.http.client.FullJsonResponseHandler.JsonResponse;
-import com.proofpoint.http.client.HttpClient;
-import com.proofpoint.http.client.JsonBodyGenerator;
-import com.proofpoint.http.client.Request;
-import com.proofpoint.http.client.RequestBuilder;
-import com.proofpoint.http.client.StatusResponseHandler.StatusResponse;
-import com.proofpoint.http.server.testing.TestingHttpServer;
-import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.jaxrs.JaxrsModule;
-import com.proofpoint.json.JsonCodec;
-import com.proofpoint.json.JsonModule;
-import com.proofpoint.node.testing.TestingNodeModule;
+import io.airlift.configuration.ConfigurationFactory;
+import io.airlift.configuration.ConfigurationModule;
+import io.airlift.discovery.client.testing.TestingDiscoveryModule;
+import io.airlift.event.client.NullEventModule;
+import io.airlift.http.client.ApacheHttpClient;
+import io.airlift.http.client.FullJsonResponseHandler.JsonResponse;
+import io.airlift.http.client.HttpClient;
+import io.airlift.http.client.JsonBodyGenerator;
+import io.airlift.http.client.Request;
+import io.airlift.http.client.StatusResponseHandler.StatusResponse;
+import io.airlift.http.server.testing.TestingHttpServer;
+import io.airlift.http.server.testing.TestingHttpServerModule;
+import io.airlift.jaxrs.JaxrsModule;
+import io.airlift.json.JsonCodec;
+import io.airlift.json.JsonModule;
+import io.airlift.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -63,13 +62,13 @@ import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
-import static com.proofpoint.http.client.FullJsonResponseHandler.createFullJsonResponseHandler;
-import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
-import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
-import static com.proofpoint.http.client.StatusResponseHandler.createStatusResponseHandler;
-import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.json.JsonCodec.listJsonCodec;
-import static com.proofpoint.json.JsonCodec.mapJsonCodec;
+import static io.airlift.http.client.FullJsonResponseHandler.createFullJsonResponseHandler;
+import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static io.airlift.http.client.StaticBodyGenerator.createStaticBodyGenerator;
+import static io.airlift.http.client.StatusResponseHandler.createStatusResponseHandler;
+import static io.airlift.json.JsonCodec.jsonCodec;
+import static io.airlift.json.JsonCodec.listJsonCodec;
+import static io.airlift.json.JsonCodec.mapJsonCodec;
 import static javax.ws.rs.core.Response.Status;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -161,7 +160,7 @@ public class TestServer
     {
         SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Request request = RequestBuilder.prepareGet().setUri(urlFor("/v1/agent/slot", slotStatus.getId().toString())).build();
+        Request request = Request.Builder.prepareGet().setUri(urlFor("/v1/agent/slot", slotStatus.getId().toString())).build();
         Map<String, Object> response = client.execute(request, createJsonResponseHandler(mapCodec, Status.OK.getStatusCode()));
 
         Map<String, Object> expected = mapCodec.fromJson(Resources.toString(Resources.getResource("slot-status.json"), UTF_8));
@@ -186,7 +185,7 @@ public class TestServer
     public void testGetAllSlotStatusEmpty()
             throws Exception
     {
-        Request request = RequestBuilder.prepareGet().setUri(urlFor("/v1/agent/slot")).build();
+        Request request = Request.Builder.prepareGet().setUri(urlFor("/v1/agent/slot")).build();
         List<Map<String, Object>> response = client.execute(request, createJsonResponseHandler(listCodec, Status.OK.getStatusCode()));
         assertEquals(response, Collections.<Object>emptyList());
     }
@@ -198,7 +197,7 @@ public class TestServer
         SlotStatus appleSlotStatus = agent.install(appleInstallation);
         SlotStatus bananaSlotStatus = agent.install(bananaInstallation);
 
-        Request request = RequestBuilder.prepareGet().setUri(urlFor("/v1/agent/slot")).build();
+        Request request = Request.Builder.prepareGet().setUri(urlFor("/v1/agent/slot")).build();
         List<Map<String, Object>> response = client.execute(request, createJsonResponseHandler(listCodec, Status.OK.getStatusCode()));
 
         List<Map<String, Object>> expected = listCodec.fromJson(Resources.toString(Resources.getResource("slot-status-list.json"), UTF_8));
@@ -228,7 +227,7 @@ public class TestServer
     public void testInstallSlot()
             throws Exception
     {
-        Request request = RequestBuilder.preparePost()
+        Request request = Request.Builder.preparePost()
                 .setUri(urlFor("/v1/agent/slot"))
                 .setHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .setBodyGenerator(JsonBodyGenerator.jsonBodyGenerator(installationCodec, InstallationRepresentation.from(appleInstallation)))
@@ -267,7 +266,7 @@ public class TestServer
     {
         SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Request request = RequestBuilder.prepareDelete()
+        Request request = Request.Builder.prepareDelete()
                 .setUri(urlFor("/v1/agent/slot", slotStatus.getId().toString()))
                 .build();
         Map<String, Object> response = client.execute(request, createJsonResponseHandler(mapCodec, Status.OK.getStatusCode()));
@@ -293,7 +292,7 @@ public class TestServer
     public void testTerminateUnknownSlot()
             throws Exception
     {
-        Request request = RequestBuilder.prepareDelete()
+        Request request = Request.Builder.prepareDelete()
                 .setUri(urlFor("/v1/agent/slot/unknown"))
                 .build();
         StatusResponse response = client.execute(request, createStatusResponseHandler());
@@ -306,7 +305,7 @@ public class TestServer
             throws Exception
     {
         String json = Resources.toString(Resources.getResource("slot-status.json"), UTF_8);
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(urlFor("/v1/agent/slot"))
                 .setHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .setBodyGenerator(createStaticBodyGenerator(json, UTF_8))
@@ -325,7 +324,7 @@ public class TestServer
         SlotStatus slotStatus = agent.install(appleInstallation);
 
         String json = installationCodec.toJson(InstallationRepresentation.from(appleInstallation));
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(urlFor(slotStatus, "assignment"))
                 .setHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .setBodyGenerator(createStaticBodyGenerator(json, UTF_8))
@@ -358,7 +357,7 @@ public class TestServer
     {
         SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(urlFor(slotStatus, "lifecycle"))
                 .setBodyGenerator(createStaticBodyGenerator("running", UTF_8))
                 .build();
@@ -391,7 +390,7 @@ public class TestServer
         SlotStatus slotStatus = agent.install(appleInstallation);
         agent.getSlot(slotStatus.getId()).start();
 
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(urlFor(slotStatus, "lifecycle"))
                 .setBodyGenerator(createStaticBodyGenerator("stopped", UTF_8))
                 .build();
@@ -423,7 +422,7 @@ public class TestServer
     {
         SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(urlFor(slotStatus, "lifecycle"))
                 .setBodyGenerator(createStaticBodyGenerator("restarting", UTF_8))
                 .build();
@@ -455,7 +454,7 @@ public class TestServer
     {
         SlotStatus slotStatus = agent.install(appleInstallation);
 
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(urlFor(slotStatus, "lifecycle"))
                 .setBodyGenerator(createStaticBodyGenerator("unknown", UTF_8))
                 .build();

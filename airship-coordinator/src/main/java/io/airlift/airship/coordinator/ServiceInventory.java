@@ -1,6 +1,6 @@
 package io.airlift.airship.coordinator;
 
-import com.proofpoint.discovery.client.ServiceDescriptor;
+import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.airship.shared.SlotStatus;
 
 import java.util.List;

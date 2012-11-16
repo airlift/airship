@@ -14,7 +14,7 @@
 package io.airlift.airship.agent;
 
 import io.airlift.airship.shared.SlotStatus;
-import com.proofpoint.units.Duration;
+import io.airlift.units.Duration;
 import org.testng.annotations.Test;
 
 import java.net.URI;

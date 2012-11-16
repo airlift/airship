@@ -5,8 +5,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.proofpoint.discovery.client.ServiceDescriptor;
-import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.AgentStatusRepresentation;
 import io.airlift.airship.shared.Installation;
@@ -14,11 +12,12 @@ import io.airlift.airship.shared.InstallationRepresentation;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.SlotStatusRepresentation;
-import com.proofpoint.http.client.HttpClient;
-import com.proofpoint.http.client.Request;
-import com.proofpoint.http.client.RequestBuilder;
-import com.proofpoint.json.JsonCodec;
-import com.proofpoint.log.Logger;
+import io.airlift.discovery.client.ServiceDescriptor;
+import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
+import io.airlift.http.client.HttpClient;
+import io.airlift.http.client.Request;
+import io.airlift.json.JsonCodec;
+import io.airlift.log.Logger;
 
 import javax.ws.rs.core.Response.Status;
 import java.net.URI;
@@ -31,9 +30,9 @@ import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
 import static io.airlift.airship.shared.AgentLifecycleState.PROVISIONING;
 import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
-import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
-import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
-import static com.proofpoint.http.client.StatusResponseHandler.createStatusResponseHandler;
+import static io.airlift.http.client.JsonBodyGenerator.jsonBodyGenerator;
+import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static io.airlift.http.client.StatusResponseHandler.createStatusResponseHandler;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 public class HttpRemoteAgent implements RemoteAgent
@@ -104,7 +103,7 @@ public class HttpRemoteAgent implements RemoteAgent
             Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
             URI internalUri = agentStatus.getInternalUri();
             try {
-                Request request = RequestBuilder.preparePut()
+                Request request = Request.Builder.preparePut()
                         .setUri(uriBuilderFrom(internalUri).appendPath("/v1/serviceInventory").build())
                         .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                         .setBodyGenerator(jsonBodyGenerator(serviceDescriptorsCodec, new ServiceDescriptorsRepresentation(environment, serviceInventory)))
@@ -130,7 +129,7 @@ public class HttpRemoteAgent implements RemoteAgent
         URI internalUri = agentStatus.getInternalUri();
         if (internalUri != null) {
             try {
-                Request request = RequestBuilder.prepareGet()
+                Request request = Request.Builder.prepareGet()
                         .setUri(uriBuilderFrom(internalUri).replacePath("/v1/agent/").build())
                         .build();
                 AgentStatusRepresentation agentStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(agentStatusCodec));
@@ -166,7 +165,7 @@ public class HttpRemoteAgent implements RemoteAgent
         URI internalUri = agentStatus.getInternalUri();
         Preconditions.checkState(internalUri != null, "agent is down");
         try {
-            Request request = RequestBuilder.preparePost()
+            Request request = Request.Builder.preparePost()
                     .setUri(uriBuilderFrom(internalUri).replacePath("/v1/agent/slot/").build())
                     .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .setHeader(AIRSHIP_AGENT_VERSION_HEADER, status().getVersion())

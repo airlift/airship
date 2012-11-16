@@ -9,8 +9,8 @@ import com.google.inject.Inject;
 import io.airlift.airship.shared.FileUtils;
 import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.MavenCoordinates;
-import com.proofpoint.node.NodeInfo;
-import com.proofpoint.units.Duration;
+import io.airlift.node.NodeInfo;
+import io.airlift.units.Duration;
 
 import javax.annotation.Nullable;
 import java.io.File;

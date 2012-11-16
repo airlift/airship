@@ -14,10 +14,10 @@
 package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableList;
-import com.proofpoint.discovery.client.DiscoveryException;
-import com.proofpoint.discovery.client.ServiceDescriptor;
-import com.proofpoint.discovery.client.ServiceDescriptorsRepresentation;
-import com.proofpoint.node.NodeInfo;
+import io.airlift.discovery.client.DiscoveryException;
+import io.airlift.discovery.client.ServiceDescriptor;
+import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
+import io.airlift.node.NodeInfo;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;

@@ -5,11 +5,10 @@ import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.InstallationRepresentation;
 import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.SlotStatusRepresentation;
-import com.proofpoint.http.client.HttpClient;
-import com.proofpoint.http.client.Request;
-import com.proofpoint.http.client.RequestBuilder;
-import com.proofpoint.json.JsonCodec;
-import com.proofpoint.log.Logger;
+import io.airlift.http.client.HttpClient;
+import io.airlift.http.client.Request;
+import io.airlift.json.JsonCodec;
+import io.airlift.log.Logger;
 
 import javax.ws.rs.core.Response.Status;
 import java.util.UUID;
@@ -20,10 +19,10 @@ import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
-import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
-import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
-import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
-import static com.proofpoint.json.JsonCodec.jsonCodec;
+import static io.airlift.http.client.JsonBodyGenerator.jsonBodyGenerator;
+import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static io.airlift.http.client.StaticBodyGenerator.createStaticBodyGenerator;
+import static io.airlift.json.JsonCodec.jsonCodec;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 public class HttpRemoteSlot implements RemoteSlot
@@ -79,7 +78,7 @@ public class HttpRemoteSlot implements RemoteSlot
     public SlotStatus assign(Installation installation)
     {
         try {
-            Request request = RequestBuilder.preparePut()
+            Request request = Request.Builder.preparePut()
                     .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("assignment").build())
                     .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
@@ -101,7 +100,7 @@ public class HttpRemoteSlot implements RemoteSlot
     public SlotStatus terminate()
     {
         try {
-            Request request = RequestBuilder.prepareDelete()
+            Request request = Request.Builder.prepareDelete()
                     .setUri(slotStatus.getSelf())
                     .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
                     .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
@@ -121,7 +120,7 @@ public class HttpRemoteSlot implements RemoteSlot
     public SlotStatus start()
     {
         try {
-            Request request = RequestBuilder.preparePut()
+            Request request = Request.Builder.preparePut()
                     .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("lifecycle").build())
                     .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
                     .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
@@ -142,7 +141,7 @@ public class HttpRemoteSlot implements RemoteSlot
     public SlotStatus restart()
     {
         try {
-            Request request = RequestBuilder.preparePut()
+            Request request = Request.Builder.preparePut()
                     .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("lifecycle").build())
                     .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
                     .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())
@@ -163,7 +162,7 @@ public class HttpRemoteSlot implements RemoteSlot
     public SlotStatus stop()
     {
         try {
-            Request request = RequestBuilder.preparePut()
+            Request request = Request.Builder.preparePut()
                     .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("lifecycle").build())
                     .setHeader(AIRSHIP_AGENT_VERSION_HEADER, agent.status().getVersion())
                     .setHeader(AIRSHIP_SLOT_VERSION_HEADER, slotStatus.getVersion())

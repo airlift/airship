@@ -14,8 +14,8 @@ import com.google.common.base.Preconditions;
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.ExpectedSlotStatus;
 import io.airlift.airship.shared.SlotLifecycleState;
-import com.proofpoint.log.Logger;
-import com.proofpoint.node.NodeInfo;
+import io.airlift.log.Logger;
+import io.airlift.node.NodeInfo;
 
 import javax.inject.Inject;
 import java.util.Collection;

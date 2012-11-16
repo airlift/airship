@@ -1,6 +1,6 @@
 package io.airlift.airship.coordinator.auth;
 
-import com.proofpoint.configuration.Config;
+import io.airlift.configuration.Config;
 
 public class AuthConfig
 {

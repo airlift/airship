@@ -18,13 +18,13 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.configuration.ConfigurationFactory;
+import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.airship.shared.MavenCoordinates;
 import io.airlift.airship.shared.Repository;
-import com.proofpoint.http.server.HttpServerConfig;
-import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.log.Logger;
-import com.proofpoint.node.NodeInfo;
+import io.airlift.http.server.HttpServerConfig;
+import io.airlift.http.server.HttpServerInfo;
+import io.airlift.log.Logger;
+import io.airlift.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;

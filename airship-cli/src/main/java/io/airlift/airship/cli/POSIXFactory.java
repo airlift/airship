@@ -1,6 +1,6 @@
 package io.airlift.airship.cli;
 
-import com.proofpoint.log.Logger;
+import io.airlift.log.Logger;
 import jnr.constants.platform.Errno;
 import jnr.posix.POSIX;
 import jnr.posix.POSIXHandler;

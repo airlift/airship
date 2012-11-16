@@ -4,11 +4,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import io.airlift.airship.shared.AgentStatusRepresentation;
-import com.proofpoint.http.client.HttpClient;
-import com.proofpoint.http.client.Request;
-import com.proofpoint.http.client.RequestBuilder;
-import com.proofpoint.http.server.HttpServerInfo;
-import com.proofpoint.json.JsonCodec;
+import io.airlift.http.client.HttpClient;
+import io.airlift.http.client.Request;
+import io.airlift.http.server.HttpServerInfo;
+import io.airlift.json.JsonCodec;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.UriBuilder;
@@ -18,7 +17,7 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import static com.google.common.base.Objects.firstNonNull;
-import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
 
 public class StaticProvisioner implements Provisioner
 {
@@ -102,7 +101,7 @@ public class StaticProvisioner implements Provisioner
             String agentUri = entry.getValue();
 
             URI uri = UriBuilder.fromUri(agentUri).path("/v1/agent").build();
-            Request request = RequestBuilder.prepareGet()
+            Request request = Request.Builder.prepareGet()
                     .setUri(uri)
                     .build();
 

@@ -3,8 +3,8 @@ package io.airlift.airship.coordinator;
 import com.google.common.base.Preconditions;
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import com.proofpoint.configuration.ConfigurationAwareModule;
-import com.proofpoint.configuration.ConfigurationFactory;
+import io.airlift.configuration.ConfigurationAwareModule;
+import io.airlift.configuration.ConfigurationFactory;
 
 public class ConditionalModule implements ConfigurationAwareModule
 {

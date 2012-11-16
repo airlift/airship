@@ -84,9 +84,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.proofpoint.platform</groupId>
+            <groupId>io.airlift</groupId>
             <artifactId>testing</artifactId>
-            <version>0.58</version>
+            <version>0.66</version>
             <scope>test</scope>
         </dependency>
 
@@ -160,7 +160,7 @@
                             </transformers>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>com.proofpoint.platform:launcher:tar.gz:bin:0.58</exclude>
+                                    <exclude>io.airlift:launcher:tar.gz:bin:0.66</exclude>
                                 </excludes>
                             </artifactSet>
                             <shadedArtifactAttached>true</shadedArtifactAttached>

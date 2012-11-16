@@ -16,8 +16,8 @@
 package io.airlift.airship.coordinator;
 
 import com.google.common.collect.ImmutableMap;
-import com.proofpoint.configuration.testing.ConfigAssertions;
-import com.proofpoint.units.Duration;
+import io.airlift.configuration.testing.ConfigAssertions;
+import io.airlift.units.Duration;
 import org.testng.annotations.Test;
 
 import java.util.Map;

@@ -18,7 +18,7 @@ public class AirshipTestRun
 //                "--repository", "https://oss.sonatype.org/content/repositories/releases/",
 //                "--repository", "https://oss.sonatype.org/content/repositories/snapshots/",
 //                "--repository", "https://s3.amazonaws.com/airship-cloud-formation/",
-//                "--maven-default-group-id", "com.proofpoint.platform",
+//                "--maven-default-group-id", "io.airlift",
 //                "--key-pair", "dain",
 //                "--coordinator-config", "@coordinator.config"
 //                );
@@ -28,7 +28,7 @@ public class AirshipTestRun
                 "--repository", "https://oss.sonatype.org/content/repositories/releases/",
                 "--repository", "https://oss.sonatype.org/content/repositories/snapshots/",
                 "--repository", "http://localhost:64001/v1/config/test/",
-                "--maven-default-group-id", "com.proofpoint.platform"
+                "--maven-default-group-id", "io.airlift"
         );
         execute("environment", "use", "local");
 

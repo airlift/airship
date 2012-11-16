@@ -24,9 +24,6 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.util.Modules;
-import com.proofpoint.configuration.ConfigurationFactory;
-import com.proofpoint.configuration.ConfigurationModule;
-import com.proofpoint.event.client.NullEventModule;
 import io.airlift.airship.shared.AgentLifecycleState;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.AgentStatusRepresentation;
@@ -38,17 +35,19 @@ import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.airship.shared.SlotStatusRepresentation.SlotStatusRepresentationFactory;
 import io.airlift.airship.shared.UpgradeVersions;
-import com.proofpoint.http.client.ApacheHttpClient;
-import com.proofpoint.http.client.HttpClient;
-import com.proofpoint.http.client.Request;
-import com.proofpoint.http.client.RequestBuilder;
-import com.proofpoint.http.client.StatusResponseHandler.StatusResponse;
-import com.proofpoint.http.server.testing.TestingHttpServer;
-import com.proofpoint.http.server.testing.TestingHttpServerModule;
-import com.proofpoint.jaxrs.JaxrsModule;
-import com.proofpoint.json.JsonCodec;
-import com.proofpoint.json.JsonModule;
-import com.proofpoint.node.testing.TestingNodeModule;
+import io.airlift.configuration.ConfigurationFactory;
+import io.airlift.configuration.ConfigurationModule;
+import io.airlift.event.client.NullEventModule;
+import io.airlift.http.client.ApacheHttpClient;
+import io.airlift.http.client.HttpClient;
+import io.airlift.http.client.Request;
+import io.airlift.http.client.StatusResponseHandler.StatusResponse;
+import io.airlift.http.server.testing.TestingHttpServer;
+import io.airlift.http.server.testing.TestingHttpServerModule;
+import io.airlift.jaxrs.JaxrsModule;
+import io.airlift.json.JsonCodec;
+import io.airlift.json.JsonModule;
+import io.airlift.node.testing.TestingNodeModule;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -76,12 +75,12 @@ import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
 import static io.airlift.airship.shared.Strings.shortestUniquePrefix;
-import static com.proofpoint.http.client.JsonBodyGenerator.jsonBodyGenerator;
-import static com.proofpoint.http.client.JsonResponseHandler.createJsonResponseHandler;
-import static com.proofpoint.http.client.StaticBodyGenerator.createStaticBodyGenerator;
-import static com.proofpoint.http.client.StatusResponseHandler.createStatusResponseHandler;
-import static com.proofpoint.json.JsonCodec.jsonCodec;
-import static com.proofpoint.json.JsonCodec.listJsonCodec;
+import static io.airlift.http.client.JsonBodyGenerator.jsonBodyGenerator;
+import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static io.airlift.http.client.StaticBodyGenerator.createStaticBodyGenerator;
+import static io.airlift.http.client.StatusResponseHandler.createStatusResponseHandler;
+import static io.airlift.json.JsonCodec.jsonCodec;
+import static io.airlift.json.JsonCodec.listJsonCodec;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.testng.Assert.assertEquals;
@@ -265,7 +264,7 @@ public class TestCoordinatorServer
         coordinator.updateAllCoordinators();
 
         // verify coordinator appears
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/coordinator").build())
                 .build();
 
@@ -288,7 +287,7 @@ public class TestCoordinatorServer
         // provision the coordinator and verify
         String instanceType = "instance-type";
         CoordinatorProvisioningRepresentation coordinatorProvisioningRepresentation = new CoordinatorProvisioningRepresentation("coordinator:config:1", 1, instanceType, null, null, null, null);
-        Request request = RequestBuilder.preparePost()
+        Request request = Request.Builder.preparePost()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/coordinator").build())
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .setBodyGenerator(jsonBodyGenerator(coordinatorProvisioningCodec, coordinatorProvisioningRepresentation))
@@ -319,7 +318,7 @@ public class TestCoordinatorServer
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
 
 
-        request = RequestBuilder.prepareGet()
+        request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/coordinator").build())
                 .build();
 
@@ -352,7 +351,7 @@ public class TestCoordinatorServer
     @Test
     public void testGetAllAgentsEmpty()
     {
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
                 .build();
 
@@ -386,7 +385,7 @@ public class TestCoordinatorServer
         provisioner.addAgents(status);
         coordinator.updateAllAgents();
 
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
                 .build();
 
@@ -411,7 +410,7 @@ public class TestCoordinatorServer
         // provision the agent and verify
         String instanceType = "instance-type";
         AgentProvisioningRepresentation agentProvisioningRepresentation = new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null);
-        Request request = RequestBuilder.preparePost()
+        Request request = Request.Builder.preparePost()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .setBodyGenerator(jsonBodyGenerator(agentProvisioningCodec, agentProvisioningRepresentation))
@@ -441,7 +440,7 @@ public class TestCoordinatorServer
         assertEquals(coordinator.getAgent(instanceId).getExternalUri(), expectedAgentStatus.getExternalUri());
         assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.ONLINE);
 
-        request = RequestBuilder.prepareGet()
+        request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
                 .build();
 
@@ -464,7 +463,7 @@ public class TestCoordinatorServer
     {
         initializeOneAgent();
 
-        Request request = RequestBuilder.prepareGet()
+        Request request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("name", "*").build())
                 .build();
         List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
@@ -490,7 +489,7 @@ public class TestCoordinatorServer
         initializeOneAgent();
 
         UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2.0");
-        Request request = RequestBuilder.preparePost()
+        Request request = Request.Builder.preparePost()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/assignment").addParameter("host", "apple*").build())
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .setBodyGenerator(jsonBodyGenerator(upgradeVersionsCodec, upgradeVersions))
@@ -527,7 +526,7 @@ public class TestCoordinatorServer
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
 
-        Request request = RequestBuilder.prepareDelete()
+        Request request = Request.Builder.prepareDelete()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("host", "apple*").build())
                 .build();
         List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
@@ -553,7 +552,7 @@ public class TestCoordinatorServer
     {
         initializeOneAgent();
 
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("running", UTF_8))
                 .build();
@@ -580,7 +579,7 @@ public class TestCoordinatorServer
     {
         initializeOneAgent();
 
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("restarting", UTF_8))
                 .build();
@@ -609,7 +608,7 @@ public class TestCoordinatorServer
 
         coordinator.setState(RUNNING, Predicates.<SlotStatus>alwaysTrue(), null);
 
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("stopped", UTF_8))
                 .build();
@@ -636,7 +635,7 @@ public class TestCoordinatorServer
     {
         initializeOneAgent();
 
-        Request request = RequestBuilder.preparePut()
+        Request request = Request.Builder.preparePut()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("unknown", UTF_8))
                 .build();
