@@ -79,6 +79,11 @@ import static org.iq80.cli.Cli.buildCli;
 
 public class Airship
 {
+    private static final int EXIT_SUCCESS = 0;
+    private static final int EXIT_FAILURE = 1;
+    private static final int EXIT_PERMANENT = 100;
+//    private static final int EXIT_TRANSIENT = 111;
+
     private static final File CONFIG_FILE = new File(System.getProperty("user.home", "."), ".airshipconfig");
 
     public static final Cli<AirshipCommand> AIRSHIP_PARSER;
@@ -139,15 +144,16 @@ public class Airship
             throws Exception
     {
         try {
-            AIRSHIP_PARSER.parse(args).call();
+            System.exit(AIRSHIP_PARSER.parse(args).call());
         }
         catch (ParseException e) {
             System.out.println(firstNonNull(e.getMessage(), "Unknown command line parser error"));
+            System.exit(EXIT_PERMANENT);
         }
     }
 
     public static abstract class AirshipCommand
-            implements Callable<Void>
+            implements Callable<Integer>
     {
         @Inject
         public GlobalOptions globalOptions = new GlobalOptions();
@@ -156,7 +162,7 @@ public class Airship
         public Config config;
 
         @Override
-        public final Void call()
+        public final Integer call()
                 throws Exception
         {
             initializeLogging(globalOptions.debug);
@@ -172,9 +178,10 @@ public class Airship
                 }
                 else {
                     System.out.println(firstNonNull(e.getMessage(), "Unknown error"));
+                    return EXIT_FAILURE;
                 }
             }
-            return null;
+            return EXIT_SUCCESS;
         }
 
         @VisibleForTesting
