@@ -42,6 +42,7 @@ import io.airlift.http.server.HttpServerInfo;
 import io.airlift.json.JsonCodec;
 import io.airlift.log.Logging;
 import io.airlift.log.LoggingConfiguration;
+import io.airlift.log.LoggingMBean;
 import io.airlift.node.NodeInfo;
 import org.iq80.cli.Arguments;
 import org.iq80.cli.Cli;
@@ -1509,6 +1510,8 @@ public class Airship
             if (debug) {
                 Logging logging = new Logging();
                 logging.initialize(new LoggingConfiguration());
+                // TODO: add public level interface to logging framework
+                new LoggingMBean().setLevel("io.airlift.airship", "DEBUG");
             }
             else {
                 System.setOut(new PrintStream(new NullOutputStream()));
