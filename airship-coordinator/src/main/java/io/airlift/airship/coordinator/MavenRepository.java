@@ -14,7 +14,9 @@ import io.airlift.airship.coordinator.MavenMetadata.SnapshotVersion;
 import io.airlift.airship.shared.HttpUriBuilder;
 import io.airlift.airship.shared.MavenCoordinates;
 import io.airlift.airship.shared.Repository;
+import io.airlift.log.Logger;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,6 +36,8 @@ import static io.airlift.airship.shared.MavenCoordinates.toConfigGAV;
 
 public class MavenRepository implements Repository
 {
+    private static final Logger log = Logger.get(MavenRepository.class);
+
     private static final Pattern TIMESTAMP_VERSION = Pattern.compile("^(.+)-[0-9]{8}\\.[0-9]{6}\\-[0-9]+$");
     private final List<String> defaultGroupIds;
     private final List<URI> repositoryBases;
@@ -407,6 +411,7 @@ public class MavenRepository implements Repository
 
     private boolean isValidBinary(URI uri)
     {
+        log.debug("validating URI: %s", uri);
         try {
             InputSupplier<InputStream> inputSupplier = Resources.newInputStreamSupplier(uri.toURL());
             ByteStreams.readBytes(inputSupplier, new ByteProcessor<Void>()
@@ -427,7 +432,11 @@ public class MavenRepository implements Repository
             });
             return true;
         }
-        catch (Exception ignored) {
+        catch (FileNotFoundException e) {
+            log.debug("URI does not exist: %s", uri);
+        }
+        catch (Exception e) {
+            log.debug(e, "error validating URI: %s", uri);
         }
         return false;
     }
