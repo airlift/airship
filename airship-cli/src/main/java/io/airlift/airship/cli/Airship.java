@@ -402,7 +402,7 @@ public class Airship
         public void execute(Commander commander)
         {
             if (assignment.size() != 2) {
-                throw new ParseException("You must specify a binary and config to install.");
+                throw new ParseException("You must specify a binary and @config to install.");
             }
             String binary;
             String config;
@@ -413,6 +413,10 @@ public class Airship
             else {
                 binary = assignment.get(0);
                 config = assignment.get(1);
+            }
+
+            if (!config.startsWith("@")) {
+                throw new ParseException("Configuration specification must start with an at sign (@).");
             }
 
             Assignment assignment = new Assignment(binary, config);
