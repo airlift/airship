@@ -60,7 +60,6 @@ public class CommanderFactory
     private String coordinatorId = "local";
     private String agentId = "local";
     private String location;
-    private String instanceId = "local";
     private String instanceType = "local";
     private InetAddress internalIp;
     private String externalAddress;
@@ -211,7 +210,7 @@ public class CommanderFactory
         String coordinatorLocation = this.location == null ? Joiner.on('/').join("", "local", coordinatorId, "coordinator") : location;
         CoordinatorStatus coordinatorStatus = new CoordinatorStatus(coordinatorId,
                 CoordinatorLifecycleState.ONLINE,
-                instanceId,
+                coordinatorId,
                 FAKE_LOCAL_URI,
                 FAKE_LOCAL_URI,
                 coordinatorLocation,
@@ -235,7 +234,7 @@ public class CommanderFactory
         public List<Instance> listCoordinators()
         {
             String coordinatorLocation = location == null ? Joiner.on('/').join("", "local", coordinatorId, "coordinator") : location;
-            return ImmutableList.of(new Instance(agentId, instanceType, coordinatorLocation, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
+            return ImmutableList.of(new Instance(coordinatorId, instanceType, coordinatorLocation, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
         }
 
         @Override
@@ -311,7 +310,7 @@ public class CommanderFactory
         @Override
         public SlotStatus install(Installation installation)
         {
-            return agent.install(installation).changeInstanceId(instanceId);
+            return agent.install(installation).changeInstanceId(agentId);
         }
 
         @Override
@@ -320,7 +319,7 @@ public class CommanderFactory
             AgentStatus agentStatus = agent.getAgentStatus();
             return new AgentStatus(agentStatus.getAgentId(),
                     agentStatus.getState(),
-                    instanceId,
+                    agentId,
                     agentStatus.getInternalUri(),
                     agentStatus.getExternalUri(),
                     agentStatus.getLocation(),
@@ -334,7 +333,7 @@ public class CommanderFactory
         {
             ImmutableList.Builder<RemoteSlot> builder = ImmutableList.builder();
             for (Slot slot : agent.getAllSlots()) {
-                builder.add(new LocalRemoteSlot(slot, instanceId));
+                builder.add(new LocalRemoteSlot(slot, agentId));
             }
             return builder.build();
         }

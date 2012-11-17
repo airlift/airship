@@ -272,6 +272,12 @@ public class Coordinator
         Set<String> instanceIds = newHashSet();
         for (Instance instance : this.provisioner.listCoordinators()) {
             instanceIds.add(instance.getInstanceId());
+
+            // skip this server since it is automatically managed
+            if (instance.getInstanceId().equals(this.coordinatorStatus.getInstanceId())) {
+                continue;
+            }
+
             // todo add remote coordinator to get real status
             CoordinatorStatus coordinatorStatus = new CoordinatorStatus(instance.getInstanceId(),
                     instance.getInternalUri() != null ? CoordinatorLifecycleState.ONLINE : CoordinatorLifecycleState.OFFLINE,
@@ -281,10 +287,6 @@ public class Coordinator
                     instance.getLocation(),
                     instance.getInstanceType());
 
-            // skip this server since it is automatically managed
-            if (instance.getInstanceId().equals(this.coordinatorStatus.getInstanceId())) {
-                continue;
-            }
 
             CoordinatorStatus existing = coordinators.putIfAbsent(instance.getInstanceId(), coordinatorStatus);
             if (existing != null) {
