@@ -36,13 +36,6 @@ public class MockRemoteCoordinator
     {
     }
 
-//    void setSlotStatus(SlotStatus slotStatus)
-//    {
-//        CoordinatorStatus coordinatorStatus = getCoordinatorStatus().changeSlotStatus(slotStatus);
-//        setCoordinatorStatus(coordinatorStatus);
-//    }
-
-
     public CoordinatorStatus getCoordinatorStatus()
     {
         CoordinatorStatus coordinatorStatus = coordinators.get(instanceId);
