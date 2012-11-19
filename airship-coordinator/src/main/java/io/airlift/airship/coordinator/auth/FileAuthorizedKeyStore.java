@@ -1,7 +1,5 @@
 package io.airlift.airship.coordinator.auth;
 
-import io.airlift.airship.coordinator.LocalProvisionerConfig;
-
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -20,9 +18,9 @@ public class FileAuthorizedKeyStore
     private final File authorizedKeysDir;
 
     @Inject
-    public FileAuthorizedKeyStore(LocalProvisionerConfig localProvisionerConfig)
+    public FileAuthorizedKeyStore(FileAuthorizedKeyStoreConfig fileAuthorizedKeyStoreConfig)
     {
-        this(new File(checkNotNull(localProvisionerConfig, "localProvisionerConfig is null").getAuthorizedKeysDir()));
+        this(new File(checkNotNull(fileAuthorizedKeyStoreConfig, "localProvisionerConfig is null").getAuthorizedKeysDir()));
     }
 
     public FileAuthorizedKeyStore(File authorizedKeysDir)

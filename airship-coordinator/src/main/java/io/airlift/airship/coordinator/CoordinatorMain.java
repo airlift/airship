@@ -46,6 +46,7 @@ public class CoordinatorMain
                     new JmxModule(),
                     new CoordinatorMainModule(),
                     installIfPropertyEquals(new LocalProvisionerModule(), "coordinator.provisioner", "local"),
+                    installIfPropertyEquals(new StaticProvisionerModule(), "coordinator.provisioner", "static"),
                     installIfPropertyEquals(new AwsProvisionerModule(), "coordinator.provisioner", "aws"));
 
             app.strictConfig().initialize();

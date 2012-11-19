@@ -21,7 +21,7 @@ import io.airlift.airship.coordinator.auth.FileAuthorizedKeyStore;
 import io.airlift.airship.coordinator.auth.FileAuthorizedKeyStoreConfig;
 import io.airlift.configuration.ConfigurationModule;
 
-public class LocalProvisionerModule
+public class StaticProvisionerModule
         implements Module
 {
     public void configure(Binder binder)
@@ -29,8 +29,8 @@ public class LocalProvisionerModule
         binder.disableCircularProxies();
         binder.requireExplicitBindings();
 
-        binder.bind(Provisioner.class).to(FixedProvisioner.class).in(Scopes.SINGLETON);
-        ConfigurationModule.bindConfig(binder).to(FixedProvisionerConfig.class);
+        binder.bind(Provisioner.class).to(StaticProvisioner.class).in(Scopes.SINGLETON);
+        ConfigurationModule.bindConfig(binder).to(StaticProvisionerConfig.class);
 
         binder.bind(StateManager.class).to(FileStateManager.class).in(Scopes.SINGLETON);
         ConfigurationModule.bindConfig(binder).to(FileStateManagerConfig.class);

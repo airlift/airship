@@ -25,9 +25,9 @@ public class FileStateManager implements StateManager
     private final JsonCodec<ExpectedSlotStatus> codec;
 
     @Inject
-    public FileStateManager(LocalProvisionerConfig localProvisionerConfig, JsonCodec<ExpectedSlotStatus> codec)
+    public FileStateManager(FileStateManagerConfig fileStateManagerConfig, JsonCodec<ExpectedSlotStatus> codec)
     {
-        this(new File(checkNotNull(localProvisionerConfig, "localProvisionerConfig is null").getExpectedStateDir()), codec);
+        this(new File(checkNotNull(fileStateManagerConfig, "localProvisionerConfig is null").getExpectedStateDir()), codec);
     }
 
     public FileStateManager(File dataDir, JsonCodec<ExpectedSlotStatus> codec)
