@@ -21,7 +21,7 @@ import io.airlift.airship.coordinator.auth.FileAuthorizedKeyStore;
 import io.airlift.airship.coordinator.auth.FileAuthorizedKeyStoreConfig;
 import io.airlift.configuration.ConfigurationModule;
 
-public class LocalProvisionerModule
+public class FixedProvisionerModule
         implements Module
 {
     public void configure(Binder binder)

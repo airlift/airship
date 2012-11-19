@@ -28,9 +28,9 @@ import io.airlift.airship.coordinator.AgentProvisioningRepresentation;
 import io.airlift.airship.coordinator.Coordinator;
 import io.airlift.airship.coordinator.CoordinatorMainModule;
 import io.airlift.airship.coordinator.CoordinatorProvisioningRepresentation;
+import io.airlift.airship.coordinator.FixedProvisionerModule;
 import io.airlift.airship.coordinator.InMemoryStateManager;
 import io.airlift.airship.coordinator.Instance;
-import io.airlift.airship.coordinator.LocalProvisionerModule;
 import io.airlift.airship.coordinator.Provisioner;
 import io.airlift.airship.coordinator.StateManager;
 import io.airlift.airship.coordinator.TestingMavenRepository;
@@ -162,7 +162,7 @@ public class TestServerIntegration
                 new JaxrsModule(),
                 new NullEventModule(),
                 new CoordinatorMainModule(),
-                Modules.override(new LocalProvisionerModule()).with(new Module()
+                Modules.override(new FixedProvisionerModule()).with(new Module()
                 {
                     @Override
                     public void configure(Binder binder)

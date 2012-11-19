@@ -45,7 +45,7 @@ public class CoordinatorMain
                     new MBeanModule(),
                     new JmxModule(),
                     new CoordinatorMainModule(),
-                    installIfPropertyEquals(new LocalProvisionerModule(), "coordinator.provisioner", "local"),
+                    installIfPropertyEquals(new FixedProvisionerModule(), "coordinator.provisioner", "local"),
                     installIfPropertyEquals(new StaticProvisionerModule(), "coordinator.provisioner", "static"),
                     installIfPropertyEquals(new AwsProvisionerModule(), "coordinator.provisioner", "aws"));
 

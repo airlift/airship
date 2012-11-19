@@ -136,7 +136,7 @@ public class TestCoordinatorServer
                 new JsonModule(),
                 new JaxrsModule(),
                 new NullEventModule(),
-                Modules.override(new LocalProvisionerModule()).with(new Module()
+                Modules.override(new FixedProvisionerModule()).with(new Module()
                 {
                     @Override
                     public void configure(Binder binder)
