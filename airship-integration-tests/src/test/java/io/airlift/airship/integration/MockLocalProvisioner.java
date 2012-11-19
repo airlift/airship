@@ -8,15 +8,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import io.airlift.airship.agent.Agent;
+import io.airlift.airship.agent.AgentMainModule;
+import io.airlift.airship.agent.Slot;
+import io.airlift.airship.coordinator.Coordinator;
+import io.airlift.airship.coordinator.CoordinatorMainModule;
+import io.airlift.airship.coordinator.Instance;
+import io.airlift.airship.coordinator.LocalProvisionerModule;
+import io.airlift.airship.coordinator.Provisioner;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
 import io.airlift.discovery.client.testing.TestingDiscoveryModule;
 import io.airlift.event.client.NullEventModule;
-import io.airlift.airship.agent.Agent;
-import io.airlift.airship.agent.AgentMainModule;
-import io.airlift.airship.agent.Slot;
-import io.airlift.airship.coordinator.Instance;
-import io.airlift.airship.coordinator.Provisioner;
 import io.airlift.http.server.testing.TestingHttpServer;
 import io.airlift.http.server.testing.TestingHttpServerModule;
 import io.airlift.jaxrs.JaxrsModule;
@@ -26,7 +29,6 @@ import io.airlift.node.NodeModule;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,49 +42,20 @@ import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 
 public class MockLocalProvisioner implements Provisioner
 {
-    private final Map<String, Instance> coordinators = new ConcurrentHashMap<String, Instance>();
-    private final Map<String, AgentServer> agents = new ConcurrentHashMap<String, AgentServer>();
+    private final Map<String, CoordinatorServer> coordinators = new ConcurrentHashMap<>();
+    private final Map<String, AgentServer> agents = new ConcurrentHashMap<>();
     private final AtomicInteger nextInstanceId = new AtomicInteger();
 
     public boolean autoStartInstances;
 
-    public void addCoordinators(Instance... instances)
-    {
-        addCoordinators(ImmutableList.copyOf(instances));
-    }
-
-    public void addCoordinators(Iterable<Instance> instances)
-    {
-        for (Instance instance : instances) {
-            coordinators.put(instance.getInstanceId(), instance);
-        }
-    }
-
-    public void removeCoordinators(String... coordinatorIds)
-    {
-        removeCoordinators(ImmutableList.copyOf(coordinatorIds));
-    }
-
-    public void removeCoordinators(Iterable<String> coordinatorIds)
-    {
-        for (String coordinatorId : coordinatorIds) {
-            coordinators.remove(coordinatorId);
-        }
-    }
-
-    public void clearCoordinators()
-    {
-        coordinators.clear();
-    }
-
     @Override
     public List<Instance> listCoordinators()
     {
-        return ImmutableList.copyOf(coordinators.values());
+        return ImmutableList.copyOf(Iterables.transform(coordinators.values(), new GetInstanceFunction()));
     }
 
     @Override
-    public List<Instance> provisionCoordinators(String coordinatorConfigSpec,
+    public List<Instance> provisionCoordinators(String coordinatorConfig,
             int coordinatorCount,
             String instanceType,
             String availabilityZone,
@@ -94,43 +67,187 @@ public class MockLocalProvisioner implements Provisioner
         for (int i = 0; i < coordinatorCount; i++) {
             String coordinatorInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
             String location = String.format("/mock/%s/coordinator", coordinatorInstanceId);
-            Instance instance = new Instance(coordinatorInstanceId, instanceType, location, null, null);
-            instances.add(instance);
-        }
-        addCoordinators(instances);
 
-        if (autoStartInstances) {
-            List<Instance> runningInstances = newArrayList();
-            for (Instance instance : instances) {
-                runningInstances.add(startCoordinator(instance.getInstanceId()));
+            Instance instance = new Instance(coordinatorInstanceId,
+                    instanceType,
+                    location,
+                    null,
+                    null);
+            CoordinatorServer coordinatorServer = new CoordinatorServer(instance);
+            instances.add(instance);
+            if (autoStartInstances) {
+                try {
+                    coordinatorServer.start();
+                }
+                catch (Exception e) {
+                    throw Throwables.propagate(e);
+                }
             }
-            instances = runningInstances;
+            coordinators.put(coordinatorInstanceId, coordinatorServer);
         }
 
         return ImmutableList.copyOf(instances);
     }
 
-    public Instance startCoordinator(String instanceId) {
-        Instance instance = coordinators.get(instanceId);
-        Preconditions.checkNotNull(instance, "instance is null");
+    public void terminateCoordinators(Iterable<String> instanceIds)
+    {
+        for (Entry<String, CoordinatorServer> entry : coordinators.entrySet()) {
+            entry.getValue().destroy();
+            coordinators.remove(entry.getKey());
+        }
+    }
 
-        URI internalUri = URI.create("fake:/" + instanceId + "/internal");
-        URI externalUri = URI.create("fake:/" + instanceId + "/external");
-        Instance newCoordinatorInstance = new Instance(
-                instanceId,
-                instance.getInstanceType(),
-                instance.getLocation(),
-                internalUri,
-                externalUri);
+    public void clearCoordinators()
+    {
+        terminateCoordinators(coordinators.keySet());
+    }
 
-        coordinators.put(instanceId, newCoordinatorInstance);
-        return newCoordinatorInstance;
+    public ImmutableList<CoordinatorServer> getAllCoordinators()
+    {
+        return ImmutableList.copyOf(coordinators.values());
+    }
+
+    public CoordinatorServer getCoordinator(String instanceId)
+    {
+        return coordinators.get(instanceId);
+    }
+
+    public static class CoordinatorServer
+    {
+        private Instance instance;
+        private final File resourcesFile;
+        private final File tempDir;
+        private TestingHttpServer coordinatorServer;
+        private Coordinator coordinator;
+
+        public CoordinatorServer(Instance instance)
+        {
+            Preconditions.checkNotNull(instance, "instance is null");
+            this.instance = instance;
+
+            tempDir = createTempDir("coordinator");
+            resourcesFile = new File(tempDir, "slots/airship-resources.properties");
+        }
+
+        public void start()
+                throws Exception
+        {
+            Map<String, String> coordinatorProperties = ImmutableMap.<String, String>builder()
+                    .put("airship.version", "123")
+                    .put("node.environment", "test")
+                    .put("node.id", instance.getInstanceId())
+                    .put("node.location", instance.getLocation())
+                    .put("coordinator.slots-dir", new File(tempDir, "slots").getAbsolutePath())
+                    .put("coordinator.resources-file", resourcesFile.getAbsolutePath())
+                    .put("coordinator.binary-repo", "http://localhost:9999/")
+                    .put("coordinator.default-group-id", "prod")
+                    .put("coordinator.agent.default-config", "@agent.config")
+                    .build();
+
+            Injector coordinatorInjector = Guice.createInjector(new NodeModule(),
+                    new TestingHttpServerModule(),
+                    new TestingDiscoveryModule(),
+                    new JsonModule(),
+                    new JaxrsModule(),
+                    new NullEventModule(),
+                    new CoordinatorMainModule(),
+                    new LocalProvisionerModule(),
+                    new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
+
+            coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
+            coordinator = coordinatorInjector.getInstance(Coordinator.class);
+            coordinatorServer.start();
+
+            // update instance URIs to new http server
+            instance = new Instance(instance.getInstanceId(),
+                    instance.getInstanceType(),
+                    instance.getLocation(),
+                    coordinatorServer.getBaseUrl(),
+                    coordinatorServer.getBaseUrl());
+        }
+
+        public void stop()
+        {
+            if (coordinatorServer != null) {
+                try {
+                    coordinatorServer.stop();
+                }
+                catch (Exception ignored) {
+                }
+            }
+
+            // clear instance URIs
+            instance = new Instance(instance.getInstanceId(),
+                    instance.getInstanceType(),
+                    instance.getLocation(),
+                    null,
+                    null);
+        }
+
+        public void destroy()
+        {
+            stop();
+
+            if (tempDir != null) {
+                deleteRecursively(tempDir);
+            }
+        }
+
+        public String getInstanceId()
+        {
+            return instance.getInstanceId();
+        }
+
+        public Instance getInstance()
+        {
+            return instance;
+        }
+
+        public TestingHttpServer getCoordinatorServer()
+        {
+            return coordinatorServer;
+        }
+
+        public Coordinator getCoordinator()
+        {
+            return coordinator;
+        }
+
+        public static void writeResources(Map<String, Integer> resources, File resourcesFile)
+        {
+            Properties properties = new Properties();
+            for (Entry<String, Integer> entry : resources.entrySet()) {
+                properties.setProperty(entry.getKey(), String.valueOf(entry.getValue()));
+            }
+            resourcesFile.getParentFile().mkdirs();
+            try {
+                FileOutputStream out = new FileOutputStream(resourcesFile);
+                try {
+                    properties.store(out, "");
+                }
+                finally {
+                    out.close();
+                }
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+    }
+
+    private static class GetInstanceFunction implements Function<CoordinatorServer, Instance>
+    {
+        @Override
+        public Instance apply(CoordinatorServer coordinatorServer)
+        {
+            return coordinatorServer.getInstance();
+        }
     }
 
     @Override
     public List<Instance> listAgents()
     {
-        return ImmutableList.copyOf(Iterables.transform(agents.values(), new GetInstanceFunction()));
+        return ImmutableList.copyOf(Iterables.transform(agents.values(), new GetAgentInstanceFunction()));
     }
 
     @Override
@@ -324,7 +441,7 @@ public class MockLocalProvisioner implements Provisioner
         }
     }
 
-    private static class GetInstanceFunction implements Function<AgentServer, Instance>
+    private static class GetAgentInstanceFunction implements Function<AgentServer, Instance>
     {
         @Override
         public Instance apply(AgentServer agentServer)

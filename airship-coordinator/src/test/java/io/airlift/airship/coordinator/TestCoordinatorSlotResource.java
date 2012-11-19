@@ -56,6 +56,7 @@ public class TestCoordinatorSlotResource
         coordinator = new Coordinator(nodeInfo,
                 new HttpServerInfo(new HttpServerConfig(), nodeInfo),
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
+                provisioner.getCoordinatorFactory(),
                 provisioner.getAgentFactory(),
                 repository,
                 provisioner,

@@ -75,6 +75,7 @@ public class TestCoordinatorLifecycleResource
         coordinator = new Coordinator(nodeInfo,
                 new HttpServerInfo(new HttpServerConfig(), nodeInfo),
                 new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
+                provisioner.getCoordinatorFactory(),
                 provisioner.getAgentFactory(),
                 MOCK_REPO,
                 provisioner,

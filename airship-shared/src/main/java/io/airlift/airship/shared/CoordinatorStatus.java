@@ -20,11 +20,9 @@ public class CoordinatorStatus
 
     public CoordinatorStatus(String coordinatorId, CoordinatorLifecycleState state, String instanceId, URI internalUri, URI externalUri, String location, String instanceType)
     {
-        Preconditions.checkNotNull(coordinatorId, "coordinatorId is null");
         Preconditions.checkNotNull(state, "state is null");
         Preconditions.checkNotNull(instanceId, "instanceId is null");
-        Preconditions.checkNotNull(location, "location is null");
-        Preconditions.checkArgument(location.startsWith("/"), "location must start with a '/'");
+        Preconditions.checkArgument(!instanceId.isEmpty(), "instanceId is empty");
 
         this.coordinatorId = coordinatorId;
         this.state = state;
@@ -47,6 +45,11 @@ public class CoordinatorStatus
     }
     
     public CoordinatorStatus changeState(CoordinatorLifecycleState state)
+    {
+        return new CoordinatorStatus(coordinatorId, state, instanceId, internalUri, externalUri, location, instanceType);
+    }
+
+    public CoordinatorStatus changeInternalUri(URI internalUri)
     {
         return new CoordinatorStatus(coordinatorId, state, instanceId, internalUri, externalUri, location, instanceType);
     }

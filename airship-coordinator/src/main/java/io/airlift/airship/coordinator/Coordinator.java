@@ -14,7 +14,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.airship.shared.AgentLifecycleState;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Assignment;
@@ -27,6 +26,7 @@ import io.airlift.airship.shared.Repository;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.UpgradeVersions;
+import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.http.server.HttpServerInfo;
 import io.airlift.log.Logger;
 import io.airlift.node.NodeInfo;
@@ -56,7 +56,6 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static io.airlift.airship.shared.LocationUtils.extractMachineId;
 import static io.airlift.airship.shared.SlotLifecycleState.RESTARTING;
 import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
@@ -68,14 +67,15 @@ public class Coordinator
 {
     private static final Logger log = Logger.get(Coordinator.class);
 
-    private final ConcurrentMap<String, CoordinatorStatus> coordinators = new ConcurrentHashMap<String, CoordinatorStatus>();
-    private final ConcurrentMap<String, RemoteAgent> agents = new ConcurrentHashMap<String, RemoteAgent>();
+    private final ConcurrentMap<String, RemoteCoordinator> coordinators = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, RemoteAgent> agents = new ConcurrentHashMap<>();
 
     private final CoordinatorStatus coordinatorStatus;
     private final Repository repository;
     private final ScheduledExecutorService timerService;
     private final Duration statusExpiration;
     private final Provisioner provisioner;
+    private final RemoteCoordinatorFactory remoteCoordinatorFactory;
     private final RemoteAgentFactory remoteAgentFactory;
     private final ServiceInventory serviceInventory;
     private final StateManager stateManager;
@@ -85,6 +85,7 @@ public class Coordinator
     public Coordinator(NodeInfo nodeInfo,
             HttpServerInfo httpServerInfo,
             CoordinatorConfig config,
+            RemoteCoordinatorFactory remoteCoordinatorFactory,
             RemoteAgentFactory remoteAgentFactory,
             Repository repository,
             Provisioner provisioner,
@@ -93,11 +94,12 @@ public class Coordinator
         this(
                 new CoordinatorStatus(nodeInfo.getInstanceId(),
                         CoordinatorLifecycleState.ONLINE,
-                        extractMachineId(nodeInfo.getLocation(), UUID.randomUUID().toString()),
+                        nodeInfo.getInstanceId(),
                         httpServerInfo.getHttpUri(),
                         httpServerInfo.getHttpExternalUri(),
                         nodeInfo.getLocation(),
                         null),
+                remoteCoordinatorFactory,
                 remoteAgentFactory,
                 repository,
                 provisioner,
@@ -108,6 +110,7 @@ public class Coordinator
     }
 
     public Coordinator(CoordinatorStatus coordinatorStatus,
+            RemoteCoordinatorFactory remoteCoordinatorFactory,
             RemoteAgentFactory remoteAgentFactory,
             Repository repository,
             Provisioner provisioner,
@@ -117,6 +120,7 @@ public class Coordinator
             boolean allowDuplicateInstallationsOnAnAgent)
     {
         Preconditions.checkNotNull(coordinatorStatus, "coordinatorStatus is null");
+        Preconditions.checkNotNull(remoteCoordinatorFactory, "remoteCoordinatorFactory is null");
         Preconditions.checkNotNull(remoteAgentFactory, "remoteAgentFactory is null");
         Preconditions.checkNotNull(repository, "repository is null");
         Preconditions.checkNotNull(provisioner, "provisioner is null");
@@ -125,6 +129,7 @@ public class Coordinator
         Preconditions.checkNotNull(statusExpiration, "statusExpiration is null");
 
         this.coordinatorStatus = coordinatorStatus;
+        this.remoteCoordinatorFactory = remoteCoordinatorFactory;
         this.remoteAgentFactory = remoteAgentFactory;
         this.repository = repository;
         this.provisioner = provisioner;
@@ -173,14 +178,26 @@ public class Coordinator
         if (coordinatorStatus.getInstanceId().equals(instanceId)) {
             return status();
         }
-        return coordinators.get(instanceId);
+        RemoteCoordinator remoteCoordinator = coordinators.get(instanceId);
+        if (remoteCoordinator == null) {
+            return null;
+        }
+        return remoteCoordinator.status();
     }
 
     public List<CoordinatorStatus> getCoordinators()
     {
+        List<CoordinatorStatus> statuses = ImmutableList.copyOf(Iterables.transform(coordinators.values(), new Function<RemoteCoordinator, CoordinatorStatus>()
+        {
+            public CoordinatorStatus apply(RemoteCoordinator agent)
+            {
+                return agent.status();
+            }
+        }));
+
         return ImmutableList.<CoordinatorStatus>builder()
                 .add(coordinatorStatus)
-                .addAll(coordinators.values())
+                .addAll(statuses)
                 .build();
     }
 
@@ -213,17 +230,10 @@ public class Coordinator
                 throw new IllegalStateException("Provisioner created a coordinator with the same is as this coordinator");
             }
 
-            CoordinatorStatus coordinatorStatus = new CoordinatorStatus(
-                    instanceId,
-                    CoordinatorLifecycleState.PROVISIONING,
-                    instanceId,
-                    null,
-                    null,
-                    instance.getLocation(),
-                    instance.getInstanceType());
+            RemoteCoordinator remoteCoordinator = remoteCoordinatorFactory.createRemoteCoordinator(instance, CoordinatorLifecycleState.PROVISIONING);
+            this.coordinators.put(instanceId, remoteCoordinator);
 
-            this.coordinators.put(instanceId, coordinatorStatus);
-            coordinators.add(coordinatorStatus);
+            coordinators.add(remoteCoordinator.status());
         }
         return coordinators;
     }
@@ -278,35 +288,26 @@ public class Coordinator
                 continue;
             }
 
-            // todo add remote coordinator to get real status
-            CoordinatorStatus coordinatorStatus = new CoordinatorStatus(instance.getInstanceId(),
-                    instance.getInternalUri() != null ? CoordinatorLifecycleState.ONLINE : CoordinatorLifecycleState.OFFLINE,
-                    instance.getInstanceId(),
-                    instance.getInternalUri(),
-                    instance.getExternalUri(),
-                    instance.getLocation(),
-                    instance.getInstanceType());
-
-
-            CoordinatorStatus existing = coordinators.putIfAbsent(instance.getInstanceId(), coordinatorStatus);
+            RemoteCoordinator remoteCoordinator = remoteCoordinatorFactory.createRemoteCoordinator(instance, instance.getInternalUri() != null ? CoordinatorLifecycleState.ONLINE : CoordinatorLifecycleState.OFFLINE);
+            RemoteCoordinator existing = coordinators.putIfAbsent(instance.getInstanceId(), remoteCoordinator);
             if (existing != null) {
-                // if coordinator was provisioning and is now ONLINE...
-                if (existing.getState() == CoordinatorLifecycleState.PROVISIONING && coordinatorStatus.getState() == CoordinatorLifecycleState.ONLINE) {
-                    // replace the temporary provisioning instance with a current state
-                    coordinators.replace(instance.getInstanceId(), existing, coordinatorStatus);
-                }
+                existing.setInternalUri(instance.getInternalUri());
             }
         }
 
         // add provisioning coordinators to provisioner list
-        for (CoordinatorStatus coordinatorStatus : coordinators.values()) {
-            if (coordinatorStatus.getState() == CoordinatorLifecycleState.PROVISIONING) {
+        for (RemoteCoordinator remoteCoordinator : coordinators.values()) {
+            if (remoteCoordinator.status().getState() == CoordinatorLifecycleState.PROVISIONING) {
                 instanceIds.add(coordinatorStatus.getCoordinatorId());
             }
         }
 
         // remove any coordinators in the provisioner list
         coordinators.keySet().retainAll(instanceIds);
+
+        for (RemoteCoordinator remoteCoordinator : coordinators.values()) {
+            remoteCoordinator.updateStatus();
+        }
     }
 
     @VisibleForTesting

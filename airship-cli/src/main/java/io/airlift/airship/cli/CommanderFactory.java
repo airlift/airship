@@ -6,7 +6,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.airship.agent.Agent;
 import io.airlift.airship.agent.DeploymentManagerFactory;
 import io.airlift.airship.agent.DirectoryDeploymentManagerFactory;
@@ -23,6 +22,8 @@ import io.airlift.airship.coordinator.MavenRepository;
 import io.airlift.airship.coordinator.Provisioner;
 import io.airlift.airship.coordinator.RemoteAgent;
 import io.airlift.airship.coordinator.RemoteAgentFactory;
+import io.airlift.airship.coordinator.RemoteCoordinator;
+import io.airlift.airship.coordinator.RemoteCoordinatorFactory;
 import io.airlift.airship.coordinator.RemoteSlot;
 import io.airlift.airship.coordinator.ServiceInventory;
 import io.airlift.airship.coordinator.StateManager;
@@ -35,6 +36,7 @@ import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.Repository;
 import io.airlift.airship.shared.RepositorySet;
 import io.airlift.airship.shared.SlotStatus;
+import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.json.JsonCodec;
 import io.airlift.units.Duration;
 
@@ -205,6 +207,7 @@ public class CommanderFactory
             stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), slotStatus.getState(), slotStatus.getAssignment()));
         }
 
+        RemoteCoordinatorFactory remoteCoordinatorFactory = new LocalRemoteCoordinatorFactory();
         RemoteAgentFactory remoteAgentFactory = new LocalRemoteAgentFactory(agent);
 
         String coordinatorLocation = this.location == null ? Joiner.on('/').join("", "local", coordinatorId, "coordinator") : location;
@@ -217,6 +220,7 @@ public class CommanderFactory
                 instanceType);
 
         Coordinator coordinator = new Coordinator(coordinatorStatus,
+                remoteCoordinatorFactory,
                 remoteAgentFactory,
                 repository,
                 provisioner,
@@ -272,6 +276,15 @@ public class CommanderFactory
         public void terminateAgents(Iterable<String> instanceIds)
         {
             throw new UnsupportedOperationException("Agents can not be terminated in local mode");
+        }
+    }
+
+    private class LocalRemoteCoordinatorFactory implements RemoteCoordinatorFactory
+    {
+        @Override
+        public RemoteCoordinator createRemoteCoordinator(Instance instance, CoordinatorLifecycleState state)
+        {
+            throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
         }
     }
 
