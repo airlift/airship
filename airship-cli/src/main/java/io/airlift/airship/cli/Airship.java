@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.io.NullOutputStream;
 import com.google.common.io.Resources;
-import io.airlift.configuration.ConfigurationFactory;
+import io.airlift.airship.cli.CommanderFactory.ToUriFunction;
 import io.airlift.airship.coordinator.AwsProvisioner;
 import io.airlift.airship.coordinator.AwsProvisionerConfig;
 import io.airlift.airship.coordinator.CoordinatorConfig;
@@ -36,7 +36,14 @@ import io.airlift.airship.shared.Repository;
 import io.airlift.airship.shared.RepositorySet;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.airship.shared.UpgradeVersions;
-import io.airlift.airship.cli.CommanderFactory.ToUriFunction;
+import io.airlift.command.Arguments;
+import io.airlift.command.Cli;
+import io.airlift.command.Cli.CliBuilder;
+import io.airlift.command.Command;
+import io.airlift.command.Help;
+import io.airlift.command.Option;
+import io.airlift.command.ParseException;
+import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.http.server.HttpServerConfig;
 import io.airlift.http.server.HttpServerInfo;
 import io.airlift.json.JsonCodec;
@@ -44,13 +51,6 @@ import io.airlift.log.Logging;
 import io.airlift.log.LoggingConfiguration;
 import io.airlift.log.LoggingMBean;
 import io.airlift.node.NodeInfo;
-import org.iq80.cli.Arguments;
-import org.iq80.cli.Cli;
-import org.iq80.cli.Cli.CliBuilder;
-import org.iq80.cli.Command;
-import org.iq80.cli.Help;
-import org.iq80.cli.Option;
-import org.iq80.cli.ParseException;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -75,7 +75,6 @@ import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
-import static org.iq80.cli.Cli.buildCli;
 
 public class Airship
 {
@@ -89,7 +88,7 @@ public class Airship
     public static final Cli<AirshipCommand> AIRSHIP_PARSER;
 
     static {
-        CliBuilder<AirshipCommand> builder = buildCli("airship", AirshipCommand.class)
+        CliBuilder<AirshipCommand> builder =  Cli.<AirshipCommand>builder("airship")
                 .withDescription("cloud management system")
                 .withDefaultCommand(HelpCommand.class)
                 .withCommands(HelpCommand.class,

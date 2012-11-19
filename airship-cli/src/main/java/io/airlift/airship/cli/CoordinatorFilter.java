@@ -4,7 +4,7 @@ import com.google.common.base.Predicate;
 import io.airlift.airship.coordinator.CoordinatorFilterBuilder;
 import io.airlift.airship.shared.CoordinatorStatus;
 import io.airlift.airship.shared.HttpUriBuilder;
-import org.iq80.cli.Option;
+import io.airlift.command.Option;
 
 import java.net.URI;
 import java.util.List;

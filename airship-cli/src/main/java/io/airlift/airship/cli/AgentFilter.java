@@ -7,7 +7,7 @@ import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.HttpUriBuilder;
 import io.airlift.airship.shared.Repository;
-import org.iq80.cli.Option;
+import io.airlift.command.Option;
 
 import java.net.URI;
 import java.util.List;
