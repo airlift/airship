@@ -52,6 +52,7 @@ public class TestAdminResource
 
         provisioner = new MockProvisioner();
         coordinator = new Coordinator(coordinatorStatus,
+                provisioner.getCoordinatorFactory(),
                 provisioner.getAgentFactory(),
                 repository,
                 provisioner,
@@ -93,15 +94,23 @@ public class TestAdminResource
     public void testGetAllCoordinatorsSingle()
             throws Exception
     {
+        String coordinatorId = UUID.randomUUID().toString();
         String instanceId = "instance-id";
         URI internalUri = URI.create("fake://coordinator/" + instanceId + "/internal");
         URI externalUri = URI.create("fake://coordinator/" + instanceId + "/external");
         String location = "/unknown/location";
         String instanceType = "instance.type";
 
-        // add the coordinator to the provisioner
-        Instance instance = new Instance(instanceId, instanceType, location, internalUri, externalUri);
-        provisioner.addCoordinators(instance);
+        CoordinatorStatus status = new CoordinatorStatus(coordinatorId,
+                CoordinatorLifecycleState.ONLINE,
+                instanceId,
+                internalUri,
+                externalUri,
+                location,
+                instanceType);
+
+        // add the coordinator
+        provisioner.addCoordinators(status);
         coordinator.updateAllCoordinators();
 
         URI requestUri = URI.create("http://localhost/v1/admin/coordinator");
@@ -113,7 +122,7 @@ public class TestAdminResource
         List<CoordinatorStatusRepresentation> coordinators = ImmutableList.copyOf((Iterable<CoordinatorStatusRepresentation>) response.getEntity());
         CoordinatorStatusRepresentation actual = getNonMainCoordinator(coordinators);
 
-        assertEquals(actual.getCoordinatorId(), instanceId); // for now coordinator id is instance id
+        assertEquals(actual.getCoordinatorId(), coordinatorId);
         assertEquals(actual.getState(), CoordinatorLifecycleState.ONLINE);
         assertEquals(actual.getInstanceId(), instanceId);
         assertEquals(actual.getLocation(), location);
@@ -157,21 +166,21 @@ public class TestAdminResource
         String location = coordinators.get(0).getLocation();
         assertNotNull(location);
         assertEquals(coordinators.get(0).getInstanceType(), instanceType);
-        assertEquals(coordinators.get(0).getCoordinatorId(), instanceId);
+        assertNull(coordinators.get(0).getCoordinatorId());
         assertNull(coordinators.get(0).getSelf());
         assertNull(coordinators.get(0).getExternalUri());
         assertEquals(coordinators.get(0).getState(), CoordinatorLifecycleState.PROVISIONING);
 
         // start the coordinator and verify
-        Instance expectedCoordinatorInstance = provisioner.startCoordinator(instanceId);
+        CoordinatorStatus coordinatorStatus = provisioner.startCoordinator(instanceId);
         coordinator.updateAllCoordinators();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
         assertEquals(coordinator.getCoordinator(instanceId).getLocation(), location);
-        assertEquals(coordinator.getCoordinator(instanceId).getCoordinatorId(), expectedCoordinatorInstance.getInstanceId());
-        assertEquals(coordinator.getCoordinator(instanceId).getInternalUri(), expectedCoordinatorInstance.getInternalUri());
-        assertEquals(coordinator.getCoordinator(instanceId).getExternalUri(), expectedCoordinatorInstance.getExternalUri());
+        assertEquals(coordinator.getCoordinator(instanceId).getCoordinatorId(), coordinatorStatus.getCoordinatorId());
+        assertEquals(coordinator.getCoordinator(instanceId).getInternalUri(), coordinatorStatus.getInternalUri());
+        assertEquals(coordinator.getCoordinator(instanceId).getExternalUri(), coordinatorStatus.getExternalUri());
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
 
 
@@ -186,9 +195,9 @@ public class TestAdminResource
         assertEquals(actual.getInstanceId(), instanceId);
         assertEquals(actual.getInstanceType(), instanceType);
         assertEquals(actual.getLocation(), location);
-        assertEquals(actual.getCoordinatorId(), expectedCoordinatorInstance.getInstanceId());
-        assertEquals(actual.getSelf(), expectedCoordinatorInstance.getInternalUri());
-        assertEquals(actual.getExternalUri(), expectedCoordinatorInstance.getExternalUri());
+        assertEquals(actual.getCoordinatorId(), coordinatorStatus.getCoordinatorId());
+        assertEquals(actual.getSelf(), coordinatorStatus.getInternalUri());
+        assertEquals(actual.getExternalUri(), coordinatorStatus.getExternalUri());
         assertEquals(actual.getState(), CoordinatorLifecycleState.ONLINE);
     }
 

@@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import io.airlift.airship.shared.AgentLifecycleState;
 import io.airlift.airship.shared.AgentStatus;
+import io.airlift.airship.shared.CoordinatorLifecycleState;
+import io.airlift.airship.shared.CoordinatorStatus;
 import io.airlift.airship.shared.SlotStatus;
 
 import java.net.URI;
@@ -18,25 +20,31 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MockProvisioner implements Provisioner
 {
-    private final Map<String, Instance> coordinators = new ConcurrentHashMap<String, Instance>();
-    private final Map<String, AgentStatus> agents = new ConcurrentHashMap<String, AgentStatus>();
+    private final Map<String, CoordinatorStatus> coordinators = new ConcurrentHashMap<>();
+    private final Map<String, AgentStatus> agents = new ConcurrentHashMap<>();
+    private final RemoteCoordinatorFactory coordinatorFactory = new MockRemoteCoordinatorFactory(coordinators);
     private final RemoteAgentFactory agentFactory = new MockRemoteAgentFactory(agents);
     private final AtomicInteger nextInstanceId = new AtomicInteger();
+
+    public RemoteCoordinatorFactory getCoordinatorFactory()
+    {
+        return coordinatorFactory;
+    }
 
     public RemoteAgentFactory getAgentFactory()
     {
         return agentFactory;
     }
 
-    public void addCoordinators(Instance... instances)
+    public void addCoordinators(CoordinatorStatus... instances)
     {
         addCoordinators(ImmutableList.copyOf(instances));
     }
 
-    public void addCoordinators(Iterable<Instance> instances)
+    public void addCoordinators(Iterable<CoordinatorStatus> coordinatorStatuses)
     {
-        for (Instance instance : instances) {
-            coordinators.put(instance.getInstanceId(), instance);
+        for (CoordinatorStatus coordinatorStatus : coordinatorStatuses) {
+            coordinators.put(coordinatorStatus.getInstanceId(), coordinatorStatus);
         }
     }
 
@@ -60,7 +68,18 @@ public class MockProvisioner implements Provisioner
     @Override
     public List<Instance> listCoordinators()
     {
-        return ImmutableList.copyOf(coordinators.values());
+        return ImmutableList.copyOf(Iterables.transform(coordinators.values(), new Function<CoordinatorStatus, Instance>()
+        {
+            @Override
+            public Instance apply(CoordinatorStatus coordinatorStatus)
+            {
+                return new Instance(coordinatorStatus.getInstanceId(),
+                        coordinatorStatus.getInstanceType(),
+                        coordinatorStatus.getLocation(),
+                        coordinatorStatus.getInternalUri(),
+                        coordinatorStatus.getExternalUri());
+            }
+        }));
     }
 
     @Override
@@ -72,32 +91,48 @@ public class MockProvisioner implements Provisioner
             String keyPair,
             String securityGroup)
     {
-        ImmutableList.Builder<Instance> provisionedCoordinators = ImmutableList.builder();
+        ImmutableList.Builder<Instance> instances = ImmutableList.builder();
         for (int i = 0; i < coordinatorCount; i++) {
             String coordinatorInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
             String location = String.format("/mock/%s/coordinator", coordinatorInstanceId);
-            Instance instance = new Instance(coordinatorInstanceId, instanceType, location, null, null);
-            provisionedCoordinators.add(instance);
+
+            CoordinatorStatus coordinatorStatus = new CoordinatorStatus(null,
+                    CoordinatorLifecycleState.PROVISIONING,
+                    coordinatorInstanceId,
+                    null,
+                    null,
+                    location,
+                    instanceType);
+
+            instances.add(new Instance(coordinatorStatus.getInstanceId(),
+                        coordinatorStatus.getInstanceType(),
+                        coordinatorStatus.getLocation(),
+                        null,
+                        null));
+
+            addCoordinators(coordinatorStatus);
         }
-        addCoordinators(provisionedCoordinators.build());
-        return provisionedCoordinators.build();
+
+        return instances.build();
     }
+    
+    public CoordinatorStatus startCoordinator(String instanceId) {
+        CoordinatorStatus coordinatorStatus = coordinators.get(instanceId);
+        Preconditions.checkNotNull(coordinatorStatus, "coordinatorStatus is null");
 
-    public Instance startCoordinator(String instanceId) {
-        Instance instance = coordinators.get(instanceId);
-        Preconditions.checkNotNull(instance, "instance is null");
-
-        URI internalUri = URI.create("fake:/" + instanceId + "/internal");
-        URI externalUri = URI.create("fake:/" + instanceId + "/external");
-        Instance newCoordinatorInstance = new Instance(
+        String coordinatorId = UUID.randomUUID().toString();
+        URI internalUri = URI.create("fake:/" + coordinatorId + "/internal");
+        URI externalUri = URI.create("fake:/" + coordinatorId + "/external");
+        CoordinatorStatus newCoordinatorStatus = new CoordinatorStatus(coordinatorId,
+                CoordinatorLifecycleState.ONLINE,
                 instanceId,
-                instance.getInstanceType(),
-                instance.getLocation(),
                 internalUri,
-                externalUri);
+                externalUri,
+                coordinatorStatus.getLocation(),
+                coordinatorStatus.getInstanceType());
 
-        coordinators.put(instanceId, newCoordinatorInstance);
-        return newCoordinatorInstance;
+        coordinators.put(instanceId, newCoordinatorStatus);
+        return newCoordinatorStatus;
     }
 
     public void addAgent(String id, URI agentUri)

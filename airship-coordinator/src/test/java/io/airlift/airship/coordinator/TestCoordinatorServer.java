@@ -28,6 +28,7 @@ import io.airlift.airship.shared.AgentLifecycleState;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.AgentStatusRepresentation;
 import io.airlift.airship.shared.CoordinatorLifecycleState;
+import io.airlift.airship.shared.CoordinatorStatus;
 import io.airlift.airship.shared.CoordinatorStatusRepresentation;
 import io.airlift.airship.shared.HttpUriBuilder;
 import io.airlift.airship.shared.Repository;
@@ -135,7 +136,7 @@ public class TestCoordinatorServer
                 new JsonModule(),
                 new JaxrsModule(),
                 new NullEventModule(),
-                Modules.override(new LocalProvisionerModule()).with(new Module()
+                Modules.override(new FixedProvisionerModule()).with(new Module()
                 {
                     @Override
                     public void configure(Binder binder)
@@ -151,6 +152,13 @@ public class TestCoordinatorServer
                     {
                         binder.bind(Repository.class).toInstance(MOCK_REPO);
                         binder.bind(ServiceInventory.class).to(MockServiceInventory.class).in(Scopes.SINGLETON);
+                    }
+
+                    @Provides
+                    @Singleton
+                    public RemoteCoordinatorFactory getRemoteCoordinatorFactory(MockProvisioner provisioner)
+                    {
+                        return provisioner.getCoordinatorFactory();
                     }
 
                     @Provides
@@ -253,14 +261,21 @@ public class TestCoordinatorServer
             throws Exception
     {
         // add a coordinator directly to the provisioner
+        String coordinatorId = UUID.randomUUID().toString();
         String instanceId = "instance-id";
         URI internalUri = URI.create("fake://coordinator/" + instanceId + "/internal");
         URI externalUri = URI.create("fake://coordinator/" + instanceId + "/external");
         String location = "/unknown/location";
         String instanceType = "instance.type";
 
-        Instance instance = new Instance(instanceId, instanceType, location, internalUri, externalUri);
-        provisioner.addCoordinators(instance);
+        CoordinatorStatus status = new CoordinatorStatus(coordinatorId,
+                CoordinatorLifecycleState.ONLINE,
+                instanceId,
+                internalUri,
+                externalUri,
+                location,
+                instanceType);
+        provisioner.addCoordinators(status);
         coordinator.updateAllCoordinators();
 
         // verify coordinator appears
@@ -271,7 +286,7 @@ public class TestCoordinatorServer
         List<CoordinatorStatusRepresentation> coordinators = httpClient.execute(request, createJsonResponseHandler(coordinatorStatusesCodec, Status.OK.getStatusCode()));
         CoordinatorStatusRepresentation actual = getNonMainCoordinator(coordinators);
 
-        assertEquals(actual.getCoordinatorId(), instanceId); // for now coordinator id is instance id
+        assertEquals(actual.getCoordinatorId(), coordinatorId);
         assertEquals(actual.getState(), CoordinatorLifecycleState.ONLINE);
         assertEquals(actual.getInstanceId(), instanceId);
         assertEquals(actual.getLocation(), location);
@@ -300,21 +315,21 @@ public class TestCoordinatorServer
         String location = coordinators.get(0).getLocation();
         assertNotNull(location);
         assertEquals(coordinators.get(0).getInstanceType(), instanceType);
-        assertEquals(coordinators.get(0).getCoordinatorId(), instanceId);
+        assertNull(coordinators.get(0).getCoordinatorId());
         assertNull(coordinators.get(0).getSelf());
         assertNull(coordinators.get(0).getExternalUri());
         assertEquals(coordinators.get(0).getState(), CoordinatorLifecycleState.PROVISIONING);
 
         // start the coordinator and verify
-        Instance expectedCoordinatorInstance = provisioner.startCoordinator(instanceId);
+        CoordinatorStatus expectedCoordinatorStatus = provisioner.startCoordinator(instanceId);
         coordinator.updateAllCoordinators();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
         assertEquals(coordinator.getCoordinator(instanceId).getLocation(), location);
-        assertEquals(coordinator.getCoordinator(instanceId).getCoordinatorId(), expectedCoordinatorInstance.getInstanceId());
-        assertEquals(coordinator.getCoordinator(instanceId).getInternalUri(), expectedCoordinatorInstance.getInternalUri());
-        assertEquals(coordinator.getCoordinator(instanceId).getExternalUri(), expectedCoordinatorInstance.getExternalUri());
+        assertEquals(coordinator.getCoordinator(instanceId).getCoordinatorId(), expectedCoordinatorStatus.getCoordinatorId());
+        assertEquals(coordinator.getCoordinator(instanceId).getInternalUri(), expectedCoordinatorStatus.getInternalUri());
+        assertEquals(coordinator.getCoordinator(instanceId).getExternalUri(), expectedCoordinatorStatus.getExternalUri());
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
 
 
@@ -328,9 +343,9 @@ public class TestCoordinatorServer
         assertEquals(actual.getInstanceId(), instanceId);
         assertEquals(actual.getInstanceType(), instanceType);
         assertEquals(actual.getLocation(), location);
-        assertEquals(actual.getCoordinatorId(), expectedCoordinatorInstance.getInstanceId());
-        assertEquals(actual.getSelf(), expectedCoordinatorInstance.getInternalUri());
-        assertEquals(actual.getExternalUri(), expectedCoordinatorInstance.getExternalUri());
+        assertEquals(actual.getCoordinatorId(), expectedCoordinatorStatus.getCoordinatorId());
+        assertEquals(actual.getSelf(), expectedCoordinatorStatus.getInternalUri());
+        assertEquals(actual.getExternalUri(), expectedCoordinatorStatus.getExternalUri());
         assertEquals(actual.getState(), CoordinatorLifecycleState.ONLINE);
     }
 

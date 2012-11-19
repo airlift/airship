@@ -9,6 +9,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import io.airlift.airship.coordinator.FixedProvisionerModule;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
 import io.airlift.event.client.NullEventModule;
@@ -20,7 +21,6 @@ import io.airlift.airship.cli.OutputFormat;
 import io.airlift.airship.coordinator.Coordinator;
 import io.airlift.airship.coordinator.CoordinatorMainModule;
 import io.airlift.airship.coordinator.InMemoryStateManager;
-import io.airlift.airship.coordinator.LocalProvisionerModule;
 import io.airlift.airship.coordinator.Provisioner;
 import io.airlift.airship.coordinator.StateManager;
 import io.airlift.airship.coordinator.TestingMavenRepository;
@@ -112,7 +112,7 @@ public class TestCliIntegration
                 new JaxrsModule(),
                 new NullEventModule(),
                 new CoordinatorMainModule(),
-                Modules.override(new LocalProvisionerModule()).with(new Module()
+                Modules.override(new FixedProvisionerModule()).with(new Module()
                 {
                     @Override
                     public void configure(Binder binder)

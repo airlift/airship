@@ -6,7 +6,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.airship.agent.Agent;
 import io.airlift.airship.agent.DeploymentManagerFactory;
 import io.airlift.airship.agent.DirectoryDeploymentManagerFactory;
@@ -23,6 +22,8 @@ import io.airlift.airship.coordinator.MavenRepository;
 import io.airlift.airship.coordinator.Provisioner;
 import io.airlift.airship.coordinator.RemoteAgent;
 import io.airlift.airship.coordinator.RemoteAgentFactory;
+import io.airlift.airship.coordinator.RemoteCoordinator;
+import io.airlift.airship.coordinator.RemoteCoordinatorFactory;
 import io.airlift.airship.coordinator.RemoteSlot;
 import io.airlift.airship.coordinator.ServiceInventory;
 import io.airlift.airship.coordinator.StateManager;
@@ -35,6 +36,7 @@ import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.Repository;
 import io.airlift.airship.shared.RepositorySet;
 import io.airlift.airship.shared.SlotStatus;
+import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.json.JsonCodec;
 import io.airlift.units.Duration;
 
@@ -60,11 +62,11 @@ public class CommanderFactory
     private String coordinatorId = "local";
     private String agentId = "local";
     private String location;
-    private String instanceId = "local";
     private String instanceType = "local";
     private InetAddress internalIp;
     private String externalAddress;
     private boolean useInternalAddress;
+    private boolean allowDuplicateInstallations;
 
     public CommanderFactory setEnvironment(String environment)
     {
@@ -132,6 +134,11 @@ public class CommanderFactory
         Preconditions.checkNotNull(externalAddress, "externalAddress is null");
         Preconditions.checkArgument(!externalAddress.isEmpty(), "externalAddress is empty");
         this.externalAddress = externalAddress;
+    }
+
+    public void setAllowDuplicateInstallations(boolean allowDuplicateInstallations)
+    {
+        this.allowDuplicateInstallations = allowDuplicateInstallations;
     }
 
     public void setUseInternalAddress(boolean useInternalAddress)
@@ -206,25 +213,27 @@ public class CommanderFactory
             stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), slotStatus.getState(), slotStatus.getAssignment()));
         }
 
+        RemoteCoordinatorFactory remoteCoordinatorFactory = new LocalRemoteCoordinatorFactory();
         RemoteAgentFactory remoteAgentFactory = new LocalRemoteAgentFactory(agent);
 
         String coordinatorLocation = this.location == null ? Joiner.on('/').join("", "local", coordinatorId, "coordinator") : location;
         CoordinatorStatus coordinatorStatus = new CoordinatorStatus(coordinatorId,
                 CoordinatorLifecycleState.ONLINE,
-                instanceId,
+                coordinatorId,
                 FAKE_LOCAL_URI,
                 FAKE_LOCAL_URI,
                 coordinatorLocation,
                 instanceType);
 
         Coordinator coordinator = new Coordinator(coordinatorStatus,
+                remoteCoordinatorFactory,
                 remoteAgentFactory,
                 repository,
                 provisioner,
                 stateManager,
                 serviceInventory,
                 new Duration(100, TimeUnit.DAYS),
-                true);
+                allowDuplicateInstallations);
 
         return new LocalCommander(environment, new File(slotsDir), coordinator, repository, serviceInventory);
     }
@@ -235,7 +244,7 @@ public class CommanderFactory
         public List<Instance> listCoordinators()
         {
             String coordinatorLocation = location == null ? Joiner.on('/').join("", "local", coordinatorId, "coordinator") : location;
-            return ImmutableList.of(new Instance(agentId, instanceType, coordinatorLocation, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
+            return ImmutableList.of(new Instance(coordinatorId, instanceType, coordinatorLocation, FAKE_LOCAL_URI, FAKE_LOCAL_URI));
         }
 
         @Override
@@ -276,6 +285,15 @@ public class CommanderFactory
         }
     }
 
+    private class LocalRemoteCoordinatorFactory implements RemoteCoordinatorFactory
+    {
+        @Override
+        public RemoteCoordinator createRemoteCoordinator(Instance instance, CoordinatorLifecycleState state)
+        {
+            throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
+        }
+    }
+
     private class LocalRemoteAgentFactory implements RemoteAgentFactory
     {
         private final Agent agent;
@@ -311,7 +329,7 @@ public class CommanderFactory
         @Override
         public SlotStatus install(Installation installation)
         {
-            return agent.install(installation).changeInstanceId(instanceId);
+            return agent.install(installation).changeInstanceId(agentId);
         }
 
         @Override
@@ -320,7 +338,7 @@ public class CommanderFactory
             AgentStatus agentStatus = agent.getAgentStatus();
             return new AgentStatus(agentStatus.getAgentId(),
                     agentStatus.getState(),
-                    instanceId,
+                    agentId,
                     agentStatus.getInternalUri(),
                     agentStatus.getExternalUri(),
                     agentStatus.getLocation(),
@@ -334,7 +352,7 @@ public class CommanderFactory
         {
             ImmutableList.Builder<RemoteSlot> builder = ImmutableList.builder();
             for (Slot slot : agent.getAllSlots()) {
-                builder.add(new LocalRemoteSlot(slot, instanceId));
+                builder.add(new LocalRemoteSlot(slot, agentId));
             }
             return builder.build();
         }

@@ -1,17 +1,15 @@
 package io.airlift.airship.cli;
 
-import org.iq80.cli.Option;
-import org.iq80.cli.OptionType;
+import io.airlift.command.Option;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.iq80.cli.OptionType.GLOBAL;
+import static io.airlift.command.OptionType.GLOBAL;
 
 public class GlobalOptions
 {
     @Option(type = GLOBAL, name = {"-e", "--environment"}, description = "Airship environment")
     public String environment;
 
-    @Option(type = OptionType.GLOBAL, name = "--batch", description = "Do not prompt")
+    @Option(type = GLOBAL, name = "--batch", description = "Do not prompt")
     public boolean batch;
 
     @Option(type = GLOBAL, name = "--debug", description = "Enable debug messages")

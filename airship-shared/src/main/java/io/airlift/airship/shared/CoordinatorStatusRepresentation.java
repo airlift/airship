@@ -219,7 +219,7 @@ public class CoordinatorStatusRepresentation
         }
     }
 
-    public CoordinatorStatus toCoordinatorStatus()
+    public CoordinatorStatus toCoordinatorStatus(String instanceId, String instanceType)
     {
         return new CoordinatorStatus(coordinatorId, CoordinatorLifecycleState.ONLINE, instanceId, self, externalUri, location, instanceType);
     }

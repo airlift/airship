@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.io.NullOutputStream;
 import com.google.common.io.Resources;
-import io.airlift.configuration.ConfigurationFactory;
+import io.airlift.airship.cli.CommanderFactory.ToUriFunction;
 import io.airlift.airship.coordinator.AwsProvisioner;
 import io.airlift.airship.coordinator.AwsProvisionerConfig;
 import io.airlift.airship.coordinator.CoordinatorConfig;
@@ -36,7 +36,14 @@ import io.airlift.airship.shared.Repository;
 import io.airlift.airship.shared.RepositorySet;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.airship.shared.UpgradeVersions;
-import io.airlift.airship.cli.CommanderFactory.ToUriFunction;
+import io.airlift.command.Arguments;
+import io.airlift.command.Cli;
+import io.airlift.command.Cli.CliBuilder;
+import io.airlift.command.Command;
+import io.airlift.command.Help;
+import io.airlift.command.Option;
+import io.airlift.command.ParseException;
+import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.http.server.HttpServerConfig;
 import io.airlift.http.server.HttpServerInfo;
 import io.airlift.json.JsonCodec;
@@ -44,13 +51,6 @@ import io.airlift.log.Logging;
 import io.airlift.log.LoggingConfiguration;
 import io.airlift.log.LoggingMBean;
 import io.airlift.node.NodeInfo;
-import org.iq80.cli.Arguments;
-import org.iq80.cli.Cli;
-import org.iq80.cli.Cli.CliBuilder;
-import org.iq80.cli.Command;
-import org.iq80.cli.Help;
-import org.iq80.cli.Option;
-import org.iq80.cli.ParseException;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -73,9 +73,9 @@ import static io.airlift.airship.shared.HttpUriBuilder.uriBuilder;
 import static io.airlift.airship.shared.SlotLifecycleState.RESTARTING;
 import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static java.lang.Boolean.parseBoolean;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
-import static org.iq80.cli.Cli.buildCli;
 
 public class Airship
 {
@@ -89,7 +89,7 @@ public class Airship
     public static final Cli<AirshipCommand> AIRSHIP_PARSER;
 
     static {
-        CliBuilder<AirshipCommand> builder = buildCli("airship", AirshipCommand.class)
+        CliBuilder<AirshipCommand> builder =  Cli.<AirshipCommand>builder("airship")
                 .withDescription("cloud management system")
                 .withDefaultCommand(HelpCommand.class)
                 .withCommands(HelpCommand.class,
@@ -257,6 +257,9 @@ public class Airship
             if (config.get("environment." + environmentRef + ".external-address") != null) {
                 commanderFactory.setExternalAddress(config.get("environment." + environmentRef + ".external-address"));
             }
+            if (config.get("environment." + environmentRef + ".allow-duplicate-installations") != null) {
+                commanderFactory.setAllowDuplicateInstallations(parseBoolean(config.get("environment." + environmentRef + ".allow-duplicate-installations")));
+            }
             if ("true".equalsIgnoreCase(config.get("environment." + environmentRef + ".use-internal-address"))) {
                 commanderFactory.setUseInternalAddress(true);
             }
@@ -402,7 +405,7 @@ public class Airship
         public void execute(Commander commander)
         {
             if (assignment.size() != 2) {
-                throw new ParseException("You must specify a binary and config to install.");
+                throw new ParseException("You must specify a binary and @config to install.");
             }
             String binary;
             String config;
@@ -413,6 +416,10 @@ public class Airship
             else {
                 binary = assignment.get(0);
                 config = assignment.get(1);
+            }
+
+            if (!config.startsWith("@")) {
+                throw new ParseException("Configuration specification must start with an at sign (@).");
             }
 
             Assignment assignment = new Assignment(binary, config);
@@ -956,6 +963,9 @@ public class Airship
         @Option(name = "--external-address", description = "External address type for the local environment")
         public String externalAddress;
 
+        @Option(name = "--allow-duplicate-installations", description = "Allow multiple installations of the same binary and configuration")
+        public boolean allowDuplicateInstallations;
+
         @Arguments(usage = "<ref> <path>",
                 description = "Reference name and path for the environment")
         public List<String> args = newArrayList();
@@ -1009,6 +1019,9 @@ public class Airship
             }
             if (externalAddress != null) {
                 config.set("environment." + ref + ".external-address", externalAddress);
+            }
+            if (allowDuplicateInstallations) {
+                config.set("environment." + ref + ".allow-duplicate-installations", String.valueOf(allowDuplicateInstallations));
             }
             // make this environment the default environment
             config.set("environment.default", ref);

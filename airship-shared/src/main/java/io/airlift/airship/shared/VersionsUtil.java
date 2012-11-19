@@ -18,6 +18,8 @@ public class VersionsUtil
     public static final String AIRSHIP_AGENTS_VERSION_HEADER = "x-airship-agents-version";
     public static final String AIRSHIP_AGENT_VERSION_HEADER = "x-airship-agent-version";
 
+    public static final String AIRSHIP_COORDINATOR_VERSION_HEADER = "x-airship-coordinator-version";
+
     private VersionsUtil()
     {
     }

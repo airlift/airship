@@ -16,11 +16,12 @@ package io.airlift.airship.coordinator;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
-import io.airlift.configuration.ConfigurationModule;
 import io.airlift.airship.coordinator.auth.AuthorizedKeyStore;
 import io.airlift.airship.coordinator.auth.FileAuthorizedKeyStore;
+import io.airlift.airship.coordinator.auth.FileAuthorizedKeyStoreConfig;
+import io.airlift.configuration.ConfigurationModule;
 
-public class LocalProvisionerModule
+public class FixedProvisionerModule
         implements Module
 {
     public void configure(Binder binder)
@@ -28,9 +29,13 @@ public class LocalProvisionerModule
         binder.disableCircularProxies();
         binder.requireExplicitBindings();
 
-        binder.bind(Provisioner.class).to(StaticProvisioner.class).in(Scopes.SINGLETON);
+        binder.bind(Provisioner.class).to(FixedProvisioner.class).in(Scopes.SINGLETON);
+        ConfigurationModule.bindConfig(binder).to(FixedProvisionerConfig.class);
+
         binder.bind(StateManager.class).to(FileStateManager.class).in(Scopes.SINGLETON);
+        ConfigurationModule.bindConfig(binder).to(FileStateManagerConfig.class);
+
         binder.bind(AuthorizedKeyStore.class).to(FileAuthorizedKeyStore.class).in(Scopes.SINGLETON);
-        ConfigurationModule.bindConfig(binder).to(LocalProvisionerConfig.class);
+        ConfigurationModule.bindConfig(binder).to(FileAuthorizedKeyStoreConfig.class);
     }
 }

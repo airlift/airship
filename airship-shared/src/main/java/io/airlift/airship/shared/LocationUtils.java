@@ -16,7 +16,7 @@ public class LocationUtils
     public static String extractMachineId(String location, String defaultMachineId)
     {
         Preconditions.checkNotNull(location, "location is null");
-        List<String> parts = ImmutableList.copyOf(Splitter.on('/').trimResults().split(location));
+        List<String> parts = ImmutableList.copyOf(Splitter.on('/').trimResults().omitEmptyStrings().split(location));
         if (parts.size() < 2) {
             return defaultMachineId;
         }

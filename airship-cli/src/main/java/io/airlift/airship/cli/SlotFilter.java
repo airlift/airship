@@ -4,7 +4,7 @@ import com.google.common.base.Predicate;
 import io.airlift.airship.coordinator.SlotFilterBuilder;
 import io.airlift.airship.shared.HttpUriBuilder;
 import io.airlift.airship.shared.SlotStatus;
-import org.iq80.cli.Option;
+import io.airlift.command.Option;
 
 import java.net.URI;
 import java.util.List;

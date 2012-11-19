@@ -7,7 +7,7 @@ import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.HttpUriBuilder;
 import io.airlift.airship.shared.Repository;
-import org.iq80.cli.Option;
+import io.airlift.command.Option;
 
 import java.net.URI;
 import java.util.List;
@@ -29,7 +29,7 @@ public class AgentFilter
     @Option(name = { "--slot-uuid"}, description = "Select agent containing a slot the given UUID")
     public final List<String> slotUuid = newArrayList();
 
-    @Option(name = {"-s", "--state"}, description = "Select agent containing 'r{unning}', 's{topped}' or 'unknown' slots")
+    @Option(name = {"-s", "--state"}, description = "Select agent containing 'online', 'offline' or 'provisioning' slots")
     public final List<String> state = newArrayList();
 
     @Option(name = "--all", description = "Select all agents")

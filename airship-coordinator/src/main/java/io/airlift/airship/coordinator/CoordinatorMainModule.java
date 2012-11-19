@@ -21,6 +21,7 @@ import io.airlift.airship.coordinator.auth.AuthConfig;
 import io.airlift.airship.coordinator.auth.AuthFilter;
 import io.airlift.airship.coordinator.auth.SignatureVerifier;
 import io.airlift.airship.shared.AgentStatusRepresentation;
+import io.airlift.airship.shared.CoordinatorStatusRepresentation;
 import io.airlift.airship.shared.ExpectedSlotStatus;
 import io.airlift.airship.shared.InstallationRepresentation;
 import io.airlift.airship.shared.Repository;
@@ -46,6 +47,7 @@ public class CoordinatorMainModule
         binder.requireExplicitBindings();
 
         binder.bind(Coordinator.class).in(Scopes.SINGLETON);
+        binder.bind(CoordinatorResource.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorSlotResource.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorAssignmentResource.class).in(Scopes.SINGLETON);
         binder.bind(CoordinatorLifecycleResource.class).in(Scopes.SINGLETON);
@@ -53,6 +55,7 @@ public class CoordinatorMainModule
         binder.bind(InvalidSlotFilterExceptionMapper.class).in(Scopes.SINGLETON);
         binder.bind(AdminResource.class).in(Scopes.SINGLETON);
         binder.bind(VersionConflictExceptionMapper.class).in(Scopes.SINGLETON);
+        binder.bind(RemoteCoordinatorFactory.class).to(HttpRemoteCoordinatorFactory.class).in(Scopes.SINGLETON);
         binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
 
         binder.bind(Repository.class).to(RepositorySet.class).in(Scopes.SINGLETON);
@@ -69,6 +72,7 @@ public class CoordinatorMainModule
         bindConfig(binder).to(AuthConfig.class);
 
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(InstallationRepresentation.class);
+        JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(CoordinatorStatusRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(AgentStatusRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(SlotStatusRepresentation.class);
         JsonCodecBinder.jsonCodecBinder(binder).bindJsonCodec(ServiceDescriptorsRepresentation.class);
