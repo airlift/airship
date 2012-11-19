@@ -66,6 +66,7 @@ public class CommanderFactory
     private InetAddress internalIp;
     private String externalAddress;
     private boolean useInternalAddress;
+    private boolean allowDuplicateInstallations;
 
     public CommanderFactory setEnvironment(String environment)
     {
@@ -133,6 +134,11 @@ public class CommanderFactory
         Preconditions.checkNotNull(externalAddress, "externalAddress is null");
         Preconditions.checkArgument(!externalAddress.isEmpty(), "externalAddress is empty");
         this.externalAddress = externalAddress;
+    }
+
+    public void setAllowDuplicateInstallations(boolean allowDuplicateInstallations)
+    {
+        this.allowDuplicateInstallations = allowDuplicateInstallations;
     }
 
     public void setUseInternalAddress(boolean useInternalAddress)
@@ -227,7 +233,7 @@ public class CommanderFactory
                 stateManager,
                 serviceInventory,
                 new Duration(100, TimeUnit.DAYS),
-                true);
+                allowDuplicateInstallations);
 
         return new LocalCommander(environment, new File(slotsDir), coordinator, repository, serviceInventory);
     }

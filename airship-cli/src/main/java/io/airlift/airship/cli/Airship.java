@@ -73,6 +73,7 @@ import static io.airlift.airship.shared.HttpUriBuilder.uriBuilder;
 import static io.airlift.airship.shared.SlotLifecycleState.RESTARTING;
 import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static java.lang.Boolean.parseBoolean;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 
@@ -255,6 +256,9 @@ public class Airship
             }
             if (config.get("environment." + environmentRef + ".external-address") != null) {
                 commanderFactory.setExternalAddress(config.get("environment." + environmentRef + ".external-address"));
+            }
+            if (config.get("environment." + environmentRef + ".allow-duplicate-installations") != null) {
+                commanderFactory.setAllowDuplicateInstallations(parseBoolean(config.get("environment." + environmentRef + ".allow-duplicate-installations")));
             }
             if ("true".equalsIgnoreCase(config.get("environment." + environmentRef + ".use-internal-address"))) {
                 commanderFactory.setUseInternalAddress(true);
@@ -959,6 +963,9 @@ public class Airship
         @Option(name = "--external-address", description = "External address type for the local environment")
         public String externalAddress;
 
+        @Option(name = "--allow-duplicate-installations", description = "Allow multiple installations of the same binary and configuration")
+        public boolean allowDuplicateInstallations;
+
         @Arguments(usage = "<ref> <path>",
                 description = "Reference name and path for the environment")
         public List<String> args = newArrayList();
@@ -1012,6 +1019,9 @@ public class Airship
             }
             if (externalAddress != null) {
                 config.set("environment." + ref + ".external-address", externalAddress);
+            }
+            if (allowDuplicateInstallations) {
+                config.set("environment." + ref + ".allow-duplicate-installations", String.valueOf(allowDuplicateInstallations));
             }
             // make this environment the default environment
             config.set("environment.default", ref);

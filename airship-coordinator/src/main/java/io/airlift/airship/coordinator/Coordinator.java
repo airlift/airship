@@ -14,6 +14,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import io.airlift.airship.coordinator.AgentFilterBuilder.StatePredicate;
 import io.airlift.airship.shared.AgentLifecycleState;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Assignment;
@@ -415,22 +416,26 @@ public class Coordinator
 
     private List<RemoteAgent> selectAgents(Predicate<AgentStatus> filter, Installation installation)
     {
-        // randomize agents so all processes don't end up on the same node
-        // todo sort agents by number of process already installed on them
-        List<RemoteAgent> targetAgents = newArrayList();
+        // select only online agents
+        filter = Predicates.and(filter, new StatePredicate(AgentLifecycleState.ONLINE));
         List<RemoteAgent> allAgents = newArrayList(filter(this.agents.values(), filterAgentsBy(filter)));
+        if (allAgents.isEmpty()) {
+            throw new IllegalStateException("No online agents match the provided filters.");
+        }
         if (!allowDuplicateInstallationsOnAnAgent) {
             allAgents = newArrayList(filter(allAgents, filterAgentsWithAssignment(installation)));
-        }
-        Collections.shuffle(allAgents);
-        for (RemoteAgent agent : allAgents) {
-            // verify agent state
-            AgentStatus status = agent.status();
-            if (status.getState() != AgentLifecycleState.ONLINE) {
-                continue;
+            if (allAgents.isEmpty()) {
+                throw new IllegalStateException("All agents already have the specified binary and configuration installed.");
             }
+        }
 
+        // todo sort agents by number of process already installed on them?
+        Collections.shuffle(allAgents);
+
+        List<RemoteAgent> targetAgents = newArrayList();
+        for (RemoteAgent agent : allAgents) {
             // agents without declared resources are considered to have unlimited resources
+            AgentStatus status = agent.status();
             if (!status.getResources().isEmpty()) {
                 // verify that required resources are available
                 Map<String, Integer> availableResources = InstallationUtils.getAvailableResources(status);
@@ -440,6 +445,9 @@ public class Coordinator
             }
 
             targetAgents.add(agent);
+        }
+        if (targetAgents.isEmpty()) {
+            throw new IllegalStateException("No agents have the available resources to run the specified binary and configuration.");
         }
         return targetAgents;
     }

@@ -207,7 +207,8 @@ public class TestAirship
         File targetRepo = repo.getTargetRepo();
         execute("environment", "provision-local", "local", new File(tempDir, "env").getAbsolutePath(),
                 "--name", "monkey",
-                "--repository", targetRepo.toURI().toASCIIString()
+                "--repository", targetRepo.toURI().toASCIIString(),
+                "--allow-duplicate-installations"
         );
 
         execute("agent", "show");

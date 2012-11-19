@@ -373,7 +373,7 @@ public class TestCoordinator
         }
     }
 
-    @Test
+    @Test(expectedExceptions = IllegalStateException.class, expectedExceptionsMessageRegExp = "No agents have the available resources to run the specified binary and configuration.")
     public void testInstallNotEnoughResources()
     {
         URI agentUri = URI.create("fake://appleServer1/");
@@ -381,11 +381,10 @@ public class TestCoordinator
         provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 0, "memory", 0));
         coordinator.updateAllAgents();
 
-        List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
-        assertEquals(slots.size(), 0);
+        coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
     }
 
-    @Test
+    @Test(expectedExceptions = IllegalStateException.class, expectedExceptionsMessageRegExp = "No agents have the available resources to run the specified binary and configuration.")
     public void testInstallResourcesConsumed()
     {
         URI agentUri = URI.create("fake://appleServer1/");
@@ -398,8 +397,7 @@ public class TestCoordinator
         assertAppleSlot(Iterables.get(slots, 0));
 
         // try to install a banana server which will fail
-        slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, BANANA_ASSIGNMENT);
-        assertEquals(slots.size(), 0);
+        coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, BANANA_ASSIGNMENT);
     }
 
     private void assertAppleSlot(SlotStatus slot)
