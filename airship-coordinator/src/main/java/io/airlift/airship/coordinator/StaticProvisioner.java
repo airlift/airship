@@ -215,7 +215,7 @@ public class StaticProvisioner
 
             List<String> lines = CharStreams.readLines(new StringReader(contents));
             if (resourceUp.compareAndSet(false, true)) {
-                log.info("ServiceInventory connect succeeded");
+                log.info("Static provisioner connection for %s to %s succeeded", name, uri);
             }
             return lines;
         }
