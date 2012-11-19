@@ -38,7 +38,7 @@ public class CoordinatorStatusRepresentation
         public CoordinatorStatusRepresentationFactory(List<CoordinatorStatus> coordinatorStatuses)
         {
             this.shortIdPrefixSize = shortestUniquePrefix(transform(coordinatorStatuses, idGetter()), MIN_PREFIX_SIZE);
-            this.commonLocationParts = commonPrefixSegments('/', transform(coordinatorStatuses, locationGetter()), MIN_LOCATION_SEGMENTS);
+            this.commonLocationParts = commonPrefixSegments('/', transform(coordinatorStatuses, locationGetter("/")), MIN_LOCATION_SEGMENTS);
         }
 
         public CoordinatorStatusRepresentationFactory(int shortIdPrefixSize, int commonLocationParts)

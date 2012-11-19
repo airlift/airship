@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.newHashMap;
 import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
@@ -208,13 +209,13 @@ public class AgentStatus
         };
     }
 
-    public static Function<AgentStatus, String> locationGetter()
+    public static Function<AgentStatus, String> locationGetter(final String defaultValue)
     {
         return new Function<AgentStatus, String>()
         {
             public String apply(AgentStatus input)
             {
-                return input.getLocation();
+                return firstNonNull(input.getLocation(), defaultValue);
             }
         };
     }

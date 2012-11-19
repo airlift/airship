@@ -108,14 +108,14 @@ public class StaticProvisioner
 
                     return new Instance(coordinator.getInstanceId(),
                             firstNonNull(coordinator.getInstanceType(), "unknown"),
-                            firstNonNull(coordinator.getLocation(), "/static/" + hostAndPort + "/coordinator"),
+                            coordinator.getLocation(),
                             coordinator.getSelf(),
                             coordinator.getExternalUri());
                 }
                 catch (Exception e) {
                     return new Instance(hostAndPort,
                             "unknown",
-                            "/static/" + hostAndPort + "/agent",
+                            null,
                             uri,
                             uri);
                 }
@@ -156,14 +156,14 @@ public class StaticProvisioner
 
                     return new Instance(agent.getInstanceId(),
                             firstNonNull(agent.getInstanceType(), "unknown"),
-                            firstNonNull(agent.getLocation(), "/static/" + hostAndPort + "/agent"),
+                            agent.getLocation(),
                             agent.getSelf(),
                             agent.getExternalUri());
                 }
                 catch (Exception e) {
                     return new Instance(hostAndPort,
                             "unknown",
-                            "/static/" + hostAndPort + "/agent",
+                            null,
                             uri,
                             uri);
                 }

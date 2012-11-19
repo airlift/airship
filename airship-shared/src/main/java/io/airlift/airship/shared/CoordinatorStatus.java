@@ -6,6 +6,8 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 
+import static com.google.common.base.Objects.firstNonNull;
+
 @Immutable
 public class CoordinatorStatus
 {
@@ -138,13 +140,13 @@ public class CoordinatorStatus
         };
     }
 
-    public static Function<CoordinatorStatus, String> locationGetter()
+    public static Function<CoordinatorStatus, String> locationGetter(final String defaultValue)
     {
         return new Function<CoordinatorStatus, String>()
         {
             public String apply(CoordinatorStatus input)
             {
-                return input.getLocation();
+                return firstNonNull(input.getLocation(), defaultValue);
             }
         };
     }
