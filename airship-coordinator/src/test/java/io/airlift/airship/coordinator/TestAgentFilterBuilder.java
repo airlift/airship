@@ -17,7 +17,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -206,5 +205,24 @@ public class TestAgentFilterBuilder
         finally {
             repository.destroy();
         }
+    }
+
+    @Test
+    public void testNullFields()
+    {
+        status = new AgentStatus("agent-id", ONLINE, null, null, null, null, null,
+                ImmutableList.<SlotStatus>of(createSlotStatus(UUID.randomUUID(),
+                        null, null, null, "/location", UNKNOWN, null, null,
+                        ImmutableMap.<String, Integer>of())),
+                ImmutableMap.<String, Integer>of());
+
+        assertTrue(new UuidPredicate("agent-id", asList("agent-id", null)).apply(status));
+        assertTrue(buildFilter("uuid", "agent-id", asList("agent-id", null), ImmutableList.<UUID>of()).apply(status));
+
+        assertFalse(new HostPredicate("localhost").apply(status));
+        assertFalse(buildFilter("host", "localhost").apply(status));
+
+        assertFalse(new MachinePredicate("instance-id").apply(status));
+        assertFalse(buildFilter("machine", "instance-id").apply(status));
     }
 }
