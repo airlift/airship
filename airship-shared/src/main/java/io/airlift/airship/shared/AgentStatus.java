@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.net.URI;
 import java.util.List;
@@ -43,6 +42,7 @@ public class AgentStatus
             Iterable<SlotStatus> slots,
             Map<String, Integer> resources)
     {
+        Preconditions.checkNotNull(state, "state is null");
         Preconditions.checkNotNull(slots, "slots is null");
         Preconditions.checkNotNull(resources, "resources is null");
 
@@ -56,7 +56,7 @@ public class AgentStatus
 
         slots = transform(slots, new Function<SlotStatus, SlotStatus>()
         {
-            public SlotStatus apply(@Nullable SlotStatus slotStatus)
+            public SlotStatus apply(SlotStatus slotStatus)
             {
                 if (!Objects.equal(slotStatus.getInstanceId(), instanceId)) {
                     slotStatus = slotStatus.changeInstanceId(instanceId);

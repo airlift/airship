@@ -7,6 +7,7 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import io.airlift.airship.shared.AgentLifecycleState;
 import io.airlift.airship.shared.AgentStatus;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import static com.google.common.base.Predicates.notNull;
 import static io.airlift.airship.coordinator.StringFunctions.startsWith;
 import static io.airlift.airship.coordinator.StringFunctions.toLowerCase;
 import static io.airlift.airship.shared.AgentLifecycleState.ONLINE;
@@ -267,6 +269,7 @@ public class AgentFilterBuilder
 
         public UuidPredicate(String shortId, List<String> allUuids)
         {
+            allUuids = ImmutableList.copyOf(Iterables.filter(allUuids, notNull()));
             Predicate<String> startsWithPrefix = Predicates.compose(startsWith(shortId.toLowerCase()), toLowerCase());
             Collection<String> matches = Collections2.filter(allUuids, startsWithPrefix);
 
