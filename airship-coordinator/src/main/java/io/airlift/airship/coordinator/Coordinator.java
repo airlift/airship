@@ -492,8 +492,8 @@ public class Coordinator
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
+                stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), STOPPED, installation.getAssignment()));
                 SlotStatus slotStatus = slot.assign(installation);
-                stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
                 return slotStatus;
             }
         }));
@@ -531,26 +531,19 @@ public class Coordinator
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
-                SlotStatus slotStatus;
-                SlotLifecycleState expectedState;
                 switch (state) {
                     case RUNNING:
-                        slotStatus = slot.start();
-                        expectedState = RUNNING;
-                        break;
+                        stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), RUNNING, slot.status().getAssignment()));
+                        return slot.start();
                     case RESTARTING:
-                        slotStatus = slot.restart();
-                        expectedState = RUNNING;
-                        break;
+                        stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), RUNNING, slot.status().getAssignment()));
+                        return slot.restart();
                     case STOPPED:
-                        slotStatus = slot.stop();
-                        expectedState = STOPPED;
-                        break;
+                        stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), STOPPED, slot.status().getAssignment()));
+                        return slot.stop();
                     default:
                         throw new IllegalArgumentException("Unexpected state transition " + state);
                 }
-                stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), expectedState, slotStatus.getAssignment()));
-                return slotStatus;
             }
         }));
     }
