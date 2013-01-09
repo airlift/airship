@@ -45,7 +45,7 @@ public class HttpRemoteAgent implements RemoteAgent
     private final JsonCodec<ServiceDescriptorsRepresentation> serviceDescriptorsCodec;
 
     private AgentStatus agentStatus;
-    private String environment;
+    private final String environment;
     private final HttpClient httpClient;
 
     private final AtomicBoolean serviceInventoryUp = new AtomicBoolean(true);
@@ -72,19 +72,19 @@ public class HttpRemoteAgent implements RemoteAgent
     }
 
     @Override
-    public AgentStatus status()
+    public synchronized AgentStatus status()
     {
         return agentStatus;
     }
 
     @Override
-    public void setInternalUri(URI internalUri)
+    public synchronized void setInternalUri(URI internalUri)
     {
         agentStatus = agentStatus.changeInternalUri(internalUri);
     }
 
     @Override
-    public List<? extends RemoteSlot> getSlots()
+    public synchronized List<? extends RemoteSlot> getSlots()
     {
         return ImmutableList.copyOf(Iterables.transform(agentStatus.getSlotStatuses(), new Function<SlotStatus, HttpRemoteSlot>()
         {
@@ -99,6 +99,7 @@ public class HttpRemoteAgent implements RemoteAgent
     @Override
     public void setServiceInventory(List<ServiceDescriptor> serviceInventory)
     {
+        AgentStatus agentStatus = status();
         if (agentStatus.getState() == ONLINE) {
             Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
             URI internalUri = agentStatus.getInternalUri();
@@ -126,6 +127,7 @@ public class HttpRemoteAgent implements RemoteAgent
     @Override
     public void updateStatus()
     {
+        AgentStatus agentStatus = status();
         URI internalUri = agentStatus.getInternalUri();
         if (internalUri != null) {
             try {
@@ -133,7 +135,7 @@ public class HttpRemoteAgent implements RemoteAgent
                         .setUri(uriBuilderFrom(internalUri).replacePath("/v1/agent/").build())
                         .build();
                 AgentStatusRepresentation agentStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(agentStatusCodec));
-                agentStatus = agentStatusRepresentation.toAgentStatus(agentStatus.getInstanceId(), agentStatus.getInstanceType());
+                setStatus(agentStatusRepresentation.toAgentStatus(agentStatus.getInstanceId(), agentStatus.getInstanceType()));
                 return;
             }
             catch (Exception ignored) {
@@ -143,17 +145,17 @@ public class HttpRemoteAgent implements RemoteAgent
         // error talking to agent -- mark agent offline
         if (agentStatus.getState() != PROVISIONING) {
             agentStatus = agentStatus.changeState(OFFLINE);
-            agentStatus = agentStatus.changeAllSlotsState(SlotLifecycleState.UNKNOWN);
+            setStatus(agentStatus.changeAllSlotsState(SlotLifecycleState.UNKNOWN));
         }
     }
 
-    public void setStatus(AgentStatus agentStatus)
+    public synchronized void setStatus(AgentStatus agentStatus)
     {
         Preconditions.checkNotNull(agentStatus, "agentStatus is null");
         this.agentStatus = agentStatus;
     }
 
-    public void setSlotStatus(SlotStatus slotStatus)
+    public synchronized void setSlotStatus(SlotStatus slotStatus)
     {
         agentStatus = agentStatus.changeSlotStatus(slotStatus);
     }
@@ -162,6 +164,7 @@ public class HttpRemoteAgent implements RemoteAgent
     public SlotStatus install(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
+        AgentStatus agentStatus = status();
         URI internalUri = agentStatus.getInternalUri();
         Preconditions.checkState(internalUri != null, "agent is down");
         try {
@@ -174,7 +177,7 @@ public class HttpRemoteAgent implements RemoteAgent
             SlotStatusRepresentation slotStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(slotStatusCodec, Status.CREATED.getStatusCode()));
 
             SlotStatus slotStatus = slotStatusRepresentation.toSlotStatus(agentStatus.getInstanceId());
-            agentStatus = agentStatus.changeSlotStatus(slotStatus);
+            setStatus(agentStatus.changeSlotStatus(slotStatus));
 
             return slotStatus;
         }
