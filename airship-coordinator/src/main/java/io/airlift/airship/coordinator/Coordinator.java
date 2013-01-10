@@ -7,10 +7,12 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -33,9 +35,11 @@ import io.airlift.log.Logger;
 import io.airlift.node.NodeInfo;
 import io.airlift.units.Duration;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -45,9 +49,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -81,6 +90,7 @@ public class Coordinator
     private final ServiceInventory serviceInventory;
     private final StateManager stateManager;
     private final boolean allowDuplicateInstallationsOnAnAgent;
+    private final ExecutorService executor;
 
     @Inject
     public Coordinator(NodeInfo nodeInfo,
@@ -138,6 +148,8 @@ public class Coordinator
         this.serviceInventory = serviceInventory;
         this.statusExpiration = statusExpiration;
         this.allowDuplicateInstallationsOnAnAgent = allowDuplicateInstallationsOnAnAgent;
+
+        this.executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("coordinator-task").build());
 
         timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
 
@@ -394,24 +406,21 @@ public class Coordinator
 
     public List<SlotStatus> install(Predicate<AgentStatus> filter, int limit, Assignment assignment)
     {
-        Installation installation = InstallationUtils.toInstallation(repository, assignment);
+        final Installation installation = InstallationUtils.toInstallation(repository, assignment);
 
-        List<RemoteAgent> targetAgents = selectAgents(filter, installation);
+        List<RemoteAgent> targetAgents = new ArrayList<>(selectAgents(filter, installation));
+        targetAgents = targetAgents.subList(0, Math.min(targetAgents.size(), limit));
 
-        // randomize agents so all processes don't end up on the same node
-        // todo sort agents by number of process already installed on them
-        List<SlotStatus> slots = newArrayList();
-        for (RemoteAgent agent : targetAgents) {
-            if (slots.size() >= limit) {
-                break;
+        return parallel(targetAgents, new Function<RemoteAgent, SlotStatus>()
+        {
+            @Override
+            public SlotStatus apply(RemoteAgent agent)
+            {
+                SlotStatus slotStatus = agent.install(installation);
+                stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
+                return slotStatus;
             }
-
-            // install
-            SlotStatus slotStatus = agent.install(installation);
-            stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
-            slots.add(slotStatus);
-        }
-        return ImmutableList.copyOf(slots);
+        });
     }
 
     private List<RemoteAgent> selectAgents(Predicate<AgentStatus> filter, Installation installation)
@@ -429,6 +438,7 @@ public class Coordinator
             }
         }
 
+        // randomize agents so all processes don't end up on the same node
         // todo sort agents by number of process already installed on them?
         Collections.shuffle(allAgents);
 
@@ -456,8 +466,8 @@ public class Coordinator
     {
         List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
 
-        HashSet<Assignment> newAssignments = new HashSet<Assignment>();
-        List<RemoteSlot> slotsToUpgrade = new ArrayList<RemoteSlot>();
+        HashSet<Assignment> newAssignments = new HashSet<>();
+        List<RemoteSlot> slotsToUpgrade = new ArrayList<>();
         for (RemoteSlot slot : filteredSlots) {
             SlotStatus status = slot.status();
             SlotLifecycleState state = status.getState();
@@ -487,7 +497,7 @@ public class Coordinator
                 repository.binaryToHttpUri(assignment.getBinary()),
                 configFile, ImmutableMap.<String, Integer>of());
 
-        return ImmutableList.copyOf(transform(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
+        return parallelCommand(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
         {
             @Override
             public SlotStatus apply(RemoteSlot slot)
@@ -496,7 +506,7 @@ public class Coordinator
                 SlotStatus slotStatus = slot.assign(installation);
                 return slotStatus;
             }
-        }));
+        }) ;
     }
 
     public List<SlotStatus> terminate(Predicate<SlotStatus> filter, String expectedSlotsVersion)
@@ -506,17 +516,18 @@ public class Coordinator
         // filter the slots
         List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
 
-        ImmutableList.Builder<SlotStatus> builder = ImmutableList.builder();
-        for (RemoteSlot slot : filteredSlots) {
-            if (filter.apply(slot.status())) {
+        return parallelCommand(filteredSlots, new Function<RemoteSlot, SlotStatus>()
+        {
+            @Override
+            public SlotStatus apply(RemoteSlot slot)
+            {
                 SlotStatus slotStatus = slot.terminate();
                 if (slotStatus.getState() == TERMINATED) {
                     stateManager.deleteExpectedState(slotStatus.getId());
                 }
-                builder.add(slotStatus);
+                return slotStatus;
             }
-        }
-        return builder.build();
+        });
     }
 
     public List<SlotStatus> setState(final SlotLifecycleState state, Predicate<SlotStatus> filter, String expectedSlotsVersion)
@@ -526,7 +537,7 @@ public class Coordinator
         // filter the slots
         List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
 
-        return ImmutableList.copyOf(transform(filteredSlots, new Function<RemoteSlot, SlotStatus>()
+        return parallelCommand(filteredSlots, new Function<RemoteSlot, SlotStatus>()
         {
             @Override
             public SlotStatus apply(RemoteSlot slot)
@@ -545,7 +556,7 @@ public class Coordinator
                         throw new IllegalArgumentException("Unexpected state transition " + state);
                 }
             }
-        }));
+        });
     }
 
     public List<SlotStatus> resetExpectedState(Predicate<SlotStatus> filter, String expectedSlotsVersion)
@@ -733,5 +744,97 @@ public class Coordinator
                 return true;
             }
         };
+    }
+
+    private <T> ImmutableList<T> parallelCommand(Iterable<RemoteSlot> items, final Function<RemoteSlot, T> function)
+    {
+        ImmutableCollection<Collection<RemoteSlot>> slotsByInstance = Multimaps.index(items, new Function<RemoteSlot, Object>()
+        {
+            @Override
+            public Object apply(RemoteSlot input)
+            {
+                return input.status().getInstanceId();
+            }
+        }).asMap().values();
+
+        // run commands for different instances in parallel
+        return ImmutableList.copyOf(concat(parallel(slotsByInstance, new Function<Collection<RemoteSlot>, List<T>>()
+        {
+            public List<T> apply(Collection<RemoteSlot> input)
+            {
+                // but run commands for a single instance serially
+                return ImmutableList.copyOf(transform(input, function));
+            }
+        })));
+    }
+
+    private <F, T> ImmutableList<T> parallel(Iterable<F> items, final Function<F, T> function)
+    {
+        List<Callable<T>> callables = ImmutableList.copyOf(transform(items, new Function<F, Callable<T>>()
+        {
+            public Callable<T> apply(@Nullable final F item)
+            {
+                return new CallableFunction<>(item, function);
+            }
+        }));
+
+        List<Future<T>> futures;
+        try {
+            futures = executor.invokeAll(callables);
+        }
+        catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted while waiting for command to finish", e);
+        }
+
+        List<Throwable> failures = new ArrayList<>();
+        ImmutableList.Builder<T> results = ImmutableList.builder();
+        for (Future<T> future : futures) {
+            try {
+                results.add(future.get());
+            }
+            catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                failures.add(e);
+            }
+            catch (CancellationException e) {
+                failures.add(e);
+            }
+            catch (ExecutionException e) {
+                if (e.getCause() != null) {
+                    failures.add(e.getCause());
+                } else {
+                    failures.add(e);
+                }
+            }
+        }
+        if (!failures.isEmpty()) {
+            Throwable first = failures.get(0);
+            RuntimeException runtimeException = new RuntimeException(first.getMessage());
+            for (Throwable failure : failures) {
+                runtimeException.addSuppressed(failure);
+            }
+            throw runtimeException;
+        }
+        return results.build();
+    }
+
+    private static class CallableFunction<F, T>
+            implements Callable<T>
+    {
+        private final F item;
+        private final Function<F, T> function;
+
+        private CallableFunction(F item, Function<F, T> function)
+        {
+            this.item = item;
+            this.function = function;
+        }
+
+        @Override
+        public T call()
+        {
+            return function.apply(item);
+        }
+
     }
 }

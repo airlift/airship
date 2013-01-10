@@ -34,19 +34,19 @@ public class MockRemoteAgent implements RemoteAgent
     }
 
     @Override
-    public AgentStatus status()
+    public synchronized AgentStatus status()
     {
         return getAgentStatus();
     }
 
     @Override
-    public void setInternalUri(URI internalUri)
+    public synchronized void setInternalUri(URI internalUri)
     {
         setAgentStatus(getAgentStatus().changeInternalUri(internalUri));
     }
 
     @Override
-    public List<? extends RemoteSlot> getSlots()
+    public synchronized List<? extends RemoteSlot> getSlots()
     {
         return ImmutableList.copyOf(Iterables.transform(getAgentStatus().getSlotStatuses(), new Function<SlotStatus, MockRemoteSlot>()
         {
@@ -59,23 +59,23 @@ public class MockRemoteAgent implements RemoteAgent
     }
 
     @Override
-    public void updateStatus()
+    public synchronized void updateStatus()
     {
     }
 
-    void setSlotStatus(SlotStatus slotStatus)
+    synchronized void setSlotStatus(SlotStatus slotStatus)
     {
         AgentStatus agentStatus = getAgentStatus().changeSlotStatus(slotStatus);
         setAgentStatus(agentStatus);
     }
 
     @Override
-    public void setServiceInventory(List<ServiceDescriptor> serviceInventory)
+    public synchronized void setServiceInventory(List<ServiceDescriptor> serviceInventory)
     {
     }
 
     @Override
-    public SlotStatus install(Installation installation)
+    public synchronized SlotStatus install(Installation installation)
     {
         checkNotNull(installation, "installation is null");
 
@@ -97,7 +97,7 @@ public class MockRemoteAgent implements RemoteAgent
         return slotStatus;
     }
 
-    public AgentStatus getAgentStatus()
+    public synchronized AgentStatus getAgentStatus()
     {
         AgentStatus agentStatus = agents.get(instanceId);
         if (agentStatus != null) {
@@ -115,7 +115,7 @@ public class MockRemoteAgent implements RemoteAgent
         }
     }
 
-    public void setAgentStatus(AgentStatus agentStatus)
+    public synchronized void setAgentStatus(AgentStatus agentStatus)
     {
         Preconditions.checkNotNull(agentStatus, "agentStatus is null");
         agents.put(instanceId, agentStatus);
