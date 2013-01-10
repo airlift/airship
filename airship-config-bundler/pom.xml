@@ -4,13 +4,13 @@
 
     <groupId>io.airlift.airship</groupId>
     <artifactId>airship-config-bundler</artifactId>
-    <version>0.9-SNAPSHOT</version>
+    <version>0.9</version>
     <name>airship-config-bundler</name>
 
     <parent>
         <groupId>io.airlift.airship</groupId>
         <artifactId>airship-root</artifactId>
-        <version>0.9-SNAPSHOT</version>
+        <version>0.9</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

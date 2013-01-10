@@ -5,7 +5,7 @@
         <groupId>io.airlift</groupId>
         <artifactId>rest-server-base</artifactId>
         <version>0.66</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <properties>
@@ -14,7 +14,7 @@
 
     <groupId>io.airlift.airship</groupId>
     <artifactId>airship-coordinator</artifactId>
-    <version>0.9-SNAPSHOT</version>
+    <version>0.9</version>
     <name>airship-coordinator</name>
 
     <distributionManagement>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.9-SNAPSHOT</version>
+            <version>0.9</version>
         </dependency>
 
         <dependency>
@@ -141,7 +141,7 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.9-SNAPSHOT</version>
+            <version>0.9</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
