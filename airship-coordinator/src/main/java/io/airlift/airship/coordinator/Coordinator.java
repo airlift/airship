@@ -42,12 +42,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -466,14 +467,14 @@ public class Coordinator
     {
         List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
 
-        HashSet<Assignment> newAssignments = new HashSet<>();
+        final Map<UUID, Assignment> newAssignments = new HashMap<>();
         List<RemoteSlot> slotsToUpgrade = new ArrayList<>();
         for (RemoteSlot slot : filteredSlots) {
             SlotStatus status = slot.status();
             SlotLifecycleState state = status.getState();
             if (state != TERMINATED && state != UNKNOWN) {
                 Assignment assignment = upgradeVersions.upgradeAssignment(repository, status.getAssignment());
-                newAssignments.add(assignment);
+                newAssignments.put(slot.getId(), assignment);
                 slotsToUpgrade.add(slot);
             }
         }
@@ -483,30 +484,51 @@ public class Coordinator
             return ImmutableList.of();
         }
 
-        // must upgrade to a single new version
-        if (newAssignments.size() != 1) {
-            throw new AmbiguousUpgradeException(newAssignments);
+        // assure that new assignments all have the same binary (ignoring version)
+        if (!sameBinary(newAssignments.values())) {
+            TreeSet<String> binaries = new TreeSet<>();
+            for (RemoteSlot slot : filteredSlots) {
+                binaries.add(slot.status().getAssignment().getBinary());
+            }
+            throw new IllegalArgumentException("Expected a target slots for upgrade command to have a single binary, but found: " + Joiner.on(", ").join(binaries));
         }
-        Assignment assignment = newAssignments.iterator().next();
-
-        URI configFile = repository.configToHttpUri(assignment.getConfig());
-
-        final Installation installation = new Installation(
-                repository.configShortName(assignment.getConfig()),
-                assignment,
-                repository.binaryToHttpUri(assignment.getBinary()),
-                configFile, ImmutableMap.<String, Integer>of());
 
         return parallelCommand(slotsToUpgrade, new Function<RemoteSlot, SlotStatus>()
         {
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
+                Assignment assignment = newAssignments.get(slot.getId());
+                Preconditions.checkState(assignment != null, "Error no assignment for slot " + slot.getId());
+
+                URI configFile = repository.configToHttpUri(assignment.getConfig());
+
+                Installation installation = new Installation(
+                        repository.configShortName(assignment.getConfig()),
+                        assignment,
+                        repository.binaryToHttpUri(assignment.getBinary()),
+                        configFile, ImmutableMap.<String, Integer>of());
+
                 stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), STOPPED, installation.getAssignment()));
                 SlotStatus slotStatus = slot.assign(installation);
                 return slotStatus;
             }
         }) ;
+    }
+
+    private boolean sameBinary(Collection<Assignment> values)
+    {
+        if (values.size() < 2) {
+            return true;
+        }
+        final Assignment assignment = Iterables.getFirst(values, null);
+        return Iterables.all(values, new Predicate<Assignment>() {
+            @Override
+            public boolean apply(@Nullable Assignment input)
+            {
+                return repository.binaryEqualsIgnoreVersion(input.getBinary(), assignment.getBinary());
+            }
+        });
     }
 
     public List<SlotStatus> terminate(Predicate<SlotStatus> filter, String expectedSlotsVersion)

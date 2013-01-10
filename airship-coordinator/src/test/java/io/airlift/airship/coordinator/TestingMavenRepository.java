@@ -68,7 +68,11 @@ public class TestingMavenRepository extends MavenRepository
         @Override
         public boolean configEqualsIgnoreVersion(String config1, String config2)
         {
-            return false;
+            MavenCoordinates coordinates1 = MavenCoordinates.fromConfigGAV(config1);
+            MavenCoordinates coordinates2 = MavenCoordinates.fromConfigGAV(config2);
+            return coordinates1 != null &&
+                    coordinates2 != null &&
+                    coordinates1.equalsIgnoreVersion(coordinates2);
         }
 
         @Override
@@ -110,7 +114,11 @@ public class TestingMavenRepository extends MavenRepository
         @Override
         public boolean binaryEqualsIgnoreVersion(String binary1, String binary2)
         {
-            return false;
+            MavenCoordinates coordinates1 = MavenCoordinates.fromBinaryGAV(binary1);
+            MavenCoordinates coordinates2 = MavenCoordinates.fromBinaryGAV(binary2);
+            return coordinates1 != null &&
+                    coordinates2 != null &&
+                    coordinates1.equalsIgnoreVersion(coordinates2);
         }
 
         @Override
