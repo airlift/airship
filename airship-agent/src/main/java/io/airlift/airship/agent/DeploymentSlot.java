@@ -30,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static io.airlift.airship.shared.SlotLifecycleState.RESTARTING;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
@@ -168,7 +170,12 @@ public class DeploymentSlot implements Slot
 
             // stop current server
             Deployment oldDeployment = deploymentManager.getDeployment();
+            boolean shouldStart = false;
             if (oldDeployment != null) {
+                // if deployment is running, we will restart it after the upgrade
+                SlotLifecycleState currentState = lifecycleManager.status(oldDeployment);
+                shouldStart = currentState == RUNNING || currentState == RESTARTING;
+
                 SlotLifecycleState state = lifecycleManager.stop(oldDeployment);
                 if (state != STOPPED) {
                     // todo error
@@ -184,12 +191,20 @@ public class DeploymentSlot implements Slot
             // create node config file
             lifecycleManager.updateNodeConfig(deployment);
 
+            // restart the server if it was previously running
+            SlotLifecycleState state;
+            if (shouldStart) {
+                state = lifecycleManager.start(deployment);
+            } else {
+                state = STOPPED;
+            }
+
             SlotStatus slotStatus = createSlotStatus(id,
                     self,
                     externalUri,
                     null,
                     location,
-                    STOPPED,
+                    state,
                     installation.getAssignment(),
                     deployment.getDataDir().getAbsolutePath(),
                     deployment.getResources());
