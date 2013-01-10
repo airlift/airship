@@ -265,7 +265,7 @@ public class TestCliIntegration
 
         assertNotNull(outputFormat.slots);
         assertEquals(outputFormat.slots.size(), 1);
-        assertSlotStatus(outputFormat.slots.get(0), slotId, APPLE_ASSIGNMENT_2, SlotLifecycleState.STOPPED, agent);
+        assertSlotStatus(outputFormat.slots.get(0), slotId, APPLE_ASSIGNMENT_2, SlotLifecycleState.RUNNING, agent);
 
         assertNull(outputFormat.coordinators);
         assertNull(outputFormat.agents);

@@ -31,9 +31,10 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.UUID;
 
-import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
 import static io.airlift.airship.shared.InstallationHelper.APPLE_INSTALLATION;
+import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -122,9 +123,19 @@ public class TestAssignmentResource
     }
 
     @Test
+    public void testAssignRestarts()
+    {
+        SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        slotStatus = agent.getSlot(slotStatus.getId()).start();
+        assertEquals(slotStatus.getState(), RUNNING);
+        assertUpgrade(slotStatus, agent.getAgentStatus().getVersion(), slotStatus.getVersion());
+    }
+
+    @Test
     public void testAssignNoAgentVersion()
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        assertEquals(slotStatus.getState(), STOPPED);
         assertUpgrade(slotStatus, null, slotStatus.getVersion());
     }
 
@@ -132,6 +143,7 @@ public class TestAssignmentResource
     public void testAssignNoSlotVersion()
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        assertEquals(slotStatus.getState(), STOPPED);
         assertUpgrade(slotStatus, agent.getAgentStatus().getVersion(), null);
     }
 
@@ -139,6 +151,7 @@ public class TestAssignmentResource
     public void testAssignNoVersions()
     {
         SlotStatus slotStatus = agent.install(APPLE_INSTALLATION);
+        assertEquals(slotStatus.getState(), STOPPED);
         assertUpgrade(slotStatus, null, null);
     }
 
@@ -148,7 +161,7 @@ public class TestAssignmentResource
         assertEquals(response.getStatus(), Status.OK.getStatusCode());
 
         SlotStatusRepresentation actualStatus = (SlotStatusRepresentation) response.getEntity();
-        SlotStatus expectedStatus = slotStatus.changeAssignment(STOPPED, APPLE_V2, slotStatus.getResources());
+        SlotStatus expectedStatus = slotStatus.changeAssignment(slotStatus.getState(), APPLE_V2, slotStatus.getResources());
         assertEquals(actualStatus, SlotStatusRepresentation.from(expectedStatus));
         assertEquals(actualStatus.toSlotStatus(null), expectedStatus);
         assertEquals(response.getMetadata().get(AIRSHIP_AGENT_VERSION_HEADER).get(0), agent.getAgentStatus().getVersion());
