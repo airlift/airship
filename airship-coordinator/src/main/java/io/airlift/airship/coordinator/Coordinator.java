@@ -498,6 +498,8 @@ public class Coordinator
             @Override
             public SlotStatus apply(RemoteSlot slot)
             {
+                boolean expectRestart = slot.status().getState() == RUNNING;
+
                 Assignment assignment = newAssignments.get(slot.getId());
                 Preconditions.checkState(assignment != null, "Error no assignment for slot " + slot.getId());
 
@@ -509,7 +511,7 @@ public class Coordinator
                         repository.binaryToHttpUri(assignment.getBinary()),
                         configFile, ImmutableMap.<String, Integer>of());
 
-                stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), STOPPED, installation.getAssignment()));
+                stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), expectRestart ? RUNNING : STOPPED, installation.getAssignment()));
                 SlotStatus slotStatus = slot.assign(installation);
                 return slotStatus;
             }
