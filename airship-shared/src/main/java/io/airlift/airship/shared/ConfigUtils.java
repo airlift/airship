@@ -1,7 +1,7 @@
 package io.airlift.airship.shared;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
@@ -22,7 +22,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
@@ -31,9 +30,12 @@ import java.util.zip.ZipOutputStream;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static java.lang.String.format;
 
 public class ConfigUtils
 {
+    private static final String CONFIG_PROPERTIES = "etc/config.properties";
+
     public static void packConfig(File outputFile, String rootPath, File... inputDirs)
             throws IOException
     {
@@ -203,28 +205,28 @@ public class ConfigUtils
 
     public static ConfigurationFactory createConfigurationFactory(Repository repository, String config)
     {
+        URI configUri = repository.configToHttpUri(config);
+        if (configUri == null) {
+            throw new RuntimeException("Unknown configuration: " + config);
+        }
+
         try {
-            URI configUri = repository.configToHttpUri(config);
-            Preconditions.checkNotNull(configUri, "Unknown configuration: " + config);
-            return createConfigurationFactory(configUri);
+            Properties properties = loadProperties(newConfigEntrySupplier(configUri, CONFIG_PROPERTIES));
+            return new ConfigurationFactory(Maps.fromProperties(properties));
         }
         catch (IOException e) {
-            throw new RuntimeException("Unable to read configuration " + config);
+            String message = format("Unable to read %s from config %s: %s", CONFIG_PROPERTIES, config, e.getMessage());
+            throw new RuntimeException(message, e);
         }
     }
 
-    public static ConfigurationFactory createConfigurationFactory(URI configUri)
+    private static Properties loadProperties(InputSupplier<InputStream> inputSupplier)
             throws IOException
     {
         Properties properties = new Properties();
-        InputSupplier<InputStream> configPropertiesStream = newConfigEntrySupplier(configUri, "etc/config.properties");
-        InputStream input = configPropertiesStream.getInput();
-        try {
+        try (InputStream input = inputSupplier.getInput()) {
             properties.load(input);
-        } finally {
-            input.close();
         }
-
-        return new ConfigurationFactory((Map<String,String>) (Object) properties);
+        return properties;
     }
 }
