@@ -259,6 +259,10 @@ public class MockLocalProvisioner implements Provisioner
             String keyPair,
             String securityGroup)
     {
+        if (instanceType == null) {
+            instanceType = "default";
+        }
+
         List<Instance> instances = newArrayList();
         for (int i = 0; i < agentCount; i++) {
             String agentInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());

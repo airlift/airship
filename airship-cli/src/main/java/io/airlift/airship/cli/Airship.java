@@ -714,19 +714,19 @@ public class Airship
         public int count = 1;
 
         @Option(name = "--ami", description = "Amazon Machine Image for coordinator")
-        public String ami = "ami-27b7744e";
+        public String ami;
 
         @Option(name = "--key-pair", description = "Key pair for coordinator")
-        public String keyPair = "keypair";
+        public String keyPair;
 
         @Option(name = "--security-group", description = "Security group for coordinator")
-        public String securityGroup = "default";
+        public String securityGroup;
 
         @Option(name = "--availability-zone", description = "EC2 availability zone for coordinator")
         public String availabilityZone;
 
         @Option(name = "--instance-type", description = "Instance type to provision")
-        public String instanceType = "t1.micro";
+        public String instanceType;
 
         @Option(name = "--no-wait", description = "Do not wait for coordinator to start")
         public boolean noWait;
@@ -837,19 +837,19 @@ public class Airship
         public int count = 1;
 
         @Option(name = "--ami", description = "Amazon Machine Image for agent")
-        public String ami = "ami-27b7744e";
+        public String ami;
 
         @Option(name = "--key-pair", description = "Key pair for agent")
-        public String keyPair = "keypair";
+        public String keyPair;
 
         @Option(name = "--security-group", description = "Security group for agent")
-        public String securityGroup = "default";
+        public String securityGroup;
 
         @Option(name = "--availability-zone", description = "EC2 availability zone for agent")
         public String availabilityZone;
 
         @Option(name = "--instance-type", description = "Instance type to provision")
-        public String instanceType = "t1.micro";
+        public String instanceType;
 
         @Option(name = "--no-wait", description = "Do not wait for agent to start")
         public boolean noWait;
