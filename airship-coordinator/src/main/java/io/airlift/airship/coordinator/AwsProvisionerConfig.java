@@ -9,17 +9,18 @@ import java.util.concurrent.TimeUnit;
 
 public class AwsProvisionerConfig
 {
+
     private String awsCredentialsFile = "etc/aws-credentials.properties";
 
-    private String awsCoordinatorAmi;
-    private String awsCoordinatorKeypair;
-    private String awsCoordinatorSecurityGroup;
-    private String awsCoordinatorDefaultInstanceType;
+    private String awsCoordinatorAmi = "ami-27b7744e";
+    private String awsCoordinatorKeypair = "keypair";
+    private String awsCoordinatorSecurityGroup = "default";
+    private String awsCoordinatorDefaultInstanceType = "t1.micro";
 
-    private String awsAgentAmi;
-    private String awsAgentKeypair;
-    private String awsAgentSecurityGroup;
-    private String awsAgentDefaultInstanceType;
+    private String awsAgentAmi = "ami-27b7744e";
+    private String awsAgentKeypair = "keypair";
+    private String awsAgentSecurityGroup = "default";
+    private String awsAgentDefaultInstanceType = "t1.micro";
 
     // todo add zone
     private String awsEndpoint;

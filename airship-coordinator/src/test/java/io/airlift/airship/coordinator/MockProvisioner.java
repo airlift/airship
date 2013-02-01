@@ -211,6 +211,10 @@ public class MockProvisioner implements Provisioner
             String keyPair,
             String securityGroup)
     {
+        if (instanceType == null) {
+            instanceType = "default";
+        }
+
         ImmutableList.Builder<Instance> instances = ImmutableList.builder();
         for (int i = 0; i < agentCount; i++) {
             String agentInstanceId = String.format("i-%05d", nextInstanceId.incrementAndGet());
