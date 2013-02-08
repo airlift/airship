@@ -1,6 +1,7 @@
 package io.airlift.airship.cli;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -16,12 +17,14 @@ import com.amazonaws.services.identitymanagement.model.PutUserPolicyRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.io.NullOutputStream;
 import com.google.common.io.Resources;
+import com.google.common.util.concurrent.Uninterruptibles;
 import io.airlift.airship.cli.CommanderFactory.ToUriFunction;
 import io.airlift.airship.coordinator.AwsProvisioner;
 import io.airlift.airship.coordinator.AwsProvisionerConfig;
@@ -64,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
@@ -1119,10 +1123,7 @@ public class Airship
             AWSCredentials environmentCredentials = createIamAccessKey(iamClient, username);
 
             // Create the provisioner
-            AmazonEC2Client ec2Client = new AmazonEC2Client(environmentCredentials);
-            if (awsEndpoint != null) {
-                ec2Client.setEndpoint(awsEndpoint);
-            }
+            AmazonEC2Client ec2Client = createEc2Client(environmentCredentials);
             NodeInfo nodeInfo = new NodeInfo(environment);
             AwsProvisioner provisioner = new AwsProvisioner(environmentCredentials,
                     ec2Client,
@@ -1159,6 +1160,41 @@ public class Airship
             // make this environment the default environment
             config.set("environment.default", ref);
             config.save();
+        }
+
+        private AmazonEC2Client createEc2Client(AWSCredentials environmentCredentials) {
+            AmazonEC2Client ec2Client = new AmazonEC2Client(environmentCredentials);
+            if (awsEndpoint != null) {
+                ec2Client.setEndpoint(awsEndpoint);
+            }
+            // Wait for the access key to register with AWS.
+            Exception exception = null;
+            for (int i = 0; i < 120; i++) {
+                try {
+                    ec2Client.describeInstances();
+                } catch (AmazonServiceException e) {
+                    if (i == 0) {
+                        System.out.print("Waiting for access key to register with AWS");
+                    }
+                    exception = e;
+                    System.out.print(".");
+                    Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+                    continue;
+                }
+                exception = null;
+                break;
+            }
+
+            if (exception != null) {
+                if (globalOptions.debug) {
+                    throw Throwables.propagate(exception);
+                } else {
+                    System.out.println(firstNonNull(exception.getMessage(), "Unknown error"));
+                }
+            }
+            System.out.print("done!\n");
+
+            return ec2Client;
         }
 
         private static List<Instance> waitForInstancesToStart(AmazonEC2Client ec2Client, List<Instance> instances, int port)
