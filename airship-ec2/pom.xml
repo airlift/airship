@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.airlift.airship</groupId>
         <artifactId>airship-root</artifactId>
-        <version>0.10</version>
+        <version>0.11-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -15,7 +15,7 @@
     <name>airship-ec2</name>
     <description>Airship EC2 scripts</description>
 
-    <version>0.10</version>
+    <version>0.11-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
