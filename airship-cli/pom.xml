@@ -5,13 +5,13 @@
     <parent>
         <groupId>io.airlift.airship</groupId>
         <artifactId>airship-root</artifactId>
-        <version>0.10-SNAPSHOT</version>
+        <version>0.10</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>io.airlift.airship</groupId>
     <artifactId>airship-cli</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.10</version>
     <name>airship-cli</name>
 
     <properties>
@@ -66,13 +66,13 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-agent</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10</version>
         </dependency>
 
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-coordinator</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10</version>
         </dependency>
 
         <!-- for testing -->
@@ -93,7 +93,7 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-coordinator</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -109,7 +109,7 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-agent</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

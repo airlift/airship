@@ -5,13 +5,13 @@
     <parent>
         <groupId>io.airlift.airship</groupId>
         <artifactId>airship-root</artifactId>
-        <version>0.10-SNAPSHOT</version>
+        <version>0.10</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>io.airlift.airship</groupId>
     <artifactId>airship-shared</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.10</version>
     <name>airship-shared</name>
 
     <properties>

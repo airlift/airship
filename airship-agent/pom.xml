@@ -13,7 +13,7 @@
 
     <groupId>io.airlift.airship</groupId>
     <artifactId>airship-agent</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.10</version>
     <name>airship-agent</name>
 
     <distributionManagement>
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10</version>
         </dependency>
 
         <dependency>
@@ -163,7 +163,7 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.10-SNAPSHOT</version>
+            <version>0.10</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
