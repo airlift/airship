@@ -2,7 +2,6 @@ package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.airlift.http.client.BodyGenerator;
 import org.apache.maven.repository.internal.DefaultArtifactDescriptorReader;
 import org.apache.maven.repository.internal.DefaultVersionRangeResolver;
 import org.apache.maven.repository.internal.DefaultVersionResolver;
@@ -35,6 +34,7 @@ import org.sonatype.aether.spi.connector.RepositoryConnectorFactory;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 import javax.annotation.Nullable;
+
 import java.io.File;
 import java.io.FileOutputStream;
 

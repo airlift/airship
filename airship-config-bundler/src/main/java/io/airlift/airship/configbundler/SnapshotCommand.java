@@ -2,20 +2,15 @@ package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.InputSupplier;
-import io.airlift.http.client.BodyGenerator;
 import org.eclipse.jgit.api.Git;
 import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static com.google.common.collect.Iterables.find;
-import static com.google.common.io.CharStreams.newReaderSupplier;
 import static java.lang.String.format;
 
 @Command(name = "snapshot", description = "Deploy a snapshot config bundle")
