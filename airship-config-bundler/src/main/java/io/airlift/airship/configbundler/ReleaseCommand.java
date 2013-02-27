@@ -2,14 +2,12 @@ package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.InputSupplier;
-import io.airlift.http.client.BodyGenerator;
 import org.eclipse.jgit.api.Git;
 import org.iq80.cli.Arguments;
 import org.iq80.cli.Command;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.Callable;
 

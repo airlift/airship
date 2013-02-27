@@ -1,15 +1,14 @@
 package io.airlift.airship.shared;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonMethod;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.validation.constraints.NotNull;
+
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -24,7 +23,6 @@ import static io.airlift.airship.shared.Strings.safeTruncate;
 import static io.airlift.airship.shared.Strings.shortestUniquePrefix;
 import static io.airlift.airship.shared.Strings.trimLeadingSegments;
 
-@JsonAutoDetect(JsonMethod.NONE)
 public class AgentStatusRepresentation
 {
     public static class AgentStatusRepresentationFactory {

@@ -34,8 +34,14 @@
 
     <dependencies>
         <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
+            <artifactId>jersey-core</artifactId>
             <version>1.9.1</version>
         </dependency>
 
@@ -46,16 +52,11 @@
         </dependency>
 
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>1.9.5</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.1.2</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            <version>1.9.5</version>
-        </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
@@ -70,14 +71,20 @@
 
         <dependency>
             <groupId>io.airlift</groupId>
-            <artifactId>http-client-experimental</artifactId>
-            <version>0.66</version>
+            <artifactId>configuration</artifactId>
+            <version>0.70</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>json</artifactId>
+            <version>0.70</version>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>units</artifactId>
-            <version>0.66</version>
+            <version>0.70</version>
         </dependency>
 
         <!-- for testing -->
@@ -91,7 +98,7 @@
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>testing</artifactId>
-            <version>0.66</version>
+            <version>0.70</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

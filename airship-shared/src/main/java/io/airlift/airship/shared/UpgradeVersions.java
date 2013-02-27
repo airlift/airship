@@ -1,12 +1,9 @@
 package io.airlift.airship.shared;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonMethod;
-import org.codehaus.jackson.annotate.JsonProperty;
 
-@JsonAutoDetect(JsonMethod.NONE)
 public class UpgradeVersions
 {
     private final String binaryVersion;

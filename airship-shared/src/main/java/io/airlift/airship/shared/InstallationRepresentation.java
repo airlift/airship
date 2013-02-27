@@ -13,16 +13,14 @@
  */
 package io.airlift.airship.shared;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonMethod;
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
+
 import java.net.URI;
 import java.util.Map;
 
-@JsonAutoDetect(JsonMethod.NONE)
 public class InstallationRepresentation
 {
     private final String shortName;
