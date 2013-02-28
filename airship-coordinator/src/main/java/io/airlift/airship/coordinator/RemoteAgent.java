@@ -1,13 +1,13 @@
 package io.airlift.airship.coordinator;
 
-import io.airlift.discovery.client.ServiceDescriptor;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.SlotStatus;
+import io.airlift.discovery.client.ServiceDescriptor;
 
 import java.net.URI;
 import java.util.List;
-import java.util.UUID;
 
 public interface RemoteAgent
 {
@@ -19,7 +19,7 @@ public interface RemoteAgent
 
     List<? extends RemoteSlot> getSlots();
 
-    void updateStatus();
+    ListenableFuture<?> updateStatus();
 
     void setServiceInventory(List<ServiceDescriptor> serviceInventory);
 }

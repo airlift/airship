@@ -20,10 +20,6 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.google.inject.util.Modules;
-import io.airlift.configuration.ConfigurationFactory;
-import io.airlift.configuration.ConfigurationModule;
-import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
-import io.airlift.event.client.NullEventModule;
 import io.airlift.airship.agent.Agent;
 import io.airlift.airship.agent.AgentMainModule;
 import io.airlift.airship.agent.DeploymentManagerFactory;
@@ -39,8 +35,12 @@ import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.InstallationRepresentation;
 import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.SlotStatusRepresentation;
-import io.airlift.http.client.ApacheHttpClient;
-import io.airlift.http.client.HttpClient;
+import io.airlift.configuration.ConfigurationFactory;
+import io.airlift.configuration.ConfigurationModule;
+import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
+import io.airlift.event.client.NullEventModule;
+import io.airlift.http.client.AsyncHttpClient;
+import io.airlift.http.client.netty.NettyAsyncHttpClient;
 import io.airlift.http.server.testing.TestingHttpServer;
 import io.airlift.http.server.testing.TestingHttpServerModule;
 import io.airlift.jaxrs.JaxrsModule;
@@ -82,7 +82,7 @@ public class TestRemoteSlot
             URI.create("fake://localhost/banana.config"),
             ImmutableMap.of("cpu", 1));
 
-    private HttpClient client;
+    private AsyncHttpClient client;
     private TestingHttpServer server;
 
     private Agent agent;
@@ -122,7 +122,7 @@ public class TestRemoteSlot
         agent = injector.getInstance(Agent.class);
 
         server.start();
-        client = new ApacheHttpClient();
+        client = new NettyAsyncHttpClient();
         remoteAgent = new HttpRemoteAgent(
                 agent.getAgentStatus(),
                 "test",

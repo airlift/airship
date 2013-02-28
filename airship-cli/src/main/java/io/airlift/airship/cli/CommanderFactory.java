@@ -6,6 +6,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.airlift.airship.agent.Agent;
 import io.airlift.airship.agent.DeploymentManagerFactory;
 import io.airlift.airship.agent.DirectoryDeploymentManagerFactory;
@@ -358,8 +360,9 @@ public class CommanderFactory
         }
 
         @Override
-        public void updateStatus()
+        public ListenableFuture<?> updateStatus()
         {
+            return Futures.immediateFuture(null);
         }
 
         @Override

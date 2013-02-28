@@ -5,12 +5,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import io.airlift.discovery.client.ServiceDescriptor;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.airlift.airship.shared.AgentLifecycleState;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatus;
+import io.airlift.discovery.client.ServiceDescriptor;
 
 import java.net.URI;
 import java.util.List;
@@ -18,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static io.airlift.airship.shared.AgentLifecycleState.*;
+import static io.airlift.airship.shared.AgentLifecycleState.OFFLINE;
 import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
 
@@ -59,8 +61,9 @@ public class MockRemoteAgent implements RemoteAgent
     }
 
     @Override
-    public synchronized void updateStatus()
+    public synchronized ListenableFuture<?> updateStatus()
     {
+        return Futures.immediateFuture(null);
     }
 
     synchronized void setSlotStatus(SlotStatus slotStatus)
