@@ -13,9 +13,9 @@ import io.airlift.airship.agent.AgentMainModule;
 import io.airlift.airship.agent.Slot;
 import io.airlift.airship.coordinator.Coordinator;
 import io.airlift.airship.coordinator.CoordinatorMainModule;
-import io.airlift.airship.coordinator.FixedProvisionerModule;
 import io.airlift.airship.coordinator.Instance;
 import io.airlift.airship.coordinator.Provisioner;
+import io.airlift.airship.coordinator.StaticProvisionerModule;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
 import io.airlift.discovery.client.testing.TestingDiscoveryModule;
@@ -151,7 +151,7 @@ public class MockLocalProvisioner implements Provisioner
                     new JaxrsModule(),
                     new NullEventModule(),
                     new CoordinatorMainModule(),
-                    new FixedProvisionerModule(),
+                    new StaticProvisionerModule(),
                     new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
 
             coordinatorServer = coordinatorInjector.getInstance(TestingHttpServer.class);
