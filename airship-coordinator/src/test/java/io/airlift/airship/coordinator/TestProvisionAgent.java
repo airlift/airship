@@ -35,14 +35,14 @@ public class TestProvisionAgent
         String awsSecretKey = map.get("private-key");
 
         AwsProvisionerConfig awsProvisionerConfig = new AwsProvisionerConfig()
+                .setAirshipVersion("0.7-SNAPSHOT")
                 .setAwsAgentAmi("ami-27b7744e")
                 .setAwsAgentKeypair("keypair")
                 .setAwsAgentSecurityGroup("default")
                 .setAwsAgentDefaultInstanceType("t1.micro");
         assertValidates(awsProvisionerConfig);
 
-        CoordinatorConfig coordinatorConfig = new CoordinatorConfig()
-                .setAirshipVersion("0.7-SNAPSHOT");
+        CoordinatorConfig coordinatorConfig = new CoordinatorConfig();
         assertValidates(coordinatorConfig);
 
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);

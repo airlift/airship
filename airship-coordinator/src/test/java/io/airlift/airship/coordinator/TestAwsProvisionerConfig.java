@@ -29,6 +29,8 @@ public class TestAwsProvisionerConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(AwsProvisionerConfig.class)
+                .setAirshipVersion(null)
+                .setAgentDefaultConfig(null)
                 .setAwsCredentialsFile("etc/aws-credentials.properties")
                 .setAwsEndpoint(null)
                 .setAwsCoordinatorAmi(null)
@@ -49,6 +51,8 @@ public class TestAwsProvisionerConfig
     public void testExplicitPropertyMappings()
     {
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
+                .put("airship.version", "99.9")
+                .put("coordinator.agent.default-config", "agent:config:1")
                 .put("coordinator.aws.credentials-file", "aws.credentials")
                 .put("coordinator.aws.endpoint", "http://ytmnd.com")
                 .put("coordinator.aws.coordinator.ami", "c-ami-0123abcd")
@@ -65,6 +69,8 @@ public class TestAwsProvisionerConfig
                 .build();
 
         AwsProvisionerConfig expected = new AwsProvisionerConfig()
+                .setAirshipVersion("99.9")
+                .setAgentDefaultConfig("agent:config:1")
                 .setAwsCredentialsFile("aws.credentials")
                 .setAwsEndpoint("http://ytmnd.com")
                 .setAwsCoordinatorAmi("c-ami-0123abcd")

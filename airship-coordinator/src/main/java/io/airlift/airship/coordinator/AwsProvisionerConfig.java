@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.util.concurrent.TimeUnit;
 
 public class AwsProvisionerConfig
+        extends ProvisionerConfig<AwsProvisionerConfig>
 {
     private String awsCredentialsFile = "etc/aws-credentials.properties";
 
