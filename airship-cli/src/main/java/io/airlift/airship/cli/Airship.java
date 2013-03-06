@@ -1564,8 +1564,8 @@ public class Airship
         PrintStream err = System.err;
         try {
             if (debug) {
-                Logging logging = new Logging();
-                logging.initialize(new LoggingConfiguration());
+                Logging logging = Logging.initialize();
+                logging.configure(new LoggingConfiguration());
                 // TODO: add public level interface to logging framework
                 new LoggingMBean().setLevel("io.airlift.airship", "DEBUG");
             }
@@ -1573,8 +1573,8 @@ public class Airship
                 System.setOut(new PrintStream(new NullOutputStream()));
                 System.setErr(new PrintStream(new NullOutputStream()));
 
-                Logging logging = new Logging();
-                logging.initialize(new LoggingConfiguration());
+                Logging logging = Logging.initialize();
+                logging.configure(new LoggingConfiguration());
                 logging.disableConsole();
             }
         }
