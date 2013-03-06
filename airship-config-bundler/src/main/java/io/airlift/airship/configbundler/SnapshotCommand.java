@@ -2,9 +2,9 @@ package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.InputSupplier;
+import io.airlift.command.Arguments;
+import io.airlift.command.Command;
 import org.eclipse.jgit.api.Git;
-import org.iq80.cli.Arguments;
-import org.iq80.cli.Command;
 
 import java.io.File;
 import java.io.InputStream;

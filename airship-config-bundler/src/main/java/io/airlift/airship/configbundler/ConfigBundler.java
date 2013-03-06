@@ -1,16 +1,16 @@
 package io.airlift.airship.configbundler;
 
 import com.google.common.io.NullOutputStream;
+import io.airlift.command.Cli;
+import io.airlift.command.Help;
 import io.airlift.log.Logging;
 import io.airlift.log.LoggingConfiguration;
-import org.iq80.cli.Cli;
-import org.iq80.cli.Help;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.concurrent.Callable;
 
-import static org.iq80.cli.Cli.buildCli;
+import static io.airlift.command.Cli.buildCli;
 
 public class ConfigBundler
 {

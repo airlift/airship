@@ -2,39 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>io.airlift</groupId>
-        <artifactId>rest-server-base</artifactId>
-        <version>0.70</version>
-        <relativePath/>
+        <groupId>io.airlift.airship</groupId>
+        <artifactId>airship-root</artifactId>
+        <version>0.11-SNAPSHOT</version>
     </parent>
 
     <properties>
+        <air.main.basedir>${project.parent.basedir}</air.main.basedir>
         <main-class>io.airlift.airship.coordinator.CoordinatorMain</main-class>
     </properties>
 
-    <groupId>io.airlift.airship</groupId>
     <artifactId>airship-coordinator</artifactId>
-    <version>0.11-SNAPSHOT</version>
     <name>airship-coordinator</name>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.11-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -49,7 +33,7 @@
 
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
+            <artifactId>annotations</artifactId>
         </dependency>
 
         <dependency>
@@ -110,32 +94,16 @@
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>http-server</artifactId>
-            <!-- TODO: fix in airlift http-server -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty.orbit</groupId>
-                    <artifactId>javax.servlet</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>jaxrs</artifactId>
-            <!-- TODO: fix in airlift http-server -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty.orbit</groupId>
-                    <artifactId>javax.servlet</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
-        <!-- TODO: fix in airlift http-server -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
         </dependency>
 
         <dependency>
@@ -166,21 +134,11 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>
-            <version>1.3.32</version>
         </dependency>
 
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.5</version>
-        </dependency>
-
-        <!-- for packaging -->
-        <dependency>
-            <groupId>io.airlift</groupId>
-            <artifactId>launcher</artifactId>
-            <classifier>bin</classifier>
-            <type>tar.gz</type>
         </dependency>
 
         <!-- for testing -->
@@ -199,7 +157,6 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.11-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -213,17 +170,6 @@
                 <configuration>
                     <excludedGroups>aws</excludedGroups>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

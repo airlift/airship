@@ -6,80 +6,58 @@
         <groupId>io.airlift.airship</groupId>
         <artifactId>airship-root</artifactId>
         <version>0.11-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>io.airlift.airship</groupId>
     <artifactId>airship-integration-tests</artifactId>
-    <version>0.11-SNAPSHOT</version>
     <name>airship-integration-tests</name>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sonatypeOssDistMgmtSnapshotsUrl>https://oss.sonatype.org/content/repositories/snapshots/</sonatypeOssDistMgmtSnapshotsUrl>
+        <air.main.basedir>${project.parent.basedir}</air.main.basedir>
+        <!-- This project contains no code and the coverage plugin chokes in that case. Skip it. -->
+        <air.check.skip-jacoco>true</air.check.skip-jacoco>
     </properties>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>${sonatypeOssDistMgmtSnapshotsUrl}</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <!-- for testing -->
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-agent</artifactId>
-            <version>0.11-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-coordinator</artifactId>
-            <version>0.11-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-cli</artifactId>
-            <version>0.11-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.0.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>testing</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.11-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-shared</artifactId>
-            <version>0.11-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -87,7 +65,6 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-coordinator</artifactId>
-            <version>0.11-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -95,7 +72,6 @@
         <dependency>
             <groupId>io.airlift.airship</groupId>
             <artifactId>airship-agent</artifactId>
-            <version>0.11-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -103,85 +79,87 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>12.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <version>3.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-core</artifactId>
-            <version>1.9.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>airline</artifactId>
-            <version>0.5</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>configuration</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>discovery-experimental</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>event-experimental</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>http-client-experimental</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>http-server</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>jaxrs</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>json</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.airlift</groupId>
             <artifactId>node</artifactId>
-            <version>0.70</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.ning.maven.plugins</groupId>
+                <artifactId>maven-duplicate-finder-plugin</artifactId>
+                <configuration>
+                    <ignoredResources combine.children="append">
+                        <ignoredResource>logback-test.xml</ignoredResource>
+                    </ignoredResources>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

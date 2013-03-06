@@ -6,40 +6,22 @@
         <groupId>io.airlift.airship</groupId>
         <artifactId>airship-root</artifactId>
         <version>0.11-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>io.airlift.airship</groupId>
     <artifactId>airship-ec2</artifactId>
     <packaging>pom</packaging>
     <name>airship-ec2</name>
     <description>Airship EC2 scripts</description>
 
-    <version>0.11-SNAPSHOT</version>
-
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <air.main.basedir>${project.parent.basedir}</air.main.basedir>
     </properties>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.5</version>
                 <executions>
                     <execution>
                         <id>attach-files</id>
