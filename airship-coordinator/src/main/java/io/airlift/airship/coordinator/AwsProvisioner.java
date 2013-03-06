@@ -84,12 +84,12 @@ public class AwsProvisioner implements Provisioner
         this.coordinatorUri = httpServerInfo.getHttpUri();
 
         checkNotNull(coordinatorConfig, "coordinatorConfig is null");
-        airshipVersion = coordinatorConfig.getAirshipVersion();
-        repositories = coordinatorConfig.getRepositories();
-
         checkNotNull(awsProvisionerConfig, "awsConfig is null");
 
-        agentDefaultConfig = coordinatorConfig.getAgentDefaultConfig();
+        repositories = coordinatorConfig.getRepositories();
+
+        airshipVersion = awsProvisionerConfig.getAirshipVersion();
+        agentDefaultConfig = awsProvisionerConfig.getAgentDefaultConfig();
 
         agentAmi = awsProvisionerConfig.getAwsAgentAmi();
         agentKeypair = awsProvisionerConfig.getAwsAgentKeypair();

@@ -5,6 +5,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.CheckedFuture;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.AgentStatusRepresentation;
 import io.airlift.airship.shared.Installation;
@@ -14,12 +18,14 @@ import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
-import io.airlift.http.client.HttpClient;
+import io.airlift.http.client.AsyncHttpClient;
 import io.airlift.http.client.Request;
+import io.airlift.http.client.StatusResponseHandler;
 import io.airlift.json.JsonCodec;
 import io.airlift.log.Logger;
 
 import javax.ws.rs.core.Response.Status;
+
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,6 +38,7 @@ import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
 import static io.airlift.http.client.JsonBodyGenerator.jsonBodyGenerator;
 import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
+import static io.airlift.http.client.StatusResponseHandler.StatusResponse;
 import static io.airlift.http.client.StatusResponseHandler.createStatusResponseHandler;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
@@ -46,13 +53,13 @@ public class HttpRemoteAgent implements RemoteAgent
 
     private AgentStatus agentStatus;
     private final String environment;
-    private final HttpClient httpClient;
+    private final AsyncHttpClient httpClient;
 
     private final AtomicBoolean serviceInventoryUp = new AtomicBoolean(true);
 
     public HttpRemoteAgent(AgentStatus agentStatus,
             String environment,
-            HttpClient httpClient,
+            AsyncHttpClient httpClient,
             JsonCodec<InstallationRepresentation> installationCodec,
             JsonCodec<AgentStatusRepresentation> agentStatusCodec,
             JsonCodec<SlotStatusRepresentation> slotStatusCodec,
@@ -102,51 +109,66 @@ public class HttpRemoteAgent implements RemoteAgent
         AgentStatus agentStatus = status();
         if (agentStatus.getState() == ONLINE) {
             Preconditions.checkNotNull(serviceInventory, "serviceInventory is null");
-            URI internalUri = agentStatus.getInternalUri();
-            try {
-                Request request = Request.Builder.preparePut()
-                        .setUri(uriBuilderFrom(internalUri).appendPath("/v1/serviceInventory").build())
-                        .setHeader(CONTENT_TYPE, APPLICATION_JSON)
-                        .setBodyGenerator(jsonBodyGenerator(serviceDescriptorsCodec, new ServiceDescriptorsRepresentation(environment, serviceInventory)))
-                        .build();
-                httpClient.execute(request, createStatusResponseHandler());
+            final URI internalUri = agentStatus.getInternalUri();
+            Request request = Request.Builder.preparePut()
+                    .setUri(uriBuilderFrom(internalUri).replacePath("/v1/serviceInventory").build())
+                    .setHeader(CONTENT_TYPE, APPLICATION_JSON)
+                    .setBodyGenerator(jsonBodyGenerator(serviceDescriptorsCodec, new ServiceDescriptorsRepresentation(environment, serviceInventory)))
+                    .build();
 
-                if (serviceInventoryUp.compareAndSet(false, true)) {
-                    log.info("Service inventory put succeeded for agent at %s", internalUri);
+            Futures.addCallback(httpClient.executeAsync(request, createStatusResponseHandler()), new FutureCallback<StatusResponseHandler.StatusResponse>()
+            {
+                @Override
+                public void onSuccess(StatusResponse result)
+                {
+                    if (serviceInventoryUp.compareAndSet(false, true)) {
+                        log.info("Service inventory put succeeded for agent at %s", internalUri);
+                    }
                 }
-            }
-            catch (Exception e) {
-                if (serviceInventoryUp.compareAndSet(true, false) && !log.isDebugEnabled()) {
-                    log.error("Unable to post service inventory to agent at %s: %s", internalUri, e.getMessage());
+
+                @Override
+                public void onFailure(Throwable t)
+                {
+                    if (serviceInventoryUp.compareAndSet(true, false) && !log.isDebugEnabled()) {
+                        log.error("Unable to post service inventory to agent at %s: %s", internalUri, t.getMessage());
+                    }
+                    log.debug(t, "Unable to post service inventory to agent at %s: %s", internalUri, t.getMessage());
                 }
-                log.debug(e, "Unable to post service inventory to agent at %s: %s", internalUri, e.getMessage());
-            }
+            });
         }
     }
 
     @Override
-    public void updateStatus()
+    public ListenableFuture<?> updateStatus()
     {
-        AgentStatus agentStatus = status();
+        final AgentStatus agentStatus = status();
         URI internalUri = agentStatus.getInternalUri();
         if (internalUri != null) {
-            try {
-                Request request = Request.Builder.prepareGet()
-                        .setUri(uriBuilderFrom(internalUri).replacePath("/v1/agent/").build())
-                        .build();
-                AgentStatusRepresentation agentStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(agentStatusCodec));
-                setStatus(agentStatusRepresentation.toAgentStatus(agentStatus.getInstanceId(), agentStatus.getInstanceType()));
-                return;
-            }
-            catch (Exception ignored) {
-            }
-        }
+            Request request = Request.Builder.prepareGet()
+                    .setUri(uriBuilderFrom(internalUri).replacePath("/v1/agent/").build())
+                    .build();
 
-        // error talking to agent -- mark agent offline
-        if (agentStatus.getState() != PROVISIONING) {
-            agentStatus = agentStatus.changeState(OFFLINE);
-            setStatus(agentStatus.changeAllSlotsState(SlotLifecycleState.UNKNOWN));
+            CheckedFuture<AgentStatusRepresentation, RuntimeException> future = httpClient.executeAsync(request, createJsonResponseHandler(agentStatusCodec));
+            Futures.addCallback(future, new FutureCallback<AgentStatusRepresentation>()
+            {
+                @Override
+                public void onSuccess(AgentStatusRepresentation result)
+                {
+                    setStatus(result.toAgentStatus(agentStatus.getInstanceId(), agentStatus.getInstanceType()));
+                }
+
+                @Override
+                public void onFailure(Throwable t)
+                {
+                    // error talking to agent -- mark agent offline
+                    if (agentStatus.getState() != PROVISIONING) {
+                        setStatus(agentStatus.changeState(OFFLINE).changeAllSlotsState(SlotLifecycleState.UNKNOWN));
+                    }
+                }
+            });
+            return future;
         }
+        return Futures.immediateFuture(null);
     }
 
     public synchronized void setStatus(AgentStatus agentStatus)

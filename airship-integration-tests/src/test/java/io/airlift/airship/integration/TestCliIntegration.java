@@ -9,13 +9,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import io.airlift.airship.coordinator.FixedProvisionerModule;
-import io.airlift.configuration.ConfigurationFactory;
-import io.airlift.configuration.ConfigurationModule;
-import io.airlift.event.client.NullEventModule;
 import io.airlift.airship.cli.Airship;
-import io.airlift.airship.cli.Config;
 import io.airlift.airship.cli.Airship.AirshipCommand;
+import io.airlift.airship.cli.Config;
 import io.airlift.airship.cli.InteractiveUser;
 import io.airlift.airship.cli.OutputFormat;
 import io.airlift.airship.coordinator.Coordinator;
@@ -23,12 +19,16 @@ import io.airlift.airship.coordinator.CoordinatorMainModule;
 import io.airlift.airship.coordinator.InMemoryStateManager;
 import io.airlift.airship.coordinator.Provisioner;
 import io.airlift.airship.coordinator.StateManager;
+import io.airlift.airship.coordinator.StaticProvisionerModule;
 import io.airlift.airship.coordinator.TestingMavenRepository;
 import io.airlift.airship.shared.AgentStatusRepresentation;
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.CoordinatorStatusRepresentation;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatusRepresentation;
+import io.airlift.configuration.ConfigurationFactory;
+import io.airlift.configuration.ConfigurationModule;
+import io.airlift.event.client.NullEventModule;
 import io.airlift.http.server.testing.TestingHttpServer;
 import io.airlift.http.server.testing.TestingHttpServerModule;
 import io.airlift.jaxrs.JaxrsModule;
@@ -112,7 +112,7 @@ public class TestCliIntegration
                 new JaxrsModule(),
                 new NullEventModule(),
                 new CoordinatorMainModule(),
-                Modules.override(new FixedProvisionerModule()).with(new Module()
+                Modules.override(new StaticProvisionerModule()).with(new Module()
                 {
                     @Override
                     public void configure(Binder binder)

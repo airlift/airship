@@ -28,12 +28,10 @@ public class CoordinatorConfig
 {
     public static final String DEFAULT_HTTP_SHORT_NAME_PATTERN = "([^\\/]+?)(?:-[0-9][0-9.]*(?:-SNAPSHOT)?)?(?:\\.config)?$";
 
-    private String airshipVersion;
     private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
 
     private String serviceInventoryCacheDir = "service-inventory-cache";
 
-    private String agentDefaultConfig;
     private boolean allowDuplicateInstallationsOnAnAgent;
 
     private List<String> repositories = ImmutableList.of();
@@ -42,20 +40,6 @@ public class CoordinatorConfig
     private String httpShortNamePattern = DEFAULT_HTTP_SHORT_NAME_PATTERN;
     private String httpRepoBinaryVersionPattern;
     private String httpRepoConfigVersionPattern;
-
-
-    @NotNull
-    public String getAirshipVersion()
-    {
-        return airshipVersion;
-    }
-
-    @Config("airship.version")
-    public CoordinatorConfig setAirshipVersion(String airshipVersion)
-    {
-        this.airshipVersion = airshipVersion;
-        return this;
-    }
 
     @NotNull
     public Duration getStatusExpiration()
@@ -87,20 +71,6 @@ public class CoordinatorConfig
     public List<String> getRepositories()
     {
         return repositories;
-    }
-
-    @Config("coordinator.agent.default-config")
-    @ConfigDescription("Default config for provisioned agents")
-    public CoordinatorConfig setAgentDefaultConfig(String agentDefaultConfig)
-    {
-        this.agentDefaultConfig = agentDefaultConfig;
-        return this;
-    }
-
-    @NotNull
-    public String getAgentDefaultConfig()
-    {
-        return agentDefaultConfig;
     }
 
     @Config("coordinator.allow-duplicate-installations-on-an-agent")

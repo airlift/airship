@@ -1,18 +1,16 @@
 package io.airlift.airship.coordinator;
 
-import com.google.common.base.Preconditions;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import io.airlift.configuration.ConfigurationAwareModule;
 import io.airlift.configuration.ConfigurationFactory;
 
-public class ConditionalModule implements ConfigurationAwareModule
-{
-    public static ConfigurationAwareModule installIfPropertyDefined(Module module, String property)
-    {
-        return new ConditionalModule(module, property, null);
-    }
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
+class ConditionalModule
+        implements ConfigurationAwareModule
+{
     public static ConfigurationAwareModule installIfPropertyEquals(Module module, String property, String expectedValue)
     {
         return new ConditionalModule(module, property, expectedValue);
@@ -25,42 +23,27 @@ public class ConditionalModule implements ConfigurationAwareModule
 
     private ConditionalModule(Module module, String property, String expectedValue)
     {
-        Preconditions.checkNotNull(module, "module is null");
-        Preconditions.checkNotNull(property, "property is null");
-
-        this.module = module;
-        this.property = property;
-        this.expectedValue = expectedValue;
+        this.module = checkNotNull(module, "module is null");
+        this.property = checkNotNull(property, "property is null");
+        this.expectedValue = checkNotNull(expectedValue, "expectedValue is null");
     }
 
     @Override
     public void setConfigurationFactory(ConfigurationFactory configurationFactory)
     {
-        this.configurationFactory = configurationFactory;
+        this.configurationFactory = checkNotNull(configurationFactory, "configurationFactory is null");
         configurationFactory.consumeProperty(property);
-
-        // consume properties if we are not going to install the module
-        if (!shouldInstall()) {
-            configurationFactory.registerConfigurationClasses(module);
-        }
     }
 
     @Override
     public void configure(Binder binder)
     {
-        Preconditions.checkNotNull(configurationFactory, "configurationFactory is null");
-        if (shouldInstall()) {
+        checkState(configurationFactory != null, "configurationFactory was not set");
+        if (!configurationFactory.getProperties().containsKey(property)) {
+            binder.addError("Required configuration property '%s' was not set", property);
+        }
+        if (expectedValue.equals(configurationFactory.getProperties().get(property))) {
             binder.install(module);
-        }
-    }
-
-    private boolean shouldInstall()
-    {
-        if (expectedValue != null) {
-            return expectedValue.equals(configurationFactory.getProperties().get(property));
-        }
-        else {
-            return configurationFactory.getProperties().containsKey(property);
         }
     }
 }

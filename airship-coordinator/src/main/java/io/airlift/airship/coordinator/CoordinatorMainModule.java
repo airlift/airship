@@ -81,6 +81,6 @@ public class CoordinatorMainModule
 
         bindConfig(binder).to(CoordinatorConfig.class);
 
-        httpClientBinder(binder).bindHttpClient("global", Global.class);
+        httpClientBinder(binder).bindAsyncHttpClient("global", Global.class);
     }
 }

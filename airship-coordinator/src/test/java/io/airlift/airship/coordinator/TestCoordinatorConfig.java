@@ -17,10 +17,8 @@ public class TestCoordinatorConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(CoordinatorConfig.class)
-                .setAirshipVersion(null)
                 .setStatusExpiration(new Duration(30, TimeUnit.SECONDS))
                 .setServiceInventoryCacheDir("service-inventory-cache")
-                .setAgentDefaultConfig(null)
                 .setAllowDuplicateInstallationsOnAnAgent(false)
                 .setRepositories("")
                 .setDefaultRepositoryGroupId("")
@@ -34,10 +32,8 @@ public class TestCoordinatorConfig
     public void testExplicitPropertyMappings()
     {
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
-                .put("airship.version", "99.9")
                 .put("coordinator.status.expiration", "1m")
                 .put("coordinator.service-inventory.cache-dir", "si-cache")
-                .put("coordinator.agent.default-config", "agent:config:1")
                 .put("coordinator.allow-duplicate-installations-on-an-agent", "true")
                 .put("coordinator.repository", "repo1,repo2,repo3")
                 .put("coordinator.default-group-id", "group1,group2,group3")
@@ -47,10 +43,8 @@ public class TestCoordinatorConfig
                 .build();
 
         CoordinatorConfig expected = new CoordinatorConfig()
-                .setAirshipVersion("99.9")
                 .setStatusExpiration(new Duration(1, TimeUnit.MINUTES))
                 .setServiceInventoryCacheDir("si-cache")
-                .setAgentDefaultConfig("agent:config:1")
                 .setAllowDuplicateInstallationsOnAnAgent(true)
                 .setRepositories(ImmutableList.of("repo1", "repo2", "repo3"))
                 .setDefaultRepositoryGroupId(ImmutableList.of("group1", "group2", "group3"))

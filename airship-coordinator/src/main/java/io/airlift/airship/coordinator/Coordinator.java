@@ -14,6 +14,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import io.airlift.airship.coordinator.AgentFilterBuilder.StatePredicate;
@@ -37,6 +39,7 @@ import io.airlift.units.Duration;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -348,11 +351,13 @@ public class Coordinator
         // remove any agents not in the provisioner list
         agents.keySet().retainAll(instanceIds);
 
+        List<ListenableFuture<?>> futures = new ArrayList<>();
         List<ServiceDescriptor> serviceDescriptors = serviceInventory.getServiceInventory(transform(getAllSlots(), getSlotStatus()));
         for (RemoteAgent remoteAgent : agents.values()) {
-            remoteAgent.updateStatus();
+            futures.add(remoteAgent.updateStatus());
             remoteAgent.setServiceInventory(serviceDescriptors);
         }
+        waitForFutures(futures);
     }
 
     public List<AgentStatus> provisionAgents(String agentConfigSpec,
@@ -840,6 +845,18 @@ public class Coordinator
             throw runtimeException;
         }
         return results.build();
+    }
+
+    private static void waitForFutures(Iterable<ListenableFuture<?>> futures)
+    {
+        try {
+            Futures.allAsList(futures).get();
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        catch (ExecutionException ignored) {
+        }
     }
 
     private static class CallableFunction<F, T>
