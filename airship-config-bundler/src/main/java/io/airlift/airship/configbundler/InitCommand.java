@@ -1,10 +1,10 @@
 package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
+import io.airlift.command.Command;
+import io.airlift.command.Option;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
-import org.iq80.cli.Command;
-import org.iq80.cli.Option;
 
 import java.io.File;
 import java.util.concurrent.Callable;

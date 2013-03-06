@@ -1,12 +1,9 @@
 package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
+import io.airlift.command.Arguments;
+import io.airlift.command.Command;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.iq80.cli.Arguments;
-import org.iq80.cli.Command;
 
 import java.io.File;
 import java.util.concurrent.Callable;

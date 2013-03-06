@@ -2,9 +2,8 @@ package io.airlift.airship.shared;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
-
-import java.security.MessageDigest;
 
 public class DigestUtils
 {
@@ -13,7 +12,7 @@ public class DigestUtils
     public static String md5Hex(String data)
     {
         try {
-            byte[] digest = ByteStreams.getDigest(ByteStreams.newInputStreamSupplier(data.getBytes(Charsets.UTF_8)), MessageDigest.getInstance("MD5"));
+            byte[] digest = ByteStreams.hash(ByteStreams.newInputStreamSupplier(data.getBytes(Charsets.UTF_8)), Hashing.md5()).asBytes();
             return toHex(digest);
         }
         catch (Exception e) {
