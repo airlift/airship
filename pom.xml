@@ -57,7 +57,7 @@
         <air.check.skip-pmd>true</air.check.skip-pmd>
         <air.check.skip-license>true</air.check.skip-license>
 
-        <dep.airlift.version>0.71-SNAPSHOT</dep.airlift.version>
+        <dep.airlift.version>0.71</dep.airlift.version>
         <dep.packaging.version>${dep.airlift.version}</dep.packaging.version>
         <dep.leveldb.version>0.5</dep.leveldb.version>
         <dep.maven.version>3.0.3</dep.maven.version>

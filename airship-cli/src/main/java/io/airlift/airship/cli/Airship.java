@@ -17,7 +17,6 @@ import com.amazonaws.services.identitymanagement.model.PutUserPolicyRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -56,6 +55,7 @@ import io.airlift.log.LoggingMBean;
 import io.airlift.node.NodeInfo;
 
 import javax.inject.Inject;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -1162,7 +1162,9 @@ public class Airship
             config.save();
         }
 
-        private AmazonEC2Client createEc2Client(AWSCredentials environmentCredentials) {
+        private AmazonEC2Client createEc2Client(AWSCredentials environmentCredentials)
+                throws Exception
+        {
             AmazonEC2Client ec2Client = new AmazonEC2Client(environmentCredentials);
             if (awsEndpoint != null) {
                 ec2Client.setEndpoint(awsEndpoint);
@@ -1172,29 +1174,23 @@ public class Airship
             for (int i = 0; i < 120; i++) {
                 try {
                     ec2Client.describeInstances();
-                } catch (AmazonServiceException e) {
+                    if (i > 0) {
+                        System.out.println("done!");
+                    }
+                    return ec2Client;
+                }
+                catch (AmazonServiceException e) {
                     if (i == 0) {
                         System.out.print("Waiting for access key to register with AWS");
                     }
                     exception = e;
                     System.out.print(".");
                     Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
-                    continue;
-                }
-                exception = null;
-                break;
-            }
-
-            if (exception != null) {
-                if (globalOptions.debug) {
-                    throw Throwables.propagate(exception);
-                } else {
-                    System.out.println(firstNonNull(exception.getMessage(), "Unknown error"));
                 }
             }
-            System.out.print("done!\n");
 
-            return ec2Client;
+            System.out.println("FAILED!");
+            throw exception;
         }
 
         private static List<Instance> waitForInstancesToStart(AmazonEC2Client ec2Client, List<Instance> instances, int port)
