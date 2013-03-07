@@ -30,7 +30,7 @@ public class TestAgentConfig
                 .setSlotsDir("slots")
                 .setResourcesFile("etc/resources.properties")
                 .setLauncherTimeout(new Duration(1, TimeUnit.SECONDS))
-                .setLauncherStopTimeout(new Duration(10, TimeUnit.SECONDS))
+                .setLauncherStopTimeout(new Duration(15, TimeUnit.SECONDS))
                 .setTarTimeout(new Duration(1, TimeUnit.MINUTES))
                 .setMaxLockWait(new Duration(1, TimeUnit.SECONDS))
         );
