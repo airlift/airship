@@ -3,6 +3,7 @@ package io.airlift.airship.cli;
 import com.google.common.base.Preconditions;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import jnr.posix.POSIX;
+import jnr.posix.POSIXFactory;
 import jnr.posix.util.Platform;
 
 import java.io.File;

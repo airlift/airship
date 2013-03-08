@@ -1,20 +1,14 @@
 package io.airlift.airship.cli;
 
-import jnr.posix.POSIX;
 import org.fusesource.jansi.Ansi.Color;
 
-import java.io.FileDescriptor;
-
 import static org.fusesource.jansi.Ansi.ansi;
+import static org.fusesource.jansi.internal.CLibrary.STDOUT_FILENO;
+import static org.fusesource.jansi.internal.CLibrary.isatty;
 
 public class Ansi
 {
-    private static final boolean IS_A_TTY;
-
-    static {
-        POSIX posix = POSIXFactory.getPOSIX();
-        IS_A_TTY = posix.isatty(FileDescriptor.out);
-    }
+    private static final boolean IS_A_TTY = (isatty(STDOUT_FILENO) != 0);
 
     public static boolean isEnabled()
     {
