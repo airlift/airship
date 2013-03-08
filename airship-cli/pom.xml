@@ -37,11 +37,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.jnr</groupId>
-            <artifactId>jnr-constants</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.fusesource.jansi</groupId>
             <artifactId>jansi</artifactId>
         </dependency>
