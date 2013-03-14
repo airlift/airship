@@ -349,7 +349,8 @@ public class SlotFilterBuilder
         @Override
         public boolean apply(@Nullable SlotStatus slotStatus)
         {
-            return slotStatus != null &&
+            return (slotStatus != null) &&
+                    (slotStatus.getAssignment() != null) &&
                     glob.apply(slotStatus.getAssignment().getBinary());
         }
     }
@@ -366,7 +367,8 @@ public class SlotFilterBuilder
         @Override
         public boolean apply(@Nullable SlotStatus slotStatus)
         {
-            return slotStatus != null &&
+            return (slotStatus != null) &&
+                    (slotStatus.getAssignment() != null) &&
                     glob.apply(slotStatus.getAssignment().getConfig());
         }
     }
