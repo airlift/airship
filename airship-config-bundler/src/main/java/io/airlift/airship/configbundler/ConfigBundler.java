@@ -1,6 +1,5 @@
 package io.airlift.airship.configbundler;
 
-import com.google.common.io.NullOutputStream;
 import io.airlift.command.Cli;
 import io.airlift.command.Help;
 import io.airlift.log.Logging;
@@ -10,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.concurrent.Callable;
 
-import static io.airlift.command.Cli.buildCli;
+import static com.google.common.io.ByteStreams.nullOutputStream;
 
 public class ConfigBundler
 {
@@ -19,12 +18,12 @@ public class ConfigBundler
     {
         initializeLogging(false);
 
-        Cli<Callable> cli = buildCli("configgy", Callable.class)
+        Cli<Callable<Void>> cli = Cli.<Callable<Void>>builder("configgy")
                 .withDefaultCommand(Help.class)
-                .withCommands(ReleaseCommand.class,
-                        InitCommand.class,
-                        AddComponentCommand.class,
-                        SnapshotCommand.class)
+                .withCommand(ReleaseCommand.class)
+                .withCommand(InitCommand.class)
+                .withCommand(AddComponentCommand.class)
+                .withCommand(SnapshotCommand.class)
                 .withCommand(Help.class)
                 .build();
 
@@ -43,8 +42,8 @@ public class ConfigBundler
                 logging.configure(new LoggingConfiguration());
             }
             else {
-                System.setOut(new PrintStream(new NullOutputStream()));
-                System.setErr(new PrintStream(new NullOutputStream()));
+                System.setOut(new PrintStream(nullOutputStream()));
+                System.setErr(new PrintStream(nullOutputStream()));
 
                 Logging logging = Logging.initialize();
                 logging.configure(new LoggingConfiguration());

@@ -28,7 +28,7 @@ import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
-import io.airlift.event.client.NullEventModule;
+import io.airlift.event.client.EventModule;
 import io.airlift.http.server.testing.TestingHttpServer;
 import io.airlift.http.server.testing.TestingHttpServerModule;
 import io.airlift.jaxrs.JaxrsModule;
@@ -110,7 +110,7 @@ public class TestCliIntegration
                 new NodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
-                new NullEventModule(),
+                new EventModule(),
                 new CoordinatorMainModule(),
                 Modules.override(new StaticProvisionerModule()).with(new Module()
                 {

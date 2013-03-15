@@ -38,7 +38,7 @@ import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
 import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
-import io.airlift.event.client.NullEventModule;
+import io.airlift.event.client.EventModule;
 import io.airlift.http.client.AsyncHttpClient;
 import io.airlift.http.client.netty.NettyAsyncHttpClient;
 import io.airlift.http.server.testing.TestingHttpServer;
@@ -106,7 +106,7 @@ public class TestRemoteSlot
                 new TestingNodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
-                new NullEventModule(),
+                new EventModule(),
                 new ConfigurationModule(new ConfigurationFactory(properties)),
                 Modules.override(new AgentMainModule()).with(new Module()
                 {

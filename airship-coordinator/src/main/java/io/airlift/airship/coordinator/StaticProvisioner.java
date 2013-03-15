@@ -159,7 +159,7 @@ public class StaticProvisioner
         List<URI> agentUris = FluentIterable.from(lines)
                 .transform(validAgentUri())
                 .filter(notNull())
-                .toImmutableList();
+                .toList();
 
         List<ListenableFuture<Instance>> futures = new ArrayList<>();
         for (URI agentUri : agentUris) {

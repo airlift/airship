@@ -15,14 +15,13 @@ package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableMap;
 import io.airlift.airship.shared.Installation;
-import io.airlift.testing.EquivalenceTester;
 import org.testng.annotations.Test;
 
 import java.net.URI;
 
 import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
-import static java.util.Arrays.asList;
+import static io.airlift.testing.EquivalenceTester.equivalenceTester;
 import static org.testng.Assert.assertEquals;
 
 public class TestInstallation
@@ -43,17 +42,13 @@ public class TestInstallation
     @Test
     public void testEquivalence()
     {
-        EquivalenceTester.check(
-                asList(
+        equivalenceTester()
+                .addEquivalentGroup(
                         new Installation("apple", APPLE_ASSIGNMENT, URI.create("fetch://binary.tar.gz"), URI.create("fetch://config.txt"), ImmutableMap.of("memory", 512)),
-                        new Installation("apple", APPLE_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), URI.create("fetch://anything.txt"), ImmutableMap.of("memory", 512))
-
-                ),
-                asList(
+                        new Installation("apple", APPLE_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), URI.create("fetch://anything.txt"), ImmutableMap.of("memory", 512)))
+                .addEquivalentGroup(
                         new Installation("banana", BANANA_ASSIGNMENT, URI.create("fetch://binary.tar.gz"), URI.create("fetch://config.txt"), ImmutableMap.of("memory", 512)),
-                        new Installation("banana", BANANA_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), URI.create("fetch://anything.txt"), ImmutableMap.of("memory", 512))
-
-                )
-        );
+                        new Installation("banana", BANANA_ASSIGNMENT, URI.create("fetch://anything.tar.gz"), URI.create("fetch://anything.txt"), ImmutableMap.of("memory", 512)))
+                .check();
     }
 }

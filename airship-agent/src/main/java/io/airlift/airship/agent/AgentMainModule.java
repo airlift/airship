@@ -16,9 +16,10 @@ package io.airlift.airship.agent;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
-import io.airlift.configuration.ConfigurationModule;
 import io.airlift.airship.shared.VersionConflictExceptionMapper;
-import org.weakref.jmx.guice.MBeanModule;
+import io.airlift.configuration.ConfigurationModule;
+
+import static org.weakref.jmx.guice.ExportBinder.newExporter;
 
 public class AgentMainModule
         implements Module
@@ -29,7 +30,7 @@ public class AgentMainModule
         binder.requireExplicitBindings();
 
         binder.bind(Agent.class).in(Scopes.SINGLETON);
-        MBeanModule.newExporter(binder).export(Agent.class).withGeneratedName();
+        newExporter(binder).export(Agent.class).withGeneratedName();
 
         binder.bind(AgentResource.class).in(Scopes.SINGLETON);
 

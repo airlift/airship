@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.io.NullOutputStream;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.airlift.airship.cli.CommanderFactory.ToUriFunction;
@@ -71,6 +70,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.io.ByteStreams.nullOutputStream;
 import static io.airlift.airship.coordinator.AwsProvisioner.toInstance;
 import static io.airlift.airship.shared.ConfigUtils.createConfigurationFactory;
 import static io.airlift.airship.shared.HttpUriBuilder.uriBuilder;
@@ -96,50 +96,50 @@ public class Airship
         CliBuilder<AirshipCommand> builder =  Cli.<AirshipCommand>builder("airship")
                 .withDescription("cloud management system")
                 .withDefaultCommand(HelpCommand.class)
-                .withCommands(HelpCommand.class,
-                        ShowCommand.class,
-                        InstallCommand.class,
-                        UpgradeCommand.class,
-                        TerminateCommand.class,
-                        StartCommand.class,
-                        StopCommand.class,
-                        RestartCommand.class,
-                        SshCommand.class,
-                        ResetToActualCommand.class);
+                .withCommand(HelpCommand.class)
+                .withCommand(ShowCommand.class)
+                .withCommand(InstallCommand.class)
+                .withCommand(UpgradeCommand.class)
+                .withCommand(TerminateCommand.class)
+                .withCommand(StartCommand.class)
+                .withCommand(StopCommand.class)
+                .withCommand(RestartCommand.class)
+                .withCommand(SshCommand.class)
+                .withCommand(ResetToActualCommand.class);
 
         builder.withGroup("coordinator")
                 .withDescription("Manage coordinators")
                 .withDefaultCommand(CoordinatorShowCommand.class)
-                .withCommands(CoordinatorShowCommand.class,
-                        CoordinatorProvisionCommand.class,
-                        CoordinatorSshCommand.class);
+                .withCommand(CoordinatorShowCommand.class)
+                .withCommand(CoordinatorProvisionCommand.class)
+                .withCommand(CoordinatorSshCommand.class);
 
         builder.withGroup("agent")
                 .withDescription("Manage agents")
                 .withDefaultCommand(AgentShowCommand.class)
-                .withCommands(AgentShowCommand.class,
-                        AgentProvisionCommand.class,
-                        AgentTerminateCommand.class,
-                        AgentSshCommand.class);
+                .withCommand(AgentShowCommand.class)
+                .withCommand(AgentProvisionCommand.class)
+                .withCommand(AgentTerminateCommand.class)
+                .withCommand(AgentSshCommand.class);
 
         builder.withGroup("environment")
                 .withDescription("Manage environments")
                 .withDefaultCommand(EnvironmentShow.class)
-                .withCommands(EnvironmentShow.class,
-                        EnvironmentProvisionLocal.class,
-                        EnvironmentProvisionAws.class,
-                        EnvironmentUse.class,
-                        EnvironmentAdd.class,
-                        EnvironmentRemove.class);
+                .withCommand(EnvironmentShow.class)
+                .withCommand(EnvironmentProvisionLocal.class)
+                .withCommand(EnvironmentProvisionAws.class)
+                .withCommand(EnvironmentUse.class)
+                .withCommand(EnvironmentAdd.class)
+                .withCommand(EnvironmentRemove.class);
 
         builder.withGroup("config")
                 .withDescription("Manage configuration")
                 .withDefaultCommand(HelpCommand.class)
-                .withCommands(ConfigGet.class,
-                        ConfigGetAll.class,
-                        ConfigSet.class,
-                        ConfigAdd.class,
-                        ConfigUnset.class);
+                .withCommand(ConfigGet.class)
+                .withCommand(ConfigGetAll.class)
+                .withCommand(ConfigSet.class)
+                .withCommand(ConfigAdd.class)
+                .withCommand(ConfigUnset.class);
 
         AIRSHIP_PARSER = builder.build();
     }
@@ -1566,8 +1566,8 @@ public class Airship
                 new LoggingMBean().setLevel("io.airlift.airship", "DEBUG");
             }
             else {
-                System.setOut(new PrintStream(new NullOutputStream()));
-                System.setErr(new PrintStream(new NullOutputStream()));
+                System.setOut(new PrintStream(nullOutputStream()));
+                System.setErr(new PrintStream(nullOutputStream()));
 
                 Logging logging = Logging.initialize();
                 logging.configure(new LoggingConfiguration());
