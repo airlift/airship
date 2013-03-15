@@ -3,6 +3,7 @@ package io.airlift.airship.shared;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
@@ -271,18 +272,13 @@ public class AgentStatusRepresentation
         }
 
         AgentStatusRepresentation that = (AgentStatusRepresentation) o;
-
-        if (!agentId.equals(that.agentId)) {
-            return false;
-        }
-
-        return true;
+        return Objects.equal(agentId, that.agentId);
     }
 
     @Override
     public int hashCode()
     {
-        return agentId.hashCode();
+        return Objects.hashCode(agentId);
     }
 
     @Override
