@@ -492,6 +492,9 @@ public class Airship
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
 
+        @Option(name = "--force", description = "Force upgrading slots in unknown status")
+        public boolean force;
+
         @Arguments(usage = "[<binary-version>] [@<config-version>]",
                 description = "Version of the binary and/or @configuration")
         public final List<String> versions = Lists.newArrayList();
@@ -524,7 +527,7 @@ public class Airship
             {
                 public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
                 {
-                    List<SlotStatusRepresentation> slots = commander.upgrade(slotFilter, upgradeVersions, expectedVersion);
+                    List<SlotStatusRepresentation> slots = commander.upgrade(slotFilter, upgradeVersions, expectedVersion, force);
                     displaySlots(slots);
                 }
             });

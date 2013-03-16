@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_FORCE_HEADER;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOTS_VERSION_HEADER;
 import static io.airlift.airship.shared.SlotStatusRepresentation.fromSlotStatus;
 import static io.airlift.airship.shared.VersionsUtil.createSlotsVersion;
@@ -59,7 +60,8 @@ public class CoordinatorAssignmentResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response upgrade(UpgradeVersions upgradeVersions,
             @Context UriInfo uriInfo,
-            @HeaderParam(AIRSHIP_SLOTS_VERSION_HEADER) String expectedSlotsVersion)
+            @HeaderParam(AIRSHIP_SLOTS_VERSION_HEADER) String expectedSlotsVersion,
+            @HeaderParam(AIRSHIP_FORCE_HEADER) boolean force)
     {
         Preconditions.checkNotNull(upgradeVersions, "upgradeRepresentation must not be null");
 
@@ -68,7 +70,7 @@ public class CoordinatorAssignmentResource
         Predicate<SlotStatus> slotFilter = SlotFilterBuilder.build(uriInfo, true, uuids);
 
         // upgrade slots
-        List<SlotStatus> results = coordinator.upgrade(slotFilter, upgradeVersions, expectedSlotsVersion);
+        List<SlotStatus> results = coordinator.upgrade(slotFilter, upgradeVersions, expectedSlotsVersion, force);
 
         // build response
         return Response.ok(transform(results, fromSlotStatus(coordinator.getAllSlotStatus(), repository)))

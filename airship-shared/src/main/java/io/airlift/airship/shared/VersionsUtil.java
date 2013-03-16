@@ -20,6 +20,8 @@ public class VersionsUtil
 
     public static final String AIRSHIP_COORDINATOR_VERSION_HEADER = "x-airship-coordinator-version";
 
+    public static final String AIRSHIP_FORCE_HEADER = "x-airship-force";
+
     private VersionsUtil()
     {
     }
