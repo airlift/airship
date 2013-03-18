@@ -3,11 +3,11 @@ package io.airlift.airship.agent;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import io.airlift.airship.shared.ConfigUtils;
-import io.airlift.json.JsonCodec;
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.CommandFailedException;
+import io.airlift.airship.shared.ConfigUtils;
 import io.airlift.airship.shared.Installation;
+import io.airlift.json.JsonCodec;
 import io.airlift.log.Logger;
 import io.airlift.units.Duration;
 
@@ -18,11 +18,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static io.airlift.json.JsonCodec.jsonCodec;
 import static io.airlift.airship.shared.FileUtils.createTempDir;
 import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 import static io.airlift.airship.shared.FileUtils.extractTar;
 import static io.airlift.airship.shared.FileUtils.listFiles;
+import static io.airlift.json.JsonCodec.jsonCodec;
 
 public class DirectoryDeploymentManager implements DeploymentManager
 {
@@ -212,6 +212,12 @@ public class DirectoryDeploymentManager implements DeploymentManager
     {
         deleteRecursively(baseDir);
         deployment = null;
+    }
+
+    @Override
+    public File hackGetDataDir()
+    {
+        return getDataDir();
     }
 
     public void save(Deployment deployment)

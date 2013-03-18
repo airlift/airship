@@ -15,6 +15,7 @@ package io.airlift.airship.agent;
 
 import io.airlift.airship.shared.Installation;
 
+import java.io.File;
 import java.util.UUID;
 
 public interface DeploymentManager
@@ -31,4 +32,9 @@ public interface DeploymentManager
     void clear();
 
     void terminate();
+
+    /**
+     * TODO: remove this after UNINSTALLED slot state is added
+     */
+    File hackGetDataDir();
 }

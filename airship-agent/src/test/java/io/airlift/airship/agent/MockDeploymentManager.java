@@ -68,4 +68,10 @@ public class MockDeploymentManager implements DeploymentManager
     {
         deployment = null;
     }
+
+    @Override
+    public File hackGetDataDir()
+    {
+        return new File("data");
+    }
 }

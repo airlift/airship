@@ -116,15 +116,10 @@ public class Agent
         //
         for (DeploymentManager deploymentManager : this.deploymentManagerFactory.loadSlots()) {
             UUID slotId = deploymentManager.getSlotId();
-            if (deploymentManager.getDeployment() == null) {
-                // todo bad slot
-            }
-            else {
-                URI slotInternalUri = uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
-                URI slotExternalUri = uriBuilderFrom(externalUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
-                Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManager, lifecycleManager, maxLockWait);
-                slots.put(slotId, slot);
-            }
+            URI slotInternalUri = uriBuilderFrom(internalUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
+            URI slotExternalUri = uriBuilderFrom(externalUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();
+            Slot slot = new DeploymentSlot(slotInternalUri, slotExternalUri, deploymentManager, lifecycleManager, maxLockWait);
+            slots.put(slotId, slot);
         }
 
         //
