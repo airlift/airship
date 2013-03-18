@@ -38,7 +38,7 @@ import io.airlift.airship.shared.SlotStatusRepresentation.SlotStatusRepresentati
 import io.airlift.airship.shared.UpgradeVersions;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
-import io.airlift.event.client.NullEventModule;
+import io.airlift.event.client.EventModule;
 import io.airlift.http.client.ApacheHttpClient;
 import io.airlift.http.client.HttpClient;
 import io.airlift.http.client.Request;
@@ -56,6 +56,7 @@ import org.testng.annotations.Test;
 
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response.Status;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -135,7 +136,7 @@ public class TestCoordinatorServer
                 new TestingNodeModule(),
                 new JsonModule(),
                 new JaxrsModule(),
-                new NullEventModule(),
+                new EventModule(),
                 Modules.override(new StaticProvisionerModule()).with(new Module()
                 {
                     @Override

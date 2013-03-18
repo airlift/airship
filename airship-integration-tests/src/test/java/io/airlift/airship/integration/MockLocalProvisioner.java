@@ -19,7 +19,7 @@ import io.airlift.airship.coordinator.StaticProvisionerModule;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
 import io.airlift.discovery.client.testing.TestingDiscoveryModule;
-import io.airlift.event.client.NullEventModule;
+import io.airlift.event.client.EventModule;
 import io.airlift.http.server.testing.TestingHttpServer;
 import io.airlift.http.server.testing.TestingHttpServerModule;
 import io.airlift.jaxrs.JaxrsModule;
@@ -149,7 +149,7 @@ public class MockLocalProvisioner implements Provisioner
                     new TestingDiscoveryModule(),
                     new JsonModule(),
                     new JaxrsModule(),
-                    new NullEventModule(),
+                    new EventModule(),
                     new CoordinatorMainModule(),
                     new StaticProvisionerModule(),
                     new ConfigurationModule(new ConfigurationFactory(coordinatorProperties)));
@@ -353,7 +353,7 @@ public class MockLocalProvisioner implements Provisioner
                     new TestingDiscoveryModule(),
                     new JsonModule(),
                     new JaxrsModule(),
-                    new NullEventModule(),
+                    new EventModule(),
                     new AgentMainModule(),
                     new ConfigurationModule(new ConfigurationFactory(agentProperties)));
 

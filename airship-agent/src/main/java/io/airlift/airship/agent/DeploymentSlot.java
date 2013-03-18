@@ -77,7 +77,19 @@ public class DeploymentSlot implements Slot
         this.externalUri = externalUri;
 
         Deployment deployment = deploymentManager.getDeployment();
-        Preconditions.checkState(deployment != null, "No deployment for slot %s", deploymentManager.getSlotId());
+        if (deployment == null) {
+            SlotStatus slotStatus = createSlotStatus(id,
+                    self,
+                    externalUri,
+                    null,
+                    location,
+                    UNKNOWN,
+                    null,
+                    deploymentManager.hackGetDataDir().getAbsolutePath(),
+                    ImmutableMap.<String, Integer>of());
+            lastSlotStatus = new AtomicReference<>(slotStatus);
+            return;
+        }
 
         SlotLifecycleState state = lifecycleManager.status(deployment);
         SlotStatus slotStatus = createSlotStatus(id,
@@ -225,7 +237,8 @@ public class DeploymentSlot implements Slot
             if (!terminated) {
 
                 SlotStatus status = status();
-                if (status.getState() != STOPPED) {
+                if ((status.getState() != STOPPED) && (deploymentManager.getDeployment() != null)) {
+                    // slot is not stopped and deployment still exists
                     return status;
                 }
 

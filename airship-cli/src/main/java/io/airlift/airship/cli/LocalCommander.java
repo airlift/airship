@@ -97,14 +97,14 @@ public class LocalCommander implements Commander
     }
 
     @Override
-    public List<SlotStatusRepresentation> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedSlotsVersion)
+    public List<SlotStatusRepresentation> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedSlotsVersion, boolean force)
     {
         // build predicate
         List<UUID> uuids = transform(coordinator.getAllSlotStatus(), SlotStatus.uuidGetter());
         Predicate<SlotStatus> slotPredicate = slotFilter.toSlotPredicate(true, uuids);
 
         // upgrade slots
-        List<SlotStatus> slots = coordinator.upgrade(slotPredicate, upgradeVersions, expectedSlotsVersion);
+        List<SlotStatus> slots = coordinator.upgrade(slotPredicate, upgradeVersions, expectedSlotsVersion, force);
 
         // update to latest state
         updateServiceInventory();

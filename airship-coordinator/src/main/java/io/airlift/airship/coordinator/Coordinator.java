@@ -468,7 +468,7 @@ public class Coordinator
         return targetAgents;
     }
 
-    public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions, String expectedSlotsVersion)
+    public List<SlotStatus> upgrade(Predicate<SlotStatus> filter, UpgradeVersions upgradeVersions, String expectedSlotsVersion, boolean force)
     {
         List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
 
@@ -477,11 +477,24 @@ public class Coordinator
         for (RemoteSlot slot : filteredSlots) {
             SlotStatus status = slot.status();
             SlotLifecycleState state = status.getState();
-            if (state != TERMINATED && state != UNKNOWN) {
-                Assignment assignment = upgradeVersions.upgradeAssignment(repository, status.getAssignment());
-                newAssignments.put(slot.getId(), assignment);
-                slotsToUpgrade.add(slot);
+            if (state == TERMINATED) {
+                // should never happen but be safe
+                continue;
             }
+            if ((!force) && (state == UNKNOWN)) {
+                // slots in unknown state are not safe to upgrade (might still be running)
+                continue;
+            }
+            Assignment assignment;
+            if (force && (status.getAssignment() == null)) {
+                // allow forced upgrading if existing assignment is missing
+                assignment = upgradeVersions.forceAssignment(repository);
+            }
+            else {
+                assignment = upgradeVersions.upgradeAssignment(repository, status.getAssignment());
+            }
+            newAssignments.put(slot.getId(), assignment);
+            slotsToUpgrade.add(slot);
         }
 
         // no slots to upgrade

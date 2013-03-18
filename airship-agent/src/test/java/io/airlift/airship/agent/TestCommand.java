@@ -6,7 +6,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.airlift.airship.shared.Command;
 import io.airlift.airship.shared.CommandFailedException;
 import io.airlift.airship.shared.CommandTimeoutException;
-import io.airlift.testing.EquivalenceTester;
 import io.airlift.units.Duration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -17,7 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Arrays.asList;
+import static io.airlift.testing.EquivalenceTester.equivalenceTester;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotSame;
 
@@ -148,12 +147,19 @@ public class TestCommand
     @Test
     public void testEquivalence()
     {
-        EquivalenceTester.check(
-                asList(new Command("command"), new Command("command")),
-                asList(new Command("command").setDirectory("foo"), new Command("command").setDirectory(new File("foo"))),
-                asList(new Command("command").setTimeLimit(5, TimeUnit.SECONDS), new Command("command").setTimeLimit(new Duration(5, TimeUnit.SECONDS))),
-                asList(new Command("command").setSuccessfulExitCodes(5, 6), new Command("command").setSuccessfulExitCodes(ImmutableSet.of(6, 5)))
-        );
+        equivalenceTester()
+                .addEquivalentGroup(
+                        new Command("command"),
+                        new Command("command"))
+                .addEquivalentGroup(
+                        new Command("command").setDirectory("foo"),
+                        new Command("command").setDirectory(new File("foo")))
+                .addEquivalentGroup(
+                        new Command("command").setTimeLimit(5, TimeUnit.SECONDS),
+                        new Command("command").setTimeLimit(new Duration(5, TimeUnit.SECONDS)))
+                .addEquivalentGroup(
+                        new Command("command").setSuccessfulExitCodes(5, 6),
+                        new Command("command").setSuccessfulExitCodes(ImmutableSet.of(6, 5)))
+                .check();
     }
-
 }

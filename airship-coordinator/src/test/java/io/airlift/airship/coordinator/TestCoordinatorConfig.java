@@ -17,7 +17,7 @@ public class TestCoordinatorConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(CoordinatorConfig.class)
-                .setStatusExpiration(new Duration(30, TimeUnit.SECONDS))
+                .setStatusExpiration(new Duration(5, TimeUnit.SECONDS))
                 .setServiceInventoryCacheDir("service-inventory-cache")
                 .setAllowDuplicateInstallationsOnAnAgent(false)
                 .setRepositories("")

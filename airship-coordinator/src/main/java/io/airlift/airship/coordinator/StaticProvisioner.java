@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static io.airlift.airship.coordinator.ValidatingResponseHandler.validate;
 import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
 import static io.airlift.http.client.Request.Builder.prepareGet;
@@ -159,7 +160,7 @@ public class StaticProvisioner
         List<URI> agentUris = FluentIterable.from(lines)
                 .transform(validAgentUri())
                 .filter(notNull())
-                .toImmutableList();
+                .toList();
 
         List<ListenableFuture<Instance>> futures = new ArrayList<>();
         for (URI agentUri : agentUris) {
@@ -173,7 +174,9 @@ public class StaticProvisioner
         URI uri = uriBuilderFrom(agentUri).replacePath("/v1/agent").build();
         Request request = prepareGet().setUri(uri).build();
         SettableFuture<Instance> future = SettableFuture.create();
-        Futures.addCallback(httpClient.executeAsync(request, createJsonResponseHandler(agentCodec)), agentStatusCallback(future, agentUri));
+        Futures.addCallback(
+                httpClient.executeAsync(request, validate(createJsonResponseHandler(agentCodec))),
+                agentStatusCallback(future, agentUri));
         return future;
     }
 
@@ -194,6 +197,7 @@ public class StaticProvisioner
             @Override
             public void onFailure(Throwable t)
             {
+                log.debug(t, "Failed to get agent status");
                 String hostAndPort = uri.getHost() + ":" + uri.getPort();
                 future.set(new Instance(hostAndPort, "unknown", null, uri, uri));
             }

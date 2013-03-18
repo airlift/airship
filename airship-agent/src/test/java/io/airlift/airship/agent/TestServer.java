@@ -26,7 +26,7 @@ import io.airlift.airship.shared.VersionsUtil;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
 import io.airlift.discovery.client.testing.TestingDiscoveryModule;
-import io.airlift.event.client.NullEventModule;
+import io.airlift.event.client.EventModule;
 import io.airlift.http.client.ApacheHttpClient;
 import io.airlift.http.client.FullJsonResponseHandler.JsonResponse;
 import io.airlift.http.client.HttpClient;
@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
@@ -111,7 +112,7 @@ public class TestServer
                 new JsonModule(),
                 new TestingHttpServerModule(),
                 new JaxrsModule(),
-                new NullEventModule(),
+                new EventModule(),
                 new AgentMainModule(),
                 new ConfigurationModule(new ConfigurationFactory(properties)));
 

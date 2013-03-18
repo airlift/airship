@@ -34,6 +34,7 @@ import static io.airlift.airship.cli.CommanderResponse.createCommanderResponse;
 import static io.airlift.airship.cli.HttpCommander.TextBodyGenerator.textBodyGenerator;
 import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENTS_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_FORCE_HEADER;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOTS_VERSION_HEADER;
 import static io.airlift.http.client.FullJsonResponseHandler.createFullJsonResponseHandler;
 import static io.airlift.http.client.JsonBodyGenerator.jsonBodyGenerator;
@@ -94,7 +95,7 @@ public class HttpCommander implements Commander
     }
 
     @Override
-    public List<SlotStatusRepresentation> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion)
+    public List<SlotStatusRepresentation> upgrade(SlotFilter slotFilter, UpgradeVersions upgradeVersions, String expectedVersion, boolean force)
     {
         URI uri = slotFilter.toUri(uriBuilderFrom(coordinatorUri).replacePath("/v1/slot/assignment"));
         Request.Builder requestBuilder = Request.Builder.preparePost()
@@ -103,6 +104,9 @@ public class HttpCommander implements Commander
                 .setBodyGenerator(jsonBodyGenerator(UPGRADE_VERSIONS_CODEC, upgradeVersions));
         if (expectedVersion != null) {
             requestBuilder.setHeader(AIRSHIP_SLOTS_VERSION_HEADER, expectedVersion);
+        }
+        if (force) {
+            requestBuilder.setHeader(AIRSHIP_FORCE_HEADER, "true");
         }
 
         List<SlotStatusRepresentation> slots = client.execute(requestBuilder.build(), createJsonResponseHandler(SLOTS_CODEC));

@@ -151,7 +151,7 @@ public class TestCoordinatorAssignmentResource
     private void testUpgrade(UpgradeVersions upgradeVersions)
     {
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.upgrade(upgradeVersions, uriInfo, null);
+        Response response = resource.upgrade(upgradeVersions, uriInfo, null, false);
 
         AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SlotId);
@@ -176,14 +176,14 @@ public class TestCoordinatorAssignmentResource
         UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2.0");
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?state=stopped");
-        resource.upgrade(upgradeVersions, uriInfo, null);
+        resource.upgrade(upgradeVersions, uriInfo, null, false);
     }
 
     @Test
     public void testUpgradeDifferentBinaryVersion()
     {
         // upgrade apple slot 1 to binary version 2.0, but leave everything else unchanged
-        resource.upgrade(new UpgradeVersions("2.0", null), MockUriInfo.from("http://localhost/v1/slot/assignment?uuid=" + apple1SlotId), null);
+        resource.upgrade(new UpgradeVersions("2.0", null), MockUriInfo.from("http://localhost/v1/slot/assignment?uuid=" + apple1SlotId), null, false);
         AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
         SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SlotId);
         SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
@@ -195,7 +195,7 @@ public class TestCoordinatorAssignmentResource
         // upgrade all apple slots to binary and config version2.0
         UpgradeVersions upgradeVersions = new UpgradeVersions("2.0", "2.0");
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
-        Response response = resource.upgrade(upgradeVersions, uriInfo, null);
+        Response response = resource.upgrade(upgradeVersions, uriInfo, null, false);
 
         coordinator.getAgentByAgentId(agentId);
         agentStatus = coordinator.getAgentByAgentId(agentId);

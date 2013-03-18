@@ -28,7 +28,7 @@ public class CoordinatorConfig
 {
     public static final String DEFAULT_HTTP_SHORT_NAME_PATTERN = "([^\\/]+?)(?:-[0-9][0-9.]*(?:-SNAPSHOT)?)?(?:\\.config)?$";
 
-    private Duration statusExpiration = new Duration(30, TimeUnit.SECONDS);
+    private Duration statusExpiration = new Duration(5, TimeUnit.SECONDS);
 
     private String serviceInventoryCacheDir = "service-inventory-cache";
 
