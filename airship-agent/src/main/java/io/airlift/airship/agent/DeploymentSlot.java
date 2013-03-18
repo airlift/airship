@@ -225,7 +225,8 @@ public class DeploymentSlot implements Slot
             if (!terminated) {
 
                 SlotStatus status = status();
-                if (status.getState() != STOPPED) {
+                if ((status.getState() != STOPPED) && (deploymentManager.getDeployment() != null)) {
+                    // slot is not stopped and deployment still exists
                     return status;
                 }
 
