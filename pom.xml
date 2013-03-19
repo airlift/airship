@@ -10,7 +10,7 @@
 
     <groupId>io.airlift.airship</groupId>
     <artifactId>airship-root</artifactId>
-    <version>0.11</version>
+    <version>0.12-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>airship-root</name>
 
