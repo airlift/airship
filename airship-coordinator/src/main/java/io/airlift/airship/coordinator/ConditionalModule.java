@@ -11,7 +11,7 @@ import static com.google.common.base.Preconditions.checkState;
 class ConditionalModule
         implements ConfigurationAwareModule
 {
-    public static ConfigurationAwareModule installIfPropertyEquals(Module module, String property, String expectedValue)
+    public static ConditionalModule installIfPropertyEquals(Module module, String property, String expectedValue)
     {
         return new ConditionalModule(module, property, expectedValue);
     }
@@ -20,12 +20,19 @@ class ConditionalModule
     private final String property;
     private final String expectedValue;
     private ConfigurationFactory configurationFactory;
+    private boolean allowUnset = false;
 
     private ConditionalModule(Module module, String property, String expectedValue)
     {
         this.module = checkNotNull(module, "module is null");
         this.property = checkNotNull(property, "property is null");
         this.expectedValue = checkNotNull(expectedValue, "expectedValue is null");
+    }
+
+    public ConditionalModule withAllowUnset(boolean allowUnset)
+    {
+      this.allowUnset = allowUnset;
+      return this;
     }
 
     @Override
