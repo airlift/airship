@@ -4,7 +4,8 @@ import java.io.InputStream;
 
 /**
  */
-public interface WritableRepository extends Repository
+public interface WritableRepository
+        extends Repository
 {
-  public void put(String key, InputStream inputStream);
+    public void put(String key, InputStream inputStream);
 }

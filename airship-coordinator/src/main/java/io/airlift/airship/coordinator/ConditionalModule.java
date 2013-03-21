@@ -31,8 +31,8 @@ class ConditionalModule
 
     public ConditionalModule withAllowUnset(boolean allowUnset)
     {
-      this.allowUnset = allowUnset;
-      return this;
+        this.allowUnset = allowUnset;
+        return this;
     }
 
     @Override

@@ -21,6 +21,7 @@ import io.airlift.configuration.LegacyConfig;
 import io.airlift.units.Duration;
 
 import javax.validation.constraints.NotNull;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +44,7 @@ public class CoordinatorConfig
     private String s3RepoBucket;
     private String s3RepoKeyPrefix;
 
-  @NotNull
+    @NotNull
     public Duration getStatusExpiration()
     {
         return statusExpiration;
