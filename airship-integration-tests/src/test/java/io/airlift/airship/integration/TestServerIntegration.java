@@ -620,6 +620,24 @@ public class TestServerIntegration
         assertEquals(bananaSlot.status().getState(), RUNNING);
     }
 
+
+    @Test
+    public void testShow()
+            throws Exception
+    {
+        initializeOneAgent();
+        coordinator.updateAllAgentsAndWait();
+
+        Request request = Request.Builder.prepareGet()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot").addParameter("!binary", "*:apple:*").build())
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                slotStatusRepresentationFactory.create(bananaSlot.status().changeInstanceId(agentInstanceId)));
+        assertEqualsNoOrder(actual, expected);
+    }
+
     private HttpUriBuilder coordinatorUriBuilder()
     {
         return uriBuilderFrom(coordinatorServer.getBaseUrl());

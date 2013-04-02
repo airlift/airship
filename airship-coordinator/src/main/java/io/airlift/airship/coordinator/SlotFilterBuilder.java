@@ -1,6 +1,7 @@
 package io.airlift.airship.coordinator;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -25,7 +26,8 @@ import static java.lang.String.format;
 
 public class SlotFilterBuilder
 {
-    public static SlotFilterBuilder builder() {
+    public static SlotFilterBuilder builder()
+    {
         return new SlotFilterBuilder();
     }
 
@@ -38,9 +40,19 @@ public class SlotFilterBuilder
                     builder.addStateFilter(stateFilter);
                 }
             }
+            else if ("!state".equals(entry.getKey())) {
+                for (String stateFilter : entry.getValue()) {
+                    builder.addNotStateFilter(stateFilter);
+                }
+            }
             else if ("host".equals(entry.getKey())) {
                 for (String hostGlob : entry.getValue()) {
                     builder.addHostGlobFilter(hostGlob);
+                }
+            }
+            else if ("!host".equals(entry.getKey())) {
+                for (String hostGlob : entry.getValue()) {
+                    builder.addNotHostGlobFilter(hostGlob);
                 }
             }
             else if ("machine".equals(entry.getKey())) {
@@ -48,9 +60,19 @@ public class SlotFilterBuilder
                     builder.addMachineGlobFilter(machineGlob);
                 }
             }
+            else if ("!machine".equals(entry.getKey())) {
+                for (String machineGlob : entry.getValue()) {
+                    builder.addNotMachineGlobFilter(machineGlob);
+                }
+            }
             else if ("uuid".equals(entry.getKey())) {
                 for (String shortId : entry.getValue()) {
                     builder.addSlotUuidFilter(shortId);
+                }
+            }
+            else if ("!uuid".equals(entry.getKey())) {
+                for (String shortId : entry.getValue()) {
+                    builder.addNotSlotUuidFilter(shortId);
                 }
             }
             else if ("binary".equals(entry.getKey())) {
@@ -58,9 +80,19 @@ public class SlotFilterBuilder
                     builder.addBinaryGlobFilter(binaryGlob);
                 }
             }
+            else if ("!binary".equals(entry.getKey())) {
+                for (String binaryGlob : entry.getValue()) {
+                    builder.addNotBinaryGlobFilter(binaryGlob);
+                }
+            }
             else if ("config".equals(entry.getKey())) {
                 for (String configGlob : entry.getValue()) {
                     builder.addConfigGlobFilter(configGlob);
+                }
+            }
+            else if ("!config".equals(entry.getKey())) {
+                for (String configGlob : entry.getValue()) {
+                    builder.addNotConfigGlobFilter(configGlob);
                 }
             }
             else if ("all".equals(entry.getKey())) {
@@ -71,11 +103,17 @@ public class SlotFilterBuilder
     }
 
     private final List<SlotLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
+    private final List<SlotLifecycleState> notStateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> slotUuidFilters = Lists.newArrayListWithCapacity(6);
+    private final List<String> notSlotUuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> notHostGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> machineGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> notMachineGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> binaryGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> notBinaryGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> configGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> notConfigGlobs = Lists.newArrayListWithCapacity(6);
     private boolean selectAll;
 
     private SlotFilterBuilder()
@@ -86,8 +124,17 @@ public class SlotFilterBuilder
     {
         Preconditions.checkNotNull(stateFilter, "stateFilter is null");
         SlotLifecycleState state = SlotLifecycleState.lookup(stateFilter);
-        Preconditions.checkArgument(state != null, "unknown state " + stateFilter);
+        Preconditions.checkArgument(state != null, "unknown state %s", stateFilter);
         stateFilters.add(state);
+        return this;
+    }
+
+    public SlotFilterBuilder addNotStateFilter(String notStateFilter)
+    {
+        Preconditions.checkNotNull(notStateFilter, "notStateFilter is null");
+        SlotLifecycleState state = SlotLifecycleState.lookup(notStateFilter);
+        Preconditions.checkArgument(state != null, "unknown state %s", notStateFilter);
+        notStateFilters.add(state);
         return this;
     }
 
@@ -98,10 +145,24 @@ public class SlotFilterBuilder
         return this;
     }
 
+    public SlotFilterBuilder addNotSlotUuidFilter(String notShortId)
+    {
+        Preconditions.checkNotNull(notShortId, "notShortId is null");
+        notSlotUuidFilters.add(notShortId);
+        return this;
+    }
+
     public SlotFilterBuilder addHostGlobFilter(String hostGlob)
     {
         Preconditions.checkNotNull(hostGlob, "hostGlob is null");
         hostGlobs.add(hostGlob);
+        return this;
+    }
+
+    public SlotFilterBuilder addNotHostGlobFilter(String notHostGlob)
+    {
+        Preconditions.checkNotNull(notHostGlob, "notHostGlob is null");
+        notHostGlobs.add(notHostGlob);
         return this;
     }
 
@@ -111,6 +172,12 @@ public class SlotFilterBuilder
         machineGlobs.add(machineGlob);
     }
 
+    public void addNotMachineGlobFilter(String notMachineGlob)
+    {
+        Preconditions.checkNotNull(notMachineGlob, "notMachineGlob is null");
+        notMachineGlobs.add(notMachineGlob);
+    }
+
     public SlotFilterBuilder addBinaryGlobFilter(String binaryGlob)
     {
         Preconditions.checkNotNull(binaryGlob, "binaryGlob is null");
@@ -118,10 +185,24 @@ public class SlotFilterBuilder
         return this;
     }
 
+    public SlotFilterBuilder addNotBinaryGlobFilter(String notBinaryGlob)
+    {
+        Preconditions.checkNotNull(notBinaryGlob, "notBinaryGlob is null");
+        notBinaryGlobs.add(notBinaryGlob);
+        return this;
+    }
+
     public SlotFilterBuilder addConfigGlobFilter(String configGlob)
     {
         Preconditions.checkNotNull(configGlob, "configGlob is null");
         configGlobs.add(configGlob);
+        return this;
+    }
+
+    public SlotFilterBuilder addNotConfigGlobFilter(String notConfigGlob)
+    {
+        Preconditions.checkNotNull(notConfigGlob, "notConfigGlob is null");
+        notConfigGlobs.add(notConfigGlob);
         return this;
     }
 
@@ -133,7 +214,27 @@ public class SlotFilterBuilder
 
     public Predicate<SlotStatus> buildPredicate(boolean filterRequired, final List<UUID> allUuids)
     {
-        // Filters are evaluated as: set | host | (env & version & type)
+        Optional<Predicate<SlotStatus>> includesPredicate = buildIncludesPredicate(allUuids);
+        Optional<Predicate<SlotStatus>> excludesPredicate = buildExcludesPredicate(allUuids);
+
+        // if filter is required, make sure we got an include or exclude
+        if (filterRequired && !includesPredicate.isPresent() && !excludesPredicate.isPresent()) {
+            throw new InvalidSlotFilterException();
+        }
+
+        Predicate<SlotStatus> include = includesPredicate.or(Predicates.<SlotStatus>alwaysTrue());
+
+        if (excludesPredicate.isPresent()) {
+            // includes and not excluded
+            return Predicates.and(include, Predicates.not(excludesPredicate.get()));
+        }
+
+        return include;
+    }
+
+    private Optional<Predicate<SlotStatus>> buildIncludesPredicate(final List<UUID> allUuids)
+    {
+        // Filters are evaluated as: (uuid || uuid || uuid) && (state || state || state) && etc.
         List<Predicate<SlotStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
         if (!slotUuidFilters.isEmpty()) {
             Predicate<SlotStatus> predicate = Predicates.or(Lists.transform(slotUuidFilters, new Function<String, Predicate<SlotStatus>>()
@@ -206,18 +307,74 @@ public class SlotFilterBuilder
             andPredicates.add(predicate);
         }
 
+        // we build all the explicit predicates even if "all" was specified to catch errors
         if (selectAll) {
-            return Predicates.alwaysTrue();
+            return Optional.of(Predicates.<SlotStatus>alwaysTrue());
         }
         else if (!andPredicates.isEmpty()) {
-            return Predicates.and(andPredicates);
+            return Optional.of(Predicates.and(andPredicates));
         }
-        else if (!filterRequired) {
-            return Predicates.alwaysTrue();
+        return Optional.absent();
+    }
+
+    private Optional<Predicate<SlotStatus>> buildExcludesPredicate(final List<UUID> allUuids)
+    {
+        // If the slot matches any of the excludes it will not be considered
+        // Filters are evaluated as: !uuid || !uuid || !uuid || !state || !state || !state
+        List<Predicate<SlotStatus>> excludes = Lists.newArrayListWithCapacity(6);
+        excludes.addAll(Lists.transform(notSlotUuidFilters, new Function<String, Predicate<SlotStatus>>()
+        {
+            @Override
+            public Predicate<SlotStatus> apply(String shortId)
+            {
+                return new SlotUuidPredicate(shortId, allUuids);
+            }
+        }));
+        excludes.addAll(Lists.transform(notStateFilters, new Function<SlotLifecycleState, StatePredicate>()
+        {
+            @Override
+            public StatePredicate apply(SlotLifecycleState state)
+            {
+                return new StatePredicate(state);
+            }
+        }));
+        excludes.addAll(Lists.transform(notHostGlobs, new Function<String, HostPredicate>()
+        {
+            @Override
+            public HostPredicate apply(String hostGlob)
+            {
+                return new HostPredicate(hostGlob);
+            }
+        }));
+        excludes.addAll(Lists.transform(notMachineGlobs, new Function<String, MachinePredicate>()
+        {
+            @Override
+            public MachinePredicate apply(String machineGlob)
+            {
+                return new MachinePredicate(machineGlob);
+            }
+        }));
+        excludes.addAll(Lists.transform(notBinaryGlobs, new Function<String, BinarySpecPredicate>()
+        {
+            @Override
+            public BinarySpecPredicate apply(String binarySpecPredicate)
+            {
+                return new BinarySpecPredicate(binarySpecPredicate);
+            }
+        }));
+        excludes.addAll(Lists.transform(notConfigGlobs, new Function<String, ConfigSpecPredicate>()
+        {
+            @Override
+            public ConfigSpecPredicate apply(String configSpecPredicate)
+            {
+                return new ConfigSpecPredicate(configSpecPredicate);
+            }
+        }));
+
+        if (excludes.isEmpty()) {
+            return Optional.absent();
         }
-        else {
-            throw new InvalidSlotFilterException();
-        }
+        return Optional.of(Predicates.or(excludes));
     }
 
     public URI buildUri(URI baseUri)
@@ -231,20 +388,38 @@ public class SlotFilterBuilder
         for (String binaryGlob : binaryGlobs) {
             uriBuilder.addParameter("binary", binaryGlob);
         }
+        for (String notBinaryGlob : notBinaryGlobs) {
+            uriBuilder.addParameter("!binary", notBinaryGlob);
+        }
         for (String configGlob : configGlobs) {
             uriBuilder.addParameter("config", configGlob);
+        }
+        for (String notConfigGlob : notConfigGlobs) {
+            uriBuilder.addParameter("!config", notConfigGlob);
         }
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
         }
+        for (String notHostGlob : notHostGlobs) {
+            uriBuilder.addParameter("!host", notHostGlob);
+        }
         for (String machineGlob : machineGlobs) {
             uriBuilder.addParameter("machine", machineGlob);
+        }
+        for (String notMachineGlob : notMachineGlobs) {
+            uriBuilder.addParameter("!machine", notMachineGlob);
         }
         for (SlotLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
         }
+        for (SlotLifecycleState notStateFilter : notStateFilters) {
+            uriBuilder.addParameter("!state", notStateFilter.name());
+        }
         for (String shortId : slotUuidFilters) {
             uriBuilder.addParameter("uuid", shortId);
+        }
+        for (String notShortId : notSlotUuidFilters) {
+            uriBuilder.addParameter("!uuid", notShortId);
         }
         if (selectAll) {
             uriBuilder.addParameter("all");
@@ -252,7 +427,8 @@ public class SlotFilterBuilder
         return uriBuilder.build();
     }
 
-    public static class SlotUuidPredicate implements Predicate<SlotStatus>
+    public static class SlotUuidPredicate
+            implements Predicate<SlotStatus>
     {
         private final UUID uuid;
 
@@ -288,7 +464,8 @@ public class SlotFilterBuilder
         }
     }
 
-    public static class HostPredicate implements Predicate<SlotStatus>
+    public static class HostPredicate
+            implements Predicate<SlotStatus>
     {
         private final UriHostPredicate predicate;
 
@@ -305,7 +482,8 @@ public class SlotFilterBuilder
         }
     }
 
-    public static class MachinePredicate implements Predicate<SlotStatus>
+    public static class MachinePredicate
+            implements Predicate<SlotStatus>
     {
         private final GlobPredicate predicate;
 
@@ -321,7 +499,8 @@ public class SlotFilterBuilder
         }
     }
 
-    public static class StatePredicate implements Predicate<SlotStatus>
+    public static class StatePredicate
+            implements Predicate<SlotStatus>
     {
         private final SlotLifecycleState state;
 
@@ -337,7 +516,8 @@ public class SlotFilterBuilder
         }
     }
 
-    public static class BinarySpecPredicate implements Predicate<SlotStatus>
+    public static class BinarySpecPredicate
+            implements Predicate<SlotStatus>
     {
         private final Predicate<CharSequence> glob;
 
@@ -355,7 +535,8 @@ public class SlotFilterBuilder
         }
     }
 
-    public static class ConfigSpecPredicate implements Predicate<SlotStatus>
+    public static class ConfigSpecPredicate
+            implements Predicate<SlotStatus>
     {
         private final Predicate<CharSequence> glob;
 
