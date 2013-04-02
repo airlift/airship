@@ -25,10 +25,10 @@ import io.airlift.json.JsonCodec;
 import io.airlift.log.Logger;
 
 import javax.ws.rs.core.Response.Status;
-
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static io.airlift.airship.shared.AgentLifecycleState.OFFLINE;
@@ -54,6 +54,8 @@ public class HttpRemoteAgent implements RemoteAgent
     private AgentStatus agentStatus;
     private final String environment;
     private final AsyncHttpClient httpClient;
+
+    private final AtomicLong failureCount = new AtomicLong();
 
     private final AtomicBoolean serviceInventoryUp = new AtomicBoolean(true);
 
@@ -155,13 +157,14 @@ public class HttpRemoteAgent implements RemoteAgent
                 public void onSuccess(AgentStatusRepresentation result)
                 {
                     setStatus(result.toAgentStatus(agentStatus.getInstanceId(), agentStatus.getInstanceType()));
+                    failureCount.set(0);
                 }
 
                 @Override
                 public void onFailure(Throwable t)
                 {
                     // error talking to agent -- mark agent offline
-                    if (agentStatus.getState() != PROVISIONING) {
+                    if (agentStatus.getState() != PROVISIONING && failureCount.incrementAndGet() > 5) {
                         setStatus(agentStatus.changeState(OFFLINE).changeAllSlotsState(SlotLifecycleState.UNKNOWN));
                     }
                 }
