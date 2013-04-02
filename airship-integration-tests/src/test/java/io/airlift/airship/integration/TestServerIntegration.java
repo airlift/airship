@@ -190,7 +190,7 @@ public class TestServerIntegration
             throws Exception
     {
         provisioner.clearCoordinators();
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 1);
 
         provisioner.clearAgents();
@@ -272,7 +272,7 @@ public class TestServerIntegration
         assertEquals(instances.size(), 1);
         CoordinatorServer coordinatorServer = provisioner.getCoordinator(instances.get(0).getInstanceId());
         coordinatorServer.start();
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
 
         // verify coordinator appears
         Request request = Request.Builder.prepareGet()
@@ -319,7 +319,7 @@ public class TestServerIntegration
         // start the coordinator and verify
         CoordinatorServer coordinatorServer = provisioner.getCoordinator(instanceId);
         coordinatorServer.start();
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);

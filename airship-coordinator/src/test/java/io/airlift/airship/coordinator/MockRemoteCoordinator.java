@@ -1,6 +1,8 @@
 package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.airlift.airship.shared.CoordinatorLifecycleState;
 import io.airlift.airship.shared.CoordinatorStatus;
 
@@ -32,8 +34,9 @@ public class MockRemoteCoordinator
     }
 
     @Override
-    public void updateStatus()
+    public ListenableFuture<?> updateStatus()
     {
+        return Futures.immediateFuture(null);
     }
 
     public CoordinatorStatus getCoordinatorStatus()

@@ -138,7 +138,7 @@ public class TestCliIntegration
             throws Exception
     {
         provisioner.clearCoordinators();
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 1);
 
         provisioner.clearAgents();

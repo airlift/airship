@@ -125,7 +125,7 @@ public class TestCoordinator
         assertEquals(coordinator.getCoordinators().size(), 1);
 
         // update the coordinator
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
 
         // locate the new coordinator
         List<CoordinatorStatus> coordinators = coordinator.getCoordinators();
@@ -179,7 +179,7 @@ public class TestCoordinator
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.PROVISIONING);
 
         // update coordinator, and verify the coordinator is still ONLINE (coordinators don't have live status like agents
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
@@ -191,7 +191,7 @@ public class TestCoordinator
 
         // start and update the coordinator
         CoordinatorStatus expectedCoordinatorStatus = provisioner.startCoordinator(instanceId);
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
@@ -202,7 +202,7 @@ public class TestCoordinator
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
 
         // update and verify nothing changed
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);

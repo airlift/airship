@@ -111,7 +111,7 @@ public class TestAdminResource
 
         // add the coordinator
         provisioner.addCoordinators(status);
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
 
         URI requestUri = URI.create("http://localhost/v1/admin/coordinator");
         Response response = resource.getAllCoordinators(MockUriInfo.from(requestUri));
@@ -173,7 +173,7 @@ public class TestAdminResource
 
         // start the coordinator and verify
         CoordinatorStatus coordinatorStatus = provisioner.startCoordinator(instanceId);
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
