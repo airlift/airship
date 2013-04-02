@@ -20,17 +20,32 @@ public class AgentFilter
     @Option(name = {"-u", "--uuid"}, description = "Select agent with the given UUID")
     public final List<String> uuid = newArrayList();
 
+    @Option(name = {"-U", "--not-uuid"}, description = "Excludes agent with the given UUID")
+    public final List<String> notUuid = newArrayList();
+
     @Option(name = {"-h", "--host"}, description = "Select agent on the given host or ip")
     public final List<String> host = newArrayList();
 
-    @Option(name = {"-m", "--machine"}, description = "Select agents on the given machine")
+    @Option(name = {"-H", "--not-host"}, description = "Excludes agent on the given host or ip")
+    public final List<String> notHost = newArrayList();
+
+    @Option(name = {"-m", "--machine"}, description = "Select agent on the given machine")
     public final List<String> machine = newArrayList();
 
-    @Option(name = { "--slot-uuid"}, description = "Select agent containing a slot the given UUID")
+    @Option(name = {"-M", "--not-machine"}, description = "Excludes agent on the given machine")
+    public final List<String> notMachine = newArrayList();
+
+    @Option(name = {"--slot-uuid"}, description = "Select agent agent a slot the given UUID")
     public final List<String> slotUuid = newArrayList();
 
-    @Option(name = {"-s", "--state"}, description = "Select agent containing 'online', 'offline' or 'provisioning' slots")
+    @Option(name = {"--not-slot-uuid"}, description = "Exclude agent containing a slot the given UUID")
+    public final List<String> notSlotUuid = newArrayList();
+
+    @Option(name = {"-s", "--state"}, description = "Select 'online', 'offline' or 'provisioning' agents")
     public final List<String> state = newArrayList();
+
+    @Option(name = {"-S", "--not-state"}, description = "Exclude 'online', 'offline' or 'provisioning' agents")
+    public final List<String> notState = newArrayList();
 
     @Option(name = "--all", description = "Select all agents")
     public boolean selectAll;

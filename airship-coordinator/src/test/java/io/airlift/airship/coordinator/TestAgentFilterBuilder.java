@@ -99,14 +99,25 @@ public class TestAgentFilterBuilder
         assertFalse(buildFilter("uuid", "unknown", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
 
         try {
-            assertFalse(new UuidPredicate("a", ImmutableList.<String>of("agent-id", "apple")).apply(status));
+            new UuidPredicate("a", ImmutableList.<String>of("agent-id", "apple")).apply(status);
             fail("expected IllegalArgumentException");
         }
         catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().toLowerCase().contains("ambiguous expansion"));
         }
         try {
-            assertFalse(buildFilter("uuid", "a", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
+            buildFilter("uuid", "a", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status);
+            fail("expected IllegalArgumentException");
+        }
+        catch (IllegalArgumentException expected) {
+            assertTrue(expected.getMessage().toLowerCase().contains("ambiguous expansion"));
+        }
+
+        assertFalse(buildFilter("!uuid", "agent-id", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
+        assertFalse(buildFilter("!uuid", "age", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
+        assertTrue(buildFilter("!uuid", "unknown", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status));
+        try {
+            buildFilter("!uuid", "a", ImmutableList.<String>of("agent-id", "apple"), ImmutableList.<UUID>of()).apply(status);
             fail("expected IllegalArgumentException");
         }
         catch (IllegalArgumentException expected) {
@@ -121,6 +132,9 @@ public class TestAgentFilterBuilder
         assertTrue(buildFilter("state", "online").apply(status));
         assertFalse(new StatePredicate(OFFLINE).apply(status));
         assertFalse(buildFilter("state", "offline").apply(status));
+
+        assertFalse(buildFilter("!state", "online").apply(status));
+        assertTrue(buildFilter("!state", "offline").apply(status));
     }
 
     @Test
@@ -130,6 +144,9 @@ public class TestAgentFilterBuilder
         assertTrue(buildFilter("slotUuid", "12345678-1234-1234-1234-123456789012", ImmutableList.<String>of(), asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
         assertFalse(new SlotUuidPredicate(UUID.fromString("00000000-0000-0000-0000-000000000000")).apply(status));
         assertFalse(buildFilter("slotUuid", "00000000-0000-0000-0000-000000000000").apply(status));
+
+        assertFalse(buildFilter("!slotUuid", "12345678-1234-1234-1234-123456789012", ImmutableList.<String>of(), asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
+        assertTrue(buildFilter("!slotUuid", "00000000-0000-0000-0000-000000000000").apply(status));
     }
 
     @Test
@@ -154,6 +171,17 @@ public class TestAgentFilterBuilder
         assertTrue(buildFilter("host", "10.0.0.1").apply(status));
         assertFalse(new HostPredicate("10.1.2.3").apply(status));
         assertFalse(buildFilter("host", "10.1.2.3").apply(status));
+
+        assertFalse(buildFilter("!host", "localhost").apply(status));
+        assertFalse(buildFilter("!host", "LOCALHOST").apply(status));
+        assertFalse(buildFilter("!host", "LocalHost").apply(status));
+        assertFalse(buildFilter("!host", "local*").apply(status));
+        assertFalse(buildFilter("!host", "LocAL*").apply(status));
+        assertTrue(buildFilter("!host", "foo").apply(status));
+
+        assertFalse(buildFilter("!host", "127.0.0.1").apply(status));
+        assertFalse(buildFilter("!host", "10.0.0.1").apply(status));
+        assertTrue(buildFilter("!host", "10.1.2.3").apply(status));
     }
 
     @Test
@@ -168,6 +196,11 @@ public class TestAgentFilterBuilder
         assertFalse(buildFilter("machine", "INSTANCE-ID").apply(status));
         assertFalse(new MachinePredicate("INST*").apply(status));
         assertFalse(buildFilter("machine", "INST*").apply(status));
+
+        assertFalse(buildFilter("!machine", "instance-id").apply(status));
+        assertFalse(buildFilter("!machine", "inst*").apply(status));
+        assertTrue(buildFilter("!machine", "INSTANCE-ID").apply(status));
+        assertTrue(buildFilter("!machine", "INST*").apply(status));
     }
 
     @Test
