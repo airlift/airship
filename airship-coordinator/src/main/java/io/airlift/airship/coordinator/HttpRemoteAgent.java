@@ -156,6 +156,7 @@ public class HttpRemoteAgent implements RemoteAgent
                 @Override
                 public void onSuccess(AgentStatusRepresentation result)
                 {
+                    // todo deal with out of order responses
                     setStatus(result.toAgentStatus(agentStatus.getInstanceId(), agentStatus.getInstanceType()));
                     failureCount.set(0);
                 }

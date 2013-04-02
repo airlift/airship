@@ -249,7 +249,7 @@ public class TestCoordinator
         assertTrue(coordinator.getAgents().isEmpty());
 
         // update the coordinator and verify
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents(), ImmutableList.of(status));
         AgentStatus actual = coordinator.getAgents().get(0);
         assertEquals(actual.getAgentId(), agentId);
@@ -292,7 +292,7 @@ public class TestCoordinator
         assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.PROVISIONING);
 
         // update coordinator, and verify the agent is still PROVISIONING
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
@@ -304,7 +304,7 @@ public class TestCoordinator
 
         // start the agent, update and verify
         AgentStatus expectedAgentStatus = provisioner.startAgent(instanceId);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
@@ -315,7 +315,7 @@ public class TestCoordinator
         assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.ONLINE);
 
         // update and verify nothing changed
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
@@ -331,7 +331,7 @@ public class TestCoordinator
     {
         URI agentUri = URI.create("fake://appleServer1/");
         provisioner.addAgent(UUID.randomUUID().toString(), agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, SHORT_APPLE_ASSIGNMENT);
 
@@ -347,7 +347,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://appleServer1/");
 
         provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
 
@@ -363,7 +363,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://appleServer1/");
 
         provisioner.addAgent("instance-id", agentUri);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
 
@@ -379,7 +379,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://appleServer1/");
 
         provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 0, "memory", 0));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
     }
@@ -389,7 +389,7 @@ public class TestCoordinator
     {
         URI agentUri = URI.create("fake://appleServer1/");
         provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         // install an apple server
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);

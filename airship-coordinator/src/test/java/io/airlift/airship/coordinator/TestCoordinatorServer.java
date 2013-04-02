@@ -189,7 +189,7 @@ public class TestCoordinatorServer
         assertEquals(coordinator.getCoordinators().size(), 1);
 
         provisioner.clearAgents();
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertTrue(coordinator.getAgents().isEmpty());
 
         stateManager.clearAll();
@@ -241,7 +241,7 @@ public class TestCoordinatorServer
                 ImmutableMap.of("cpu", 8, "memory", 1024));
 
         provisioner.addAgents(agentStatus);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         stateManager.clearAll();
 
@@ -399,7 +399,7 @@ public class TestCoordinatorServer
 
         // add the agent
         provisioner.addAgents(status);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         Request request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
@@ -446,7 +446,7 @@ public class TestCoordinatorServer
 
         // start the agent and verify
         AgentStatus expectedAgentStatus = provisioner.startAgent(instanceId);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);

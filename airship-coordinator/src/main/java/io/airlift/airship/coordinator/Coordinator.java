@@ -155,10 +155,10 @@ public class Coordinator
 
         this.executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("coordinator-task").build());
 
-        timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
+        timerService = Executors.newScheduledThreadPool(10, new ThreadFactoryBuilder().setNameFormat("coordinator-agent-monitor").setDaemon(true).build());
 
         updateAllCoordinators();
-        updateAllAgents();
+        updateAllAgentsAndWait();
     }
 
     @PostConstruct
@@ -175,8 +175,16 @@ public class Coordinator
                 catch (Throwable e) {
                     log.error(e, "Unexpected exception updating coordinators");
                 }
+            }
+        }, 0, (long) statusExpiration.toMillis(), TimeUnit.MILLISECONDS);
+
+        timerService.scheduleWithFixedDelay(new Runnable()
+        {
+            @Override
+            public void run()
+            {
                 try {
-                    updateAllAgents();
+                    updateAllAgentsAndWait();
                 }
                 catch (Throwable e) {
                     log.error(e, "Unexpected exception updating agents");
@@ -328,7 +336,12 @@ public class Coordinator
     }
 
     @VisibleForTesting
-    public void updateAllAgents()
+    public void updateAllAgentsAndWait()
+    {
+        waitForFutures(updateAllAgents());
+    }
+
+    private List<ListenableFuture<?>> updateAllAgents()
     {
         Set<String> instanceIds = newHashSet();
         for (Instance instance : this.provisioner.listAgents()) {
@@ -357,7 +370,7 @@ public class Coordinator
             futures.add(remoteAgent.updateStatus());
             remoteAgent.setServiceInventory(serviceDescriptors);
         }
-        waitForFutures(futures);
+        return futures;
     }
 
     public List<AgentStatus> provisionAgents(String agentConfigSpec,

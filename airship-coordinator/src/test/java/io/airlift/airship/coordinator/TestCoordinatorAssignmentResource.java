@@ -127,7 +127,7 @@ public class TestCoordinatorAssignmentResource
                 MIN_PREFIX_SIZE);
 
         provisioner.addAgents(agentStatus);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
     }
 
     @Test

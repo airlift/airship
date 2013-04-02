@@ -235,7 +235,7 @@ public class TestAdminResource
 
         // add the agent
         provisioner.addAgents(status);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         URI requestUri = URI.create("http://localhost/v1/admin/agent");
         Response response = resource.getAllAgents(MockUriInfo.from(requestUri));
@@ -284,7 +284,7 @@ public class TestAdminResource
 
         // start the agent and verify
         AgentStatus expectedAgentStatus = provisioner.startAgent(instanceId);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
