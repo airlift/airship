@@ -125,7 +125,7 @@ public class TestCoordinator
         assertEquals(coordinator.getCoordinators().size(), 1);
 
         // update the coordinator
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
 
         // locate the new coordinator
         List<CoordinatorStatus> coordinators = coordinator.getCoordinators();
@@ -179,7 +179,7 @@ public class TestCoordinator
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.PROVISIONING);
 
         // update coordinator, and verify the coordinator is still ONLINE (coordinators don't have live status like agents
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
@@ -191,7 +191,7 @@ public class TestCoordinator
 
         // start and update the coordinator
         CoordinatorStatus expectedCoordinatorStatus = provisioner.startCoordinator(instanceId);
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
@@ -202,7 +202,7 @@ public class TestCoordinator
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
 
         // update and verify nothing changed
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
@@ -249,7 +249,7 @@ public class TestCoordinator
         assertTrue(coordinator.getAgents().isEmpty());
 
         // update the coordinator and verify
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents(), ImmutableList.of(status));
         AgentStatus actual = coordinator.getAgents().get(0);
         assertEquals(actual.getAgentId(), agentId);
@@ -292,7 +292,7 @@ public class TestCoordinator
         assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.PROVISIONING);
 
         // update coordinator, and verify the agent is still PROVISIONING
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
@@ -304,7 +304,7 @@ public class TestCoordinator
 
         // start the agent, update and verify
         AgentStatus expectedAgentStatus = provisioner.startAgent(instanceId);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
@@ -315,7 +315,7 @@ public class TestCoordinator
         assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.ONLINE);
 
         // update and verify nothing changed
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
@@ -331,7 +331,7 @@ public class TestCoordinator
     {
         URI agentUri = URI.create("fake://appleServer1/");
         provisioner.addAgent(UUID.randomUUID().toString(), agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, SHORT_APPLE_ASSIGNMENT);
 
@@ -347,7 +347,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://appleServer1/");
 
         provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
 
@@ -363,7 +363,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://appleServer1/");
 
         provisioner.addAgent("instance-id", agentUri);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
 
@@ -379,7 +379,7 @@ public class TestCoordinator
         URI agentUri = URI.create("fake://appleServer1/");
 
         provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 0, "memory", 0));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);
     }
@@ -389,7 +389,7 @@ public class TestCoordinator
     {
         URI agentUri = URI.create("fake://appleServer1/");
         provisioner.addAgent("instance-id", agentUri, ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         // install an apple server
         List<SlotStatus> slots = coordinator.install(Predicates.<AgentStatus>alwaysTrue(), 1, APPLE_ASSIGNMENT);

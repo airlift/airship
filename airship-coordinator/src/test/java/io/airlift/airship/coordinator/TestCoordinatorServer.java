@@ -185,11 +185,11 @@ public class TestCoordinatorServer
     public void resetState()
     {
         provisioner.clearCoordinators();
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 1);
 
         provisioner.clearAgents();
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertTrue(coordinator.getAgents().isEmpty());
 
         stateManager.clearAll();
@@ -241,7 +241,7 @@ public class TestCoordinatorServer
                 ImmutableMap.of("cpu", 8, "memory", 1024));
 
         provisioner.addAgents(agentStatus);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         stateManager.clearAll();
 
@@ -277,7 +277,7 @@ public class TestCoordinatorServer
                 location,
                 instanceType);
         provisioner.addCoordinators(status);
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
 
         // verify coordinator appears
         Request request = Request.Builder.prepareGet()
@@ -323,7 +323,7 @@ public class TestCoordinatorServer
 
         // start the coordinator and verify
         CoordinatorStatus expectedCoordinatorStatus = provisioner.startCoordinator(instanceId);
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 2);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getCoordinator(instanceId).getInstanceType(), instanceType);
@@ -399,7 +399,7 @@ public class TestCoordinatorServer
 
         // add the agent
         provisioner.addAgents(status);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         Request request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
@@ -446,7 +446,7 @@ public class TestCoordinatorServer
 
         // start the agent and verify
         AgentStatus expectedAgentStatus = provisioner.startAgent(instanceId);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertEquals(coordinator.getAgents().size(), 1);
         assertEquals(coordinator.getAgent(instanceId).getInstanceId(), instanceId);
         assertEquals(coordinator.getAgent(instanceId).getInstanceType(), instanceType);
@@ -627,6 +627,35 @@ public class TestCoordinatorServer
         Request request = Request.Builder.preparePut()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
                 .setBodyGenerator(createStaticBodyGenerator("stopped", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
+
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
+        SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
+        SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                slotStatusRepresentationFactory.create(apple1Status),
+                slotStatusRepresentationFactory.create(apple2Status));
+
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(apple1Status.getState(), STOPPED);
+        assertEquals(apple2Status.getState(), STOPPED);
+        assertEquals(bananaStatus.getState(), RUNNING);
+    }
+
+    @Test
+    public void testKill()
+            throws Exception
+    {
+        initializeOneAgent();
+
+        coordinator.setState(RUNNING, Predicates.<SlotStatus>alwaysTrue(), null);
+
+        Request request = Request.Builder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("killing", UTF_8))
                 .build();
         List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
 

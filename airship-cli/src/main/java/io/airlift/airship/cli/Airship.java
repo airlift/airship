@@ -74,6 +74,7 @@ import static com.google.common.io.ByteStreams.nullOutputStream;
 import static io.airlift.airship.coordinator.AwsProvisioner.toInstance;
 import static io.airlift.airship.shared.ConfigUtils.createConfigurationFactory;
 import static io.airlift.airship.shared.HttpUriBuilder.uriBuilder;
+import static io.airlift.airship.shared.SlotLifecycleState.KILLING;
 import static io.airlift.airship.shared.SlotLifecycleState.RESTARTING;
 import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
@@ -103,6 +104,7 @@ public class Airship
                 .withCommand(TerminateCommand.class)
                 .withCommand(StartCommand.class)
                 .withCommand(StopCommand.class)
+                .withCommand(KillCommand.class)
                 .withCommand(RestartCommand.class)
                 .withCommand(SshCommand.class)
                 .withCommand(ResetToActualCommand.class);
@@ -611,6 +613,26 @@ public class Airship
                 public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
                 {
                     List<SlotStatusRepresentation> slots = commander.setState(slotFilter, STOPPED, expectedVersion);
+                    displaySlots(slots);
+                }
+            });
+        }
+    }
+
+    @Command(name = "kill", description = "Kill a server")
+    public static class KillCommand extends AirshipCommanderCommand
+    {
+        @Inject
+        public final SlotFilter slotFilter = new SlotFilter();
+
+        @Override
+        public void execute(Commander commander)
+        {
+            verifySlotExecution(commander, slotFilter, "Are you sure you would like to KILL these servers?", true, new SlotExecution()
+            {
+                public void execute(Commander commander, SlotFilter slotFilter, String expectedVersion)
+                {
+                    List<SlotStatusRepresentation> slots = commander.setState(slotFilter, KILLING, expectedVersion);
                     displaySlots(slots);
                 }
             });

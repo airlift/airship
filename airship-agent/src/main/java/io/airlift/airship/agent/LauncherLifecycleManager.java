@@ -134,6 +134,19 @@ public class LauncherLifecycleManager implements LifecycleManager
         }
     }
 
+    @Override
+    public SlotLifecycleState kill(Deployment deployment)
+    {
+        updateNodeConfig(deployment);
+        try {
+            createCommand("kill", deployment, launcherTimeout).execute(executor);
+            return STOPPED;
+        }
+        catch (CommandFailedException e) {
+            throw new RuntimeException("kill failed: " + e.getMessage());
+        }
+    }
+
     private Command createCommand(String commandName, Deployment deployment, Duration timeLimit)
     {
 

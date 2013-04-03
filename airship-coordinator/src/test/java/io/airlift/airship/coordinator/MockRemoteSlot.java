@@ -85,4 +85,10 @@ public class MockRemoteSlot implements RemoteSlot
         mockRemoteAgent.setSlotStatus(slotStatus);
         return slotStatus;
     }
+
+    @Override
+    public SlotStatus kill()
+    {
+        return stop();
+    }
 }

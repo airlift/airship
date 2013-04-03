@@ -178,4 +178,23 @@ public class HttpRemoteSlot implements RemoteSlot
             return setErrorStatus(e.getMessage());
         }
     }
+
+    @Override
+    public SlotStatus kill()
+    {
+        try {
+            Request request = Request.Builder.preparePut()
+                    .setUri(uriBuilderFrom(slotStatus.getSelf()).appendPath("lifecycle").build())
+                    .setBodyGenerator(createStaticBodyGenerator("killing", UTF_8))
+                    .build();
+            SlotStatusRepresentation slotStatusRepresentation = httpClient.execute(request, createJsonResponseHandler(slotStatusCodec, Status.OK.getStatusCode()));
+
+            updateStatus(slotStatusRepresentation.toSlotStatus(slotStatus.getInstanceId()));
+            return slotStatus;
+        }
+        catch (Exception e) {
+            log.error(e);
+            return setErrorStatus(e.getMessage());
+        }
+    }
 }

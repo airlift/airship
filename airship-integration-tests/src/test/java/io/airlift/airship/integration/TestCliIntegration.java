@@ -138,11 +138,11 @@ public class TestCliIntegration
             throws Exception
     {
         provisioner.clearCoordinators();
-        coordinator.updateAllCoordinators();
+        coordinator.updateAllCoordinatorsAndWait();
         assertEquals(coordinator.getCoordinators().size(), 1);
 
         provisioner.clearAgents();
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
         assertTrue(coordinator.getAgents().isEmpty());
 
         stateManager.clearAll();
@@ -275,6 +275,24 @@ public class TestCliIntegration
         assertNotNull(outputFormat.slots);
         assertEquals(outputFormat.slots.size(), 1);
         assertSlotStatus(outputFormat.slots.get(0), slotId, APPLE_ASSIGNMENT_2, SlotLifecycleState.RUNNING, agent);
+
+        assertNull(outputFormat.coordinators);
+        assertNull(outputFormat.agents);
+
+        execute("restart", "-c", APPLE_ASSIGNMENT_2.getConfig());
+
+        assertNotNull(outputFormat.slots);
+        assertEquals(outputFormat.slots.size(), 1);
+        assertSlotStatus(outputFormat.slots.get(0), slotId, APPLE_ASSIGNMENT_2, SlotLifecycleState.RUNNING, agent);
+
+        assertNull(outputFormat.coordinators);
+        assertNull(outputFormat.agents);
+
+        execute("kill", "-c", APPLE_ASSIGNMENT_2.getConfig());
+
+        assertNotNull(outputFormat.slots);
+        assertEquals(outputFormat.slots.size(), 1);
+        assertSlotStatus(outputFormat.slots.get(0), slotId, APPLE_ASSIGNMENT_2, SlotLifecycleState.STOPPED, agent);
 
         assertNull(outputFormat.coordinators);
         assertNull(outputFormat.agents);

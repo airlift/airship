@@ -111,5 +111,14 @@ public class TestSlot
         // running.restart => running
         assertEquals(slot.restart(), running);
         assertEquals(slot.status(), running);
+
+        // running.kill => stopped
+        assertEquals(slot.kill(), stopped);
+        assertEquals(slot.status(), stopped);
+
+        // stopped.kill => stopped
+        assertEquals(slot.kill(), stopped);
+        assertEquals(slot.status(), stopped);
+
     }
 }

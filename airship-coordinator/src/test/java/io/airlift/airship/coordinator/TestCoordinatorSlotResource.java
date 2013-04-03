@@ -103,7 +103,7 @@ public class TestCoordinatorSlotResource
                 ImmutableList.of(slot1, slot2),
                 ImmutableMap.<String, Integer>of());
         provisioner.addAgents(agentStatus);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         int prefixSize = shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString()), MIN_PREFIX_SIZE);
 
@@ -146,7 +146,7 @@ public class TestCoordinatorSlotResource
                 ImmutableList.of(slot1, slot2),
                 ImmutableMap.<String, Integer>of());
         provisioner.addAgents(agentStatus);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         int prefixSize = shortestUniquePrefix(asList(slot1.getId().toString(), slot2.getId().toString()), MIN_PREFIX_SIZE);
 
@@ -190,7 +190,7 @@ public class TestCoordinatorSlotResource
         for (int i = 0; i < numberOfAgents; i++) {
             provisioner.addAgent(UUID.randomUUID().toString(), URI.create("fake://appleServer1/"), ImmutableMap.of("cpu", 8, "memory", 1024));
         }
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment?host=apple*");
         Response response = resource.install(AssignmentRepresentation.from(assignment), limit, uriInfo, null);
@@ -212,7 +212,7 @@ public class TestCoordinatorSlotResource
     public void testInstallWithinResourceLimit()
     {
         provisioner.addAgent(UUID.randomUUID().toString(), URI.create("fake://appleServer1/"), ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
         Response response = resource.install(AssignmentRepresentation.from(APPLE_ASSIGNMENT), 1, uriInfo, null);
@@ -232,7 +232,7 @@ public class TestCoordinatorSlotResource
     public void testInstallNotEnoughResources()
     {
         provisioner.addAgent(UUID.randomUUID().toString(), URI.create("fake://appleServer1/"), ImmutableMap.of("cpu", 0, "memory", 0));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
         Response response = resource.install(AssignmentRepresentation.from(APPLE_ASSIGNMENT), 1, uriInfo, null);
@@ -246,7 +246,7 @@ public class TestCoordinatorSlotResource
     public void testInstallResourcesConsumed()
     {
         provisioner.addAgent(UUID.randomUUID().toString(), URI.create("fake://appleServer1/"), ImmutableMap.of("cpu", 1, "memory", 512));
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
 
         UriInfo uriInfo = MockUriInfo.from("http://localhost/v1/slot/assignment");
 

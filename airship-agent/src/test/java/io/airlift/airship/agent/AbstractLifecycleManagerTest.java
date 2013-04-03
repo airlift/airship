@@ -42,6 +42,15 @@ public abstract class AbstractLifecycleManagerTest
         // running.restart => running
         assertEquals(manager.restart(appleDeployment), RUNNING);
         assertEquals(manager.status(appleDeployment), RUNNING);
+
+        // running.kill => stopped
+        assertEquals(manager.kill(appleDeployment), STOPPED);
+        assertEquals(manager.status(appleDeployment), STOPPED);
+
+        // stopped.kill => stopped
+        assertEquals(manager.kill(appleDeployment), STOPPED);
+        assertEquals(manager.status(appleDeployment), STOPPED);
+
     }
 
     @Test

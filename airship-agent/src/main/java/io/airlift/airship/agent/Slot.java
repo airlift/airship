@@ -27,4 +27,6 @@ public interface Slot
     SlotStatus restart();
 
     SlotStatus stop();
+
+    SlotStatus kill();
 }

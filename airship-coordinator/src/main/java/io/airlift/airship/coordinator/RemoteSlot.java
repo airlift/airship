@@ -21,4 +21,5 @@ public interface RemoteSlot
 
     SlotStatus stop();
 
+    SlotStatus kill();
 }

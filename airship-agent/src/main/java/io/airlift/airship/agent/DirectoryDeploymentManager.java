@@ -118,15 +118,12 @@ public class DirectoryDeploymentManager implements DeploymentManager
     public Deployment install(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
-        Preconditions.checkState(deployment == null, "slot has an active deployment");
 
         File deploymentDir = new File(baseDir, "installation");
 
         Assignment assignment = installation.getAssignment();
 
-        File dataDir = getDataDir();
-
-        Deployment deployment = new Deployment(slotId, location, deploymentDir, dataDir, assignment, installation.getResources());
+        Deployment newDeployment = new Deployment(slotId, location, deploymentDir, getDataDir(), assignment, installation.getResources());
         File tempDir = createTempDir(baseDir, "tmp-install");
         try {
             // download the binary
@@ -164,9 +161,16 @@ public class DirectoryDeploymentManager implements DeploymentManager
                 throw new RuntimeException("Unable to extract config bundle " + assignment.getConfig() + ": " + e.getMessage());
             }
 
+            // installation is good, clear the current deployment
+            if (this.deployment != null) {
+                this.deploymentFile.delete();
+                deleteRecursively(this.deployment.getDeploymentDir());
+                this.deployment = null;
+            }
+
             // save deployment versions file
             try {
-                save(deployment);
+                save(newDeployment);
             }
             catch (IOException e) {
                 throw new RuntimeException("Unable to save deployment file", e);
@@ -186,25 +190,14 @@ public class DirectoryDeploymentManager implements DeploymentManager
             }
         }
 
-        this.deployment = deployment;
-        return deployment;
+        this.deployment = newDeployment;
+        return newDeployment;
     }
 
     @Override
     public Deployment getDeployment()
     {
         return deployment;
-    }
-
-    @Override
-    public void clear()
-    {
-        if (deployment == null) {
-            return;
-        }
-        deploymentFile.delete();
-        deleteRecursively(deployment.getDeploymentDir());
-        deployment = null;
     }
 
     @Override

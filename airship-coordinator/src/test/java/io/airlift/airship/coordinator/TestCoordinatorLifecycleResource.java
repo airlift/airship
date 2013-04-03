@@ -132,7 +132,7 @@ public class TestCoordinatorLifecycleResource
                 MIN_PREFIX_SIZE);
 
         provisioner.addAgents(agentStatus);
-        coordinator.updateAllAgents();
+        coordinator.updateAllAgentsAndWait();
     }
 
     @Test
@@ -179,6 +179,18 @@ public class TestCoordinatorLifecycleResource
         assertOkResponse(resource.setState("restarting", uriInfo, null), RUNNING, apple1SlotId, apple2SlotId);
         assertSlotState(apple1SlotId, RUNNING);
         assertSlotState(apple2SlotId, RUNNING);
+        assertSlotState(bananaSlotId, STOPPED);
+
+        // running.kill => stopped
+        assertOkResponse(resource.setState("killing", uriInfo, null), STOPPED, apple1SlotId, apple2SlotId);
+        assertSlotState(apple1SlotId, STOPPED);
+        assertSlotState(apple2SlotId, STOPPED);
+        assertSlotState(bananaSlotId, STOPPED);
+
+        // stopped.kill => stopped
+        assertOkResponse(resource.setState("killing", uriInfo, null), STOPPED, apple1SlotId, apple2SlotId);
+        assertSlotState(apple1SlotId, STOPPED);
+        assertSlotState(apple2SlotId, STOPPED);
         assertSlotState(bananaSlotId, STOPPED);
     }
 

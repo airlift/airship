@@ -18,7 +18,6 @@ import io.airlift.airship.shared.SlotLifecycleState;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.UUID;
 
 import static com.google.common.collect.Maps.newHashMap;
@@ -57,6 +56,12 @@ public class MockLifecycleManager implements LifecycleManager
     {
         states.put(deployment.getNodeId(), SlotLifecycleState.STOPPED);
         return SlotLifecycleState.STOPPED;
+    }
+
+    @Override
+    public SlotLifecycleState kill(Deployment deployment)
+    {
+        return stop(deployment);
     }
 
     @Override

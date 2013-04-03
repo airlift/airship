@@ -423,6 +423,12 @@ public class CommanderFactory
         {
             return slot.stop().changeInstanceId(instanceId);
         }
+
+        @Override
+        public SlotStatus kill()
+        {
+            return slot.kill().changeInstanceId(instanceId);
+        }
     }
 
     public static class ToUriFunction implements Function<String, URI>
