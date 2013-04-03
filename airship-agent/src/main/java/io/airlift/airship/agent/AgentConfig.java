@@ -24,7 +24,7 @@ public class AgentConfig
 {
     private String slotsDir = "slots";
     private String resourcesFile = "etc/resources.properties";
-    private Duration launcherTimeout = new Duration(1, TimeUnit.SECONDS);
+    private Duration launcherTimeout = new Duration(5, TimeUnit.SECONDS);
     private Duration launcherStopTimeout = new Duration(15, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
     private Duration maxLockWait = new Duration(1, TimeUnit.SECONDS);

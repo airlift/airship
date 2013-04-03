@@ -29,7 +29,7 @@ public class TestAgentConfig
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(AgentConfig.class)
                 .setSlotsDir("slots")
                 .setResourcesFile("etc/resources.properties")
-                .setLauncherTimeout(new Duration(1, TimeUnit.SECONDS))
+                .setLauncherTimeout(new Duration(5, TimeUnit.SECONDS))
                 .setLauncherStopTimeout(new Duration(15, TimeUnit.SECONDS))
                 .setTarTimeout(new Duration(1, TimeUnit.MINUTES))
                 .setMaxLockWait(new Duration(1, TimeUnit.SECONDS))
