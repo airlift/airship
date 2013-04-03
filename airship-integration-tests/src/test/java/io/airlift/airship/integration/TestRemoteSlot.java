@@ -250,6 +250,25 @@ public class TestRemoteSlot
     }
 
     @Test
+    public void testKill()
+            throws Exception
+    {
+        // setup
+        slot.assign(APPLE_INSTALLATION);
+        assertEquals(slot.start().getState(), RUNNING);
+
+        // test
+        remoteAgent.setStatus(agent.getAgentStatus());
+        RemoteSlot remoteSlot = new HttpRemoteSlot(slot.status(), client, remoteAgent);
+        SlotStatus actual = remoteSlot.kill();
+
+        // verify
+        SlotStatus status = slot.status();
+        SlotStatus expected = status.changeAssignment(STOPPED, APPLE_ASSIGNMENT, status.getResources());
+        assertEquals(actual, expected);
+    }
+
+    @Test
     public void testRestart()
             throws Exception
     {

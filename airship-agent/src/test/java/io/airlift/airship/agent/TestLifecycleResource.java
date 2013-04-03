@@ -92,6 +92,14 @@ public class TestLifecycleResource
         // running.restart => running
         assertOkResponse(resource.setState(null, slot.getId(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
+
+        // running.kill => stopped
+        assertOkResponse(resource.setState(null, slot.getId(), "killing"), STOPPED);
+        assertEquals(slot.status().getState(), STOPPED);
+
+        // stopped.kill => stopped
+        assertOkResponse(resource.setState(null, slot.getId(), "killing"), STOPPED);
+        assertEquals(slot.status().getState(), STOPPED);
     }
 
     @Test
@@ -123,6 +131,14 @@ public class TestLifecycleResource
         // running.restart => running
         assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "restarting"), RUNNING);
         assertEquals(slot.status().getState(), RUNNING);
+
+        // running.kill => stopped
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "killing"), STOPPED);
+        assertEquals(slot.status().getState(), STOPPED);
+
+        // stopped.kill => stopped
+        assertOkResponse(resource.setState(slot.status().getVersion(), slot.getId(), "killing"), STOPPED);
+        assertEquals(slot.status().getState(), STOPPED);
     }
 
     @Test

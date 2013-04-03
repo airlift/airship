@@ -25,5 +25,7 @@ public interface LifecycleManager
 
     SlotLifecycleState stop(Deployment deployment);
 
+    SlotLifecycleState kill(Deployment deployment);
+
     void updateNodeConfig(Deployment deployment);
 }

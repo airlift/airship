@@ -115,6 +115,14 @@ public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
     }
 
     @Test
+    public void testNodeConfigAfterKill()
+            throws IOException
+    {
+        assertEquals(manager.kill(appleDeployment), STOPPED);
+        verifyNodeConfig(appleDeployment);
+    }
+
+    @Test
     public void testNodeConfigAfterRestart()
             throws IOException
     {

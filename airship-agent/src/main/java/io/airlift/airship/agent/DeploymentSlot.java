@@ -188,9 +188,13 @@ public class DeploymentSlot implements Slot
                 SlotLifecycleState currentState = lifecycleManager.status(oldDeployment);
                 shouldStart = currentState == RUNNING || currentState == RESTARTING;
 
-                SlotLifecycleState state = lifecycleManager.stop(oldDeployment);
-                if (state != STOPPED) {
-                    // todo error
+                // stop old deployment
+                try {
+                    lifecycleManager.stop(oldDeployment);
+                }
+                catch (Exception e) {
+                    // stop failed, just kill the process
+                    lifecycleManager.kill(oldDeployment);
                 }
 
                 // remove the deployment
@@ -362,6 +366,28 @@ public class DeploymentSlot implements Slot
         }
     }
 
+    @Override
+    public SlotStatus kill()
+    {
+        lock();
+        try {
+            Preconditions.checkState(!terminated, "Slot has been terminated");
+
+            Deployment activeDeployment = deploymentManager.getDeployment();
+            if (activeDeployment == null) {
+                throw new IllegalStateException("Slot can not be killed because the slot is not assigned");
+            }
+
+            SlotLifecycleState state = lifecycleManager.kill(activeDeployment);
+
+            SlotStatus slotStatus = lastSlotStatus.get().changeState(state);
+            lastSlotStatus.set(slotStatus);
+            return slotStatus;
+        }
+        finally {
+            unlock();
+        }
+    }
 
     private void lock()
     {

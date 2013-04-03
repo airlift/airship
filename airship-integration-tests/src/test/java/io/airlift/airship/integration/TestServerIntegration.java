@@ -592,6 +592,34 @@ public class TestServerIntegration
         assertEquals(bananaSlot.status().getState(), RUNNING);
     }
 
+
+    @Test
+    public void testKill()
+            throws Exception
+    {
+        initializeOneAgent();
+
+        appleSlot1.start();
+        appleSlot2.start();
+        bananaSlot.start();
+        coordinator.updateAllAgentsAndWait();
+
+        Request request = Request.Builder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "*:apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("killing", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                slotStatusRepresentationFactory.create(appleSlot1.status().changeInstanceId(agentInstanceId)),
+                slotStatusRepresentationFactory.create(appleSlot2.status().changeInstanceId(agentInstanceId)));
+
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(appleSlot1.status().getState(), STOPPED);
+        assertEquals(appleSlot2.status().getState(), STOPPED);
+        assertEquals(bananaSlot.status().getState(), RUNNING);
+    }
+
     private HttpUriBuilder coordinatorUriBuilder()
     {
         return uriBuilderFrom(coordinatorServer.getBaseUrl());

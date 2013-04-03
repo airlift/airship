@@ -646,6 +646,35 @@ public class TestCoordinatorServer
     }
 
     @Test
+    public void testKill()
+            throws Exception
+    {
+        initializeOneAgent();
+
+        coordinator.setState(RUNNING, Predicates.<SlotStatus>alwaysTrue(), null);
+
+        Request request = Request.Builder.preparePut()
+                .setUri(coordinatorUriBuilder().appendPath("/v1/slot/lifecycle").addParameter("binary", "apple:*").build())
+                .setBodyGenerator(createStaticBodyGenerator("killing", UTF_8))
+                .build();
+        List<SlotStatusRepresentation> actual = httpClient.execute(request, createJsonResponseHandler(slotStatusesCodec, Status.OK.getStatusCode()));
+
+        AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
+        SlotStatus apple1Status = agentStatus.getSlotStatus(apple1SotId);
+        SlotStatus apple2Status = agentStatus.getSlotStatus(apple2SlotId);
+        SlotStatus bananaStatus = agentStatus.getSlotStatus(bananaSlotId);
+
+        List<SlotStatusRepresentation> expected = ImmutableList.of(
+                slotStatusRepresentationFactory.create(apple1Status),
+                slotStatusRepresentationFactory.create(apple2Status));
+
+        assertEqualsNoOrder(actual, expected);
+        assertEquals(apple1Status.getState(), STOPPED);
+        assertEquals(apple2Status.getState(), STOPPED);
+        assertEquals(bananaStatus.getState(), RUNNING);
+    }
+
+    @Test
     public void testLifecycleUnknown()
             throws Exception
     {

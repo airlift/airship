@@ -71,6 +71,9 @@ public class LifecycleResource
         else if ("stopped".equals(newState)) {
             status = slot.stop();
         }
+        else if ("killing".equals(newState)) {
+            status = slot.kill();
+        }
         else {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }

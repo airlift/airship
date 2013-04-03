@@ -70,6 +70,7 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static io.airlift.airship.shared.SlotLifecycleState.KILLING;
 import static io.airlift.airship.shared.SlotLifecycleState.RESTARTING;
 import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
@@ -594,7 +595,7 @@ public class Coordinator
 
     public List<SlotStatus> setState(final SlotLifecycleState state, Predicate<SlotStatus> filter, String expectedSlotsVersion)
     {
-        Preconditions.checkArgument(EnumSet.of(RUNNING, RESTARTING, STOPPED).contains(state), "Unsupported lifecycle state: " + state);
+        Preconditions.checkArgument(EnumSet.of(RUNNING, RESTARTING, STOPPED, KILLING).contains(state), "Unsupported lifecycle state: " + state);
 
         // filter the slots
         List<RemoteSlot> filteredSlots = selectRemoteSlots(filter, expectedSlotsVersion);
@@ -614,6 +615,9 @@ public class Coordinator
                     case STOPPED:
                         stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), STOPPED, slot.status().getAssignment()));
                         return slot.stop();
+                    case KILLING:
+                        stateManager.setExpectedState(new ExpectedSlotStatus(slot.getId(), KILLING, slot.status().getAssignment()));
+                        return slot.kill();
                     default:
                         throw new IllegalArgumentException("Unexpected state transition " + state);
                 }
