@@ -196,9 +196,6 @@ public class DeploymentSlot implements Slot
                     // stop failed, just kill the process
                     lifecycleManager.kill(oldDeployment);
                 }
-
-                // remove the deployment
-                deploymentManager.clear();
             }
 
             // deploy new server

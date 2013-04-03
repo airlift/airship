@@ -29,8 +29,6 @@ public interface DeploymentManager
 
     Deployment getDeployment();
 
-    void clear();
-
     void terminate();
 
     /**

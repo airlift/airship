@@ -34,7 +34,6 @@ public class MockDeploymentManager implements DeploymentManager
     public Deployment install(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
-        Preconditions.checkState(deployment == null, "slot has an active deployment");
 
         deployment = new Deployment(UUID.randomUUID(), location, new File("installation"), new File("data"), installation.getAssignment(), installation.getResources());
         return deployment;
@@ -55,12 +54,6 @@ public class MockDeploymentManager implements DeploymentManager
     public Deployment getDeployment()
     {
         return deployment;
-    }
-
-    @Override
-    public void clear()
-    {
-        deployment = null;
     }
 
     @Override
