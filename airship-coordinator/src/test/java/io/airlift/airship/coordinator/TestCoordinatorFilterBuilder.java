@@ -46,6 +46,9 @@ public class TestCoordinatorFilterBuilder
         assertTrue(buildFilter("uuid", "coordinator-id").apply(status));
         assertFalse(new UuidPredicate("unknown").apply(status));
         assertFalse(buildFilter("uuid", "unknown").apply(status));
+
+        assertFalse(buildFilter("!uuid", "coordinator-id").apply(status));
+        assertTrue(buildFilter("!uuid", "unknown").apply(status));
     }
 
     @Test
@@ -55,6 +58,9 @@ public class TestCoordinatorFilterBuilder
         assertTrue(buildFilter("state", "online").apply(status));
         assertFalse(new StatePredicate(OFFLINE).apply(status));
         assertFalse(buildFilter("state", "offline").apply(status));
+
+        assertFalse(buildFilter("!state", "online").apply(status));
+        assertTrue(buildFilter("!state", "offline").apply(status));
     }
 
     @Test
@@ -79,6 +85,17 @@ public class TestCoordinatorFilterBuilder
         assertTrue(buildFilter("host", "10.0.0.1").apply(status));
         assertFalse(new HostPredicate("10.1.2.3").apply(status));
         assertFalse(buildFilter("host", "10.1.2.3").apply(status));
+
+        assertFalse(buildFilter("!host", "localhost").apply(status));
+        assertFalse(buildFilter("!host", "LOCALHOST").apply(status));
+        assertFalse(buildFilter("!host", "LocalHost").apply(status));
+        assertFalse(buildFilter("!host", "local*").apply(status));
+        assertFalse(buildFilter("!host", "LocAL*").apply(status));
+        assertTrue(buildFilter("!host", "foo").apply(status));
+
+        assertFalse(buildFilter("!host", "127.0.0.1").apply(status));
+        assertFalse(buildFilter("!host", "10.0.0.1").apply(status));
+        assertTrue(buildFilter("!host", "10.1.2.3").apply(status));
     }
 
     @Test
@@ -93,5 +110,11 @@ public class TestCoordinatorFilterBuilder
         assertFalse(buildFilter("machine", "COORDINATOR-INSTANCE").apply(status));
         assertFalse(new MachinePredicate("COO*").apply(status));
         assertFalse(buildFilter("machine", "COO*").apply(status));
+
+        assertFalse(buildFilter("!machine", "coordinator-instance").apply(status));
+        assertFalse(buildFilter("!machine", "coo*").apply(status));
+
+        assertTrue(buildFilter("!machine", "COORDINATOR-INSTANCE").apply(status));
+        assertTrue(buildFilter("!machine", "COO*").apply(status));
     }
 }

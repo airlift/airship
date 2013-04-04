@@ -1,6 +1,7 @@
 package io.airlift.airship.coordinator;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -31,9 +32,19 @@ public class CoordinatorFilterBuilder
                     builder.addUuidFilter(uuidFilter);
                 }
             }
+            if ("!uuid" .equals(entry.getKey())) {
+                for (String notUuidFilter : entry.getValue()) {
+                    builder.addNotUuidFilter(notUuidFilter);
+                }
+            }
             else if ("state".equals(entry.getKey())) {
                 for (String stateFilter : entry.getValue()) {
                     builder.addStateFilter(stateFilter);
+                }
+            }
+            else if ("!state".equals(entry.getKey())) {
+                for (String notStateFilter : entry.getValue()) {
+                    builder.addNotStateFilter(notStateFilter);
                 }
             }
             else if ("host".equals(entry.getKey())) {
@@ -41,9 +52,19 @@ public class CoordinatorFilterBuilder
                     builder.addHostGlobFilter(hostGlob);
                 }
             }
+            else if ("!host".equals(entry.getKey())) {
+                for (String notHostGlob : entry.getValue()) {
+                    builder.addNotHostGlobFilter(notHostGlob);
+                }
+            }
             else if ("machine".equals(entry.getKey())) {
                 for (String machineGlob : entry.getValue()) {
                     builder.addMachineGlobFilter(machineGlob);
+                }
+            }
+            else if ("!machine".equals(entry.getKey())) {
+                for (String notMachineGlob : entry.getValue()) {
+                    builder.addNotMachineGlobFilter(notMachineGlob);
                 }
             }
             else if ("all".equals(entry.getKey())) {
@@ -54,9 +75,13 @@ public class CoordinatorFilterBuilder
     }
 
     private final List<String> uuidFilters = Lists.newArrayListWithCapacity(6);
+    private final List<String> notUuidFilters = Lists.newArrayListWithCapacity(6);
     private final List<CoordinatorLifecycleState> stateFilters = Lists.newArrayListWithCapacity(6);
+    private final List<CoordinatorLifecycleState> notStateFilters = Lists.newArrayListWithCapacity(6);
     private final List<String> hostGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> notHostGlobs = Lists.newArrayListWithCapacity(6);
     private final List<String> machineGlobs = Lists.newArrayListWithCapacity(6);
+    private final List<String> notMachineGlobs = Lists.newArrayListWithCapacity(6);
     private boolean selectAll;
 
     public void addUuidFilter(String uuid)
@@ -65,12 +90,26 @@ public class CoordinatorFilterBuilder
         uuidFilters.add(uuid);
     }
 
+    public void addNotUuidFilter(String notUuid)
+    {
+        Preconditions.checkNotNull(notUuid, "notUuid is null");
+        notUuidFilters.add(notUuid);
+    }
+
     public void addStateFilter(String stateFilter)
     {
         Preconditions.checkNotNull(stateFilter, "stateFilter is null");
         CoordinatorLifecycleState state = CoordinatorLifecycleState.valueOf(stateFilter.toUpperCase());
-        Preconditions.checkArgument(state != null, "unknown state " + stateFilter);
+        Preconditions.checkArgument(state != null, "unknown state %s", stateFilter);
         stateFilters.add(state);
+    }
+
+    public void addNotStateFilter(String notStateFilter)
+    {
+        Preconditions.checkNotNull(notStateFilter, "notStateFilter is null");
+        CoordinatorLifecycleState state = CoordinatorLifecycleState.valueOf(notStateFilter.toUpperCase());
+        Preconditions.checkArgument(state != null, "unknown state %s", notStateFilter);
+        notStateFilters.add(state);
     }
 
     public void addHostGlobFilter(String hostGlob)
@@ -79,10 +118,22 @@ public class CoordinatorFilterBuilder
         hostGlobs.add(hostGlob);
     }
 
+    public void addNotHostGlobFilter(String notHostGlob)
+    {
+        Preconditions.checkNotNull(notHostGlob, "notHostGlob is null");
+        notHostGlobs.add(notHostGlob);
+    }
+
     public void addMachineGlobFilter(String machineGlob)
     {
         Preconditions.checkNotNull(machineGlob, "machineGlob is null");
         machineGlobs.add(machineGlob);
+    }
+
+    public void addNotMachineGlobFilter(String notMachineGlob)
+    {
+        Preconditions.checkNotNull(notMachineGlob, "notMachineGlob is null");
+        notMachineGlobs.add(notMachineGlob);
     }
 
     public void selectAll()
@@ -91,6 +142,19 @@ public class CoordinatorFilterBuilder
     }
 
     public Predicate<CoordinatorStatus> buildPredicate()
+    {
+        Predicate<CoordinatorStatus> include = buildIncludesPredicate();
+
+        Optional<Predicate<CoordinatorStatus>> excludesPredicate = buildExcludesPredicate();
+        if (excludesPredicate.isPresent()) {
+            // includes and not excluded
+            return Predicates.and(include, Predicates.not(excludesPredicate.get()));
+        }
+
+        return include;
+    }
+
+    private Predicate<CoordinatorStatus> buildIncludesPredicate()
     {
         List<Predicate<CoordinatorStatus>> andPredicates = Lists.newArrayListWithCapacity(6);
         if (!uuidFilters.isEmpty()) {
@@ -137,15 +201,55 @@ public class CoordinatorFilterBuilder
             }));
             andPredicates.add(predicate);
         }
-        if (selectAll) {
+
+        if (selectAll || andPredicates.isEmpty()) {
             return Predicates.alwaysTrue();
-        }
-        else if (!andPredicates.isEmpty()) {
-            return Predicates.and(andPredicates);
         }
         else {
-            return Predicates.alwaysTrue();
+            return Predicates.and(andPredicates);
         }
+    }
+
+    private Optional<Predicate<CoordinatorStatus>> buildExcludesPredicate()
+    {
+        List<Predicate<CoordinatorStatus>> excludes = Lists.newArrayListWithCapacity(6);
+        excludes.addAll(Lists.transform(notUuidFilters, new Function<String, UuidPredicate>()
+        {
+            @Override
+            public UuidPredicate apply(String uuid)
+            {
+                return new UuidPredicate(uuid);
+            }
+        }));
+        excludes.addAll(Lists.transform(notStateFilters, new Function<CoordinatorLifecycleState, StatePredicate>()
+        {
+            @Override
+            public StatePredicate apply(CoordinatorLifecycleState state)
+            {
+                return new StatePredicate(state);
+            }
+        }));
+        excludes.addAll(Lists.transform(notHostGlobs, new Function<String, HostPredicate>()
+        {
+            @Override
+            public HostPredicate apply(String hostGlob)
+            {
+                return new HostPredicate(hostGlob);
+            }
+        }));
+        excludes.addAll(Lists.transform(notMachineGlobs, new Function<String, MachinePredicate>()
+        {
+            @Override
+            public MachinePredicate apply(String machineGlob)
+            {
+                return new MachinePredicate(machineGlob);
+            }
+        }));
+
+        if (excludes.isEmpty()) {
+            return Optional.absent();
+        }
+        return Optional.of(Predicates.or(excludes));
     }
 
     public URI buildUri(URI baseUri)
@@ -159,14 +263,26 @@ public class CoordinatorFilterBuilder
         for (String uuidFilter : uuidFilters) {
             uriBuilder.addParameter("uuid", uuidFilter);
         }
+        for (String notUuidFilter : notUuidFilters) {
+            uriBuilder.addParameter("!uuid", notUuidFilter);
+        }
         for (String hostGlob : hostGlobs) {
             uriBuilder.addParameter("host", hostGlob);
+        }
+        for (String notHostGlob : notHostGlobs) {
+            uriBuilder.addParameter("!host", notHostGlob);
         }
         for (String machineGlob : machineGlobs) {
             uriBuilder.addParameter("machine", machineGlob);
         }
+        for (String notMachineGlob : notMachineGlobs) {
+            uriBuilder.addParameter("!machine", notMachineGlob);
+        }
         for (CoordinatorLifecycleState stateFilter : stateFilters) {
             uriBuilder.addParameter("state", stateFilter.name());
+        }
+        for (CoordinatorLifecycleState notStateFilter : notStateFilters) {
+            uriBuilder.addParameter("!state", notStateFilter.name());
         }
         if (selectAll) {
             uriBuilder.addParameter("all");

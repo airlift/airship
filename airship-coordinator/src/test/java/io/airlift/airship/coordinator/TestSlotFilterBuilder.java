@@ -77,6 +77,13 @@ public class TestSlotFilterBuilder
         assertFalse(new StatePredicate(RUNNING).apply(status));
         assertFalse(buildFilter("state", "running").apply(status));
         assertFalse(buildFilter("state", "r").apply(status));
+
+        assertFalse(buildFilter("!state", "unknown").apply(status));
+        assertFalse(buildFilter("!state", "u").apply(status));
+        assertFalse(buildFilter("!state", "UnKnown").apply(status));
+        assertFalse(buildFilter("!state", "U").apply(status));
+        assertTrue(buildFilter("!state", "running").apply(status));
+        assertTrue(buildFilter("!state", "r").apply(status));
     }
 
     @Test
@@ -86,6 +93,9 @@ public class TestSlotFilterBuilder
         assertTrue(buildFilter("uuid", "12345678-1234-1234-1234-123456789012", asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
         assertFalse(new SlotUuidPredicate(UUID.fromString("00000000-0000-0000-0000-000000000000")).apply(status));
         assertFalse(buildFilter("uuid", "00000000-0000-0000-0000-000000000000").apply(status));
+
+        assertFalse(buildFilter("!uuid", "12345678-1234-1234-1234-123456789012", asList(UUID.fromString("12345678-1234-1234-1234-123456789012"))).apply(status));
+        assertTrue(buildFilter("!uuid", "00000000-0000-0000-0000-000000000000").apply(status));
     }
 
     @Test
@@ -108,6 +118,16 @@ public class TestSlotFilterBuilder
         assertTrue(buildFilter("host", "127.0.0.1").apply(status));
         assertFalse(new HostPredicate("10.1.2.3").apply(status));
         assertFalse(buildFilter("host", "10.1.2.3").apply(status));
+
+        assertFalse(buildFilter("!host", "localhost").apply(status));
+        assertFalse(buildFilter("!host", "LOCALHOST").apply(status));
+        assertFalse(buildFilter("!host", "LocalHost").apply(status));
+        assertFalse(buildFilter("!host", "local*").apply(status));
+        assertFalse(buildFilter("!host", "LocAL*").apply(status));
+        assertTrue(buildFilter("!host", "foo").apply(status));
+
+        assertFalse(buildFilter("!host", "127.0.0.1").apply(status));
+        assertTrue(buildFilter("!host", "10.1.2.3").apply(status));
     }
 
     @Test
@@ -142,6 +162,17 @@ public class TestSlotFilterBuilder
 
         assertFalse(new BinarySpecPredicate("food.fruit:apple:zip:1.0").apply(status));
         assertFalse(buildFilter("binary", "food.fruit:apple:zip:1.0").apply(status));
+
+        assertFalse(buildFilter("!binary", "*").apply(status));
+        assertFalse(buildFilter("!binary", "food.fruit:apple:1.0").apply(status));
+        assertFalse(buildFilter("!binary", "*apple*").apply(status));
+        assertFalse(buildFilter("!binary", "*:apple:1.0").apply(status));
+        assertFalse(buildFilter("!binary", "food.fruit:*:1.0").apply(status));
+        assertFalse(buildFilter("!binary", "food.fruit:apple:*").apply(status));
+        assertFalse(buildFilter("!binary", "f*:a*:1.*").apply(status));
+        assertTrue(buildFilter("!binary", "*banana*").apply(status));
+        assertTrue(buildFilter("!binary", "x:apple:1.0").apply(status));
+        assertTrue(buildFilter("!binary", "food.fruit:apple:zip:1.0").apply(status));
     }
 
     @Test
@@ -182,6 +213,16 @@ public class TestSlotFilterBuilder
 
         assertFalse(new BinarySpecPredicate("io.airlift:sample-server:distribution:0.35-SNAPSHOT").apply(status));
         assertFalse(buildFilter("binary", "io.airlift:sample-server:distribution:0.35-SNAPSHOT").apply(status));
+
+        assertFalse(buildFilter("!binary", "*:*:*:*:*").apply(status));
+        assertFalse(buildFilter("!binary", "io.airlift:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertFalse(buildFilter("!binary", "*:sample-server:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertFalse(buildFilter("!binary", "io.airlift:*:tar.gz:distribution:0.35-SNAPSHOT").apply(status));
+        assertFalse(buildFilter("!binary", "io.airlift:sample-server:*:distribution:0.35-SNAPSHOT").apply(status));
+        assertFalse(buildFilter("!binary", "io.airlift:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
+        assertFalse(buildFilter("!binary", "io.airlift:sample-server:tar.gz:distribution:*").apply(status));
+        assertFalse(buildFilter("!binary", "i*:s*:t*:d*:0*").apply(status));
+        assertTrue(buildFilter("!binary", "io.airlift:sample-server:distribution:0.35-SNAPSHOT").apply(status));
     }
 
     @Test
@@ -201,5 +242,13 @@ public class TestSlotFilterBuilder
         assertTrue(buildFilter("config", "@prod:a*:1.*").apply(status));
         assertFalse(new ConfigSpecPredicate("@prod:apple:x:1.0").apply(status));
         assertFalse(buildFilter("config", "@prod:apple:x:1.0").apply(status));
+
+        assertFalse(buildFilter("!config", "@*:*").apply(status));
+        assertFalse(buildFilter("!config", "@prod:apple:1.0").apply(status));
+        assertFalse(buildFilter("!config", "@prod:apple:1.0").apply(status));
+        assertFalse(buildFilter("!config", "@*:1.0").apply(status));
+        assertFalse(buildFilter("!config", "@prod:apple:*").apply(status));
+        assertFalse(buildFilter("!config", "@prod:a*:1.*").apply(status));
+        assertTrue(buildFilter("!config", "@prod:apple:x:1.0").apply(status));
     }
 }

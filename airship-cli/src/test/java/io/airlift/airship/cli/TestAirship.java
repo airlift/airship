@@ -25,6 +25,7 @@ import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT_2;
 import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT_EXACT;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -283,6 +284,13 @@ public class TestAirship
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
 
+        execute("show", "-U", appleSlotId);
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 1);
+        assertNotEquals(slots.get(APPLE_ASSIGNMENT).get(0).getId().toString(), appleSlotId);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
+
         execute("show", "-u", appleShortSlotId, "-u", apple2ShortSlotId, "-u", bananaShortSlotId);
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 1);
@@ -291,6 +299,15 @@ public class TestAirship
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).get(0).getId().toString(), apple2SlotId);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 1);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).get(0).getId().toString(), bananaSlotId);
+
+        execute("show", "-U", appleShortSlotId, "-U", apple2ShortSlotId, "-U", bananaShortSlotId);
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 1);
+        assertNotEquals(slots.get(APPLE_ASSIGNMENT).get(0).getId().toString(), appleSlotId);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 1);
+        assertNotEquals(slots.get(APPLE_ASSIGNMENT_2).get(0).getId().toString(), apple2SlotId);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 1);
+        assertNotEquals(slots.get(BANANA_ASSIGNMENT_EXACT).get(0).getId().toString(), bananaSlotId);
 
         execute("show", "-u", appleSlotId, "-u", apple2SlotId, "-u", bananaSlotId);
         slots = slotsByAssignment();
@@ -301,11 +318,26 @@ public class TestAirship
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 1);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).get(0).getId().toString(), bananaSlotId);
 
+        execute("show", "-U", appleSlotId, "-U", apple2SlotId, "-U", bananaSlotId);
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 1);
+        assertNotEquals(slots.get(APPLE_ASSIGNMENT).get(0).getId().toString(), appleSlotId);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 1);
+        assertNotEquals(slots.get(APPLE_ASSIGNMENT_2).get(0).getId().toString(), apple2SlotId);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 1);
+        assertNotEquals(slots.get(BANANA_ASSIGNMENT_EXACT).get(0).getId().toString(), bananaSlotId);
+
         execute("show", "-c", APPLE_ASSIGNMENT.getConfig());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
+
+        execute("show", "-C", APPLE_ASSIGNMENT.getConfig());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
         execute("show", "-b", APPLE_ASSIGNMENT.getBinary());
         slots = slotsByAssignment();
@@ -313,11 +345,23 @@ public class TestAirship
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
 
+        execute("show", "-B", APPLE_ASSIGNMENT.getBinary());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
+
         execute("show", "-h", agent.getInternalHost());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
+
+        execute("show", "-H", agent.getInternalHost());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
 
         execute("show", "-h", agent.getInternalIp());
         slots = slotsByAssignment();
@@ -325,11 +369,23 @@ public class TestAirship
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
+        execute("show", "-H", agent.getInternalIp());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
+
         execute("show", "-h", agent.getExternalHost());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
+
+        execute("show", "-H", agent.getExternalHost());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
 
         execute("show", "-m", agent.getInstanceId());
         slots = slotsByAssignment();
@@ -337,22 +393,40 @@ public class TestAirship
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
+        execute("show", "-M", agent.getInstanceId());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
+
         execute("start", "-b", BANANA_ASSIGNMENT_EXACT.getBinary());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
 
-        execute("start", "-s", SlotLifecycleState.RUNNING.toString());
-        slots = slotsByAssignment();
-        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
-        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
-        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
-
-        execute("start", "-s", SlotLifecycleState.STOPPED.toString());
+        execute("start", "-B", BANANA_ASSIGNMENT_EXACT.getBinary());
         slots = slotsByAssignment();
         assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
         assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
+
+        execute("start", "-s", SlotLifecycleState.RUNNING.toString());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 2);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 2);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 2);
+
+        execute("start", "-S", SlotLifecycleState.RUNNING.toString());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
+        assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
+
+        execute("start", "-s", SlotLifecycleState.STOPPED.toString());
+        slots = slotsByAssignment();
+        assertEquals(slots.get(APPLE_ASSIGNMENT).size(), 0);
+        assertEquals(slots.get(APPLE_ASSIGNMENT_2).size(), 0);
         assertEquals(slots.get(BANANA_ASSIGNMENT_EXACT).size(), 0);
     }
 
