@@ -1137,9 +1137,6 @@ public class Airship
 
             // generate new keys for the cluster
             AmazonIdentityManagementClient iamClient = new AmazonIdentityManagementClient(new BasicAWSCredentials(accessKey, secretKey));
-            if (awsEndpoint != null) {
-                iamClient.setEndpoint(awsEndpoint);
-            }
             String username = createIamUserForEnvironment(iamClient, environment);
 
             // save the environment since we just created a permanent resource
