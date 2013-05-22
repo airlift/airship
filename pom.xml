@@ -10,7 +10,7 @@
 
     <groupId>io.airlift.airship</groupId>
     <artifactId>airship-root</artifactId>
-    <version>0.12</version>
+    <version>0.13-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>airship-root</name>
 
@@ -49,7 +49,7 @@
         <connection>scm:git:git://github.com/airlift/airship.git</connection>
         <developerConnection>scm:git:git@github.com:airlift/airship.git</developerConnection>
         <url>http://github.com/airlift/airship/tree/master</url>
-      <tag>0.12</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <properties>
