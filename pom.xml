@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.airlift</groupId>
         <artifactId>airbase</artifactId>
-        <version>5</version>
+        <version>7</version>
     </parent>
 
     <groupId>io.airlift.airship</groupId>
@@ -57,7 +57,7 @@
         <air.check.skip-pmd>true</air.check.skip-pmd>
         <air.check.skip-license>true</air.check.skip-license>
 
-        <dep.airlift.version>0.73</dep.airlift.version>
+        <dep.airlift.version>0.76</dep.airlift.version>
         <dep.packaging.version>${dep.airlift.version}</dep.packaging.version>
         <dep.leveldb.version>0.5</dep.leveldb.version>
         <dep.maven.version>3.0.3</dep.maven.version>
@@ -142,19 +142,19 @@
 
             <dependency>
                 <groupId>io.airlift</groupId>
-                <artifactId>discovery-experimental</artifactId>
+                <artifactId>discovery</artifactId>
                 <version>${dep.airlift.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>io.airlift</groupId>
-                <artifactId>event-experimental</artifactId>
+                <artifactId>event</artifactId>
                 <version>${dep.airlift.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>io.airlift</groupId>
-                <artifactId>http-client-experimental</artifactId>
+                <artifactId>http-client</artifactId>
                 <version>${dep.airlift.version}</version>
             </dependency>
 
