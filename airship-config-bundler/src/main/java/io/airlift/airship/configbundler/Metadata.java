@@ -1,5 +1,6 @@
 package io.airlift.airship.configbundler;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
@@ -9,12 +10,13 @@ import io.airlift.json.JsonCodec;
 import java.io.File;
 import java.io.IOException;
 
-class Metadata
+public class Metadata
 {
     private final String groupId;
     private final Repository snapshotsRepository;
     private final Repository releasesRepository;
 
+    @JsonCreator
     public Metadata(@JsonProperty("groupId") String groupId,
             @JsonProperty("snapshotsRepository") Repository snapshotsRepository,
             @JsonProperty("releasesRepository") Repository releasesRepository)
@@ -54,6 +56,7 @@ class Metadata
         private final String id;
         private final String uri;
 
+        @JsonCreator
         public Repository(@JsonProperty("id") String id, @JsonProperty("uri") String uri)
         {
             Preconditions.checkNotNull(id, "id is null");
