@@ -24,6 +24,7 @@ import org.sonatype.aether.impl.MetadataGeneratorFactory;
 import org.sonatype.aether.impl.VersionRangeResolver;
 import org.sonatype.aether.impl.VersionResolver;
 import org.sonatype.aether.impl.internal.DefaultServiceLocator;
+import org.sonatype.aether.installation.InstallRequest;
 import org.sonatype.aether.repository.Authentication;
 import org.sonatype.aether.repository.LocalRepository;
 import org.sonatype.aether.repository.RemoteRepository;
@@ -120,19 +121,22 @@ class Maven
 
             Artifact artifact = new DefaultArtifact(groupId, artifactId, extension, version).setFile(file);
 
-            DeployRequest request = new DeployRequest()
+            // Install the artifact locally
+            repositorySystem.install(session, new InstallRequest().addArtifact(artifact));
+
+            // Deploy the artifact remotely
+            DeployRequest deployRequest = new DeployRequest()
                     .addArtifact(artifact);
 
             if (artifact.isSnapshot()) {
                 Preconditions.checkNotNull(snapshotsRepository, "snapshots repository uri is null");
-                request.setRepository(snapshotsRepository);
+                deployRequest.setRepository(snapshotsRepository);
             }
             else {
                 Preconditions.checkNotNull(releasesRepository, "releases repository uri is null");
-                request.setRepository(releasesRepository);
+                deployRequest.setRepository(releasesRepository);
             }
-
-            repositorySystem.deploy(session, request);
+            repositorySystem.deploy(session, deployRequest);
         }
         finally {
             file.delete();
