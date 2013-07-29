@@ -5,6 +5,8 @@ import com.google.common.io.InputSupplier;
 import io.airlift.command.Arguments;
 import io.airlift.command.Command;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.eclipse.jgit.util.FS;
 
 import java.io.File;
 import java.io.InputStream;
@@ -24,9 +26,7 @@ public class SnapshotCommand
     public Void call()
             throws Exception
     {
-        Git git = Git.open(new File("."));
-
-        Model model = new Model(git);
+        Model model = new Model(Git.wrap(new RepositoryBuilder().findGitDir().setFS(FS.DETECTED).build()));
         Metadata metadata = model.readMetadata();
 
         String groupId = metadata.getGroupId();
