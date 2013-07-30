@@ -11,7 +11,7 @@ public class AwsProvisionerConfig
         extends ProvisionerConfig<AwsProvisionerConfig>
 {
 
-    private String awsCredentialsFile = "etc/aws-credentials.properties";
+    private String awsCredentialsFile = "aws-credentials.properties";
 
     private String awsCoordinatorAmi = "ami-27b7744e";
     private String awsCoordinatorKeypair = "keypair";

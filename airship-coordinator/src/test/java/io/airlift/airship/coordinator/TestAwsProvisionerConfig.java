@@ -31,7 +31,7 @@ public class TestAwsProvisionerConfig
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(AwsProvisionerConfig.class)
                 .setAirshipVersion(null)
                 .setAgentDefaultConfig(null)
-                .setAwsCredentialsFile("etc/aws-credentials.properties")
+                .setAwsCredentialsFile("aws-credentials.properties")
                 .setAwsCoordinatorAmi("ami-27b7744e")
                 .setAwsCoordinatorKeypair("keypair")
                 .setAwsCoordinatorSecurityGroup("default")
