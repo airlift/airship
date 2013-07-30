@@ -44,6 +44,8 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentAmi("ami-27b7744e")
                 .setAwsAgentKeypair("keypair")
                 .setAwsAgentSecurityGroup("default")
+                .setAwsSubnetId(null)
+                .setAwsPrivateIpAddress(null)
                 .setProvisioningScriptsArtifact(null)
                 .setAwsAgentDefaultInstanceType("t1.micro")
                 .setAwsEndpoint(null)
@@ -73,6 +75,8 @@ public class TestAwsProvisionerConfig
                 .put("coordinator.aws.s3-keystore.bucket", "bucket")
                 .put("coordinator.aws.s3-keystore.path", "path")
                 .put("coordinator.aws.s3-keystore.refresh", "30s")
+                .put("coordinator.aws.vpc.subnet-id", "subnet-id")
+                .put("coordinator.aws.vpc.private-ip-address", "10.0.0.7")
                 .build();
 
         AwsProvisionerConfig expected = new AwsProvisionerConfig()
@@ -91,7 +95,9 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentDefaultInstanceType("a-t1.micro")
                 .setS3KeystoreBucket("bucket")
                 .setS3KeystorePath("path")
-                .setS3KeystoreRefreshInterval(new Duration(30, TimeUnit.SECONDS));
+                .setS3KeystoreRefreshInterval(new Duration(30, TimeUnit.SECONDS))
+                .setAwsSubnetId("subnet-id")
+                .setAwsPrivateIpAddress("10.0.0.7");
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }

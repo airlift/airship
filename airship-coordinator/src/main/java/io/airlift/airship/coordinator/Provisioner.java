@@ -13,6 +13,8 @@ public interface Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact);
 
     List<Instance> listAgents();
@@ -24,6 +26,8 @@ public interface Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact);
 
     void terminateAgents(Iterable<String> instanceIds);

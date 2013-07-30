@@ -90,6 +90,8 @@ public class MockProvisioner implements Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact)
     {
         ImmutableList.Builder<Instance> instances = ImmutableList.builder();
@@ -211,6 +213,8 @@ public class MockProvisioner implements Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact)
     {
         if (instanceType == null) {

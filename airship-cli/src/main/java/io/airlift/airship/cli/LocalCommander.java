@@ -210,6 +210,8 @@ public class LocalCommander implements Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact,
             boolean waitForStartup)
     {
@@ -245,6 +247,8 @@ public class LocalCommander implements Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact,
             boolean waitForStartup)
     {

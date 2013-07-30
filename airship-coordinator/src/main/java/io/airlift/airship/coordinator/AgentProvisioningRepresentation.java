@@ -26,6 +26,8 @@ public class AgentProvisioningRepresentation
     private final String keyPair;
     private final String securityGroup;
     private String provisioningScriptsArtifact;
+    private final String subnetId;
+    private final String privateIpAddress;
 
     @JsonCreator
     public AgentProvisioningRepresentation(
@@ -36,6 +38,8 @@ public class AgentProvisioningRepresentation
             @JsonProperty("ami") String ami,
             @JsonProperty("keyPair") String keyPair,
             @JsonProperty("securityGroup") String securityGroup,
+            @JsonProperty("subnetId") String subnetId,
+            @JsonProperty("privateIpAddress") String privateIpAddress,
             @JsonProperty("provisioningScriptsArtifact") String provisioningScriptsArtifact)
     {
         this.agentConfig = agentConfig;
@@ -46,6 +50,8 @@ public class AgentProvisioningRepresentation
         this.keyPair = keyPair;
         this.securityGroup = securityGroup;
         this.provisioningScriptsArtifact = provisioningScriptsArtifact;
+        this.subnetId = subnetId;
+        this.privateIpAddress = privateIpAddress;
     }
 
     @JsonProperty
@@ -96,6 +102,16 @@ public class AgentProvisioningRepresentation
         return provisioningScriptsArtifact;
     }
 
+    @JsonProperty
+    public String getSubnetId() {
+        return subnetId;
+    }
+
+    @JsonProperty
+    public String getPrivateIpAddress() {
+        return privateIpAddress;
+    }
+
     @Override
     public String toString()
     {
@@ -108,6 +124,8 @@ public class AgentProvisioningRepresentation
         sb.append(", ami='").append(ami).append('\'');
         sb.append(", keyPair='").append(keyPair).append('\'');
         sb.append(", securityGroup='").append(securityGroup).append('\'');
+        sb.append(", subnetId='").append(subnetId).append('\'');
+        sb.append(", privateIpAddress='").append(privateIpAddress).append('\'');
         sb.append(", provisioningScriptsArtifact='").append(securityGroup).append('\'');
         sb.append('}');
         return sb.toString();

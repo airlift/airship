@@ -760,6 +760,12 @@ public class Airship
         @Option(name = "--provisioning-scripts-artifact", description = "The Maven artifact to use for the provisioning bootstrap")
         public String provisioningScriptsArtifact;
 
+        @Option(name = "--subnet-id", description = "VPC Subnet ID")
+        public String subnetId;
+
+        @Option(name = "--private-ip-address", description = "The private VPC IP address")
+        public String privateIpAddress;
+
         @Option(name = "--no-wait", description = "Do not wait for coordinator to start")
         public boolean noWait;
 
@@ -774,6 +780,8 @@ public class Airship
                     ami,
                     keyPair,
                     securityGroup,
+                    subnetId,
+                    privateIpAddress,
                     provisioningScriptsArtifact,
                     !noWait);
 
@@ -803,6 +811,8 @@ public class Airship
             sb.append(", provisioningScriptsArtifact='").append(provisioningScriptsArtifact).append('\'');
             sb.append(", availabilityZone='").append(availabilityZone).append('\'');
             sb.append(", instanceType='").append(instanceType).append('\'');
+            sb.append(", subnetId='").append(subnetId).append('\'');
+            sb.append(", privateIpAddress='").append(privateIpAddress).append('\'');
             sb.append('}');
             return sb.toString();
         }
@@ -888,6 +898,12 @@ public class Airship
         @Option(name = "--provisioning-scripts-artifact", description = "The Maven artifact to use for the provisioning bootstrap")
         public String provisioningScriptsArtifact;
 
+        @Option(name = "--subnet-id", description = "VPC Subnet ID")
+        public String subnetId;
+
+        @Option(name = "--private-ip-address", description = "The private VPC IP address")
+        public String privateIpAddress;
+
         @Option(name = "--no-wait", description = "Do not wait for agent to start")
         public boolean noWait;
 
@@ -895,7 +911,18 @@ public class Airship
         public void execute(Commander commander)
                 throws Exception
         {
-            List<AgentStatusRepresentation> agents = commander.provisionAgents(agentConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, provisioningScriptsArtifact, !noWait);
+            List<AgentStatusRepresentation> agents = commander.provisionAgents(
+                    agentConfig,
+                    count,
+                    instanceType,
+                    availabilityZone,
+                    ami,
+                    keyPair,
+                    securityGroup,
+                    subnetId,
+                    privateIpAddress,
+                    provisioningScriptsArtifact,
+                    !noWait);
             displayAgents(agents);
         }
 
@@ -912,6 +939,8 @@ public class Airship
             sb.append(", provisioningScriptsArtifact='").append(provisioningScriptsArtifact).append('\'');
             sb.append(", availabilityZone='").append(availabilityZone).append('\'');
             sb.append(", instanceType='").append(instanceType).append('\'');
+            sb.append(", subnetId='").append(subnetId).append('\'');
+            sb.append(", privateIpAddress='").append(privateIpAddress).append('\'');
             sb.append(", noWait=").append(noWait);
             sb.append('}');
             return sb.toString();
@@ -1103,6 +1132,12 @@ public class Airship
         @Option(name = "--maven-default-group-id", description = "Default maven group-id")
         public final List<String> mavenDefaultGroupId = newArrayList();
 
+        @Option(name = "--subnet-id", description = "VPC Subnet ID")
+        public String subnetId;
+
+        @Option(name = "--private-ip-address", description = "The private VPC IP address")
+        public String privateIpAddress;
+
         @Arguments(description = "Reference name for the environment", required = true)
         public String ref;
 
@@ -1147,6 +1182,8 @@ public class Airship
                 awsEndpoint = awsProvisionerConfig.getAwsEndpoint();
             }
 
+            awsProvisionerConfig.setAwsSubnetId((subnetId != null ? subnetId : awsProvisionerConfig.getAwsSubnetId()));
+
             // generate new keys for the cluster
             AmazonIdentityManagementClient iamClient = new AmazonIdentityManagementClient(new BasicAWSCredentials(accessKey, secretKey));
             String username = createIamUserForEnvironment(iamClient, environment);
@@ -1175,6 +1212,8 @@ public class Airship
                     ami,
                     keyPair,
                     securityGroup,
+                    subnetId,
+                    privateIpAddress,
                     provisioningScriptsArtifact,
                     httpServerConfig.getHttpPort(),
                     awsProvisionerConfig.getAwsCredentialsFile(),
@@ -1189,7 +1228,7 @@ public class Airship
             // add the coordinators to the config
             String coordinatorProperty = "environment." + ref + ".coordinator";
             for (Instance instance : instances) {
-                config.add(coordinatorProperty, instance.getExternalUri().toASCIIString());
+                config.add(coordinatorProperty, firstNonNull(instance.getExternalUri(), instance.getInternalUri()).toASCIIString());
             }
 
             // make this environment the default environment
@@ -1242,14 +1281,9 @@ public class Airship
                         List<Instance> resolvedInstances = newArrayList();
                         for (Reservation reservation : result.getReservations()) {
                             for (com.amazonaws.services.ec2.model.Instance instance : reservation.getInstances()) {
-                                URI internalUri = null;
-                                if (instance.getPrivateIpAddress() != null) {
-                                    internalUri = uriBuilder().scheme("http").host(instance.getPrivateIpAddress()).port(port).build();
-                                }
-                                URI externalUri = null;
-                                if (instance.getPublicDnsName() != null) {
-                                    externalUri = uriBuilder().scheme("http").host(instance.getPublicDnsName()).port(port).build();
-                                }
+                                URI internalUri = AwsProvisioner.buildInstanceInternalURI(port, instance);
+                                URI externalUri = AwsProvisioner.buildInstanceExternalURI(port, instance);
+
                                 resolvedInstances.add(toInstance(instance, internalUri, externalUri, "coordinator"));
                             }
                         }
@@ -1324,15 +1358,25 @@ public class Airship
                         return false;
                     }
 
+                    // VPC instances don't have a public DNS name or public IP address, so we use the private IP address
+                    // instead. The private IP address of a VPC instance will be accessible given that there must be
+                    // some kind of VPN or other access method.
+                    String instanceAddress;
+                    if (instance.getVpcId() == null) {
+                        instanceAddress = instance.getPublicDnsName();
+                    } else {
+                        instanceAddress = instance.getPrivateIpAddress();
+                    }
+
                     // is it running?
                     int state = instance.getState().getCode();
-                    if (state == STATE_PENDING || instance.getPublicDnsName() == null) {
+                    if (state == STATE_PENDING || instanceAddress == null) {
                         return false;
                     }
 
                     // can we talk to it yet?
                     try {
-                        Resources.toByteArray(new URL(format("http://%s:%s/v1/slot", instance.getPublicDnsName(), port)));
+                        Resources.toByteArray(new URL(format("http://%s:%s/v1/slot", instanceAddress, port)));
                     }
                     catch (Exception e) {
                         return false;

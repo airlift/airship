@@ -65,6 +65,8 @@ public class AdminResource
                 provisioning.getAmi(),
                 provisioning.getKeyPair(),
                 provisioning.getSecurityGroup(),
+                provisioning.getSubnetId(),
+                provisioning.getPrivateIpAddress(),
                 provisioning.getProvisioningScriptsArtifact());
 
         return Response.ok(transform(coordinators, fromCoordinatorStatus(coordinator.getCoordinators()))).build();
@@ -105,6 +107,8 @@ public class AdminResource
                 provisioning.getAmi(),
                 provisioning.getKeyPair(),
                 provisioning.getSecurityGroup(),
+                provisioning.getSubnetId(),
+                provisioning.getPrivateIpAddress(),
                 provisioning.getProvisioningScriptsArtifact());
 
         return Response.ok(transform(agents, fromAgentStatus(coordinator.getAgents(), repository))).build();

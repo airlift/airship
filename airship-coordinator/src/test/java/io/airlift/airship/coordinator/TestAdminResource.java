@@ -153,7 +153,7 @@ public class TestAdminResource
         String instanceType = "instance-type";
         URI requestUri = URI.create("http://localhost/v1/admin/coordinator");
         Response response = resource.provisionCoordinator(
-                new CoordinatorProvisioningRepresentation("coordinator:config:1", 1, instanceType, null, null, null, null, null),
+                new CoordinatorProvisioningRepresentation("coordinator:config:1", 1, instanceType, null, null, null, null, null, null, null),
                 MockUriInfo.from(requestUri)
         );
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
@@ -264,7 +264,7 @@ public class TestAdminResource
         String instanceType = "instance-type";
         URI requestUri = URI.create("http://localhost/v1/admin/agent");
         Response response = resource.provisionAgent(
-                new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null, null),
+                new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null, null, null, null),
                 MockUriInfo.from(requestUri)
         );
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());

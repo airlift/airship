@@ -239,6 +239,8 @@ public class Coordinator
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact)
     {
         List<Instance> instances = provisioner.provisionCoordinators(coordinatorConfigSpec,
@@ -248,6 +250,8 @@ public class Coordinator
                 ami,
                 keyPair,
                 securityGroup,
+                subnetId,
+                privateIpAddress,
                 provisioningScriptsArtifact);
 
         List<CoordinatorStatus> coordinators = newArrayList();
@@ -390,6 +394,8 @@ public class Coordinator
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact)
     {
         List<Instance> instances = provisioner.provisionAgents(agentConfigSpec,
@@ -399,6 +405,8 @@ public class Coordinator
                 ami,
                 keyPair,
                 securityGroup,
+                subnetId,
+                privateIpAddress,
                 provisioningScriptsArtifact);
 
         List<AgentStatus> agents = newArrayList();

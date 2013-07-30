@@ -34,8 +34,8 @@ LOCATION="/ec2/${REGION}/${ZONE}/${INSTANCE_ID}"
 # instance type
 INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
 
-# external address
-EXTERNAL_ADDRESS=$(curl -s "http://169.254.169.254/latest/meta-data/public-hostname")
+# external address -- this is what sets the 'host' field in "airship show"
+EXTERNAL_ADDRESS=$(curl -f -s "http://169.254.169.254/latest/meta-data/public-hostname" || curl -f -s "http://169.254.169.254/latest/meta-data/local-ipv4")
 
 # internal ip
 INTERNAL_IP=$(curl -s "http://169.254.169.254/latest/meta-data/local-ipv4")
@@ -47,7 +47,7 @@ export PATH=\$PATH:/home/ubuntu/bin
 YELLOW="\\[\\033[33m\\]"
 GREEN="\\[\\033[32m\\]"
 DEFAULT="\\[\\033[39m\\]"
-export PS1="[\$(date +%H:%M) \u@\${YELLOW}${INSTANCE_ID}\${DEFAULT}:\w \${GREEN}$(cat ~/.airshipconfig | awk '/^environment\.default *=/ {print $3}')\${DEFAULT}] "
+export PS1="[\A \u@\${YELLOW}${INSTANCE_ID}\${DEFAULT}:\w \${GREEN}\$(cat ~/.airshipconfig | awk '/^environment\.default *=/ {print \$3}')\${DEFAULT}]\$ "
 EOT
 
 (grep 'airship\.bashrc' /home/ubuntu/.bashrc >> /dev/null) || echo -e "\n. ~/.airship.bashrc\n" >> /home/ubuntu/.bashrc

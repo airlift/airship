@@ -257,6 +257,8 @@ public class CommanderFactory
                 String ami,
                 String keyPair,
                 String securityGroup,
+                String subnetId,
+                String privateIpAddress,
                 String provisioningScriptsArtifact)
         {
             throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
@@ -277,6 +279,8 @@ public class CommanderFactory
                 String ami,
                 String keyPair,
                 String securityGroup,
+                String subnetId,
+                String privateIpAddress,
                 String provisioningScriptsArtifact)
         {
             throw new UnsupportedOperationException("Agents can not be provisioned in local mode");

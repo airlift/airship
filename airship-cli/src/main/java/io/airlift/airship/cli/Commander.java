@@ -34,6 +34,8 @@ public interface Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact,
             boolean waitForStartup);
 
@@ -48,6 +50,8 @@ public interface Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact,
             boolean waitForStartup);
 

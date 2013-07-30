@@ -198,6 +198,8 @@ public class HttpCommander implements Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact,
             boolean waitForStartup)
     {
@@ -211,6 +213,8 @@ public class HttpCommander implements Commander
                 ami,
                 keyPair,
                 securityGroup,
+                subnetId,
+                privateIpAddress,
                 provisioningScriptsArtifact);
 
         Request request = Request.Builder.preparePost()
@@ -298,6 +302,8 @@ public class HttpCommander implements Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact,
             boolean waitForStartup)
     {
@@ -311,6 +317,8 @@ public class HttpCommander implements Commander
                 ami,
                 keyPair,
                 securityGroup,
+                subnetId,
+                privateIpAddress,
                 provisioningScriptsArtifact);
 
         Request request = Request.Builder.preparePost()

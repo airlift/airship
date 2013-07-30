@@ -25,6 +25,8 @@ public class CoordinatorProvisioningRepresentation
     private final String ami;
     private final String keyPair;
     private final String securityGroup;
+    private final String subnetId;
+    private final String privateIpAddress;
     private String provisioningScriptsArtifact;
 
     @JsonCreator
@@ -36,6 +38,8 @@ public class CoordinatorProvisioningRepresentation
             @JsonProperty("ami") String ami,
             @JsonProperty("keyPair") String keyPair,
             @JsonProperty("securityGroup") String securityGroup,
+            @JsonProperty("subnetId") String subnetId,
+            @JsonProperty("privateIpAddress") String privateIpAddress,
             @JsonProperty("provisioningScriptsArtifact") String provisioningScriptsArtifact)
     {
         this.coordinatorConfig = coordinatorConfig;
@@ -45,6 +49,8 @@ public class CoordinatorProvisioningRepresentation
         this.ami = ami;
         this.keyPair = keyPair;
         this.securityGroup = securityGroup;
+        this.subnetId = subnetId;
+        this.privateIpAddress = privateIpAddress;
         this.provisioningScriptsArtifact = provisioningScriptsArtifact;
     }
 
@@ -96,6 +102,16 @@ public class CoordinatorProvisioningRepresentation
         return provisioningScriptsArtifact;
     }
 
+    @JsonProperty
+    public String getSubnetId() {
+        return subnetId;
+    }
+
+    @JsonProperty
+    public String getPrivateIpAddress() {
+        return privateIpAddress;
+    }
+
     @Override
     public String toString()
     {
@@ -108,6 +124,8 @@ public class CoordinatorProvisioningRepresentation
         sb.append(", ami='").append(ami).append('\'');
         sb.append(", keyPair='").append(keyPair).append('\'');
         sb.append(", securityGroup='").append(securityGroup).append('\'');
+        sb.append(", subnetId='").append(subnetId).append('\'');
+        sb.append(", privateIpAddress='").append(privateIpAddress).append('\'');
         sb.append(", provisioningScriptsArtifact='").append(provisioningScriptsArtifact).append('\'');
         sb.append('}');
         return sb.toString();

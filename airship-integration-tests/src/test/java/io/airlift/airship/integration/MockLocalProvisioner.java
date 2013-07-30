@@ -62,6 +62,8 @@ public class MockLocalProvisioner implements Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact)
     {
         List<Instance> instances = newArrayList();
@@ -259,6 +261,8 @@ public class MockLocalProvisioner implements Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact)
     {
         if (instanceType == null) {

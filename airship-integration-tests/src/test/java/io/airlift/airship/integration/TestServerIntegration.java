@@ -229,7 +229,7 @@ public class TestServerIntegration
     private void initializeOneAgent()
             throws Exception
     {
-        List<Instance> instances = provisioner.provisionAgents("agent:config:1", 1, "instance-type", null, null, null, null, null);
+        List<Instance> instances = provisioner.provisionAgents("agent:config:1", 1, "instance-type", null, null, null, null, null, null, null);
         assertEquals(instances.size(), 1);
         AgentServer agentServer = provisioner.getAgent(instances.get(0).getInstanceId());
         assertNotNull(agentServer);
@@ -268,7 +268,8 @@ public class TestServerIntegration
             throws Exception
     {
         // directly add a new coordinator and start it
-        List<Instance> instances = provisioner.provisionCoordinators("coordinator:config:1", 1, "instance-type", null, null, null, null, null);
+        List<Instance> instances =
+                provisioner.provisionCoordinators("coordinator:config:1", 1, "instance-type", null, null, null, null, null, null, null);
         assertEquals(instances.size(), 1);
         CoordinatorServer coordinatorServer = provisioner.getCoordinator(instances.get(0).getInstanceId());
         coordinatorServer.start();
@@ -297,7 +298,8 @@ public class TestServerIntegration
     {
         // provision the coordinator and verify
         String instanceType = "instance-type";
-        CoordinatorProvisioningRepresentation coordinatorProvisioningRepresentation = new CoordinatorProvisioningRepresentation("coordinator:config:1", 1, instanceType, null, null, null, null, null);
+        CoordinatorProvisioningRepresentation coordinatorProvisioningRepresentation =
+                new CoordinatorProvisioningRepresentation("coordinator:config:1", 1, instanceType, null, null, null, null, null, null, null);
         Request request = Request.Builder.preparePost()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/coordinator").build())
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -376,7 +378,7 @@ public class TestServerIntegration
             throws Exception
     {
         // directly add a new agent and start it
-        List<Instance> instances = provisioner.provisionAgents("agent:config:1", 1, "instance-type", null, null, null, null, null);
+        List<Instance> instances = provisioner.provisionAgents("agent:config:1", 1, "instance-type", null, null, null, null, null, null, null);
         assertEquals(instances.size(), 1);
         AgentServer agentServer = provisioner.getAgent(instances.get(0).getInstanceId());
         agentServer.start();
@@ -409,7 +411,8 @@ public class TestServerIntegration
     {
         // provision the agent and verify
         String instanceType = "instance-type";
-        AgentProvisioningRepresentation agentProvisioningRepresentation = new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null, null);
+        AgentProvisioningRepresentation agentProvisioningRepresentation =
+                new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null, null, null, null);
         Request request = Request.Builder.preparePost()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)

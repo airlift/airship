@@ -155,7 +155,8 @@ public class TestCoordinator
     {
         // provision the coordinator and verify
         String instanceType = "instance-type";
-        List<CoordinatorStatus> coordinators = coordinator.provisionCoordinators("coordinator:config:1", 1, instanceType, null, null, null, null, null);
+        List<CoordinatorStatus> coordinators =
+                coordinator.provisionCoordinators("coordinator:config:1", 1, instanceType, null, null, null, null, null, null, null);
         assertNotNull(coordinators);
         assertEquals(coordinators.size(), 1);
         String instanceId = coordinators.get(0).getInstanceId();
@@ -268,7 +269,8 @@ public class TestCoordinator
     {
         // provision the agent and verify
         String instanceType = "instance-type";
-        List<AgentStatus> agents = coordinator.provisionAgents("agent:config:1", 1, instanceType, null, null, null, null, null);
+        List<AgentStatus> agents =
+                coordinator.provisionAgents("agent:config:1", 1, instanceType, null, null, null, null, null, null, null);
         assertNotNull(agents);
         assertEquals(agents.size(), 1);
         String instanceId = agents.get(0).getInstanceId();

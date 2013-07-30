@@ -33,6 +33,10 @@ public class AwsProvisionerConfig
     private String s3KeystorePath;
     private Duration s3KeystoreRefreshInterval = new Duration(10, TimeUnit.SECONDS);
 
+    // For VPC support.
+    private String awsSubnetId;
+    private String awsPrivateIpAddress;
+
     @Config("coordinator.aws.credentials-file")
     @ConfigDescription("File containing aws credentials")
     public AwsProvisionerConfig setAwsCredentialsFile(String awsCredentialsFile)
@@ -223,5 +227,27 @@ public class AwsProvisionerConfig
     public String getProvisioningScriptsArtifact()
     {
         return provisioningScriptsArtifact;
+    }
+
+    @Config("coordinator.aws.vpc.subnet-id")
+    @ConfigDescription("The name of the VPC group to put the instance(s) into")
+    public AwsProvisionerConfig setAwsSubnetId(String subnetId) {
+        this.awsSubnetId = subnetId;
+        return this;
+    }
+
+    public String getAwsSubnetId() {
+        return awsSubnetId;
+    }
+
+    @Config("coordinator.aws.vpc.private-ip-address")
+    @ConfigDescription("The private IP address to assign to the instance")
+    public AwsProvisionerConfig setAwsPrivateIpAddress(String privateIpAddress) {
+        this.awsPrivateIpAddress = privateIpAddress;
+        return this;
+    }
+
+    public String getAwsPrivateIpAddress() {
+        return awsPrivateIpAddress;
     }
 }

@@ -302,7 +302,8 @@ public class TestCoordinatorServer
     {
         // provision the coordinator and verify
         String instanceType = "instance-type";
-        CoordinatorProvisioningRepresentation coordinatorProvisioningRepresentation = new CoordinatorProvisioningRepresentation("coordinator:config:1", 1, instanceType, null, null, null, null, null);
+        CoordinatorProvisioningRepresentation coordinatorProvisioningRepresentation =
+                new CoordinatorProvisioningRepresentation("coordinator:config:1", 1, instanceType, null, null, null, null, null, null, null);
         Request request = Request.Builder.preparePost()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/coordinator").build())
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -425,7 +426,8 @@ public class TestCoordinatorServer
     {
         // provision the agent and verify
         String instanceType = "instance-type";
-        AgentProvisioningRepresentation agentProvisioningRepresentation = new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null, null);
+        AgentProvisioningRepresentation agentProvisioningRepresentation =
+                new AgentProvisioningRepresentation("agent:config:1", 1, instanceType, null, null, null, null, null, null, null);
         Request request = Request.Builder.preparePost()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/agent").build())
                 .setHeader(CONTENT_TYPE, APPLICATION_JSON)

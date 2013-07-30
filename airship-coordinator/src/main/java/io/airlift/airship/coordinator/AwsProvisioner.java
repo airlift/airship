@@ -30,6 +30,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -57,6 +58,7 @@ public class AwsProvisioner implements Provisioner
     private final String environment;
     private final URI coordinatorUri;
     private final String airshipVersion;
+    private final String subnetId;
     private List<String> repositories;
 
     private final String agentDefaultConfig;
@@ -105,6 +107,7 @@ public class AwsProvisioner implements Provisioner
 
         provisioningScriptsArtifact = firstNonNull(awsProvisionerConfig.getProvisioningScriptsArtifact(), String.format(DEFAULT_PROVISIONING_SCRIPTS, awsProvisionerConfig.getAirshipVersion()));
 
+        subnetId = awsProvisionerConfig.getAwsSubnetId();
         this.repository = checkNotNull(repository, "repository is null");
     }
 
@@ -142,15 +145,9 @@ public class AwsProvisioner implements Provisioner
                         continue;
                     }
 
-                    URI internalUri = null;
-                    if (instance.getPrivateIpAddress() != null) {
-                        internalUri = uriBuilder().scheme("http").host(instance.getPrivateIpAddress()).port(port).build();
-                    }
-                    URI externalUri = null;
-                    if (instance.getPublicDnsName() != null) {
-                        externalUri = uriBuilder().scheme("http").host(instance.getPublicDnsName()).port(port).build();
-                    }
-                    instances.add(toInstance(instance, internalUri, externalUri, "coordinator"));
+                    URI internalUri = buildInstanceInternalURI(port, instance);
+                    URI externalUri = buildInstanceExternalURI(port, instance);
+                    instances.add(toInstance(instance, internalUri, externalUri, "agent"));
                     invalidInstances.remove(instance.getInstanceId());
                 }
             }
@@ -192,14 +189,8 @@ public class AwsProvisioner implements Provisioner
                         continue;
                     }
 
-                    URI internalUri = null;
-                    if (instance.getPrivateIpAddress() != null) {
-                        internalUri = uriBuilder().scheme("http").host(instance.getPrivateIpAddress()).port(port).build();
-                    }
-                    URI externalUri = null;
-                    if (instance.getPublicDnsName() != null) {
-                        externalUri = uriBuilder().scheme("http").host(instance.getPublicDnsName()).port(port).build();
-                    }
+                    URI internalUri = buildInstanceInternalURI(port, instance);
+                    URI externalUri = buildInstanceExternalURI(port, instance);
                     instances.add(toInstance(instance, internalUri, externalUri, "agent"));
                     invalidInstances.remove(instance.getInstanceId());
                 }
@@ -216,32 +207,28 @@ public class AwsProvisioner implements Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact)
     {
-        Preconditions.checkNotNull(coordinatorConfigSpec, "coordinatorConfigSpec is null");
+        checkNotNull(coordinatorConfigSpec, "coordinatorConfigSpec is null");
 
         ConfigurationFactory configurationFactory = createConfigurationFactory(repository, coordinatorConfigSpec);
         AwsProvisionerConfig awsProvisionerConfig = configurationFactory.build(AwsProvisionerConfig.class);
         HttpServerConfig httpServerConfig = configurationFactory.build(HttpServerConfig.class);
 
-        if (instanceType == null) {
-            instanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
-        }
         if (availabilityZone == null) {
             // todo default availability zone should be the same as the current coordinator
-        }
-        if (ami == null) {
-            ami = awsProvisionerConfig.getAwsCoordinatorAmi();
-        }
-        if (keyPair == null) {
-            keyPair = awsProvisionerConfig.getAwsCoordinatorKeypair();
-        }
-        if (securityGroup == null) {
-            securityGroup = awsProvisionerConfig.getAwsCoordinatorSecurityGroup();
         }
         if (provisioningScriptsArtifact == null) {
             provisioningScriptsArtifact = this.provisioningScriptsArtifact;
         }
+        instanceType = (instanceType != null ? instanceType : awsProvisionerConfig.getAwsAgentDefaultInstanceType());
+        ami = (ami != null ? ami : awsProvisionerConfig.getAwsCoordinatorAmi());
+        keyPair = (keyPair != null ? keyPair : awsProvisionerConfig.getAwsCoordinatorKeypair());
+        securityGroup = (securityGroup != null ? securityGroup : awsProvisionerConfig.getAwsCoordinatorSecurityGroup());
+        subnetId = (subnetId != null ? subnetId : awsProvisionerConfig.getAwsSubnetId());
+        privateIpAddress = (privateIpAddress != null ? privateIpAddress : awsProvisionerConfig.getAwsPrivateIpAddress());
 
         List<Instance> instances = provisionCoordinator(coordinatorConfigSpec,
                 coordinatorCount,
@@ -250,6 +237,8 @@ public class AwsProvisioner implements Provisioner
                 ami,
                 keyPair,
                 securityGroup,
+                subnetId,
+                privateIpAddress,
                 provisioningScriptsArtifact,
                 httpServerConfig.getHttpPort(),
                 awsProvisionerConfig.getAwsCredentialsFile(),
@@ -264,16 +253,18 @@ public class AwsProvisioner implements Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact,
             int coordinatorPort,
             String awsCredentialsFile,
             List<String> repositories)
     {
-        Preconditions.checkNotNull(coordinatorConfig, "coordinatorConfig is null");
-        Preconditions.checkNotNull(instanceType, "instanceType is null");
-        Preconditions.checkNotNull(ami, "ami is null");
-        Preconditions.checkNotNull(keyPair, "keyPair is null");
-        Preconditions.checkNotNull(securityGroup, "securityGroup is null");
+        checkNotNull(coordinatorConfig, "coordinatorConfig is null");
+        checkNotNull(instanceType, "instanceType is null");
+        checkNotNull(ami, "ami is null");
+        checkNotNull(keyPair, "keyPair is null");
+        checkNotNull(securityGroup, "securityGroup is null");
 
         List<BlockDeviceMapping> blockDeviceMappings = ImmutableList.<BlockDeviceMapping>builder()
                 .add(new BlockDeviceMapping().withVirtualName("ephemeral0").withDeviceName("/dev/sdb"))
@@ -294,6 +285,22 @@ public class AwsProvisioner implements Provisioner
 
         if (availabilityZone != null) {
             request.withPlacement(new Placement(availabilityZone));
+        }
+
+        if (subnetId != null) {
+            request.withSubnetId(subnetId);
+
+            // We have to clear the SecurityGroups as VPC only accepts SecurityGroupIds (sg-xxxxxxxx)
+            request.withSecurityGroups((Collection<String>) null);
+            request.withSecurityGroupIds(securityGroup);
+
+            if (privateIpAddress != null) {
+                if (coordinatorCount == 1) {
+                    request.withPrivateIpAddress(privateIpAddress);
+                } else if (coordinatorCount > 1) {
+                    throw new RuntimeException("Can only create 1 coordinator when specifying a private IP address.");
+                }
+            }
         }
 
         log.debug("launching instances: %s", request);
@@ -347,27 +354,19 @@ public class AwsProvisioner implements Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String subnetId,
+            String privateIpAddress,
             String provisioningScriptsArtifact)
     {
-        if (agentConfig == null) {
-            agentConfig = agentDefaultConfig;
-
-        }
-        if (instanceType == null) {
-            instanceType = agentDefaultInstanceType;
-        }
-        if (ami == null) {
-            ami = agentAmi;
-        }
-        if (keyPair == null) {
-            keyPair = agentKeypair;
-        }
-        if (securityGroup == null) {
-            securityGroup = agentSecurityGroup;
-        }
         if (provisioningScriptsArtifact == null) {
             provisioningScriptsArtifact = this.provisioningScriptsArtifact;
         }
+        agentConfig = (agentConfig != null ? agentConfig : agentDefaultConfig);
+        instanceType = (instanceType != null ? instanceType : agentDefaultInstanceType);
+        ami = (ami != null ? ami : agentAmi);
+        keyPair = (keyPair != null ? keyPair : agentKeypair);
+        securityGroup = (securityGroup != null ? securityGroup : agentSecurityGroup);
+        subnetId = (subnetId != null ? subnetId : this.subnetId);
 
         agentConfig = agentConfig.replaceAll(Pattern.quote("${instanceType}"), instanceType);
 
@@ -391,6 +390,23 @@ public class AwsProvisioner implements Provisioner
                 .withBlockDeviceMappings(blockDeviceMappings)
                 .withMinCount(agentCount)
                 .withMaxCount(agentCount);
+
+        if (subnetId != null) {
+            request.withSubnetId(subnetId);
+
+            // We have to clear the SecurityGroups as VPC only accepts SecurityGroupIds (sg-xxxxxxxx)
+            request.withSecurityGroups((Collection<String>) null);
+            request.withSecurityGroupIds(securityGroup);
+
+            if (privateIpAddress != null) {
+                if (agentCount == 1) {
+                    request.withPrivateIpAddress(privateIpAddress);
+                }
+                else if (agentCount > 1) {
+                    throw new RuntimeException("Can only create 1 agent when specifying a private IP address.");
+                }
+            }
+        }
 
         log.debug("launching instances: %s", request);
         RunInstancesResult result = ec2Client.runInstances(request);
@@ -606,6 +622,26 @@ public class AwsProvisioner implements Provisioner
     private static String encodeBase64(String s)
     {
         return Base64.encodeBase64String(s.getBytes(Charsets.UTF_8));
+    }
+
+    public static URI buildInstanceInternalURI(int port, com.amazonaws.services.ec2.model.Instance instance) {
+        URI internalUri = null;
+        if (instance.getPrivateIpAddress() != null) {
+            internalUri = uriBuilder().scheme("http").host(instance.getPrivateIpAddress()).port(port).build();
+        }
+        return internalUri;
+    }
+
+    public static URI buildInstanceExternalURI(int port, com.amazonaws.services.ec2.model.Instance instance) {
+        URI externalUri;
+        if (instance.getPublicDnsName() != null && !instance.getPublicDnsName().isEmpty()) {
+            System.out.println(format("\n\nPublic DNS Name: '%s'", instance.getPublicDnsName()));
+            externalUri = uriBuilder().scheme("http").host(instance.getPublicDnsName()).port(port).build();
+        } else {
+            // VPC Instances don't have external addresses so we use the internal address instead.
+            externalUri = buildInstanceInternalURI(port, instance);
+        }
+        return externalUri;
     }
 
     private Map<String, String> toMap(List<Tag> tags)
