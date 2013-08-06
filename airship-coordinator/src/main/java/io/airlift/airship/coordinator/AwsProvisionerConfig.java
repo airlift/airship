@@ -5,6 +5,8 @@ import io.airlift.configuration.ConfigDescription;
 import io.airlift.units.Duration;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 import java.util.concurrent.TimeUnit;
 
 public class AwsProvisionerConfig
@@ -22,6 +24,8 @@ public class AwsProvisionerConfig
     private String awsAgentKeypair = "keypair";
     private String awsAgentSecurityGroup = "default";
     private String awsAgentDefaultInstanceType = "t1.micro";
+
+    private String provisioningScriptsArtifact;
 
     // todo add zone
     private String awsEndpoint;
@@ -168,11 +172,6 @@ public class AwsProvisionerConfig
         return awsEndpoint;
     }
 
-    public String getS3KeystoreBucket()
-    {
-        return s3KeystoreBucket;
-    }
-
     @Config("coordinator.aws.s3-keystore.bucket")
     @ConfigDescription("S3 bucket for keystore")
     public AwsProvisionerConfig setS3KeystoreBucket(String s3KeystoreBucket)
@@ -181,9 +180,9 @@ public class AwsProvisionerConfig
         return this;
     }
 
-    public String getS3KeystorePath()
+    public String getS3KeystoreBucket()
     {
-        return s3KeystorePath;
+        return s3KeystoreBucket;
     }
 
     @Config("coordinator.aws.s3-keystore.path")
@@ -194,9 +193,9 @@ public class AwsProvisionerConfig
         return this;
     }
 
-    public Duration getS3KeystoreRefreshInterval()
+    public String getS3KeystorePath()
     {
-        return s3KeystoreRefreshInterval;
+        return s3KeystorePath;
     }
 
     @Config("coordinator.aws.s3-keystore.refresh")
@@ -205,5 +204,24 @@ public class AwsProvisionerConfig
     {
         this.s3KeystoreRefreshInterval = s3KeystoreRefreshInterval;
         return this;
+    }
+
+    public Duration getS3KeystoreRefreshInterval()
+    {
+        return s3KeystoreRefreshInterval;
+    }
+
+    @Config("coordinator.aws.provisioning.artifact")
+    @ConfigDescription("An alternate package of provisioning scripts")
+    public AwsProvisionerConfig setProvisioningScriptsArtifact(String provisioningScriptsArtifact)
+    {
+        this.provisioningScriptsArtifact = provisioningScriptsArtifact;
+        return this;
+    }
+
+    @Pattern(regexp = "[A-Za-z0-9_\\-.]+:[A-Za-z0-9_\\-.]+:[A-Za-z0-9_\\-.]+", message = "Invalid provisioning script artifact")
+    public String getProvisioningScriptsArtifact()
+    {
+        return provisioningScriptsArtifact;
     }
 }

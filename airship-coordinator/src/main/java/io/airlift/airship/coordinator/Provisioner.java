@@ -12,7 +12,8 @@ public interface Provisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup);
+            String securityGroup,
+            String provisioningScriptsArtifact);
 
     List<Instance> listAgents();
 
@@ -22,7 +23,8 @@ public interface Provisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup);
+            String securityGroup,
+            String provisioningScriptsArtifact);
 
     void terminateAgents(Iterable<String> instanceIds);
 }

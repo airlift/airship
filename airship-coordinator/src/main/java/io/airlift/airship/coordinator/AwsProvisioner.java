@@ -16,6 +16,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.configuration.ConfigurationFactory;
@@ -30,12 +31,15 @@ import org.apache.commons.codec.binary.Base64;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static io.airlift.airship.shared.ConfigUtils.createConfigurationFactory;
@@ -46,6 +50,7 @@ import static java.util.Collections.addAll;
 public class AwsProvisioner implements Provisioner
 {
     private static final Logger log = Logger.get(AwsProvisioner.class);
+    private static final String DEFAULT_PROVISIONING_SCRIPTS = "io.airlift.airship:airship-ec2:%s";
 
     private final AWSCredentials awsCredentials;
     private final AmazonEC2 ec2Client;
@@ -55,6 +60,8 @@ public class AwsProvisioner implements Provisioner
     private List<String> repositories;
 
     private final String agentDefaultConfig;
+
+    private final String provisioningScriptsArtifact;
 
     private final String agentAmi;
     private final String agentKeypair;
@@ -95,6 +102,8 @@ public class AwsProvisioner implements Provisioner
         agentKeypair = awsProvisionerConfig.getAwsAgentKeypair();
         agentSecurityGroup = awsProvisionerConfig.getAwsAgentSecurityGroup();
         agentDefaultInstanceType = awsProvisionerConfig.getAwsAgentDefaultInstanceType();
+
+        provisioningScriptsArtifact = firstNonNull(awsProvisionerConfig.getProvisioningScriptsArtifact(), String.format(DEFAULT_PROVISIONING_SCRIPTS, awsProvisionerConfig.getAirshipVersion()));
 
         this.repository = checkNotNull(repository, "repository is null");
     }
@@ -206,7 +215,8 @@ public class AwsProvisioner implements Provisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         Preconditions.checkNotNull(coordinatorConfigSpec, "coordinatorConfigSpec is null");
 
@@ -229,6 +239,9 @@ public class AwsProvisioner implements Provisioner
         if (securityGroup == null) {
             securityGroup = awsProvisionerConfig.getAwsCoordinatorSecurityGroup();
         }
+        if (provisioningScriptsArtifact == null) {
+            provisioningScriptsArtifact = this.provisioningScriptsArtifact;
+        }
 
         List<Instance> instances = provisionCoordinator(coordinatorConfigSpec,
                 coordinatorCount,
@@ -237,6 +250,7 @@ public class AwsProvisioner implements Provisioner
                 ami,
                 keyPair,
                 securityGroup,
+                provisioningScriptsArtifact,
                 httpServerConfig.getHttpPort(),
                 awsProvisionerConfig.getAwsCredentialsFile(),
                 repositories);
@@ -250,6 +264,7 @@ public class AwsProvisioner implements Provisioner
             String ami,
             String keyPair,
             String securityGroup,
+            String provisioningScriptsArtifact,
             int coordinatorPort,
             String awsCredentialsFile,
             List<String> repositories)
@@ -272,7 +287,7 @@ public class AwsProvisioner implements Provisioner
                 .withKeyName(keyPair)
                 .withSecurityGroups(securityGroup)
                 .withInstanceType(instanceType)
-                .withUserData(getCoordinatorUserData(instanceType, coordinatorConfig, awsCredentialsFile, repositories))
+                .withUserData(getCoordinatorUserData(instanceType, coordinatorConfig, awsCredentialsFile, provisioningScriptsArtifact, repositories))
                 .withBlockDeviceMappings(blockDeviceMappings)
                 .withMinCount(coordinatorCount)
                 .withMaxCount(coordinatorCount);
@@ -325,7 +340,14 @@ public class AwsProvisioner implements Provisioner
     }
 
     @Override
-    public List<Instance> provisionAgents(String agentConfig, int agentCount, String instanceType, String availabilityZone, String ami, String keyPair, String securityGroup)
+    public List<Instance> provisionAgents(String agentConfig,
+            int agentCount,
+            String instanceType,
+            String availabilityZone,
+            String ami,
+            String keyPair,
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         if (agentConfig == null) {
             agentConfig = agentDefaultConfig;
@@ -342,6 +364,9 @@ public class AwsProvisioner implements Provisioner
         }
         if (securityGroup == null) {
             securityGroup = agentSecurityGroup;
+        }
+        if (provisioningScriptsArtifact == null) {
+            provisioningScriptsArtifact = this.provisioningScriptsArtifact;
         }
 
         agentConfig = agentConfig.replaceAll(Pattern.quote("${instanceType}"), instanceType);
@@ -362,7 +387,7 @@ public class AwsProvisioner implements Provisioner
                 .withSecurityGroups(securityGroup)
                 .withInstanceType(instanceType)
                 .withPlacement(new Placement(availabilityZone))
-                .withUserData(getAgentUserData(instanceType, agentConfig, repositories))
+                .withUserData(getAgentUserData(instanceType, agentConfig, provisioningScriptsArtifact, repositories))
                 .withBlockDeviceMappings(blockDeviceMappings)
                 .withMinCount(agentCount)
                 .withMaxCount(agentCount);
@@ -411,13 +436,13 @@ public class AwsProvisioner implements Provisioner
         log.error(lastException, "failed to create tags for instances: %s", instanceIds);
     }
 
-    private String getAgentUserData(String instanceType, String agentConfig, List<String> repositories)
+    private String getAgentUserData(String instanceType, String agentConfig, String provisioningScriptsArtifact, List<String> repositories)
     {
-        return encodeBase64(getRawAgentUserData(instanceType, agentConfig, repositories));
+        return encodeBase64(getRawAgentUserData(instanceType, agentConfig, provisioningScriptsArtifact, repositories));
     }
 
     @VisibleForTesting
-    String getRawAgentUserData(String instanceType, String agentConfig, List<String> repositories)
+    String getRawAgentUserData(String instanceType, String agentConfig, String provisioningScriptsArtifact, List<String> repositories)
     {
         String boundary = "===============884613ba9e744d0c851955611107553e==";
         String boundaryLine = "--" + boundary;
@@ -428,10 +453,16 @@ public class AwsProvisioner implements Provisioner
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
 
-        URI partHandler = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "py", "part-handler", null));
+        List<String> artifactParts = splitArtifactCoordinates(provisioningScriptsArtifact);
+        String scriptGroup = artifactParts.get(0);
+        String scriptArtifact = artifactParts.get(1);
+        String scriptVersion = artifactParts.get(2);
+
         URI airshipCli = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-cli", airshipVersion, "jar", "executable", null));
-        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "sh", "install", null));
-        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "sh", "install-prep", null));
+
+        URI partHandler = getRequiredUri(repository, new MavenCoordinates(scriptGroup, scriptArtifact, scriptVersion, "py", "part-handler", null));
+        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates(scriptGroup, scriptArtifact, scriptVersion, "sh", "install", null));
+        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates(scriptGroup, scriptArtifact, scriptVersion, "sh", "install-prep", null));
 
         List<String> lines = newArrayList();
         addAll(lines,
@@ -472,13 +503,20 @@ public class AwsProvisioner implements Provisioner
         return Joiner.on('\n').skipNulls().join(lines);
     }
 
-    private String getCoordinatorUserData(String instanceType, String coordinatorConfig, String awsCredentialsFile, List<String> repositories)
+    private List<String> splitArtifactCoordinates(String provisioningScriptsArtifact)
     {
-        return encodeBase64(getRawCoordinatorUserData(instanceType, coordinatorConfig, awsCredentialsFile, repositories));
+        ImmutableList<String> artifactParts = ImmutableList.copyOf(Splitter.on(':').split(provisioningScriptsArtifact));
+        checkArgument(artifactParts.size() == 3, "Invalid provisioning scripts artifact: %s", provisioningScriptsArtifact);
+        return artifactParts;
+    }
+
+    private String getCoordinatorUserData(String instanceType, String coordinatorConfig, String awsCredentialsFile, String provisioningScriptsArtifact, List<String> repositories)
+    {
+        return encodeBase64(getRawCoordinatorUserData(instanceType, coordinatorConfig, awsCredentialsFile, provisioningScriptsArtifact, repositories));
     }
 
     @VisibleForTesting
-    String getRawCoordinatorUserData(String instanceType, String coordinatorConfig, String awsCredentialsFile, List<String> repositories)
+    String getRawCoordinatorUserData(String instanceType, String coordinatorConfig, String awsCredentialsFile, String provisioningScriptsArtifact, List<String> repositories)
     {
         String boundary = "===============884613ba9e744d0c851955611107553e==";
         String boundaryLine = "--" + boundary;
@@ -489,10 +527,16 @@ public class AwsProvisioner implements Provisioner
         String contentTypeText = "Content-Type: text/plain; charset=\"us-ascii\"";
         String attachmentFormat = "Content-Disposition: attachment; filename=\"%s\"";
 
-        URI partHandler = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "py", "part-handler", null));
+        List<String> artifactParts = splitArtifactCoordinates(provisioningScriptsArtifact);
+        String scriptGroup = artifactParts.get(0);
+        String scriptArtifact = artifactParts.get(1);
+        String scriptVersion = artifactParts.get(2);
+
         URI airshipCli = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-cli", airshipVersion, "jar", "executable", null));
-        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "sh", "install", null));
-        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates("io.airlift.airship", "airship-ec2", airshipVersion, "sh", "install-prep", null));
+
+        URI partHandler = getRequiredUri(repository, new MavenCoordinates(scriptGroup, scriptArtifact, scriptVersion, "py", "part-handler", null));
+        URI coordinatorInstall = getRequiredUri(repository, new MavenCoordinates(scriptGroup, scriptArtifact, scriptVersion, "sh", "install", null));
+        URI coordinatorInstallPrep = getRequiredUri(repository, new MavenCoordinates(scriptGroup, scriptArtifact, scriptVersion, "sh", "install-prep", null));
 
         List<String> lines = newArrayList();
         addAll(lines,
@@ -543,7 +587,7 @@ public class AwsProvisioner implements Provisioner
     private static URI getRequiredUri(Repository repository, MavenCoordinates mavenCoordinates)
     {
         URI uri = repository.binaryToHttpUri(mavenCoordinates.toGAV());
-        Preconditions.checkArgument(uri != null, "Could not find %s in repository %s", mavenCoordinates.toGAV(), repository);
+        checkArgument(uri != null, "Could not find %s in repository %s", mavenCoordinates.toGAV(), repository);
         return uri;
     }
 

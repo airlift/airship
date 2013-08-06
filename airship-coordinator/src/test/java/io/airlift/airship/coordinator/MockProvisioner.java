@@ -89,7 +89,8 @@ public class MockProvisioner implements Provisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         ImmutableList.Builder<Instance> instances = ImmutableList.builder();
         for (int i = 0; i < coordinatorCount; i++) {
@@ -209,7 +210,8 @@ public class MockProvisioner implements Provisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         if (instanceType == null) {
             instanceType = "default";
