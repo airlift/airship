@@ -791,7 +791,7 @@ public class Coordinator
         };
     }
 
-    private Predicate<RemoteAgent> filterAgentsWithAssignment(final Installation installation)
+    private Predicate<RemoteAgent> filterAgentsWithAssignment(Installation installation)
     {
         Preconditions.checkNotNull(installation, "installation is null");
         final Assignment assignment = installation.getAssignment();
@@ -802,14 +802,20 @@ public class Coordinator
             public boolean apply(RemoteAgent agent)
             {
                 for (RemoteSlot slot : agent.getSlots()) {
-                    if (repository.binaryEqualsIgnoreVersion(assignment.getBinary(), slot.status().getAssignment().getBinary()) &&
-                            repository.configEqualsIgnoreVersion(assignment.getConfig(), slot.status().getAssignment().getConfig())) {
+                    if ((slot.status().getAssignment() != null) &&
+                            assignmentEqualsIgnoreVersion(assignment, slot.status().getAssignment())) {
                         return false;
                     }
                 }
                 return true;
             }
         };
+    }
+
+    private boolean assignmentEqualsIgnoreVersion(Assignment a, Assignment b)
+    {
+        return repository.binaryEqualsIgnoreVersion(a.getBinary(), b.getBinary()) &&
+                repository.configEqualsIgnoreVersion(a.getConfig(), b.getConfig());
     }
 
     private <T> ImmutableList<T> parallelCommand(Iterable<RemoteSlot> items, final Function<RemoteSlot, T> function)
