@@ -218,7 +218,8 @@ public class TestAgentFilterBuilder
             assertFalse(new AssignablePredicate(APPLE_ASSIGNMENT, false, repository).apply(status));
             assertFalse(buildFilter("assignable", APPLE_ASSIGNMENT.getBinary() + APPLE_ASSIGNMENT.getConfig(), false, repository).apply(status));
 
-            status = status.changeSlotStatus(createSlotStatus(UUID.fromString("99999999-1234-1234-1234-123456789012"),
+            SlotStatus slot = createSlotStatus(
+                    UUID.fromString("99999999-1234-1234-1234-123456789012"),
                     URI.create("fake://localhost"),
                     URI.create("fake://localhost"),
                     "instance",
@@ -229,11 +230,26 @@ public class TestAgentFilterBuilder
                     ImmutableMap.<String, Integer>of(
                             "memory", 2048,
                             "cpu", 4
-                    ))
-            );
+                    ));
+            status = status.changeSlotStatus(slot);
 
             assertFalse(new AssignablePredicate(BANANA_ASSIGNMENT, true, repository).apply(status));
             assertFalse(buildFilter("assignable", BANANA_ASSIGNMENT.getBinary() + BANANA_ASSIGNMENT.getConfig(), true, repository).apply(status));
+
+            slot = createSlotStatus(
+                    slot.getId(),
+                    slot.getSelf(),
+                    slot.getExternalUri(),
+                    slot.getInstanceId(),
+                    slot.getLocation(),
+                    UNKNOWN,
+                    null,
+                    slot.getInstallPath(),
+                    slot.getResources());
+            status = status.changeSlotStatus(slot);
+
+            assertFalse(new AssignablePredicate(BANANA_ASSIGNMENT, false, repository).apply(status));
+            assertFalse(buildFilter("assignable", BANANA_ASSIGNMENT.getBinary() + BANANA_ASSIGNMENT.getConfig(), false, repository).apply(status));
         }
         finally {
             repository.destroy();

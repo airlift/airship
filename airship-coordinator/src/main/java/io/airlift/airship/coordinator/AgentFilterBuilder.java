@@ -537,15 +537,14 @@ public class AgentFilterBuilder
         public boolean apply(@Nullable AgentStatus status)
         {
             // We can only install on online agents
-            if (status.getState() != ONLINE) {
+            if ((status == null) || (status.getState() != ONLINE)) {
                 return false;
             }
 
             // Constraints: normally we only allow only instance of a binary+config on each agent
             if (!allowDuplicateInstallationsOnAnAgent) {
                 for (SlotStatus slot : status.getSlotStatuses()) {
-                    if (repository.binaryEqualsIgnoreVersion(assignment.getBinary(), slot.getAssignment().getBinary()) &&
-                            repository.configEqualsIgnoreVersion(assignment.getConfig(), slot.getAssignment().getConfig())) {
+                    if ((slot.getAssignment() != null) && assignmentEqualsIgnoreVersion(slot.getAssignment())) {
                         return false;
                     }
                 }
@@ -562,6 +561,12 @@ public class AgentFilterBuilder
             }
 
             return true;
+        }
+
+        private boolean assignmentEqualsIgnoreVersion(Assignment a)
+        {
+            return repository.binaryEqualsIgnoreVersion(assignment.getBinary(), a.getBinary()) &&
+                    repository.configEqualsIgnoreVersion(assignment.getConfig(), a.getConfig());
         }
     }
 }
