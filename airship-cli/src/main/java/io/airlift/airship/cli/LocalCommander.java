@@ -210,6 +210,7 @@ public class LocalCommander implements Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String provisioningScriptsArtifact,
             boolean waitForStartup)
     {
         throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
@@ -244,6 +245,7 @@ public class LocalCommander implements Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String provisioningScriptsArtifact,
             boolean waitForStartup)
     {
         throw new UnsupportedOperationException("Agents can not be provisioned in local mode");

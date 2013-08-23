@@ -25,6 +25,7 @@ public class CoordinatorProvisioningRepresentation
     private final String ami;
     private final String keyPair;
     private final String securityGroup;
+    private String provisioningScriptsArtifact;
 
     @JsonCreator
     public CoordinatorProvisioningRepresentation(
@@ -34,7 +35,8 @@ public class CoordinatorProvisioningRepresentation
             @JsonProperty("availabilityZone") String availabilityZone,
             @JsonProperty("ami") String ami,
             @JsonProperty("keyPair") String keyPair,
-            @JsonProperty("securityGroup") String securityGroup)
+            @JsonProperty("securityGroup") String securityGroup,
+            @JsonProperty("provisioningScriptsArtifact") String provisioningScriptsArtifact)
     {
         this.coordinatorConfig = coordinatorConfig;
         this.coordinatorCount = coordinatorCount;
@@ -43,6 +45,7 @@ public class CoordinatorProvisioningRepresentation
         this.ami = ami;
         this.keyPair = keyPair;
         this.securityGroup = securityGroup;
+        this.provisioningScriptsArtifact = provisioningScriptsArtifact;
     }
 
     @JsonProperty
@@ -87,6 +90,12 @@ public class CoordinatorProvisioningRepresentation
         return securityGroup;
     }
 
+    @JsonProperty
+    public String getProvisioningScriptsArtifact()
+    {
+        return provisioningScriptsArtifact;
+    }
+
     @Override
     public String toString()
     {
@@ -99,6 +108,7 @@ public class CoordinatorProvisioningRepresentation
         sb.append(", ami='").append(ami).append('\'');
         sb.append(", keyPair='").append(keyPair).append('\'');
         sb.append(", securityGroup='").append(securityGroup).append('\'');
+        sb.append(", provisioningScriptsArtifact='").append(provisioningScriptsArtifact).append('\'');
         sb.append('}');
         return sb.toString();
     }

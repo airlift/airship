@@ -238,7 +238,8 @@ public class Coordinator
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         List<Instance> instances = provisioner.provisionCoordinators(coordinatorConfigSpec,
                 coordinatorCount,
@@ -246,7 +247,8 @@ public class Coordinator
                 availabilityZone,
                 ami,
                 keyPair,
-                securityGroup);
+                securityGroup,
+                provisioningScriptsArtifact);
 
         List<CoordinatorStatus> coordinators = newArrayList();
         for (Instance instance : instances) {
@@ -387,7 +389,8 @@ public class Coordinator
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         List<Instance> instances = provisioner.provisionAgents(agentConfigSpec,
                 agentCount,
@@ -395,7 +398,8 @@ public class Coordinator
                 availabilityZone,
                 ami,
                 keyPair,
-                securityGroup);
+                securityGroup,
+                provisioningScriptsArtifact);
 
         List<AgentStatus> agents = newArrayList();
         for (Instance instance : instances) {

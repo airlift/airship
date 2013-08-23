@@ -198,6 +198,7 @@ public class HttpCommander implements Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String provisioningScriptsArtifact,
             boolean waitForStartup)
     {
         URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/coordinator").build();
@@ -209,7 +210,8 @@ public class HttpCommander implements Commander
                 availabilityZone,
                 ami,
                 keyPair,
-                securityGroup);
+                securityGroup,
+                provisioningScriptsArtifact);
 
         Request request = Request.Builder.preparePost()
                 .setUri(uri)
@@ -296,6 +298,7 @@ public class HttpCommander implements Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String provisioningScriptsArtifact,
             boolean waitForStartup)
     {
         URI uri = uriBuilderFrom(coordinatorUri).replacePath("v1/admin/agent").build();
@@ -307,7 +310,8 @@ public class HttpCommander implements Commander
                 availabilityZone,
                 ami,
                 keyPair,
-                securityGroup);
+                securityGroup,
+                provisioningScriptsArtifact);
 
         Request request = Request.Builder.preparePost()
                 .setUri(uri)

@@ -34,6 +34,7 @@ public interface Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String provisioningScriptsArtifact,
             boolean waitForStartup);
 
     boolean sshCoordinator(CoordinatorFilter coordinatorFilter, String command);
@@ -47,6 +48,7 @@ public interface Commander
             String ami,
             String keyPair,
             String securityGroup,
+            String provisioningScriptsArtifact,
             boolean waitForStartup);
 
     AgentStatusRepresentation terminateAgent(String agentId);

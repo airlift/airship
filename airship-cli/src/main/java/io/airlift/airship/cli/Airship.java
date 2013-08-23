@@ -757,6 +757,9 @@ public class Airship
         @Option(name = "--instance-type", description = "Instance type to provision")
         public String instanceType;
 
+        @Option(name = "--provisioning-scripts-artifact", description = "The Maven artifact to use for the provisioning bootstrap")
+        public String provisioningScriptsArtifact;
+
         @Option(name = "--no-wait", description = "Do not wait for coordinator to start")
         public boolean noWait;
 
@@ -771,6 +774,7 @@ public class Airship
                     ami,
                     keyPair,
                     securityGroup,
+                    provisioningScriptsArtifact,
                     !noWait);
 
             // add the new coordinators to the config
@@ -796,6 +800,7 @@ public class Airship
             sb.append(", ami='").append(ami).append('\'');
             sb.append(", keyPair='").append(keyPair).append('\'');
             sb.append(", securityGroup='").append(securityGroup).append('\'');
+            sb.append(", provisioningScriptsArtifact='").append(provisioningScriptsArtifact).append('\'');
             sb.append(", availabilityZone='").append(availabilityZone).append('\'');
             sb.append(", instanceType='").append(instanceType).append('\'');
             sb.append('}');
@@ -880,6 +885,9 @@ public class Airship
         @Option(name = "--instance-type", description = "Instance type to provision")
         public String instanceType;
 
+        @Option(name = "--provisioning-scripts-artifact", description = "The Maven artifact to use for the provisioning bootstrap")
+        public String provisioningScriptsArtifact;
+
         @Option(name = "--no-wait", description = "Do not wait for agent to start")
         public boolean noWait;
 
@@ -887,7 +895,7 @@ public class Airship
         public void execute(Commander commander)
                 throws Exception
         {
-            List<AgentStatusRepresentation> agents = commander.provisionAgents(agentConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, !noWait);
+            List<AgentStatusRepresentation> agents = commander.provisionAgents(agentConfig, count, instanceType, availabilityZone, ami, keyPair, securityGroup, provisioningScriptsArtifact, !noWait);
             displayAgents(agents);
         }
 
@@ -901,6 +909,7 @@ public class Airship
             sb.append(", ami='").append(ami).append('\'');
             sb.append(", keyPair='").append(keyPair).append('\'');
             sb.append(", securityGroup='").append(securityGroup).append('\'');
+            sb.append(", provisioningScriptsArtifact='").append(provisioningScriptsArtifact).append('\'');
             sb.append(", availabilityZone='").append(availabilityZone).append('\'');
             sb.append(", instanceType='").append(instanceType).append('\'');
             sb.append(", noWait=").append(noWait);
@@ -1085,6 +1094,9 @@ public class Airship
         @Option(name = "--coordinator-config", description = "Configuration for the coordinator")
         public String coordinatorConfig;
 
+        @Option(name = "--provisioning-scripts-artifact", description = "The Maven artifact to use for the provisioning bootstrap")
+        public String provisioningScriptsArtifact;
+
         @Option(name = "--repository", description = "Repository for binaries and configurations")
         public final List<String> repository = newArrayList();
 
@@ -1163,6 +1175,7 @@ public class Airship
                     ami,
                     keyPair,
                     securityGroup,
+                    provisioningScriptsArtifact,
                     httpServerConfig.getHttpPort(),
                     awsProvisionerConfig.getAwsCredentialsFile(),
                     this.repository);
@@ -1327,6 +1340,26 @@ public class Airship
                 }
             }
             return true;
+        }
+
+        @Override
+        public String toString()
+        {
+            final StringBuilder sb = new StringBuilder("EnvironmentProvisionAws{");
+            sb.append("environment='").append(environment).append('\'');
+            sb.append(", awsEndpoint='").append(awsEndpoint).append('\'');
+            sb.append(", ami='").append(ami).append('\'');
+            sb.append(", keyPair='").append(keyPair).append('\'');
+            sb.append(", securityGroup='").append(securityGroup).append('\'');
+            sb.append(", availabilityZone='").append(availabilityZone).append('\'');
+            sb.append(", instanceType='").append(instanceType).append('\'');
+            sb.append(", coordinatorConfig='").append(coordinatorConfig).append('\'');
+            sb.append(", provisioningScriptsArtifact='").append(provisioningScriptsArtifact).append('\'');
+            sb.append(", repository=").append(repository);
+            sb.append(", mavenDefaultGroupId=").append(mavenDefaultGroupId);
+            sb.append(", ref='").append(ref).append('\'');
+            sb.append('}');
+            return sb.toString();
         }
     }
 

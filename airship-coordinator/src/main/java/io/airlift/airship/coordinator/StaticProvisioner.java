@@ -147,7 +147,8 @@ public class StaticProvisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         throw new UnsupportedOperationException("Static provisioner does not support coordinator provisioning");
     }
@@ -211,7 +212,8 @@ public class StaticProvisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         throw new UnsupportedOperationException("Static provisioner does not support agent provisioning");
     }

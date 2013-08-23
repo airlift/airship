@@ -25,6 +25,7 @@ public class AgentProvisioningRepresentation
     private final String ami;
     private final String keyPair;
     private final String securityGroup;
+    private String provisioningScriptsArtifact;
 
     @JsonCreator
     public AgentProvisioningRepresentation(
@@ -34,7 +35,8 @@ public class AgentProvisioningRepresentation
             @JsonProperty("availabilityZone") String availabilityZone,
             @JsonProperty("ami") String ami,
             @JsonProperty("keyPair") String keyPair,
-            @JsonProperty("securityGroup") String securityGroup)
+            @JsonProperty("securityGroup") String securityGroup,
+            @JsonProperty("provisioningScriptsArtifact") String provisioningScriptsArtifact)
     {
         this.agentConfig = agentConfig;
         this.agentCount = agentCount;
@@ -43,6 +45,7 @@ public class AgentProvisioningRepresentation
         this.ami = ami;
         this.keyPair = keyPair;
         this.securityGroup = securityGroup;
+        this.provisioningScriptsArtifact = provisioningScriptsArtifact;
     }
 
     @JsonProperty
@@ -87,6 +90,12 @@ public class AgentProvisioningRepresentation
         return securityGroup;
     }
 
+    @JsonProperty
+    public String getProvisioningScriptsArtifact()
+    {
+        return provisioningScriptsArtifact;
+    }
+
     @Override
     public String toString()
     {
@@ -99,6 +108,7 @@ public class AgentProvisioningRepresentation
         sb.append(", ami='").append(ami).append('\'');
         sb.append(", keyPair='").append(keyPair).append('\'');
         sb.append(", securityGroup='").append(securityGroup).append('\'');
+        sb.append(", provisioningScriptsArtifact='").append(securityGroup).append('\'');
         sb.append('}');
         return sb.toString();
     }

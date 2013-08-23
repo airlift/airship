@@ -256,7 +256,8 @@ public class CommanderFactory
                 String availabilityZone,
                 String ami,
                 String keyPair,
-                String securityGroup)
+                String securityGroup,
+                String provisioningScriptsArtifact)
         {
             throw new UnsupportedOperationException("Coordinators can not be provisioned in local mode");
         }
@@ -275,7 +276,8 @@ public class CommanderFactory
                 String availabilityZone,
                 String ami,
                 String keyPair,
-                String securityGroup)
+                String securityGroup,
+                String provisioningScriptsArtifact)
         {
             throw new UnsupportedOperationException("Agents can not be provisioned in local mode");
         }

@@ -20,8 +20,13 @@ import io.airlift.configuration.testing.ConfigAssertions;
 import io.airlift.units.Duration;
 import org.testng.annotations.Test;
 
+import javax.validation.constraints.Pattern;
+
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static io.airlift.testing.ValidationAssertions.assertFailsValidation;
+import static io.airlift.testing.ValidationAssertions.assertValidates;
 
 public class TestAwsProvisionerConfig
 {
@@ -39,6 +44,7 @@ public class TestAwsProvisionerConfig
                 .setAwsAgentAmi("ami-27b7744e")
                 .setAwsAgentKeypair("keypair")
                 .setAwsAgentSecurityGroup("default")
+                .setProvisioningScriptsArtifact(null)
                 .setAwsAgentDefaultInstanceType("t1.micro")
                 .setAwsEndpoint(null)
                 .setS3KeystoreBucket(null)
@@ -62,6 +68,7 @@ public class TestAwsProvisionerConfig
                 .put("coordinator.aws.agent.ami", "a-ami-0123abcd")
                 .put("coordinator.aws.agent.keypair", "a-keypair")
                 .put("coordinator.aws.agent.security-group", "a-default")
+                .put("coordinator.aws.provisioning.artifact", "com.example.airship:ec2-scripts:1")
                 .put("coordinator.aws.agent.default-instance-type", "a-t1.micro")
                 .put("coordinator.aws.s3-keystore.bucket", "bucket")
                 .put("coordinator.aws.s3-keystore.path", "path")
@@ -76,6 +83,7 @@ public class TestAwsProvisionerConfig
                 .setAwsCoordinatorAmi("c-ami-0123abcd")
                 .setAwsCoordinatorKeypair("c-keypair")
                 .setAwsCoordinatorSecurityGroup("c-default")
+                .setProvisioningScriptsArtifact("com.example.airship:ec2-scripts:1")
                 .setAwsCoordinatorDefaultInstanceType("c-t1.micro")
                 .setAwsAgentAmi("a-ami-0123abcd")
                 .setAwsAgentKeypair("a-keypair")
@@ -86,5 +94,31 @@ public class TestAwsProvisionerConfig
                 .setS3KeystoreRefreshInterval(new Duration(30, TimeUnit.SECONDS));
 
         ConfigAssertions.assertFullMapping(properties, expected);
+    }
+
+    @Test
+    public void testProvisioningScriptPattern()
+            throws Exception
+    {
+        AwsProvisionerConfig config = new AwsProvisionerConfig()
+            .setAirshipVersion("99.9")
+            .setAgentDefaultConfig("agent:config:1")
+            .setAwsCredentialsFile("aws.credentials")
+            .setAwsEndpoint("http://ytmnd.com")
+            .setAwsCoordinatorAmi("c-ami-0123abcd")
+            .setAwsCoordinatorKeypair("c-keypair")
+            .setAwsCoordinatorSecurityGroup("c-default")
+            .setProvisioningScriptsArtifact("foo:bar")
+            .setAwsCoordinatorDefaultInstanceType("c-t1.micro")
+            .setAwsAgentAmi("a-ami-0123abcd")
+            .setAwsAgentKeypair("a-keypair")
+            .setAwsAgentSecurityGroup("a-default")
+            .setAwsAgentDefaultInstanceType("a-t1.micro")
+            .setS3KeystoreBucket("bucket")
+            .setS3KeystorePath("path")
+            .setS3KeystoreRefreshInterval(new Duration(30, TimeUnit.SECONDS));
+        assertFailsValidation(config, "provisioningScriptsArtifact", "Invalid provisioning script artifact", Pattern.class);
+        config.setProvisioningScriptsArtifact("com.example:bar:1-SNAPSHOT");
+        assertValidates(config);
     }
 }

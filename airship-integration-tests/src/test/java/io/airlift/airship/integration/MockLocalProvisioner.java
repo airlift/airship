@@ -61,7 +61,8 @@ public class MockLocalProvisioner implements Provisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         List<Instance> instances = newArrayList();
         for (int i = 0; i < coordinatorCount; i++) {
@@ -257,7 +258,8 @@ public class MockLocalProvisioner implements Provisioner
             String availabilityZone,
             String ami,
             String keyPair,
-            String securityGroup)
+            String securityGroup,
+            String provisioningScriptsArtifact)
     {
         if (instanceType == null) {
             instanceType = "default";
