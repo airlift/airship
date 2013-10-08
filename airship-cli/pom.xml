@@ -13,6 +13,7 @@
 
     <properties>
         <air.main.basedir>${project.parent.basedir}</air.main.basedir>
+        <main-class>io.airlift.airship.cli.Airship</main-class>
     </properties>
 
     <dependencies>
@@ -141,9 +142,6 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
-                        <manifest>
-                            <mainClass>io.airlift.airship.cli.Airship</mainClass>
-                        </manifest>
                         <manifestEntries>
                             <Implementation-Version>${project.version}</Implementation-Version>
                         </manifestEntries>
@@ -161,24 +159,17 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <!--<minimizeJar>true</minimizeJar>-->
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>io.airlift.airship.cli.Airship</mainClass>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                                    <resource>.SF</resource>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                                    <resource>.DSA</resource>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-                                    <resource>.RSA</resource>
+                                    <manifestEntries>
+                                        <Main-Class>${main-class}</Main-Class>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                             <artifactSet>
                                 <excludes>
                                     <exclude>io.airlift:launcher:tar.gz:bin:${dep.airlift.version}</exclude>
+                                    <exclude>io.airlift:launcher:tar.gz:properties:${dep.airlift.version}</exclude>
                                 </excludes>
                             </artifactSet>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
@@ -187,6 +178,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.skife.maven</groupId>
                 <artifactId>really-executable-jar-maven-plugin</artifactId>
@@ -198,28 +190,6 @@
                         </goals>
                         <configuration>
                             <classifier>executable</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-readme</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>README.txt</file>
-                                    <type>txt</type>
-                                    <classifier>readme</classifier>
-                                </artifact>
-                            </artifacts>
                         </configuration>
                     </execution>
                 </executions>
