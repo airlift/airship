@@ -17,7 +17,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Closeables;
 import com.google.inject.Inject;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Installation;
@@ -29,6 +28,7 @@ import io.airlift.units.Duration;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
@@ -131,18 +131,13 @@ public class Agent
             if (resourcesFile.canRead()) {
                 ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
                 Properties properties = new Properties();
-                FileInputStream in = null;
-                try {
-                    in = new FileInputStream(resourcesFile);
+                try (InputStream in = new FileInputStream(resourcesFile)) {
                     properties.load(in);
                     for (Entry<Object, Object> entry : properties.entrySet()) {
                         builder.put((String) entry.getKey(), Integer.valueOf((String) entry.getValue()));
                     }
                 }
                 catch (IOException ignored) {
-                }
-                finally {
-                    Closeables.closeQuietly(in);
                 }
                 resources = builder.build();
             }
