@@ -32,7 +32,8 @@ public class ValidatingResponseHandler<T, E extends Exception>
     }
 
     @Override
-    public E handleException(Request request, Exception exception)
+    public T handleException(Request request, Exception exception)
+            throws E
     {
         return handler.handleException(request, exception);
     }
@@ -44,7 +45,7 @@ public class ValidatingResponseHandler<T, E extends Exception>
         T result = handler.handle(request, response);
         Map<String, String> violations = validateObject(result);
         if (!violations.isEmpty()) {
-            throw handler.handleException(request, new IllegalArgumentException("Response result is invalid: " + violations));
+            return handler.handleException(request, new IllegalArgumentException("Response result is invalid: " + violations));
         }
         return result;
     }

@@ -180,9 +180,9 @@ public class LauncherLifecycleManager implements LifecycleManager
             map.put("node.external-address", externalAddress);
         }
 
-        // add ip only if explicitly set on the agent
+        // add bind ip only if explicitly set on the agent
         if (bindIp != null && InetAddresses.coerceToInteger(bindIp) != 0) {
-            map.put("node.ip", bindIp.getHostAddress());
+            map.put("node.bind-ip", bindIp.getHostAddress());
         }
 
         // add service inventory uri

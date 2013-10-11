@@ -5,7 +5,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.CheckedFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -25,6 +24,7 @@ import io.airlift.json.JsonCodec;
 import io.airlift.log.Logger;
 
 import javax.ws.rs.core.Response.Status;
+
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -150,7 +150,7 @@ public class HttpRemoteAgent implements RemoteAgent
                     .setUri(uriBuilderFrom(internalUri).replacePath("/v1/agent/").build())
                     .build();
 
-            CheckedFuture<AgentStatusRepresentation, RuntimeException> future = httpClient.executeAsync(request, createJsonResponseHandler(agentStatusCodec));
+            ListenableFuture<AgentStatusRepresentation> future = httpClient.executeAsync(request, createJsonResponseHandler(agentStatusCodec));
             Futures.addCallback(future, new FutureCallback<AgentStatusRepresentation>()
             {
                 @Override

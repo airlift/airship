@@ -1,7 +1,6 @@
 package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.CheckedFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -12,6 +11,7 @@ import io.airlift.http.client.Request;
 import io.airlift.json.JsonCodec;
 
 import javax.annotation.concurrent.GuardedBy;
+
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -69,7 +69,7 @@ public class HttpRemoteCoordinator
         Request request = Request.Builder.prepareGet()
                 .setUri(uriBuilderFrom(internalUri).replacePath("/v1/coordinator/").build())
                 .build();
-        CheckedFuture<CoordinatorStatusRepresentation, RuntimeException> future = httpClient.executeAsync(request, createJsonResponseHandler(coordinatorStatusCodec));
+        ListenableFuture<CoordinatorStatusRepresentation> future = httpClient.executeAsync(request, createJsonResponseHandler(coordinatorStatusCodec));
         Futures.addCallback(future, new FutureCallback<CoordinatorStatusRepresentation>()
         {
             @Override
