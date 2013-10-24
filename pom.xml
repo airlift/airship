@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.airlift</groupId>
         <artifactId>airbase</artifactId>
-        <version>12</version>
+        <version>13</version>
     </parent>
 
     <groupId>io.airlift.airship</groupId>
@@ -55,7 +55,7 @@
     <properties>
         <air.check.skip-extended>true</air.check.skip-extended>
 
-        <dep.airlift.version>0.82</dep.airlift.version>
+        <dep.airlift.version>0.84</dep.airlift.version>
         <dep.packaging.version>${dep.airlift.version}</dep.packaging.version>
         <dep.leveldb.version>0.5</dep.leveldb.version>
         <dep.maven.version>3.0.3</dep.maven.version>
@@ -124,6 +124,12 @@
                 <artifactId>airship-cli</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
+            </dependency>
+
+            <dependency>
+                <groupId>io.airlift</groupId>
+                <artifactId>command</artifactId>
+                <version>0.1</version>
             </dependency>
 
             <dependency>
@@ -231,7 +237,7 @@
             <dependency>
                 <groupId>com.github.jnr</groupId>
                 <artifactId>jnr-posix</artifactId>
-                <version>2.5.0</version>
+                <version>3.0.1</version>
             </dependency>
 
             <dependency>
