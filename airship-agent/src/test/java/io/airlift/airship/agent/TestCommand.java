@@ -3,10 +3,12 @@ package io.airlift.airship.agent;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.airlift.airship.shared.Command;
-import io.airlift.airship.shared.CommandFailedException;
-import io.airlift.airship.shared.CommandTimeoutException;
+
+import io.airlift.command.Command;
+import io.airlift.command.CommandFailedException;
+import io.airlift.command.CommandTimeoutException;
 import io.airlift.units.Duration;
+
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
