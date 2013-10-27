@@ -18,3 +18,5 @@ test-output
 .rvmrc
 .m2/
 git-config-repo/
+.pmdruleset.xml                                                                                                                                                                    
+.pmd  
