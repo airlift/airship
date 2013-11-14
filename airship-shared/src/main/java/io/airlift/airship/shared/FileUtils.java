@@ -4,6 +4,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
+import io.airlift.command.Command;
+import io.airlift.command.CommandFailedException;
 import io.airlift.units.Duration;
 
 import java.io.File;

@@ -1,8 +1,8 @@
 package io.airlift.airship.cli;
 
-import io.airlift.command.Option;
+import io.airlift.airline.Option;
 
-import static io.airlift.command.OptionType.GLOBAL;
+import static io.airlift.airline.OptionType.GLOBAL;
 
 public class GlobalOptions
 {

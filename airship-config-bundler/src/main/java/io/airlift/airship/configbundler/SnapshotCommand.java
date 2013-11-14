@@ -2,13 +2,12 @@ package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.InputSupplier;
-import io.airlift.command.Arguments;
-import io.airlift.command.Command;
+import io.airlift.airline.Arguments;
+import io.airlift.airline.Command;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.util.FS;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.Callable;

@@ -1,8 +1,8 @@
 package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
-import io.airlift.command.Arguments;
-import io.airlift.command.Command;
+import io.airlift.airline.Arguments;
+import io.airlift.airline.Command;
 import org.eclipse.jgit.api.Git;
 
 import java.io.File;

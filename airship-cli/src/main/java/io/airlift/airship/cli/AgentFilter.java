@@ -2,12 +2,12 @@ package io.airlift.airship.cli;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import io.airlift.airline.Option;
 import io.airlift.airship.coordinator.AgentFilterBuilder;
 import io.airlift.airship.shared.AgentStatus;
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.HttpUriBuilder;
 import io.airlift.airship.shared.Repository;
-import io.airlift.command.Option;
 
 import java.net.URI;
 import java.util.List;
