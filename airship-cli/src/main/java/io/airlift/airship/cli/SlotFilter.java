@@ -3,12 +3,13 @@ package io.airlift.airship.cli;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import io.airlift.airline.Option;
 import io.airlift.airship.coordinator.SlotFilterBuilder;
 import io.airlift.airship.shared.HttpUriBuilder;
 import io.airlift.airship.shared.SlotStatus;
-import io.airlift.command.Option;
 
 import javax.annotation.Nullable;
+
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;

@@ -2,10 +2,10 @@ package io.airlift.airship.cli;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
+import io.airlift.airline.Option;
 import io.airlift.airship.coordinator.CoordinatorFilterBuilder;
 import io.airlift.airship.shared.CoordinatorStatus;
 import io.airlift.airship.shared.HttpUriBuilder;
-import io.airlift.command.Option;
 
 import java.net.URI;
 import java.util.List;

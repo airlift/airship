@@ -1,7 +1,7 @@
 package io.airlift.airship.configbundler;
 
-import io.airlift.command.Cli;
-import io.airlift.command.Help;
+import io.airlift.airline.Cli;
+import io.airlift.airline.Help;
 import io.airlift.log.Logging;
 import io.airlift.log.LoggingConfiguration;
 
