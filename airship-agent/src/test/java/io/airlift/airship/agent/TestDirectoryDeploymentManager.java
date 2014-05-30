@@ -23,8 +23,6 @@ import java.io.File;
 
 import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.fail;
 
 public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTest
 {

@@ -14,7 +14,6 @@
 package io.airlift.airship.agent;
 
 import com.google.common.collect.ImmutableList;
-import io.airlift.discovery.client.DiscoveryException;
 import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
 import io.airlift.node.NodeInfo;

@@ -2,12 +2,9 @@ package io.airlift.airship.configbundler;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.io.InputSupplier;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -24,7 +21,6 @@ import java.io.InputStream;
 import java.util.Map;
 
 import static com.google.common.base.Objects.firstNonNull;
-import static com.google.common.collect.Iterables.find;
 
 class GitUtils
 {

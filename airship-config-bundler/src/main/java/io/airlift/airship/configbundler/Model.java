@@ -18,7 +18,6 @@ import org.eclipse.jgit.api.errors.InvalidTagNameException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -50,7 +49,7 @@ class Model
     {
         this.git = git;
     }
-    
+
     public Metadata readMetadata()
             throws IOException
     {
@@ -103,7 +102,7 @@ class Model
         // TODO: ensure branch is not "template" or "master"
         return null;
     }
-    
+
     public Bundle getBundle(String name)
             throws IOException
     {
@@ -128,7 +127,7 @@ class Model
 
         return null;
     }
-    
+
     public Bundle createBundle(String name)
             throws IOException, InvalidRefNameException, RefNotFoundException, RefAlreadyExistsException
     {
@@ -145,13 +144,13 @@ class Model
 
         return getBundle(name);
     }
-    
+
     public void activateBundle(Bundle bundle)
             throws InvalidRefNameException, RefNotFoundException, RefAlreadyExistsException
     {
         git.checkout().setName(bundle.getName()).call();
     }
-    
+
     public Map<String, InputSupplier<InputStream>> getEntries(Bundle bundle)
             throws IOException
     {
@@ -166,10 +165,10 @@ class Model
         }
 
         RevCommit commit = GitUtils.getCommit(git.getRepository(), ref);
-        
+
         return Maps.transformValues(GitUtils.getEntries(git.getRepository(), commit.getTree()), inputStreamSupplierFunction(git.getRepository()));
     }
-    
+
     public Bundle createNewVersion(Bundle bundle)
             throws NoHeadException, ConcurrentRefUpdateException, InvalidTagNameException, IOException
     {
@@ -185,7 +184,7 @@ class Model
         git.tag().setObjectId(commit)
                 .setName(bundle.getName() + "-" + version)
                 .call();
-        
+
         return new Bundle(bundle.getName(), version, false);
     }
 

@@ -3,12 +3,6 @@ package io.airlift.airship.coordinator;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 
-import javax.annotation.Nullable;
-import java.util.regex.Pattern;
-
-import static com.google.common.base.Predicates.contains;
-import static com.google.common.base.Predicates.not;
-
 public class StringFunctions
 {
     public static Function<String, String> toLowerCase()

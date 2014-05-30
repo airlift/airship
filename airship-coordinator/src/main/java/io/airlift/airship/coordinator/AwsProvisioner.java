@@ -31,7 +31,6 @@ import org.apache.commons.codec.binary.Base64;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,7 +156,7 @@ public class AwsProvisioner implements Provisioner
         }
         return instances;
     }
-    
+
     @Override
     public List<Instance> listAgents()
     {

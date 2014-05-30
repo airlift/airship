@@ -1,12 +1,10 @@
 package io.airlift.airship.coordinator.auth;
 
-import com.google.common.base.Throwables;
 import io.airlift.airship.coordinator.auth.ssh.DerWriter;
 import io.airlift.airship.coordinator.auth.ssh.SshDsaPublicKey;
 import io.airlift.airship.coordinator.auth.ssh.SshKeyReader;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.Signature;
 import java.util.Arrays;
 

@@ -4,11 +4,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import io.airlift.airship.shared.SlotLifecycleState;
-import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import org.fusesource.jansi.Ansi.Color;
-
-import java.util.List;
 
 import static io.airlift.airship.cli.Ansi.colorize;
 
