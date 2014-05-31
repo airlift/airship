@@ -19,9 +19,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.airship.shared.MavenCoordinates;
 import io.airlift.airship.shared.Repository;
+import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.http.server.HttpServerConfig;
 import io.airlift.http.server.HttpServerInfo;
 import io.airlift.log.Logger;
@@ -29,6 +29,7 @@ import io.airlift.node.NodeInfo;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.inject.Inject;
+
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;

@@ -12,6 +12,7 @@ import io.airlift.airship.shared.HttpUriBuilder;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map.Entry;

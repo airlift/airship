@@ -21,14 +21,14 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.inject.Inject;
-import io.airlift.discovery.client.ServiceDescriptor;
-import io.airlift.discovery.client.ServiceState;
 import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.ConfigUtils;
 import io.airlift.airship.shared.DigestUtils;
 import io.airlift.airship.shared.Repository;
-import io.airlift.airship.shared.ConfigUtils;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatus;
+import io.airlift.discovery.client.ServiceDescriptor;
+import io.airlift.discovery.client.ServiceState;
 import io.airlift.json.JsonCodec;
 import io.airlift.log.Logger;
 

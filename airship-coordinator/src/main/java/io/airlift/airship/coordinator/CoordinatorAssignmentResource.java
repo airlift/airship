@@ -30,13 +30,14 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.collect.Collections2.transform;
+import static io.airlift.airship.shared.SlotStatusRepresentation.fromSlotStatus;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_FORCE_HEADER;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOTS_VERSION_HEADER;
-import static io.airlift.airship.shared.SlotStatusRepresentation.fromSlotStatus;
 import static io.airlift.airship.shared.VersionsUtil.createSlotsVersion;
 
 @Path("/v1/slot/assignment")

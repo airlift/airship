@@ -16,13 +16,13 @@ package io.airlift.airship.agent;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
-import io.airlift.json.JsonCodec;
 import io.airlift.airship.shared.AssignmentRepresentation;
 import io.airlift.airship.shared.InstallationRepresentation;
+import io.airlift.json.JsonCodec;
 import org.testng.annotations.Test;
 
-import static io.airlift.json.JsonCodec.jsonCodec;
 import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
+import static io.airlift.json.JsonCodec.jsonCodec;
 import static org.testng.Assert.assertEquals;
 
 public class TestInstallationRepresentation

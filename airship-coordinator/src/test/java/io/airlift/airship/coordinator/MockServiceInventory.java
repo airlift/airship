@@ -2,8 +2,8 @@ package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.airlift.discovery.client.ServiceDescriptor;
 import io.airlift.airship.shared.SlotStatus;
+import io.airlift.discovery.client.ServiceDescriptor;
 
 import java.util.List;
 

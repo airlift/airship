@@ -1,7 +1,7 @@
 package io.airlift.airship.agent;
 
-import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.SlotStatus;
 
 import java.net.URI;
 import java.util.UUID;

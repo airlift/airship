@@ -1,7 +1,7 @@
 package io.airlift.airship.coordinator;
 
-import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.SlotStatus;
 
 import java.util.UUID;
 

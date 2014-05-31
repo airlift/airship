@@ -1,6 +1,7 @@
 package io.airlift.airship.coordinator.auth;
 
 import javax.inject.Inject;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;

@@ -7,7 +7,6 @@ import com.google.common.io.Files;
 import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.command.Command;
 import io.airlift.command.CommandFailedException;

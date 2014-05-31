@@ -3,6 +3,7 @@ package io.airlift.airship.coordinator;
 import io.airlift.configuration.Config;
 
 import javax.validation.constraints.NotNull;
+
 import java.net.URI;
 
 public class StaticProvisionerConfig

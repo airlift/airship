@@ -11,6 +11,7 @@ import io.airlift.json.JsonCodec;
 import io.airlift.log.Logger;
 
 import javax.ws.rs.core.Response.Status;
+
 import java.util.UUID;
 
 import static com.google.common.base.Charsets.UTF_8;
