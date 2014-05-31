@@ -20,8 +20,8 @@ import org.testng.annotations.Test;
 import java.net.URI;
 
 import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
-import static io.airlift.airship.shared.InstallationHelper.APPLE_INSTALLATION;
 import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
+import static io.airlift.airship.shared.InstallationHelper.APPLE_INSTALLATION;
 import static io.airlift.airship.shared.InstallationHelper.BANANA_INSTALLATION;
 import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;

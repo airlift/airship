@@ -18,6 +18,7 @@ package io.airlift.airship.coordinator;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.Immutable;
+
 import java.net.URI;
 
 import static com.google.common.base.Preconditions.checkNotNull;

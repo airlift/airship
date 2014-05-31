@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import io.airlift.airship.shared.Assignment;
 
 import javax.annotation.concurrent.Immutable;
+
 import java.io.File;
 import java.util.Map;
 import java.util.UUID;

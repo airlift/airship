@@ -5,8 +5,8 @@ import com.google.common.io.ByteStreams;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 class RequestWrapper
@@ -20,7 +20,7 @@ class RequestWrapper
     {
         super(request);
         requestBody = ByteStreams.toByteArray(request.getInputStream());
-        inputStream = new ServletInputStreamFromInputStream(new ByteArrayInputStream(requestBody));
+        inputStream = new ServletInputStreamFromBytes(requestBody);
     }
 
     public byte[] getRequestBody()

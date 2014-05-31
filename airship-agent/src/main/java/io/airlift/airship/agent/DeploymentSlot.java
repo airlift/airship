@@ -17,9 +17,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.airlift.airship.shared.Installation;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatus;
-import io.airlift.airship.shared.Installation;
 import io.airlift.log.Logger;
 import io.airlift.units.Duration;
 

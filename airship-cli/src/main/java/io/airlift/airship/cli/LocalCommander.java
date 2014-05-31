@@ -3,8 +3,6 @@ package io.airlift.airship.cli;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.io.Files;
-import io.airlift.discovery.client.ServiceDescriptor;
-import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
 import io.airlift.airship.coordinator.Coordinator;
 import io.airlift.airship.coordinator.ServiceInventory;
 import io.airlift.airship.shared.AgentStatus;
@@ -17,6 +15,8 @@ import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.airship.shared.UpgradeVersions;
+import io.airlift.discovery.client.ServiceDescriptor;
+import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
 import io.airlift.json.JsonCodec;
 
 import java.io.File;

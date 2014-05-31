@@ -40,9 +40,7 @@ import io.airlift.configuration.ConfigurationModule;
 import io.airlift.discovery.client.ServiceDescriptorsRepresentation;
 import io.airlift.event.client.EventModule;
 import io.airlift.http.client.AsyncHttpClient;
-import io.airlift.http.client.HttpClientConfig;
-import io.airlift.http.client.netty.NettyAsyncHttpClient;
-import io.airlift.http.client.netty.NettyIoPool;
+import io.airlift.http.client.jetty.JettyHttpClient;
 import io.airlift.http.server.testing.TestingHttpServer;
 import io.airlift.http.server.testing.TestingHttpServerModule;
 import io.airlift.jaxrs.JaxrsModule;
@@ -67,6 +65,7 @@ import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
+import static io.airlift.testing.Closeables.closeQuietly;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -92,7 +91,6 @@ public class TestRemoteSlot
     private File tempDir;
     private Slot slot;
     private HttpRemoteAgent remoteAgent;
-    private NettyIoPool nettyIoPool;
 
     @BeforeClass
     public void startServer()
@@ -125,8 +123,7 @@ public class TestRemoteSlot
         agent = injector.getInstance(Agent.class);
 
         server.start();
-        nettyIoPool = new NettyIoPool("test");
-        client = new NettyAsyncHttpClient("test", new HttpClientConfig(), nettyIoPool);
+        client = new JettyHttpClient();
         remoteAgent = new HttpRemoteAgent(
                 agent.getAgentStatus(),
                 "test",
@@ -155,16 +152,14 @@ public class TestRemoteSlot
     public void stopServer()
             throws Exception
     {
+        closeQuietly(client);
+
         if (server != null) {
             server.stop();
         }
 
         if (tempDir != null) {
             deleteRecursively(tempDir);
-        }
-
-        if (nettyIoPool != null) {
-            nettyIoPool.close();
         }
     }
 

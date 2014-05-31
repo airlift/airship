@@ -3,6 +3,7 @@ package io.airlift.airship.coordinator.auth;
 import org.apache.commons.codec.DecoderException;
 
 import javax.annotation.concurrent.Immutable;
+
 import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;

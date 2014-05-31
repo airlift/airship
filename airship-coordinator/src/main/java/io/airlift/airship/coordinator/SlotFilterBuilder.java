@@ -13,6 +13,7 @@ import io.airlift.airship.shared.SlotStatus;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.UriInfo;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;

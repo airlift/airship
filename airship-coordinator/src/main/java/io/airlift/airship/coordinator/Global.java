@@ -1,6 +1,7 @@
 package io.airlift.airship.coordinator;
 
 import javax.inject.Qualifier;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

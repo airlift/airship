@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.Immutable;
+
 import java.net.URI;
 
 import static com.google.common.base.Objects.firstNonNull;

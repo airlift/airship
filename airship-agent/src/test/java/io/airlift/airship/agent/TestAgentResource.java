@@ -8,6 +8,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
+
 import java.io.File;
 
 import static io.airlift.airship.agent.ResourcesUtil.TEST_RESOURCES;

@@ -3,7 +3,6 @@ package io.airlift.airship.agent;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.ConfigUtils;
 import io.airlift.airship.shared.Installation;

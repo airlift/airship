@@ -26,11 +26,12 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
-import io.airlift.configuration.ConfigurationModule;
 import io.airlift.airship.coordinator.auth.AuthorizedKeyStore;
 import io.airlift.airship.coordinator.auth.S3AuthorizedKeyStore;
+import io.airlift.configuration.ConfigurationModule;
 
 import javax.inject.Singleton;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

@@ -1,8 +1,8 @@
 package io.airlift.airship.coordinator;
 
 import com.google.common.base.Preconditions;
-import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.shared.Installation;
+import io.airlift.airship.shared.SlotStatus;
 
 import java.util.UUID;
 

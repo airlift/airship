@@ -3,14 +3,14 @@ package io.airlift.airship.coordinator;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.airlift.airship.coordinator.SlotFilterBuilder.SlotUuidPredicate;
-import io.airlift.airship.shared.Assignment;
-import io.airlift.airship.shared.MockUriInfo;
-import io.airlift.airship.shared.SlotStatus;
 import io.airlift.airship.coordinator.SlotFilterBuilder.BinarySpecPredicate;
 import io.airlift.airship.coordinator.SlotFilterBuilder.ConfigSpecPredicate;
 import io.airlift.airship.coordinator.SlotFilterBuilder.HostPredicate;
+import io.airlift.airship.coordinator.SlotFilterBuilder.SlotUuidPredicate;
 import io.airlift.airship.coordinator.SlotFilterBuilder.StatePredicate;
+import io.airlift.airship.shared.Assignment;
+import io.airlift.airship.shared.MockUriInfo;
+import io.airlift.airship.shared.SlotStatus;
 import org.testng.annotations.Test;
 
 import java.net.URI;

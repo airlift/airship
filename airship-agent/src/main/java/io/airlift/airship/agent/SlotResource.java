@@ -32,15 +32,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
 import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
-import static io.airlift.airship.shared.VersionsUtil.checkAgentVersion;
-import static io.airlift.airship.shared.VersionsUtil.checkSlotVersion;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.checkAgentVersion;
+import static io.airlift.airship.shared.VersionsUtil.checkSlotVersion;
 
 @Path("/v1/agent/slot")
 public class SlotResource

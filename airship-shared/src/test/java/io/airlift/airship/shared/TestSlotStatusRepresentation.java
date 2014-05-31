@@ -9,8 +9,8 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.util.UUID;
 
-import static io.airlift.json.JsonCodec.jsonCodec;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
+import static io.airlift.json.JsonCodec.jsonCodec;
 import static org.testng.Assert.assertEquals;
 
 public class TestSlotStatusRepresentation

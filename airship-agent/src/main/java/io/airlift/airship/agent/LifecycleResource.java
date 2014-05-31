@@ -28,9 +28,9 @@ import javax.ws.rs.core.Response;
 
 import java.util.UUID;
 
-import static io.airlift.airship.shared.VersionsUtil.checkSlotVersion;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_AGENT_VERSION_HEADER;
 import static io.airlift.airship.shared.VersionsUtil.AIRSHIP_SLOT_VERSION_HEADER;
+import static io.airlift.airship.shared.VersionsUtil.checkSlotVersion;
 
 @Path("/v1/agent/slot/{slotId}/lifecycle")
 public class LifecycleResource
