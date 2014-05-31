@@ -1,18 +1,19 @@
 package io.airlift.airship.coordinator.auth;
 
+import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-public class ServletInputStreamFromInputStream
+public class ServletInputStreamFromBytes
         extends ServletInputStream
 {
-    private final InputStream stream;
+    private final ByteArrayInputStream stream;
 
-    public ServletInputStreamFromInputStream(InputStream stream)
+    public ServletInputStreamFromBytes(byte[] bytes)
     {
-        this.stream = stream;
+        this.stream = new ByteArrayInputStream(bytes);
     }
 
     @Override
@@ -74,5 +75,23 @@ public class ServletInputStreamFromInputStream
     public boolean markSupported()
     {
         return stream.markSupported();
+    }
+
+    @Override
+    public boolean isFinished()
+    {
+        return stream.available() == 0;
+    }
+
+    @Override
+    public boolean isReady()
+    {
+        return stream.available() > 0;
+    }
+
+    @Override
+    public void setReadListener(ReadListener readListener)
+    {
+        throw new UnsupportedOperationException("setReadListener");
     }
 }

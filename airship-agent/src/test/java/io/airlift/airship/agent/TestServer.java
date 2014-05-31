@@ -27,12 +27,12 @@ import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
 import io.airlift.discovery.client.testing.TestingDiscoveryModule;
 import io.airlift.event.client.EventModule;
-import io.airlift.http.client.ApacheHttpClient;
 import io.airlift.http.client.FullJsonResponseHandler.JsonResponse;
 import io.airlift.http.client.HttpClient;
 import io.airlift.http.client.JsonBodyGenerator;
 import io.airlift.http.client.Request;
 import io.airlift.http.client.StatusResponseHandler.StatusResponse;
+import io.airlift.http.client.jetty.JettyHttpClient;
 import io.airlift.http.server.testing.TestingHttpServer;
 import io.airlift.http.server.testing.TestingHttpServerModule;
 import io.airlift.jaxrs.JaxrsModule;
@@ -70,6 +70,7 @@ import static io.airlift.http.client.StatusResponseHandler.createStatusResponseH
 import static io.airlift.json.JsonCodec.jsonCodec;
 import static io.airlift.json.JsonCodec.listJsonCodec;
 import static io.airlift.json.JsonCodec.mapJsonCodec;
+import static io.airlift.testing.Closeables.closeQuietly;
 import static javax.ws.rs.core.Response.Status;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -120,7 +121,7 @@ public class TestServer
         agent = injector.getInstance(Agent.class);
 
         server.start();
-        client = new ApacheHttpClient();
+        client = new JettyHttpClient();
 
         installationHelper = new InstallationHelper();
         appleInstallation = installationHelper.getAppleInstallation();
@@ -143,6 +144,8 @@ public class TestServer
     public void stopServer()
             throws Exception
     {
+        closeQuietly(client);
+
         if (server != null) {
             server.stop();
         }
