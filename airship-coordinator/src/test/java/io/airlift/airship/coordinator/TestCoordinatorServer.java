@@ -39,10 +39,10 @@ import io.airlift.airship.shared.UpgradeVersions;
 import io.airlift.configuration.ConfigurationFactory;
 import io.airlift.configuration.ConfigurationModule;
 import io.airlift.event.client.EventModule;
-import io.airlift.http.client.ApacheHttpClient;
 import io.airlift.http.client.HttpClient;
 import io.airlift.http.client.Request;
 import io.airlift.http.client.StatusResponseHandler.StatusResponse;
+import io.airlift.http.client.jetty.JettyHttpClient;
 import io.airlift.http.server.testing.TestingHttpServer;
 import io.airlift.http.server.testing.TestingHttpServerModule;
 import io.airlift.jaxrs.JaxrsModule;
@@ -83,6 +83,7 @@ import static io.airlift.http.client.StaticBodyGenerator.createStaticBodyGenerat
 import static io.airlift.http.client.StatusResponseHandler.createStatusResponseHandler;
 import static io.airlift.json.JsonCodec.jsonCodec;
 import static io.airlift.json.JsonCodec.listJsonCodec;
+import static io.airlift.testing.Closeables.closeQuietly;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.testng.Assert.assertEquals;
@@ -178,7 +179,7 @@ public class TestCoordinatorServer
         repository = injector.getInstance(Repository.class);
 
         server.start();
-        httpClient = new ApacheHttpClient();
+        httpClient = new JettyHttpClient();
     }
 
     @BeforeMethod
@@ -252,6 +253,8 @@ public class TestCoordinatorServer
     public void stopServer()
             throws Exception
     {
+        closeQuietly(httpClient);
+
         if (server != null) {
             server.stop();
         }

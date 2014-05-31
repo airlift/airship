@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.airlift</groupId>
         <artifactId>airbase</artifactId>
-        <version>13</version>
+        <version>20</version>
     </parent>
 
     <groupId>io.airlift.airship</groupId>
@@ -15,14 +15,14 @@
     <name>airship-root</name>
 
     <description>Airship</description>
-    <url>http://github.com/airlift/airship</url>
+    <url>https://github.com/airlift/airship</url>
 
     <inceptionYear>2011</inceptionYear>
 
     <licenses>
         <license>
             <name>Apache License 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -47,15 +47,14 @@
 
     <scm>
         <connection>scm:git:git://github.com/airlift/airship.git</connection>
-        <developerConnection>scm:git:git@github.com:airlift/airship.git</developerConnection>
-        <url>http://github.com/airlift/airship/tree/master</url>
-      <tag>HEAD</tag>
-  </scm>
+        <url>https://github.com/airlift/airship/tree/master</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <air.check.skip-extended>true</air.check.skip-extended>
 
-        <dep.airlift.version>0.84</dep.airlift.version>
+        <dep.airlift.version>0.88</dep.airlift.version>
         <dep.packaging.version>${dep.airlift.version}</dep.packaging.version>
         <dep.leveldb.version>0.5</dep.leveldb.version>
         <dep.maven.version>3.0.3</dep.maven.version>
@@ -226,6 +225,12 @@
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk</artifactId>
                 <version>1.3.32</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>

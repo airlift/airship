@@ -14,12 +14,11 @@ import io.airlift.airship.shared.CoordinatorStatusRepresentation;
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.airship.shared.SlotStatusRepresentation;
 import io.airlift.airship.shared.UpgradeVersions;
-import io.airlift.http.client.ApacheHttpClient;
 import io.airlift.http.client.BodyGenerator;
 import io.airlift.http.client.FullJsonResponseHandler.JsonResponse;
 import io.airlift.http.client.HttpClient;
-import io.airlift.http.client.HttpClientConfig;
 import io.airlift.http.client.Request;
+import io.airlift.http.client.jetty.JettyHttpClient;
 import io.airlift.json.JsonCodec;
 
 import java.io.IOException;
@@ -62,7 +61,7 @@ public class HttpCommander implements Commander
     {
         Preconditions.checkNotNull(coordinatorUri, "coordinatorUri is null");
         this.coordinatorUri = coordinatorUri;
-        this.client = new ApacheHttpClient(new HttpClientConfig());
+        this.client = new JettyHttpClient();
         this.useInternalAddress = useInternalAddress;
     }
 
