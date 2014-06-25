@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.airlift</groupId>
         <artifactId>airbase</artifactId>
-        <version>20</version>
+        <version>23</version>
     </parent>
 
     <groupId>io.airlift.airship</groupId>
@@ -54,7 +54,7 @@
     <properties>
         <air.check.skip-extended>true</air.check.skip-extended>
 
-        <dep.airlift.version>0.88</dep.airlift.version>
+        <dep.airlift.version>0.91</dep.airlift.version>
         <dep.packaging.version>${dep.airlift.version}</dep.packaging.version>
         <dep.leveldb.version>0.5</dep.leveldb.version>
         <dep.maven.version>3.0.3</dep.maven.version>
