@@ -32,12 +32,14 @@ public class AdminResource
 {
     private final Coordinator coordinator;
     private final Repository repository;
+    private final CoordinatorConfig config;
 
     @Inject
-    public AdminResource(Coordinator coordinator, Repository repository)
+    public AdminResource(Coordinator coordinator, Repository repository, CoordinatorConfig config)
     {
         this.coordinator = coordinator;
         this.repository = repository;
+        this.config = config;
     }
 
     @GET
@@ -80,7 +82,7 @@ public class AdminResource
         Predicate<AgentStatus> agentPredicate = AgentFilterBuilder.build(uriInfo,
                 transform(coordinator.getAgents(), idGetter()),
                 transform(allSlotStatus, SlotStatus.uuidGetter()),
-                false,
+                config.isAllowDuplicateInstallationsOnAnAgent(),
                 repository);
 
         List<AgentStatus> agents = coordinator.getAgents(agentPredicate);

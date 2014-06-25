@@ -41,6 +41,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 
 import java.net.URI;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,6 +66,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
@@ -438,19 +440,44 @@ public class Coordinator
     {
         final Installation installation = InstallationUtils.toInstallation(repository, assignment);
 
-        List<RemoteAgent> targetAgents = new ArrayList<>(selectAgents(filter, installation));
-        targetAgents = targetAgents.subList(0, Math.min(targetAgents.size(), limit));
+        List<RemoteAgent> candidateAgents = new ArrayList<>(selectAgents(filter, installation));
+        // Prune agent list if more than required exist.
+        if (candidateAgents.size() > limit) {
+            candidateAgents = candidateAgents.subList(0, limit);
+        }
 
-        return parallel(targetAgents, new Function<RemoteAgent, SlotStatus>()
+        int totalInstalls = limit;
+        int installsPerHost = allowDuplicateInstallationsOnAnAgent ? limit / candidateAgents.size() : 1;
+
+        ImmutableList.Builder<Map.Entry<RemoteAgent, Integer>> builder = ImmutableList.builder();
+        for (RemoteAgent agent : candidateAgents) {
+            int installsToAssign = Math.min(totalInstalls, installsPerHost);
+            if (installsToAssign <= 0) {
+                break;
+            }
+            builder.add(new AbstractMap.SimpleImmutableEntry<>(agent, installsToAssign));
+            totalInstalls -= installsToAssign;
+        }
+
+        List<Map.Entry<RemoteAgent, Integer>> targetAgents = builder.build();
+
+        List<List<SlotStatus>> results = parallel(targetAgents, new Function<Map.Entry<RemoteAgent, Integer>, List<SlotStatus>>()
         {
             @Override
-            public SlotStatus apply(RemoteAgent agent)
+            public List<SlotStatus> apply(Map.Entry<RemoteAgent, Integer> entry)
             {
-                SlotStatus slotStatus = agent.install(installation);
-                stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
-                return slotStatus;
+                RemoteAgent agent = entry.getKey();
+                ImmutableList.Builder<SlotStatus> builder = ImmutableList.builder();
+                for (int i = 0; i < entry.getValue(); i++) {
+                    SlotStatus slotStatus = agent.install(installation);
+                    builder.add(slotStatus);
+                    stateManager.setExpectedState(new ExpectedSlotStatus(slotStatus.getId(), STOPPED, installation.getAssignment()));
+                }
+                return builder.build();
             }
         });
+
+        return ImmutableList.copyOf(Iterables.concat(results));
     }
 
     private List<RemoteAgent> selectAgents(Predicate<AgentStatus> filter, Installation installation)

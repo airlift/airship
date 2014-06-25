@@ -50,20 +50,21 @@ public class TestCoordinatorSlotResource
             throws Exception
     {
         NodeInfo nodeInfo = new NodeInfo("testing");
+        CoordinatorConfig config = new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS));
 
         repository = new TestingMavenRepository();
 
         provisioner = new MockProvisioner();
         coordinator = new Coordinator(nodeInfo,
                 new HttpServerInfo(new HttpServerConfig(), nodeInfo),
-                new CoordinatorConfig().setStatusExpiration(new Duration(1, TimeUnit.DAYS)),
+                config,
                 provisioner.getCoordinatorFactory(),
                 provisioner.getAgentFactory(),
                 repository,
                 provisioner,
                 new InMemoryStateManager(),
                 new MockServiceInventory());
-        resource = new CoordinatorSlotResource(coordinator, repository);
+        resource = new CoordinatorSlotResource(coordinator, repository, config);
     }
 
     @AfterMethod

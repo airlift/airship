@@ -61,7 +61,7 @@ public class TestAdminResource
                 new MockServiceInventory(),
                 new Duration(1, TimeUnit.DAYS),
                 false);
-        resource = new AdminResource(coordinator, repository);
+        resource = new AdminResource(coordinator, repository, new CoordinatorConfig());
     }
 
     @AfterMethod
