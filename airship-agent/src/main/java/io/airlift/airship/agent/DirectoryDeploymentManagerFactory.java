@@ -44,7 +44,7 @@ public class DirectoryDeploymentManagerFactory implements DeploymentManagerFacto
 
         slotDir.mkdirs();
         if (!slotDir.isDirectory()) {
-            throw new IllegalArgumentException("slotDir is not a directory");
+            throw new IllegalArgumentException("slotDir is not a directory: " + slotDir.getAbsolutePath());
         }
     }
 
