@@ -117,7 +117,7 @@ public class VersionsUtil
         String data = Joiner.on("||").useForNull("--NULL--").join(parts);
         return DigestUtils.md5Hex(data);
     }
-    
+
     public static String createAgentsVersion(Iterable<AgentStatus> agents)
     {
         Preconditions.checkNotNull(agents, "agents is null");

@@ -6,7 +6,8 @@ import io.airlift.airship.shared.AgentStatus;
 
 import java.util.Map;
 
-public class MockRemoteAgentFactory implements RemoteAgentFactory
+public class MockRemoteAgentFactory
+        implements RemoteAgentFactory
 {
     private final Map<String, AgentStatus> agents;
 

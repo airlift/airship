@@ -63,5 +63,4 @@ public class ServiceInventoryResource
         this.descriptor.set(descriptor);
         return Response.ok().build();
     }
-
 }

@@ -368,7 +368,6 @@ public class Coordinator
             if (remoteAgent.status().getState() == AgentLifecycleState.PROVISIONING) {
                 instanceIds.add(remoteAgent.status().getAgentId());
             }
-
         }
 
         // remove any agents not in the provisioner list
@@ -558,7 +557,7 @@ public class Coordinator
                 SlotStatus slotStatus = slot.assign(installation);
                 return slotStatus;
             }
-        }) ;
+        });
     }
 
     private boolean sameBinary(Collection<Assignment> values)
@@ -567,7 +566,8 @@ public class Coordinator
             return true;
         }
         final Assignment assignment = Iterables.getFirst(values, null);
-        return Iterables.all(values, new Predicate<Assignment>() {
+        return Iterables.all(values, new Predicate<Assignment>()
+        {
             @Override
             public boolean apply(@Nullable Assignment input)
             {
@@ -878,7 +878,8 @@ public class Coordinator
             catch (ExecutionException e) {
                 if (e.getCause() != null) {
                     failures.add(e.getCause());
-                } else {
+                }
+                else {
                     failures.add(e);
                 }
             }
@@ -923,6 +924,5 @@ public class Coordinator
         {
             return function.apply(item);
         }
-
     }
 }

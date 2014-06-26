@@ -10,7 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-class InputSupplierStreamingOutput implements StreamingOutput
+class InputSupplierStreamingOutput
+        implements StreamingOutput
 {
     private final InputSupplier<? extends InputStream> inputSupplier;
 

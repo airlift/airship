@@ -110,7 +110,8 @@ public class StaticProvisioner
     public List<Instance> listCoordinators()
     {
         List<String> lines = readLines("coordinators", coordinatorsUri, coordinatorsResourceIsUp);
-        return ImmutableList.copyOf(Iterables.transform(lines, new Function<String, Instance>() {
+        return ImmutableList.copyOf(Iterables.transform(lines, new Function<String, Instance>()
+        {
             @Override
             public Instance apply(String coordinatorUri)
             {

@@ -2,7 +2,8 @@ package io.airlift.airship.coordinator;
 
 import java.util.regex.Pattern;
 
-public class GlobPredicate extends RegexPredicate
+public class GlobPredicate
+        extends RegexPredicate
 {
     private final String glob;
 

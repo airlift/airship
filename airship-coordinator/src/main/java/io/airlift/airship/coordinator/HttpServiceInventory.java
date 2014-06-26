@@ -43,7 +43,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-public class HttpServiceInventory implements ServiceInventory
+public class HttpServiceInventory
+        implements ServiceInventory
 {
     private static final Logger log = Logger.get(HttpServiceInventory.class);
     private final Repository repository;
@@ -133,7 +134,6 @@ public class HttpServiceInventory implements ServiceInventory
         if (configFile == null) {
             return null;
         }
-
 
         try {
             String json;

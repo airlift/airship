@@ -30,7 +30,6 @@ class GitUtils
         return repository.getRefDatabase().getRefs(Constants.R_HEADS).get(name);
     }
 
-
     public static RevCommit getCommit(Repository repository, Ref ref)
     {
         RevWalk revWalk = new RevWalk(repository);
@@ -59,7 +58,6 @@ class GitUtils
             }
         };
     }
-
 
     public static Map<String, ObjectId> getEntries(Repository repository, RevTree tree)
             throws IOException

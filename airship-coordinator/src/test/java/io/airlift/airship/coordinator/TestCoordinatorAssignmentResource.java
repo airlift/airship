@@ -122,9 +122,9 @@ public class TestCoordinatorAssignmentResource
                 ImmutableMap.of("cpu", 8, "memory", 1024));
 
         prefixSize = shortestUniquePrefix(asList(
-                appleSlotStatus1.getId().toString(),
-                appleSlotStatus2.getId().toString(),
-                bananaSlotStatus.getId().toString()),
+                        appleSlotStatus1.getId().toString(),
+                        appleSlotStatus2.getId().toString(),
+                        bananaSlotStatus.getId().toString()),
                 MIN_PREFIX_SIZE);
 
         provisioner.addAgents(agentStatus);

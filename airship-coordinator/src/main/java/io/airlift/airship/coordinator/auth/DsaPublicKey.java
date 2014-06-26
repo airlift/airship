@@ -78,5 +78,4 @@ public class DsaPublicKey
                 .writeEntry(SEQUENCE, encodedNumbers)
                 .toByteArray();
     }
-
 }

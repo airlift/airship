@@ -19,7 +19,8 @@ import io.airlift.airship.shared.Installation;
 import java.io.File;
 import java.util.UUID;
 
-public class MockDeploymentManager implements DeploymentManager
+public class MockDeploymentManager
+        implements DeploymentManager
 {
     private final String location;
     private final UUID slotId = UUID.randomUUID();

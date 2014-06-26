@@ -12,7 +12,7 @@ public class TestFileAuthorizedKeyStoreConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(FileAuthorizedKeyStoreConfig.class)
-                .setAuthorizedKeysDir("authorized-keys")
+                        .setAuthorizedKeysDir("authorized-keys")
         );
     }
 
@@ -28,5 +28,4 @@ public class TestFileAuthorizedKeyStoreConfig
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }
-
 }

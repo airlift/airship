@@ -24,7 +24,8 @@ import java.io.File;
 import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 import static org.testng.Assert.assertEquals;
 
-public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTest
+public class TestDirectoryDeploymentManager
+        extends AbstractDeploymentManagerTest
 {
     private File tempDir;
     private InstallationHelper installationHelper;
@@ -50,7 +51,6 @@ public class TestDirectoryDeploymentManager extends AbstractDeploymentManagerTes
         if (installationHelper != null) {
             installationHelper.destroy();
         }
-
     }
 
     @Test

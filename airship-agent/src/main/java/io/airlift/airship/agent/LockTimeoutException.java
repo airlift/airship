@@ -5,7 +5,8 @@ import io.airlift.units.Duration;
 
 import java.util.List;
 
-public class LockTimeoutException extends RuntimeException
+public class LockTimeoutException
+        extends RuntimeException
 {
     public LockTimeoutException(Thread ownerThread, Duration lockWait, List<StackTraceElement> acquisitionLocation)
     {
@@ -14,5 +15,4 @@ public class LockTimeoutException extends RuntimeException
                 ownerThread,
                 acquisitionLocation == null ? null : Joiner.on("\n  at ").join(acquisitionLocation)));
     }
-
 }

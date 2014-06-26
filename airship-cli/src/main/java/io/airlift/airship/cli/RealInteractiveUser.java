@@ -4,7 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class RealInteractiveUser implements InteractiveUser
+public class RealInteractiveUser
+        implements InteractiveUser
 {
     @Override
     public boolean ask(String question, boolean defaultValue)

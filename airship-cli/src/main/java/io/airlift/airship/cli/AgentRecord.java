@@ -12,7 +12,8 @@ import java.util.List;
 
 import static io.airlift.airship.cli.Ansi.colorize;
 
-public class AgentRecord implements Record
+public class AgentRecord
+        implements Record
 {
     public static List<Record> toAgentRecords(Iterable<AgentStatusRepresentation> agents)
     {
@@ -85,12 +86,15 @@ public class AgentRecord implements Record
             AgentLifecycleState state = AgentLifecycleState.valueOf(toString(value));
             if (AgentLifecycleState.ONLINE == state) {
                 return colorize(state, Color.GREEN);
-            } else if (AgentLifecycleState.OFFLINE == state) {
+            }
+            else if (AgentLifecycleState.OFFLINE == state) {
                 return colorize(state, Color.RED);
-            } else if (AgentLifecycleState.PROVISIONING == state) {
+            }
+            else if (AgentLifecycleState.PROVISIONING == state) {
                 return colorize(state, Color.BLUE);
             }
-        } else if (Column.statusMessage == column) {
+        }
+        else if (Column.statusMessage == column) {
             return colorize(value, Color.RED);
         }
         return toString(value);

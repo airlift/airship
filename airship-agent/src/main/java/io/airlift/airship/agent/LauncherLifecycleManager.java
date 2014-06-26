@@ -27,7 +27,8 @@ import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
 
-public class LauncherLifecycleManager implements LifecycleManager
+public class LauncherLifecycleManager
+        implements LifecycleManager
 {
     private static final Logger log = Logger.get(LauncherLifecycleManager.class);
 

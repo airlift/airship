@@ -15,7 +15,7 @@ public class ResourcesUtil
     {
     }
 
-    public static Map<String,Integer> TEST_RESOURCES = ImmutableMap.<String,Integer>builder()
+    public static Map<String, Integer> TEST_RESOURCES = ImmutableMap.<String, Integer>builder()
             .put("cpu", 8)
             .put("memory", 1024)
             .build();

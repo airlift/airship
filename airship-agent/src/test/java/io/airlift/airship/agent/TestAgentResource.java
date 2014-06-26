@@ -54,5 +54,4 @@ public class TestAgentResource
         assertEquals(actual.getResources(), TEST_RESOURCES);
         assertEquals(actual.getLocation(), agent.getLocation());
     }
-
 }

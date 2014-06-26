@@ -23,7 +23,6 @@ public enum Column
     internalUri("uri"),
     externalUri("uri");
 
-
     private final String header;
 
     Column()

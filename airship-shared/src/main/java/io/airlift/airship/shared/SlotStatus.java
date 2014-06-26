@@ -112,7 +112,6 @@ public class SlotStatus
         this.resources = ImmutableMap.copyOf(resources);
     }
 
-
     public UUID getId()
     {
         return id;

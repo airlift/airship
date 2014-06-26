@@ -25,7 +25,8 @@ import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.MavenCoordinates.DEFAULT_BINARY_PACKAGING;
 import static io.airlift.airship.shared.MavenCoordinates.DEFAULT_CONFIG_PACKAGING;
 
-public class HttpRepository implements Repository
+public class HttpRepository
+        implements Repository
 {
     private final List<URI> baseUris;
     private final Pattern configShortNamePattern;

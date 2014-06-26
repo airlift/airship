@@ -12,7 +12,7 @@ public class TestFileStateManagerConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(FileStateManagerConfig.class)
-                .setExpectedStateDir("expected-state")
+                        .setExpectedStateDir("expected-state")
         );
     }
 
@@ -28,5 +28,4 @@ public class TestFileStateManagerConfig
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }
-
 }

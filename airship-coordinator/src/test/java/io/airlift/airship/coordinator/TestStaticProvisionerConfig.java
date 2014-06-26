@@ -13,8 +13,8 @@ public class TestStaticProvisionerConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(StaticProvisionerConfig.class)
-                .setCoordinatorsUri(URI.create("file:etc/coordinators.txt"))
-                .setAgentsUri(URI.create("file:etc/agents.txt"))
+                        .setCoordinatorsUri(URI.create("file:etc/coordinators.txt"))
+                        .setAgentsUri(URI.create("file:etc/agents.txt"))
         );
     }
 
@@ -32,5 +32,4 @@ public class TestStaticProvisionerConfig
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }
-
 }

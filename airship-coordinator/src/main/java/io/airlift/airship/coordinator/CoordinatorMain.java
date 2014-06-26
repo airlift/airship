@@ -26,7 +26,6 @@ import org.weakref.jmx.guice.MBeanModule;
 
 import static io.airlift.airship.coordinator.ConditionalModule.installIfPropertyEquals;
 
-
 public class CoordinatorMain
 {
     private static final Logger log = Logger.get(CoordinatorMain.class);

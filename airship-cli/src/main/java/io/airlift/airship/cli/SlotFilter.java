@@ -146,7 +146,8 @@ public class SlotFilter
 
     private static Predicate<List<?>> emptyPredicate()
     {
-        return new Predicate<List<?>>() {
+        return new Predicate<List<?>>()
+        {
             @Override
             public boolean apply(@Nullable List<?> input)
             {

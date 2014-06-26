@@ -31,9 +31,9 @@ public class ArchiveHelper
 
             // tar up the archive
             createTar(tempDir, archive);
-        } finally {
+        }
+        finally {
             FileUtils.deleteRecursively(tempDir);
         }
-
     }
 }

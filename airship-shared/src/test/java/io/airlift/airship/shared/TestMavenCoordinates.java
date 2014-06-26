@@ -29,7 +29,6 @@ public class TestMavenCoordinates
         Assert.assertFalse(spec.equalsIgnoreVersion(new MavenCoordinates("my.groupId", "foo", "version", "packaging", "classifier", "file-version")));
         Assert.assertFalse(spec.equalsIgnoreVersion(new MavenCoordinates("my.groupId", "artifactId", "version", "foo", "classifier", "file-version")));
         Assert.assertFalse(spec.equalsIgnoreVersion(new MavenCoordinates("my.groupId", "artifactId", "version", "packaging", "foo", "file-version")));
-
     }
 
     @Test
@@ -110,5 +109,4 @@ public class TestMavenCoordinates
                         new MavenCoordinates("my.group", "artifactId", "version", "packaging", "classifier", null))
                 .check();
     }
-
 }

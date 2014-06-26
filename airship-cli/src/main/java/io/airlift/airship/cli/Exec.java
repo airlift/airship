@@ -34,10 +34,10 @@ public class Exec
 
         String[] args;
         if (command == null) {
-            args = new String[]{shell, "-l"};
+            args = new String[] {shell, "-l"};
         }
         else {
-            args = new String[]{shell, "-c", shellQuote(command)};
+            args = new String[] {shell, "-c", shellQuote(command)};
         }
         posix.execv(shell, args);
     }
@@ -62,10 +62,10 @@ public class Exec
 
         String[] args;
         if (command == null) {
-            args = new String[]{ssh, host};
+            args = new String[] {ssh, host};
         }
         else {
-            args = new String[]{ssh, host, "-t", shellQuote(command)};
+            args = new String[] {ssh, host, "-t", shellQuote(command)};
         }
 
         posix.execv(ssh, args);
@@ -102,7 +102,6 @@ public class Exec
 
         int length = name.length();
         if (!Platform.IS_WINDOWS) {
-
 
             if (length > 1 && Character.isLetter(name.charAt(0)) && name.charAt(1) == '/') {
                 if (isMatch(executableOnly, name)) {

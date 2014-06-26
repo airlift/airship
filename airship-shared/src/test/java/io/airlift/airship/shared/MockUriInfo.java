@@ -37,7 +37,8 @@ import java.util.Map;
 import static io.airlift.airship.shared.MockUriInfo.GuavaMultivaluedMap.createGuavaMultivaluedMap;
 import static io.airlift.airship.shared.MockUriInfo.GuavaMultivaluedMap.emptyMultivaluedMap;
 
-public class MockUriInfo implements UriInfo
+public class MockUriInfo
+        implements UriInfo
 {
     private static final Splitter PATH_SPLITTER = Splitter.on('/');
     private static final Splitter QUERY_STRING_SPLITTER = Splitter.on('&').trimResults().omitEmptyStrings();
@@ -46,7 +47,6 @@ public class MockUriInfo implements UriInfo
 
     private final URI requestUri;
     private final URI baseUri;
-
 
     public static UriInfo from(String requestUri)
     {
@@ -202,8 +202,9 @@ public class MockUriInfo implements UriInfo
         throw new UnsupportedOperationException();
     }
 
-
-    static class GuavaMultivaluedMap<K, V> extends ForwardingMap<K, List<V>> implements MultivaluedMap<K, V>
+    static class GuavaMultivaluedMap<K, V>
+            extends ForwardingMap<K, List<V>>
+            implements MultivaluedMap<K, V>
     {
         private final ListMultimap<K, V> multimap;
 
@@ -250,7 +251,8 @@ public class MockUriInfo implements UriInfo
         }
     }
 
-    private static class ImmutablePathSegment implements PathSegment
+    private static class ImmutablePathSegment
+            implements PathSegment
     {
         private final String path;
 

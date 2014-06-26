@@ -16,7 +16,8 @@ package io.airlift.airship.agent;
 import io.airlift.airship.shared.InstallationHelper;
 import org.testng.annotations.BeforeMethod;
 
-public class TestMockDeploymentManager extends AbstractDeploymentManagerTest
+public class TestMockDeploymentManager
+        extends AbstractDeploymentManagerTest
 {
     @BeforeMethod
     protected void setUp()

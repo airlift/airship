@@ -14,7 +14,8 @@ import io.airlift.http.client.AsyncHttpClient;
 import io.airlift.json.JsonCodec;
 import io.airlift.node.NodeInfo;
 
-public class HttpRemoteAgentFactory implements RemoteAgentFactory
+public class HttpRemoteAgentFactory
+        implements RemoteAgentFactory
 {
     private final String environment;
     private final AsyncHttpClient httpClient;

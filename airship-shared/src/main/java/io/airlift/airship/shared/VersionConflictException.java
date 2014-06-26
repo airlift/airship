@@ -1,6 +1,7 @@
 package io.airlift.airship.shared;
 
-public class VersionConflictException extends RuntimeException
+public class VersionConflictException
+        extends RuntimeException
 {
     private final String name;
     private final String version;

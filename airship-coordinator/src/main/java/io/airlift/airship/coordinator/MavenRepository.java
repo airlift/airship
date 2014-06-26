@@ -34,7 +34,8 @@ import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.MavenCoordinates.toBinaryGAV;
 import static io.airlift.airship.shared.MavenCoordinates.toConfigGAV;
 
-public class MavenRepository implements Repository
+public class MavenRepository
+        implements Repository
 {
     private static final Logger log = Logger.get(MavenRepository.class);
 
@@ -61,7 +62,8 @@ public class MavenRepository implements Repository
     {
         if (config.getDefaultRepositoryGroupId() != null) {
             this.defaultGroupIds = ImmutableList.copyOf(config.getDefaultRepositoryGroupId());
-        } else {
+        }
+        else {
             this.defaultGroupIds = ImmutableList.of();
         }
 
@@ -162,7 +164,6 @@ public class MavenRepository implements Repository
         return coordinates1 != null &&
                 coordinates2 != null &&
                 coordinates1.equalsIgnoreVersion(coordinates2);
-
     }
 
     @Override
@@ -393,7 +394,8 @@ public class MavenRepository implements Repository
             throws IOException
     {
         final URL url = uri.toURL();
-        return CharStreams.toString(new InputSupplier<InputStreamReader>() {
+        return CharStreams.toString(new InputSupplier<InputStreamReader>()
+        {
             @Override
             public InputStreamReader getInput()
                     throws IOException

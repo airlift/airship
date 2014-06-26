@@ -26,7 +26,8 @@ import static io.airlift.http.client.StaticBodyGenerator.createStaticBodyGenerat
 import static io.airlift.json.JsonCodec.jsonCodec;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-public class HttpRemoteSlot implements RemoteSlot
+public class HttpRemoteSlot
+        implements RemoteSlot
 {
     private static final Logger log = Logger.get(HttpRemoteSlot.class);
     private static final JsonCodec<InstallationRepresentation> installationCodec = jsonCodec(InstallationRepresentation.class);

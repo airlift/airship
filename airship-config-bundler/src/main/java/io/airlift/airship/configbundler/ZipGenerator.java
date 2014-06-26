@@ -22,6 +22,5 @@ class ZipGenerator
             throws IOException
     {
         ZipPackager.packageEntries(out, entries);
-
     }
 }

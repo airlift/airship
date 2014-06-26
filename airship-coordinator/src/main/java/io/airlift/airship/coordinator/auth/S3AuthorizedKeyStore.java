@@ -62,7 +62,8 @@ public class S3AuthorizedKeyStore
         if (bucketName != null) {
             if (path == null) {
                 path = "/";
-            } else if (!path.endsWith("/")) {
+            }
+            else if (!path.endsWith("/")) {
                 path = path + "/";
             }
         }
@@ -71,7 +72,8 @@ public class S3AuthorizedKeyStore
         this.refreshInterval = refreshInterval;
         if (refreshInterval != null) {
             executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("S3AuthorizedKeyStore-%s").build());
-        } else {
+        }
+        else {
             executor = null;
         }
 
@@ -191,7 +193,8 @@ public class S3AuthorizedKeyStore
         }
     }
 
-    private static class S3ObjectListing implements Iterable<S3ObjectSummary>
+    private static class S3ObjectListing
+            implements Iterable<S3ObjectSummary>
     {
         private final AmazonS3 s3Client;
         private final ListObjectsRequest listObjectsRequest;
@@ -228,7 +231,8 @@ public class S3AuthorizedKeyStore
         }
     }
 
-    private static class S3InputSupplier implements InputSupplier<InputStream>
+    private static class S3InputSupplier
+            implements InputSupplier<InputStream>
     {
         private final AmazonS3 s3Client;
         private final String bucketName;

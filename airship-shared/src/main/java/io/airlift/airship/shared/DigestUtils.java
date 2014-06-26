@@ -20,7 +20,8 @@ public class DigestUtils
         }
     }
 
-    public static String toHex(byte[] data) {
+    public static String toHex(byte[] data)
+    {
         char[] chars = new char[data.length * 2];
 
         int charIndex = 0;

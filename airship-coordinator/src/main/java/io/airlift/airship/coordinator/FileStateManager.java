@@ -19,7 +19,8 @@ import java.util.UUID;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 
-public class FileStateManager implements StateManager
+public class FileStateManager
+        implements StateManager
 {
     private static final Logger log = Logger.get(FileStateManager.class);
     private final File dataDir;
@@ -63,7 +64,7 @@ public class FileStateManager implements StateManager
     @Override
     public void deleteExpectedState(UUID slotId)
     {
-         new File(dataDir, slotId.toString() + ".json").delete();
+        new File(dataDir, slotId.toString() + ".json").delete();
     }
 
     @Override

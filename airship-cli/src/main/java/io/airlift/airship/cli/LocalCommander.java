@@ -37,7 +37,8 @@ import static io.airlift.airship.shared.VersionsUtil.checkAgentsVersion;
 import static io.airlift.airship.shared.VersionsUtil.createAgentsVersion;
 import static io.airlift.airship.shared.VersionsUtil.createSlotsVersion;
 
-public class LocalCommander implements Commander
+public class LocalCommander
+        implements Commander
 {
     private static final JsonCodec<ServiceDescriptorsRepresentation> SERVICE_DESCRIPTORS_CODEC = JsonCodec.jsonCodec(ServiceDescriptorsRepresentation.class);
 

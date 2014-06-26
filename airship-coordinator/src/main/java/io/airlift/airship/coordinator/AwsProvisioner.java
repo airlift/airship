@@ -47,7 +47,8 @@ import static io.airlift.airship.shared.HttpUriBuilder.uriBuilder;
 import static java.lang.String.format;
 import static java.util.Collections.addAll;
 
-public class AwsProvisioner implements Provisioner
+public class AwsProvisioner
+        implements Provisioner
 {
     private static final Logger log = Logger.get(AwsProvisioner.class);
     private static final String DEFAULT_PROVISIONING_SCRIPTS = "io.airlift.airship:airship-ec2:%s";
@@ -351,7 +352,6 @@ public class AwsProvisioner implements Provisioner
     {
         if (agentConfig == null) {
             agentConfig = agentDefaultConfig;
-
         }
         if (instanceType == null) {
             instanceType = agentDefaultInstanceType;
@@ -492,7 +492,7 @@ public class AwsProvisioner implements Provisioner
                 contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-install.sh"), "",
                 coordinatorInstall.toASCIIString(),
                 "",
-                boundaryLine ,
+                boundaryLine,
 
                 contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-install-prep.sh"), "",
                 coordinatorInstallPrep.toASCIIString(),
@@ -572,7 +572,7 @@ public class AwsProvisioner implements Provisioner
                 contentDownloadUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-install.sh"), "",
                 coordinatorInstall.toASCIIString(),
                 "",
-                boundaryLine ,
+                boundaryLine,
 
                 contentExecUrl, mimeVersion, encodingText, format(attachmentFormat, "airship-install-prep.sh"), "",
                 coordinatorInstallPrep.toASCIIString(),

@@ -88,7 +88,6 @@ public class MavenMetadata
         public String updated;
     }
 
-
     private static final JAXBContext jaxbContext;
 
     static {
@@ -122,5 +121,4 @@ public class MavenMetadata
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.marshal(metadata, file);
     }
-
 }

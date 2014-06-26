@@ -46,7 +46,7 @@ public class CoordinatorStatus
     {
         return state;
     }
-    
+
     public CoordinatorStatus changeState(CoordinatorLifecycleState state)
     {
         return new CoordinatorStatus(coordinatorId, state, instanceId, internalUri, externalUri, location, instanceType);
@@ -111,7 +111,6 @@ public class CoordinatorStatus
     {
         return coordinatorId.hashCode();
     }
-
 
     @Override
     public String toString()

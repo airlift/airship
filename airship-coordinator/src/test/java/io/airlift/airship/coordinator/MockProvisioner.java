@@ -18,7 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MockProvisioner implements Provisioner
+public class MockProvisioner
+        implements Provisioner
 {
     private final Map<String, CoordinatorStatus> coordinators = new ConcurrentHashMap<>();
     private final Map<String, AgentStatus> agents = new ConcurrentHashMap<>();
@@ -106,18 +107,19 @@ public class MockProvisioner implements Provisioner
                     instanceType);
 
             instances.add(new Instance(coordinatorStatus.getInstanceId(),
-                        coordinatorStatus.getInstanceType(),
-                        coordinatorStatus.getLocation(),
-                        null,
-                        null));
+                    coordinatorStatus.getInstanceType(),
+                    coordinatorStatus.getLocation(),
+                    null,
+                    null));
 
             addCoordinators(coordinatorStatus);
         }
 
         return instances.build();
     }
-    
-    public CoordinatorStatus startCoordinator(String instanceId) {
+
+    public CoordinatorStatus startCoordinator(String instanceId)
+    {
         CoordinatorStatus coordinatorStatus = coordinators.get(instanceId);
         Preconditions.checkNotNull(coordinatorStatus, "coordinatorStatus is null");
 
@@ -233,10 +235,10 @@ public class MockProvisioner implements Provisioner
                     ImmutableMap.<String, Integer>of());
 
             instances.add(new Instance(agentStatus.getInstanceId(),
-                        agentStatus.getInstanceType(),
-                        agentStatus.getLocation(),
-                        null,
-                        null));
+                    agentStatus.getInstanceType(),
+                    agentStatus.getLocation(),
+                    null,
+                    null));
 
             addAgents(agentStatus);
         }
@@ -250,7 +252,8 @@ public class MockProvisioner implements Provisioner
         removeAgents(instanceIds);
     }
 
-    public AgentStatus startAgent(String instanceId) {
+    public AgentStatus startAgent(String instanceId)
+    {
         AgentStatus agentStatus = agents.get(instanceId);
         Preconditions.checkNotNull(agentStatus, "agentStatus is null");
 

@@ -1,22 +1,22 @@
 {
-    "id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     "shortId": "aaaaa",
-    "self":"internal://apple",
-    "externalUri":"external://apple",
-    "instanceId":"instance",
-    "location":"/test/location/apple",
-    "shortLocation":"/location/apple",
-    "binary":"food.fruit:apple:1.0",
-    "shortBinary":"food.fruit:apple:1.0",
-    "config":"@prod:apple:1.0",
-    "shortConfig":"@prod:apple:1.0",
-    "status":"STOPPED",
-    "version":"abc",
+    "self": "internal://apple",
+    "externalUri": "external://apple",
+    "instanceId": "instance",
+    "location": "/test/location/apple",
+    "shortLocation": "/location/apple",
+    "binary": "food.fruit:apple:1.0",
+    "shortBinary": "food.fruit:apple:1.0",
+    "config": "@prod:apple:1.0",
+    "shortConfig": "@prod:apple:1.0",
+    "status": "STOPPED",
+    "version": "abc",
     "installPath": "/apple",
     "resources": {
         "memory": 512
     },
-    "expectedBinary":"food.fruit:apple:1.0",
-    "expectedConfig":"@prod:apple:1.0",
-    "expectedStatus":"STOPPED"
+    "expectedBinary": "food.fruit:apple:1.0",
+    "expectedConfig": "@prod:apple:1.0",
+    "expectedStatus": "STOPPED"
 }

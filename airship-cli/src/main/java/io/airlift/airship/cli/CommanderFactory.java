@@ -240,7 +240,8 @@ public class CommanderFactory
         return new LocalCommander(environment, new File(slotsDir), coordinator, repository, serviceInventory);
     }
 
-    private class LocalProvisioner implements Provisioner
+    private class LocalProvisioner
+            implements Provisioner
     {
         @Override
         public List<Instance> listCoordinators()
@@ -289,7 +290,8 @@ public class CommanderFactory
         }
     }
 
-    private class LocalRemoteCoordinatorFactory implements RemoteCoordinatorFactory
+    private class LocalRemoteCoordinatorFactory
+            implements RemoteCoordinatorFactory
     {
         @Override
         public RemoteCoordinator createRemoteCoordinator(Instance instance, CoordinatorLifecycleState state)
@@ -298,7 +300,8 @@ public class CommanderFactory
         }
     }
 
-    private class LocalRemoteAgentFactory implements RemoteAgentFactory
+    private class LocalRemoteAgentFactory
+            implements RemoteAgentFactory
     {
         private final Agent agent;
 
@@ -315,7 +318,8 @@ public class CommanderFactory
         }
     }
 
-    private class LocalRemoteAgent implements RemoteAgent
+    private class LocalRemoteAgent
+            implements RemoteAgent
     {
         private final Agent agent;
 
@@ -373,7 +377,8 @@ public class CommanderFactory
         }
     }
 
-    private static class LocalRemoteSlot implements RemoteSlot
+    private static class LocalRemoteSlot
+            implements RemoteSlot
     {
         private final Slot slot;
         private final String instanceId;
@@ -433,7 +438,8 @@ public class CommanderFactory
         }
     }
 
-    public static class ToUriFunction implements Function<String, URI>
+    public static class ToUriFunction
+            implements Function<String, URI>
     {
         public URI apply(String uri)
         {

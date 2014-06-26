@@ -249,5 +249,4 @@ class Model
             return Ints.compare(extractVersion(tag1), extractVersion(tag2));
         }
     }
-
 }

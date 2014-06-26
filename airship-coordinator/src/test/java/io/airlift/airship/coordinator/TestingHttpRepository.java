@@ -15,7 +15,8 @@ import static io.airlift.airship.shared.FileUtils.createTempDir;
 import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 import static io.airlift.airship.shared.FileUtils.newFile;
 
-public class TestingHttpRepository extends HttpRepository
+public class TestingHttpRepository
+        extends HttpRepository
 {
     private static final String VERSION_PATTERN = "([0-9][0-9.]*[0-9](?:-SNAPSHOT)?)[^\\/]*$";
     private final File targetRepo;
@@ -92,7 +93,6 @@ public class TestingHttpRepository extends HttpRepository
         String properties = "http-server.http.port=0\n" +
                 "config=" + artifactId;
         out.write(properties.getBytes(UTF_8));
-
 
         // jvm.config
         out.putNextEntry(new ZipEntry("jvm.config"));

@@ -33,7 +33,6 @@ public class AirshipTestRun
         execute("environment", "use", "local");
 
         example();
-
     }
 
     private static void example()

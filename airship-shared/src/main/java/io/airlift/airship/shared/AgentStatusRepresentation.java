@@ -26,7 +26,8 @@ import static io.airlift.airship.shared.Strings.trimLeadingSegments;
 
 public class AgentStatusRepresentation
 {
-    public static class AgentStatusRepresentationFactory {
+    public static class AgentStatusRepresentationFactory
+    {
         public static final int MIN_PREFIX_SIZE = 4;
         public static final int MIN_LOCATION_SEGMENTS = 2;
 
@@ -53,7 +54,8 @@ public class AgentStatusRepresentation
             this.repository = repository;
         }
 
-        public AgentStatusRepresentation create(AgentStatus status) {
+        public AgentStatusRepresentation create(AgentStatus status)
+        {
             Builder<SlotStatusRepresentation> builder = ImmutableList.builder();
             for (SlotStatus slot : status.getSlotStatuses()) {
                 builder.add(SlotStatusRepresentation.from(slot, Integer.MAX_VALUE, repository));
@@ -103,7 +105,8 @@ public class AgentStatusRepresentation
         };
     }
 
-    public static AgentStatusRepresentation from(AgentStatus status) {
+    public static AgentStatusRepresentation from(AgentStatus status)
+    {
         return new AgentStatusRepresentationFactory().create(status);
     }
 
@@ -219,7 +222,8 @@ public class AgentStatusRepresentation
         return version;
     }
 
-    public String getInternalHost() {
+    public String getInternalHost()
+    {
         if (self == null) {
             return null;
         }
@@ -245,7 +249,8 @@ public class AgentStatusRepresentation
         }
     }
 
-    public String getExternalHost() {
+    public String getExternalHost()
+    {
         if (externalUri == null) {
             return null;
         }

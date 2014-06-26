@@ -41,7 +41,6 @@ class Bundle
         return snapshot;
     }
 
-
     @Override
     public boolean equals(Object o)
     {

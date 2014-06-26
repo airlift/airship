@@ -25,7 +25,8 @@ import static io.airlift.airship.shared.FileUtils.newFile;
 import static io.airlift.airship.shared.MavenCoordinates.toBinaryGAV;
 import static io.airlift.airship.shared.MavenCoordinates.toConfigGAV;
 
-public class TestingMavenRepository extends MavenRepository
+public class TestingMavenRepository
+        extends MavenRepository
 {
     public static final Repository MOCK_REPO = new Repository()
     {
@@ -223,7 +224,6 @@ public class TestingMavenRepository extends MavenRepository
         String properties = "http-server.http.port=0\n" +
                 "config=" + artifactId;
         out.write(properties.getBytes(UTF_8));
-
 
         // jvm.config
         out.putNextEntry(new ZipEntry("jvm.config"));

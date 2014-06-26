@@ -39,7 +39,8 @@ import static io.airlift.http.client.FullJsonResponseHandler.createFullJsonRespo
 import static io.airlift.http.client.JsonBodyGenerator.jsonBodyGenerator;
 import static io.airlift.http.client.JsonResponseHandler.createJsonResponseHandler;
 
-public class HttpCommander implements Commander
+public class HttpCommander
+        implements Commander
 {
     private static final JsonCodec<List<SlotStatusRepresentation>> SLOTS_CODEC = JsonCodec.listJsonCodec(SlotStatusRepresentation.class);
     private static final JsonCodec<AssignmentRepresentation> ASSIGNMENT_CODEC = JsonCodec.jsonCodec(AssignmentRepresentation.class);
@@ -388,7 +389,8 @@ public class HttpCommander implements Commander
         return true;
     }
 
-    public static class TextBodyGenerator implements BodyGenerator
+    public static class TextBodyGenerator
+            implements BodyGenerator
     {
         public static TextBodyGenerator textBodyGenerator(String instance)
         {

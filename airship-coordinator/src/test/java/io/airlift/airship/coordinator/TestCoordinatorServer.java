@@ -336,7 +336,6 @@ public class TestCoordinatorServer
         assertEquals(coordinator.getCoordinator(instanceId).getExternalUri(), expectedCoordinatorStatus.getExternalUri());
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
 
-
         request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/coordinator").build())
                 .build();
@@ -490,9 +489,9 @@ public class TestCoordinatorServer
         AgentStatus agentStatus = coordinator.getAgentByAgentId(agentId);
 
         int prefixSize = shortestUniquePrefix(asList(
-                agentStatus.getSlotStatus(apple1SotId).getId().toString(),
-                agentStatus.getSlotStatus(apple2SlotId).getId().toString(),
-                agentStatus.getSlotStatus(bananaSlotId).getId().toString()),
+                        agentStatus.getSlotStatus(apple1SotId).getId().toString(),
+                        agentStatus.getSlotStatus(apple2SlotId).getId().toString(),
+                        agentStatus.getSlotStatus(bananaSlotId).getId().toString()),
                 MIN_PREFIX_SIZE);
 
         assertEqualsNoOrder(actual, ImmutableList.of(

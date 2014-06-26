@@ -508,7 +508,8 @@ public class TestCliIntegration
         }
     }
 
-    private static class MockOutputFormat implements OutputFormat
+    private static class MockOutputFormat
+            implements OutputFormat
     {
         private List<CoordinatorStatusRepresentation> coordinators;
         private List<AgentStatusRepresentation> agents;
@@ -540,7 +541,8 @@ public class TestCliIntegration
         }
     }
 
-    private static class MockInteractiveUser implements InteractiveUser
+    private static class MockInteractiveUser
+            implements InteractiveUser
     {
         private boolean answer;
 

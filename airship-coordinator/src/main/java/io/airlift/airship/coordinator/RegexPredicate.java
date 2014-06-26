@@ -6,7 +6,8 @@ import javax.annotation.Nullable;
 
 import java.util.regex.Pattern;
 
-public class RegexPredicate implements Predicate<CharSequence>
+public class RegexPredicate
+        implements Predicate<CharSequence>
 {
     private final Pattern pattern;
 

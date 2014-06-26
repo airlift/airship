@@ -19,7 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-public class Config implements Iterable<Entry<String, Collection<String>>>
+public class Config
+        implements Iterable<Entry<String, Collection<String>>>
 {
     private final LinkedListMultimap<String, String> configuration;
     private final File file;

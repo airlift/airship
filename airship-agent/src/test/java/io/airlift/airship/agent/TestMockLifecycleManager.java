@@ -22,7 +22,8 @@ import java.util.UUID;
 import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 
-public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
+public class TestMockLifecycleManager
+        extends AbstractLifecycleManagerTest
 {
     @BeforeMethod
     protected void setUp()
@@ -35,7 +36,7 @@ public class TestMockLifecycleManager extends AbstractLifecycleManagerTest
                 new File("apple"),
                 new File("apple-data"),
                 APPLE_ASSIGNMENT,
-                ImmutableMap.<String, Integer>of( "memory", 512));
+                ImmutableMap.<String, Integer>of("memory", 512));
         bananaDeployment = new Deployment(
                 UUID.randomUUID(),
                 "location/banana",

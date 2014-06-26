@@ -41,7 +41,6 @@ public class TestSlotFilterBuilder
             null,
             null);
 
-
     private Predicate<SlotStatus> buildFilter(String key, String value, List<UUID> uuids)
     {
         return SlotFilterBuilder.build(MockUriInfo.from("fake://localhost?" + key + "=" + value), true, uuids);
@@ -206,7 +205,6 @@ public class TestSlotFilterBuilder
         assertTrue(buildFilter("binary", "io.airlift:sample-server:tar.gz:*:0.35-SNAPSHOT").apply(status));
         assertTrue(new BinarySpecPredicate("io.airlift:sample-server:tar.gz:distribution:*").apply(status));
         assertTrue(buildFilter("binary", "io.airlift:sample-server:tar.gz:distribution:*").apply(status));
-
 
         assertTrue(new BinarySpecPredicate("i*:s*:t*:d*:0*").apply(status));
         assertTrue(buildFilter("binary", "i*:s*:t*:d*:0*").apply(status));

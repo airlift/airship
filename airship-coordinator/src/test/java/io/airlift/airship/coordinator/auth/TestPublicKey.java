@@ -170,7 +170,7 @@ public class TestPublicKey
             bytes = Arrays.copyOfRange(bytes, 1, 21);
         }
         while (bytes.length < 20) {
-            bytes = Bytes.concat(new byte[] { 0 }, bytes);
+            bytes = Bytes.concat(new byte[] {0}, bytes);
         }
         assertEquals(bytes.length, 20, encodeHexString(bytes));
         assertEquals(new BigInteger(1, bytes), n, encodeHexString(bytes));

@@ -25,5 +25,4 @@ class ZipPackager
         }
         out.finish();
     }
-
 }

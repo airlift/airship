@@ -9,7 +9,8 @@ import org.fusesource.jansi.Ansi.Color;
 
 import static io.airlift.airship.cli.Ansi.colorize;
 
-public class SlotRecord implements Record
+public class SlotRecord
+        implements Record
 {
 
     public static ImmutableList<Record> toSlotRecords(Iterable<SlotStatusRepresentation> slots)
@@ -87,10 +88,12 @@ public class SlotRecord implements Record
             SlotLifecycleState state = SlotLifecycleState.lookup(toString(value));
             if (SlotLifecycleState.RUNNING == state) {
                 return colorize(state, Color.GREEN);
-            } else if (SlotLifecycleState.UNKNOWN == state) {
+            }
+            else if (SlotLifecycleState.UNKNOWN == state) {
                 return colorize(state, Color.RED);
             }
-        } else if (Column.statusMessage == column) {
+        }
+        else if (Column.statusMessage == column) {
             return colorize(value, Color.RED);
         }
         return toString(value);

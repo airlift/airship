@@ -57,6 +57,5 @@ public class SnapshotCommand
         System.out.println(format("Uploaded %s-%s", bundle.getName(), bundle.getVersionString()));
 
         return null;
-
     }
 }

@@ -63,12 +63,15 @@ public class MavenCoordinates
         List<String> parts = ImmutableList.copyOf(Splitter.on(':').split(coordinates));
         if (parts.size() == 5) {
             return new MavenCoordinates(parts.get(0), parts.get(1), parts.get(4), parts.get(2), parts.get(3), null);
-        } else if (parts.size() == 4) {
+        }
+        else if (parts.size() == 4) {
             return new MavenCoordinates(parts.get(0), parts.get(1), parts.get(3), parts.get(2), null, null);
-        } else if (defaultPackaging != null) {
+        }
+        else if (defaultPackaging != null) {
             if (parts.size() == 3) {
                 return new MavenCoordinates(parts.get(0), parts.get(1), parts.get(2), defaultPackaging, null, null);
-            } else if (parts.size() == 2) {
+            }
+            else if (parts.size() == 2) {
                 return new MavenCoordinates(null, parts.get(0), parts.get(1), defaultPackaging, null, null);
             }
         }
@@ -108,15 +111,14 @@ public class MavenCoordinates
         else {
             if (fileVersion != null) {
                 sb.append(fileVersion);
-            } else {
+            }
+            else {
                 sb.append(version);
             }
         }
 
         return sb.toString();
     }
-
-
 
     private final String groupId;
     private final String artifactId;
@@ -168,7 +170,8 @@ public class MavenCoordinates
     {
         if (fileVersion != null) {
             return fileVersion;
-        } else {
+        }
+        else {
             return version;
         }
     }

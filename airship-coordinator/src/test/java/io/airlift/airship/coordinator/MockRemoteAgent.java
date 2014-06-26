@@ -24,7 +24,8 @@ import static io.airlift.airship.shared.AgentLifecycleState.OFFLINE;
 import static io.airlift.airship.shared.HttpUriBuilder.uriBuilderFrom;
 import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
 
-public class MockRemoteAgent implements RemoteAgent
+public class MockRemoteAgent
+        implements RemoteAgent
 {
     private final String instanceId;
     private final Map<String, AgentStatus> agents;
@@ -105,7 +106,8 @@ public class MockRemoteAgent implements RemoteAgent
         AgentStatus agentStatus = agents.get(instanceId);
         if (agentStatus != null) {
             return agentStatus;
-        } else {
+        }
+        else {
             return new AgentStatus(null,
                     AgentLifecycleState.OFFLINE,
                     instanceId,

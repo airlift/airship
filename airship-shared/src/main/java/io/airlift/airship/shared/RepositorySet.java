@@ -10,7 +10,8 @@ import java.util.Set;
 
 import static com.google.common.collect.Sets.newTreeSet;
 
-public class RepositorySet implements Repository
+public class RepositorySet
+        implements Repository
 {
     private final Set<Repository> repositories;
 
@@ -48,7 +49,7 @@ public class RepositorySet implements Repository
                 relativeConfigs.add(relativeConfig);
             }
         }
-        
+
         // if we end up with more than one form for the relative config, just return the absolute config
         if (relativeConfigs.size() != 1) {
             return config;
@@ -77,7 +78,6 @@ public class RepositorySet implements Repository
 
         return configs.iterator().next();
     }
-
 
     @Override
     public String configUpgrade(String config, String version)

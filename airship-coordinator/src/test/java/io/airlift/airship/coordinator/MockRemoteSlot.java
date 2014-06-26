@@ -10,7 +10,8 @@ import static io.airlift.airship.shared.SlotLifecycleState.RUNNING;
 import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 
-public class MockRemoteSlot implements RemoteSlot
+public class MockRemoteSlot
+        implements RemoteSlot
 {
     private SlotStatus slotStatus;
     private final MockRemoteAgent mockRemoteAgent;
@@ -26,7 +27,6 @@ public class MockRemoteSlot implements RemoteSlot
     {
         return slotStatus.getId();
     }
-
 
     @Override
     public SlotStatus status()

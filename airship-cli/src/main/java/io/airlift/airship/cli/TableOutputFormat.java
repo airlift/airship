@@ -19,7 +19,8 @@ import static io.airlift.airship.cli.Column.statusMessage;
 import static io.airlift.airship.cli.CoordinatorRecord.toCoordinatorRecords;
 import static io.airlift.airship.cli.SlotRecord.toSlotRecords;
 
-public class TableOutputFormat implements OutputFormat
+public class TableOutputFormat
+        implements OutputFormat
 {
     private final String environmentRef;
     private final Config config;
@@ -71,7 +72,8 @@ public class TableOutputFormat implements OutputFormat
     {
         if ("true".equalsIgnoreCase(config.get("environment." + environmentRef + ".use-internal-address"))) {
             return internalHost;
-        } else {
+        }
+        else {
             return externalHost;
         }
     }

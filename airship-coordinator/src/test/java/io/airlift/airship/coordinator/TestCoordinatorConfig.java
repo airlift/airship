@@ -17,14 +17,14 @@ public class TestCoordinatorConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(CoordinatorConfig.class)
-                .setStatusExpiration(new Duration(5, TimeUnit.SECONDS))
-                .setServiceInventoryCacheDir("service-inventory-cache")
-                .setAllowDuplicateInstallationsOnAnAgent(false)
-                .setRepositories("")
-                .setDefaultRepositoryGroupId("")
-                .setHttpShortNamePattern(DEFAULT_HTTP_SHORT_NAME_PATTERN)
-                .setHttpRepoBinaryVersionPattern(null)
-                .setHttpRepoConfigVersionPattern(null)
+                        .setStatusExpiration(new Duration(5, TimeUnit.SECONDS))
+                        .setServiceInventoryCacheDir("service-inventory-cache")
+                        .setAllowDuplicateInstallationsOnAnAgent(false)
+                        .setRepositories("")
+                        .setDefaultRepositoryGroupId("")
+                        .setHttpShortNamePattern(DEFAULT_HTTP_SHORT_NAME_PATTERN)
+                        .setHttpRepoBinaryVersionPattern(null)
+                        .setHttpRepoConfigVersionPattern(null)
         );
     }
 
@@ -54,5 +54,4 @@ public class TestCoordinatorConfig
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }
-
 }

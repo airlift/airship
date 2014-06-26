@@ -7,7 +7,8 @@ import io.airlift.discovery.client.ServiceDescriptor;
 
 import java.util.List;
 
-public class MockServiceInventory implements ServiceInventory
+public class MockServiceInventory
+        implements ServiceInventory
 {
     private ImmutableList<ServiceDescriptor> serviceInventory = ImmutableList.of();
 

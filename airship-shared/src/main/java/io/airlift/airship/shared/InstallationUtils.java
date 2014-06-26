@@ -21,7 +21,6 @@ public class InstallationUtils
     {
         assignment = resolveAssignment(repository, assignment);
 
-
         // load resources
         Map<String, Integer> resources = readResources(repository, assignment);
 

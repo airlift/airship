@@ -155,7 +155,6 @@ public class AuthFilter
                 return;
             }
 
-
             // verify signature
             AuthorizedKey authorizedKey = verifier.verify(fingerprint, signature, bytesToSign);
             if (authorizedKey == null) {

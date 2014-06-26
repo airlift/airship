@@ -50,7 +50,6 @@ public abstract class AbstractLifecycleManagerTest
         // stopped.kill => stopped
         assertEquals(manager.kill(appleDeployment), STOPPED);
         assertEquals(manager.status(appleDeployment), STOPPED);
-
     }
 
     @Test

@@ -8,7 +8,8 @@ import java.util.Map;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static io.airlift.airship.cli.Ansi.colorize;
 
-public class SimpleRecord implements Record
+public class SimpleRecord
+        implements Record
 {
     public static Builder builder()
     {

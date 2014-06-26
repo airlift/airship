@@ -60,7 +60,8 @@ public class TestStrings
     }
 
     @Test
-    public void testTrim() {
+    public void testTrim()
+    {
         assertEquals(trimLeadingSegments("/a/b/c", '/', 0), "/a/b/c");
         assertEquals(trimLeadingSegments("/a/b/c", '/', 1), "/b/c");
         assertEquals(trimLeadingSegments("/a/b/c", '/', 2), "/c");
@@ -100,5 +101,4 @@ public class TestStrings
     {
         shortestUniquePrefix(of("aa", "aaa", "aa", "aa"));
     }
-
 }

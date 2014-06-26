@@ -24,7 +24,8 @@ import static io.airlift.airship.shared.FileUtils.extractTar;
 import static io.airlift.airship.shared.FileUtils.listFiles;
 import static io.airlift.json.JsonCodec.jsonCodec;
 
-public class DirectoryDeploymentManager implements DeploymentManager
+public class DirectoryDeploymentManager
+        implements DeploymentManager
 {
     private static final Logger log = Logger.get(DirectoryDeploymentManager.class);
     private final JsonCodec<DeploymentRepresentation> jsonCodec = jsonCodec(DeploymentRepresentation.class);

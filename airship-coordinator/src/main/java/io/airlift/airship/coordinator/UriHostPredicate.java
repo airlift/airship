@@ -8,7 +8,8 @@ import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.URI;
 
-public class UriHostPredicate implements Predicate<URI>
+public class UriHostPredicate
+        implements Predicate<URI>
 {
     private final Predicate<CharSequence> predicate;
 

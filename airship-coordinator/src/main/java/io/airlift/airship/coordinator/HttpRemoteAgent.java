@@ -42,7 +42,8 @@ import static io.airlift.http.client.StatusResponseHandler.StatusResponse;
 import static io.airlift.http.client.StatusResponseHandler.createStatusResponseHandler;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-public class HttpRemoteAgent implements RemoteAgent
+public class HttpRemoteAgent
+        implements RemoteAgent
 {
     private static final Logger log = Logger.get(HttpRemoteAgent.class);
 

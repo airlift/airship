@@ -79,5 +79,5 @@ public class CoordinatorLifecycleResource
         return Response.ok(transform(results, fromSlotStatus(coordinator.getAllSlotStatus(), repository)))
                 .header(AIRSHIP_SLOTS_VERSION_HEADER, createSlotsVersion(results))
                 .build();
-     }
+    }
 }

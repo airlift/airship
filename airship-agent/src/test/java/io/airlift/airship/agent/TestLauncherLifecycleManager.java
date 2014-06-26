@@ -43,7 +43,8 @@ import static io.airlift.airship.shared.SlotLifecycleState.STOPPED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-public class TestLauncherLifecycleManager extends AbstractLifecycleManagerTest
+public class TestLauncherLifecycleManager
+        extends AbstractLifecycleManagerTest
 {
     private File tempDir;
     private File slotDir;

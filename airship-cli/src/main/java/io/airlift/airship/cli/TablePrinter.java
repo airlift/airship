@@ -112,5 +112,4 @@ public class TablePrinter
         }
         return result.toString();
     }
-
 }

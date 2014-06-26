@@ -69,7 +69,6 @@ public class PemDecoder
         throw new IllegalArgumentException("Unknown key type " + pem.getType());
     }
 
-
     public static Pem parsePem(String pemData)
             throws IOException
     {
@@ -85,7 +84,8 @@ public class PemDecoder
         throw new IllegalArgumentException("Invalid pem data: missing BEGIN");
     }
 
-    public static String parseBegin(String line) {
+    public static String parseBegin(String line)
+    {
         Pattern beginPattern = Pattern.compile("-----BEGIN (.*)-----");
         Matcher matcher = beginPattern.matcher(line);
         if (matcher.matches()) {
@@ -115,8 +115,8 @@ public class PemDecoder
     {
         ListMultimap<String, String> headers = ArrayListMultimap.create();
         for (String line = iterator.peek();
-             line != null && !line.startsWith(keyEnd) && line.contains(":");
-             line = iterator.peek()) {
+                line != null && !line.startsWith(keyEnd) && line.contains(":");
+                line = iterator.peek()) {
 
             // consume line from iterator
             iterator.next();
@@ -140,8 +140,8 @@ public class PemDecoder
     {
         StringBuilder body = new StringBuilder();
         for (String line = iterator.peek();
-             line != null && !line.startsWith(keyEnd);
-             line = iterator.peek()) {
+                line != null && !line.startsWith(keyEnd);
+                line = iterator.peek()) {
 
             // consume line from iterator
             iterator.next();

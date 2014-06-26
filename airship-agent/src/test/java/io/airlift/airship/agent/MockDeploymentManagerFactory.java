@@ -18,7 +18,8 @@ import io.airlift.airship.shared.Installation;
 
 import java.util.List;
 
-public class MockDeploymentManagerFactory implements DeploymentManagerFactory
+public class MockDeploymentManagerFactory
+        implements DeploymentManagerFactory
 {
     @Override
     public List<DeploymentManager> loadSlots()

@@ -8,7 +8,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class InMemoryStateManager implements StateManager
+public class InMemoryStateManager
+        implements StateManager
 {
     private final ConcurrentMap<String, ExpectedSlotStatus> expectedState = new ConcurrentHashMap<String, ExpectedSlotStatus>();
 

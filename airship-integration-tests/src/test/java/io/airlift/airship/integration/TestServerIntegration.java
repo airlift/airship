@@ -332,7 +332,6 @@ public class TestServerIntegration
         assertEquals(coordinator.getCoordinator(instanceId).getExternalUri(), coordinatorServer.getInstance().getExternalUri());
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
 
-
         request = Request.Builder.prepareGet()
                 .setUri(coordinatorUriBuilder().appendPath("/v1/admin/coordinator").build())
                 .build();
@@ -595,7 +594,6 @@ public class TestServerIntegration
         assertEquals(bananaSlot.status().getState(), RUNNING);
     }
 
-
     @Test
     public void testKill()
             throws Exception
@@ -622,7 +620,6 @@ public class TestServerIntegration
         assertEquals(appleSlot2.status().getState(), STOPPED);
         assertEquals(bananaSlot.status().getState(), RUNNING);
     }
-
 
     @Test
     public void testShow()

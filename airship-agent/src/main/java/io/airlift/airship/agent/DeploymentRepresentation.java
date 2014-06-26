@@ -50,7 +50,8 @@ public class DeploymentRepresentation
         this.assignment = assignment;
         if (resources == null) {
             this.resources = ImmutableMap.of();
-        } else {
+        }
+        else {
             this.resources = ImmutableMap.copyOf(resources);
         }
     }

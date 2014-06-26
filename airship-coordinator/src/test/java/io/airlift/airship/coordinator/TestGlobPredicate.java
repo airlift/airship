@@ -51,6 +51,5 @@ public class TestGlobPredicate
         assertFalse(globPredicate.apply("html"));
         assertFalse(globPredicate.apply("*.{txt,html}"));
         assertFalse(globPredicate.apply("readme.txthtml"));
-
     }
 }

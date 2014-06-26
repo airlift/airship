@@ -37,7 +37,8 @@ import static io.airlift.airship.shared.SlotLifecycleState.TERMINATED;
 import static io.airlift.airship.shared.SlotLifecycleState.UNKNOWN;
 import static io.airlift.airship.shared.SlotStatus.createSlotStatus;
 
-public class DeploymentSlot implements Slot
+public class DeploymentSlot
+        implements Slot
 {
     private static final Logger log = Logger.get(DeploymentSlot.class);
 
@@ -208,7 +209,8 @@ public class DeploymentSlot implements Slot
             SlotLifecycleState state;
             if (shouldStart) {
                 state = lifecycleManager.start(deployment);
-            } else {
+            }
+            else {
                 state = STOPPED;
             }
 
@@ -401,7 +403,6 @@ public class DeploymentSlot implements Slot
             throw new RuntimeException(e);
         }
     }
-
 
     private void unlock()
     {

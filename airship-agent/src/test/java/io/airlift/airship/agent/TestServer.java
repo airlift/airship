@@ -94,7 +94,6 @@ public class TestServer
     private Installation bananaInstallation;
     private File tempDir;
 
-
     @BeforeClass
     public void startServer()
             throws Exception
@@ -262,7 +261,6 @@ public class TestServer
 
         assertEquals(response.getValue(), expected);
     }
-
 
     @Test
     public void testTerminateSlot()

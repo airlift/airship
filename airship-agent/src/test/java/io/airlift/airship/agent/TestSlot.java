@@ -119,6 +119,5 @@ public class TestSlot
         // stopped.kill => stopped
         assertEquals(slot.kill(), stopped);
         assertEquals(slot.status(), stopped);
-
     }
 }

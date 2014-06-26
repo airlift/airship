@@ -21,7 +21,8 @@ import static io.airlift.airship.shared.Strings.trimLeadingSegments;
 
 public class CoordinatorStatusRepresentation
 {
-    public static class CoordinatorStatusRepresentationFactory {
+    public static class CoordinatorStatusRepresentationFactory
+    {
         public static final int MIN_PREFIX_SIZE = 4;
         public static final int MIN_LOCATION_SEGMENTS = 2;
 
@@ -45,7 +46,8 @@ public class CoordinatorStatusRepresentation
             this.commonLocationParts = commonLocationParts;
         }
 
-        public CoordinatorStatusRepresentation create(CoordinatorStatus status) {
+        public CoordinatorStatusRepresentation create(CoordinatorStatus status)
+        {
             return new CoordinatorStatusRepresentation(
                     status.getCoordinatorId(),
                     safeTruncate(status.getCoordinatorId(), shortIdPrefixSize),

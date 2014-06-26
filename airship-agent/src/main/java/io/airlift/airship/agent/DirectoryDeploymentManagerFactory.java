@@ -20,7 +20,8 @@ import java.util.Set;
 
 import static io.airlift.airship.shared.FileUtils.listFiles;
 
-public class DirectoryDeploymentManagerFactory implements DeploymentManagerFactory
+public class DirectoryDeploymentManagerFactory
+        implements DeploymentManagerFactory
 {
     private final String location;
     private final Duration tarTimeout;
@@ -102,13 +103,14 @@ public class DirectoryDeploymentManagerFactory implements DeploymentManagerFacto
         String baseName;
         if (mavenCoordinates != null) {
             baseName = mavenCoordinates.getArtifactId();
-        } else if (configSpec.startsWith("@")) {
+        }
+        else if (configSpec.startsWith("@")) {
 
             baseName = configSpec.substring(1);
-        } else {
+        }
+        else {
             baseName = configSpec;
         }
         return baseName;
     }
-
 }

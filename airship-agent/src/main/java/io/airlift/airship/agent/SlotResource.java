@@ -135,7 +135,6 @@ public class SlotResource
                 .build();
     }
 
-
     private static URI getSelfUri(UUID slotId, URI baseUri)
     {
         return uriBuilderFrom(baseUri).appendPath("/v1/agent/slot/").appendPath(slotId.toString()).build();

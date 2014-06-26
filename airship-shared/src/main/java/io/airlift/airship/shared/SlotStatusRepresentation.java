@@ -37,7 +37,8 @@ import static io.airlift.airship.shared.Strings.trimLeadingSegments;
 
 public class SlotStatusRepresentation
 {
-    public static class SlotStatusRepresentationFactory {
+    public static class SlotStatusRepresentationFactory
+    {
         public static final int MIN_PREFIX_SIZE = 4;
         public static final int MIN_LOCATION_SEGMENTS = 2;
 
@@ -64,7 +65,8 @@ public class SlotStatusRepresentation
             this.repository = repository;
         }
 
-        public SlotStatusRepresentation create(SlotStatus status) {
+        public SlotStatusRepresentation create(SlotStatus status)
+        {
             String binary = null;
             String config = null;
             String shortBinary = null;
@@ -75,11 +77,11 @@ public class SlotStatusRepresentation
                 if (repository != null) {
                     shortBinary = Objects.firstNonNull(repository.binaryRelativize(binary), binary);
                     shortConfig = Objects.firstNonNull(repository.configRelativize(config), config);
-                } else {
+                }
+                else {
                     shortBinary = binary;
                     shortConfig = config;
                 }
-
             }
 
             String expectedBinary = null;
@@ -152,7 +154,8 @@ public class SlotStatusRepresentation
         };
     }
 
-    public static SlotStatusRepresentation from(SlotStatus status) {
+    public static SlotStatusRepresentation from(SlotStatus status)
+    {
         return new SlotStatusRepresentationFactory().create(status);
     }
 
@@ -168,11 +171,11 @@ public class SlotStatusRepresentation
             if (repository != null) {
                 shortBinary = Objects.firstNonNull(repository.binaryRelativize(binary), binary);
                 shortConfig = Objects.firstNonNull(repository.configRelativize(config), config);
-            } else {
+            }
+            else {
                 shortBinary = binary;
                 shortConfig = config;
             }
-
         }
 
         String expectedBinary = null;
@@ -402,14 +405,16 @@ public class SlotStatusRepresentation
                 statusMessage);
     }
 
-    public String getExternalHost() {
+    public String getExternalHost()
+    {
         if (externalUri == null) {
             return null;
         }
         return externalUri.getHost();
     }
 
-    public String getInternalHost() {
+    public String getInternalHost()
+    {
         if (self == null) {
             return null;
         }

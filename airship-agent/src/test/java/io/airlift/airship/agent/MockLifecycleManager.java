@@ -22,7 +22,8 @@ import java.util.UUID;
 
 import static com.google.common.collect.Maps.newHashMap;
 
-public class MockLifecycleManager implements LifecycleManager
+public class MockLifecycleManager
+        implements LifecycleManager
 {
     private final Map<UUID, SlotLifecycleState> states = newHashMap();
     private final Set<UUID> nodeConfigUpdated = Sets.newHashSet();

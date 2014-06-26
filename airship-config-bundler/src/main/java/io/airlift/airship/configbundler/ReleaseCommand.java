@@ -14,7 +14,6 @@ import java.util.concurrent.Callable;
 
 import static java.lang.String.format;
 
-
 @Command(name = "release", description = "Build and release a config bundle")
 public class ReleaseCommand
         implements Callable<Void>
@@ -74,6 +73,4 @@ public class ReleaseCommand
 
         return null;
     }
-
-
 }

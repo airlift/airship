@@ -94,7 +94,7 @@ public class Airship
     public static final Cli<AirshipCommand> AIRSHIP_PARSER;
 
     static {
-        CliBuilder<AirshipCommand> builder =  Cli.<AirshipCommand>builder("airship")
+        CliBuilder<AirshipCommand> builder = Cli.<AirshipCommand>builder("airship")
                 .withDescription("cloud management system")
                 .withDefaultCommand(HelpCommand.class)
                 .withCommand(HelpCommand.class)
@@ -191,7 +191,8 @@ public class Airship
         }
 
         @VisibleForTesting
-        public abstract void execute() throws Exception;
+        public abstract void execute()
+                throws Exception;
     }
 
     public static abstract class AirshipCommanderCommand
@@ -288,7 +289,6 @@ public class Airship
         public abstract void execute(Commander commander)
                 throws Exception;
 
-
         public boolean ask(String question, boolean defaultValue)
         {
             return interactiveUser.ask(question, defaultValue);
@@ -339,14 +339,15 @@ public class Airship
             outputFormat.displayCoordinators(coordinators);
         }
 
-        protected interface SlotExecution {
+        protected interface SlotExecution
+        {
             void execute(Commander commander, SlotFilter slotFilter, String expectedVersion);
         }
-
     }
 
     @Command(name = "help", description = "Display help information about airship")
-    public static class HelpCommand extends AirshipCommand
+    public static class HelpCommand
+            extends AirshipCommand
     {
         @Inject
         public Help help;
@@ -370,7 +371,8 @@ public class Airship
     }
 
     @Command(name = "show", description = "Show state of all slots")
-    public static class ShowCommand extends AirshipCommanderCommand
+    public static class ShowCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -395,7 +397,8 @@ public class Airship
     }
 
     @Command(name = "install", description = "Install software in a new slot")
-    public static class InstallCommand extends AirshipCommanderCommand
+    public static class InstallCommand
+            extends AirshipCommanderCommand
     {
         @Option(name = {"--count"}, description = "Number of instances to install")
         public int count = 1;
@@ -489,7 +492,8 @@ public class Airship
     }
 
     @Command(name = "upgrade", description = "Upgrade software in a slot")
-    public static class UpgradeCommand extends AirshipCommanderCommand
+    public static class UpgradeCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -549,7 +553,8 @@ public class Airship
     }
 
     @Command(name = "terminate", description = "Terminate (remove) a slot")
-    public static class TerminateCommand extends AirshipCommanderCommand
+    public static class TerminateCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -580,7 +585,8 @@ public class Airship
     }
 
     @Command(name = "start", description = "Start a server")
-    public static class StartCommand extends AirshipCommanderCommand
+    public static class StartCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -600,7 +606,8 @@ public class Airship
     }
 
     @Command(name = "stop", description = "Stop a server")
-    public static class StopCommand extends AirshipCommanderCommand
+    public static class StopCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -620,7 +627,8 @@ public class Airship
     }
 
     @Command(name = "kill", description = "Kill a server")
-    public static class KillCommand extends AirshipCommanderCommand
+    public static class KillCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -640,7 +648,8 @@ public class Airship
     }
 
     @Command(name = "restart", description = "Restart server")
-    public static class RestartCommand extends AirshipCommanderCommand
+    public static class RestartCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -660,7 +669,8 @@ public class Airship
     }
 
     @Command(name = "reset-to-actual", description = "Reset slot expected state to actual")
-    public static class ResetToActualCommand extends AirshipCommanderCommand
+    public static class ResetToActualCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -680,7 +690,8 @@ public class Airship
     }
 
     @Command(name = "ssh", description = "ssh to slot installation")
-    public static class SshCommand extends AirshipCommanderCommand
+    public static class SshCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final SlotFilter slotFilter = new SlotFilter();
@@ -708,7 +719,8 @@ public class Airship
     }
 
     @Command(name = "show", description = "Show coordinator details")
-    public static class CoordinatorShowCommand extends AirshipCommanderCommand
+    public static class CoordinatorShowCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final CoordinatorFilter coordinatorFilter = new CoordinatorFilter();
@@ -734,7 +746,8 @@ public class Airship
     }
 
     @Command(name = "provision", description = "Provision a new coordinator")
-    public static class CoordinatorProvisionCommand extends AirshipCommanderCommand
+    public static class CoordinatorProvisionCommand
+            extends AirshipCommanderCommand
     {
         @Option(name = "--coordinator-config", description = "Configuration for the coordinator")
         public String coordinatorConfig;
@@ -809,7 +822,8 @@ public class Airship
     }
 
     @Command(name = "ssh", description = "ssh to coordinator host")
-    public static class CoordinatorSshCommand extends AirshipCommanderCommand
+    public static class CoordinatorSshCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final CoordinatorFilter coordinatorFilter = new CoordinatorFilter();
@@ -836,7 +850,8 @@ public class Airship
     }
 
     @Command(name = "show", description = "Show agent details")
-    public static class AgentShowCommand extends AirshipCommanderCommand
+    public static class AgentShowCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final AgentFilter agentFilter = new AgentFilter();
@@ -862,7 +877,8 @@ public class Airship
     }
 
     @Command(name = "provision", description = "Provision a new agent")
-    public static class AgentProvisionCommand extends AirshipCommanderCommand
+    public static class AgentProvisionCommand
+            extends AirshipCommanderCommand
     {
         @Option(name = "--agent-config", description = "Agent for the coordinator")
         public String agentConfig;
@@ -919,7 +935,8 @@ public class Airship
     }
 
     @Command(name = "terminate", description = "Terminate an agent")
-    public static class AgentTerminateCommand extends AirshipCommanderCommand
+    public static class AgentTerminateCommand
+            extends AirshipCommanderCommand
     {
         @Arguments(title = "agent-id", description = "Agent to terminate", required = true)
         public String agentId;
@@ -945,7 +962,8 @@ public class Airship
     }
 
     @Command(name = "ssh", description = "ssh to agent host")
-    public static class AgentSshCommand extends AirshipCommanderCommand
+    public static class AgentSshCommand
+            extends AirshipCommanderCommand
     {
         @Inject
         public final AgentFilter agentFilter = new AgentFilter();
@@ -972,7 +990,8 @@ public class Airship
     }
 
     @Command(name = "provision-local", description = "Provision a local environment")
-    public static class EnvironmentProvisionLocal extends AirshipCommand
+    public static class EnvironmentProvisionLocal
+            extends AirshipCommand
     {
         @Option(name = "--name", description = "Environment name")
         public String environment;
@@ -1068,7 +1087,8 @@ public class Airship
     }
 
     @Command(name = "provision-aws", description = "Provision an AWS environment")
-    public static class EnvironmentProvisionAws extends AirshipCommand
+    public static class EnvironmentProvisionAws
+            extends AirshipCommand
     {
         @Option(name = "--name", description = "Environment name")
         public String environment;
@@ -1280,32 +1300,32 @@ public class Airship
 
             Map<String, ImmutableList<Object>> policy =
                     ImmutableMap.of("Statement", ImmutableList.builder()
-                            .add(ImmutableMap.builder()
-                                    .put("Action", ImmutableList.of(
-                                            "ec2:CreateTags",
-                                            "ec2:DeleteTags",
-                                            "ec2:DescribeAvailabilityZones",
-                                            "ec2:DescribeInstances",
-                                            "ec2:RunInstances",
-                                            "ec2:StartInstances",
-                                            "ec2:StopInstances",
-                                            "ec2:TerminateInstances"
-                                    ))
-                                    .put("Effect", "Allow")
-                                    .put("Resource", "*")
-                                    .build())
-                            .add(ImmutableMap.builder()
-                                    .put("Action", ImmutableList.of(
-                                            "sdb:CreateDomain",
-                                            "sdb:PutAttributes",
-                                            "sdb:BatchDeleteAttributes",
-                                            "sdb:DeleteAttributes",
-                                            "sdb:Select"
-                                    ))
-                                    .put("Effect", "Allow")
-                                    .put("Resource", "arn:aws:sdb:*:*:domain/" + simpleDbName)
-                                    .build())
-                            .build()
+                                    .add(ImmutableMap.builder()
+                                            .put("Action", ImmutableList.of(
+                                                    "ec2:CreateTags",
+                                                    "ec2:DeleteTags",
+                                                    "ec2:DescribeAvailabilityZones",
+                                                    "ec2:DescribeInstances",
+                                                    "ec2:RunInstances",
+                                                    "ec2:StartInstances",
+                                                    "ec2:StopInstances",
+                                                    "ec2:TerminateInstances"
+                                            ))
+                                            .put("Effect", "Allow")
+                                            .put("Resource", "*")
+                                            .build())
+                                    .add(ImmutableMap.builder()
+                                            .put("Action", ImmutableList.of(
+                                                    "sdb:CreateDomain",
+                                                    "sdb:PutAttributes",
+                                                    "sdb:BatchDeleteAttributes",
+                                                    "sdb:DeleteAttributes",
+                                                    "sdb:Select"
+                                            ))
+                                            .put("Effect", "Allow")
+                                            .put("Resource", "arn:aws:sdb:*:*:domain/" + simpleDbName)
+                                            .build())
+                                    .build()
                     );
 
             String policyJson = JsonCodec.jsonCodec(Object.class).toJson(policy);
@@ -1364,7 +1384,8 @@ public class Airship
     }
 
     @Command(name = "show", description = "Show environment details")
-    public static class EnvironmentShow extends AirshipCommand
+    public static class EnvironmentShow
+            extends AirshipCommand
     {
         @Arguments(description = "Environment to show")
         public String ref;
@@ -1405,7 +1426,8 @@ public class Airship
 
                 if (realEnvironmentName.equals(ref)) {
                     System.out.printf("* Environment: %s%n", ref);
-                } else {
+                }
+                else {
                     System.out.printf("* Environment reference: %s%n", ref);
                     System.out.printf("  Environment name: %s%n", realEnvironmentName);
                 }
@@ -1418,7 +1440,8 @@ public class Airship
     }
 
     @Command(name = "add", description = "Add an environment")
-    public static class EnvironmentAdd extends AirshipCommand
+    public static class EnvironmentAdd
+            extends AirshipCommand
     {
         @Option(name = "--name", description = "Environment name")
         public String environment;
@@ -1457,7 +1480,8 @@ public class Airship
     }
 
     @Command(name = "remove", description = "Remove an environment")
-    public static class EnvironmentRemove extends AirshipCommand
+    public static class EnvironmentRemove
+            extends AirshipCommand
     {
         @Arguments(description = "Environment to remove")
         public String ref;
@@ -1483,7 +1507,8 @@ public class Airship
     }
 
     @Command(name = "use", description = "Set the default environment")
-    public static class EnvironmentUse extends AirshipCommand
+    public static class EnvironmentUse
+            extends AirshipCommand
     {
         @Arguments(description = "Environment to make the default")
         public String ref;
@@ -1506,7 +1531,8 @@ public class Airship
     }
 
     @Command(name = "get", description = "Get a configuration value")
-    public static class ConfigGet extends AirshipCommand
+    public static class ConfigGet
+            extends AirshipCommand
     {
         @Arguments(description = "Key to get")
         public String key;
@@ -1526,7 +1552,8 @@ public class Airship
     }
 
     @Command(name = "get-all", description = "Get all values of configuration")
-    public static class ConfigGetAll extends AirshipCommand
+    public static class ConfigGetAll
+            extends AirshipCommand
     {
         @Arguments(description = "Key to get")
         public String key;
@@ -1545,7 +1572,8 @@ public class Airship
     }
 
     @Command(name = "set", description = "Set a configuration value")
-    public static class ConfigSet extends AirshipCommand
+    public static class ConfigSet
+            extends AirshipCommand
     {
         @Arguments(usage = "<key> <value>",
                 description = "Key-value pair to set")
@@ -1568,7 +1596,8 @@ public class Airship
     }
 
     @Command(name = "add", description = "Add a configuration value")
-    public static class ConfigAdd extends AirshipCommand
+    public static class ConfigAdd
+            extends AirshipCommand
     {
         @Arguments(usage = "<key> <value>",
                 description = "Key-value pair to add")
@@ -1591,7 +1620,8 @@ public class Airship
     }
 
     @Command(name = "unset", description = "Unset a configuration value")
-    public static class ConfigUnset extends AirshipCommand
+    public static class ConfigUnset
+            extends AirshipCommand
     {
         @Arguments(description = "Key to unset")
         public String key;

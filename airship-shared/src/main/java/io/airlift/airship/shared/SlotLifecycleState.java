@@ -41,7 +41,8 @@ public enum SlotLifecycleState
         byName = builder.build();
     }
 
-    public static SlotLifecycleState lookup(String name) {
+    public static SlotLifecycleState lookup(String name)
+    {
         Preconditions.checkNotNull(name, "name is null");
         return byName.get(name.toLowerCase());
     }
@@ -52,6 +53,5 @@ public enum SlotLifecycleState
     {
         this.shortName = shortName;
     }
-
 
 }

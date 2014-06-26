@@ -10,7 +10,8 @@ import org.fusesource.jansi.Ansi.Color;
 
 import static io.airlift.airship.cli.Ansi.colorize;
 
-public class CoordinatorRecord implements Record
+public class CoordinatorRecord
+        implements Record
 {
     public static ImmutableList<Record> toCoordinatorRecords(Iterable<CoordinatorStatusRepresentation> coordinators)
     {
@@ -83,12 +84,15 @@ public class CoordinatorRecord implements Record
             CoordinatorLifecycleState state = CoordinatorLifecycleState.valueOf(toString(value));
             if (CoordinatorLifecycleState.ONLINE == state) {
                 return colorize(state, Color.GREEN);
-            } else if (CoordinatorLifecycleState.OFFLINE == state) {
+            }
+            else if (CoordinatorLifecycleState.OFFLINE == state) {
                 return colorize(state, Color.RED);
-            } else if (CoordinatorLifecycleState.PROVISIONING == state) {
+            }
+            else if (CoordinatorLifecycleState.PROVISIONING == state) {
                 return colorize(state, Color.BLUE);
             }
-        } else if (Column.statusMessage == column) {
+        }
+        else if (Column.statusMessage == column) {
             return colorize(value, Color.RED);
         }
         return toString(value);

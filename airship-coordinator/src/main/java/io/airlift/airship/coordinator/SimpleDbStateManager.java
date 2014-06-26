@@ -26,7 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.collect.Lists.newArrayList;
 
-public class SimpleDbStateManager implements StateManager
+public class SimpleDbStateManager
+        implements StateManager
 {
     private static final Logger log = Logger.get(SimpleDbStateManager.class);
     private final AmazonSimpleDB simpleDb;

@@ -93,10 +93,11 @@ public class AgentStatus
 
     public AgentStatus changeSlotStatus(SlotStatus slotStatus)
     {
-        Map<UUID,SlotStatus> slots = newHashMap(this.slots);
+        Map<UUID, SlotStatus> slots = newHashMap(this.slots);
         if (slotStatus.getState() != TERMINATED) {
             slots.put(slotStatus.getId(), slotStatus);
-        } else {
+        }
+        else {
             slots.remove(slotStatus.getId());
         }
         return new AgentStatus(agentId, state, instanceId, internalUri, externalUri, location, instanceType, slots.values(), resources);
@@ -104,7 +105,7 @@ public class AgentStatus
 
     public AgentStatus changeAllSlotsState(SlotLifecycleState slotState)
     {
-        Map<UUID,SlotStatus> slots = newHashMap(this.slots);
+        Map<UUID, SlotStatus> slots = newHashMap(this.slots);
         for (SlotStatus slotStatus : slots.values()) {
             // set all slots to unknown state
             slots.put(slotStatus.getId(), slotStatus.changeState(slotState));

@@ -44,7 +44,8 @@ public class MockRemoteCoordinator
         CoordinatorStatus coordinatorStatus = coordinators.get(instanceId);
         if (coordinatorStatus != null) {
             return coordinatorStatus;
-        } else {
+        }
+        else {
             return new CoordinatorStatus(null,
                     CoordinatorLifecycleState.OFFLINE,
                     instanceId,

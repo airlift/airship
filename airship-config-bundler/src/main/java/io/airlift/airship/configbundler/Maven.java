@@ -60,7 +60,7 @@ class Maven
     {
         validateRepositoryMetadata(snapshotsRepositoryInfo, "snapshots");
         validateRepositoryMetadata(releasesRepositoryInfo, "releases");
-        
+
         final SettingsBuildingRequest request = new DefaultSettingsBuildingRequest()
                 .setGlobalSettingsFile(DEFAULT_GLOBAL_SETTINGS_FILE)
                 .setUserSettingsFile(DEFAULT_USER_SETTINGS_FILE)
@@ -97,7 +97,7 @@ class Maven
         Preconditions.checkNotNull(info.getId(), "%s repository id is null", name);
         Preconditions.checkNotNull(info.getUri(), "%s repository uri is null", name);
     }
-    
+
     private static RemoteRepository makeRemoteRepository(Metadata.Repository info, Server server, boolean snapshot)
     {
         return new RemoteRepository(info.getId(), "default", info.getUri())
@@ -156,5 +156,4 @@ class Maven
 
         return true;
     }
-
 }

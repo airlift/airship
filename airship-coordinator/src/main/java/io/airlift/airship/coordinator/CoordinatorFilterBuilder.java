@@ -28,12 +28,12 @@ public class CoordinatorFilterBuilder
     {
         CoordinatorFilterBuilder builder = new CoordinatorFilterBuilder();
         for (Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
-            if ("uuid" .equals(entry.getKey())) {
+            if ("uuid".equals(entry.getKey())) {
                 for (String uuidFilter : entry.getValue()) {
                     builder.addUuidFilter(uuidFilter);
                 }
             }
-            if ("!uuid" .equals(entry.getKey())) {
+            if ("!uuid".equals(entry.getKey())) {
                 for (String notUuidFilter : entry.getValue()) {
                     builder.addNotUuidFilter(notUuidFilter);
                 }
@@ -291,7 +291,8 @@ public class CoordinatorFilterBuilder
         return uriBuilder.build();
     }
 
-    public static class UuidPredicate implements Predicate<CoordinatorStatus>
+    public static class UuidPredicate
+            implements Predicate<CoordinatorStatus>
     {
         private final String uuid;
 
@@ -307,7 +308,8 @@ public class CoordinatorFilterBuilder
         }
     }
 
-    public static class HostPredicate implements Predicate<CoordinatorStatus>
+    public static class HostPredicate
+            implements Predicate<CoordinatorStatus>
     {
         private final UriHostPredicate predicate;
 
@@ -324,7 +326,8 @@ public class CoordinatorFilterBuilder
         }
     }
 
-    public static class MachinePredicate implements Predicate<CoordinatorStatus>
+    public static class MachinePredicate
+            implements Predicate<CoordinatorStatus>
     {
         private final GlobPredicate predicate;
 
@@ -340,7 +343,8 @@ public class CoordinatorFilterBuilder
         }
     }
 
-    public static class StatePredicate implements Predicate<CoordinatorStatus>
+    public static class StatePredicate
+            implements Predicate<CoordinatorStatus>
     {
         private final CoordinatorLifecycleState state;
 
@@ -355,5 +359,4 @@ public class CoordinatorFilterBuilder
             return coordinatorStatus.getState() == state;
         }
     }
-
 }

@@ -40,7 +40,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static io.airlift.airship.shared.FileUtils.createTempDir;
 import static io.airlift.airship.shared.FileUtils.deleteRecursively;
 
-public class MockLocalProvisioner implements Provisioner
+public class MockLocalProvisioner
+        implements Provisioner
 {
     private final Map<String, CoordinatorServer> coordinators = new ConcurrentHashMap<>();
     private final Map<String, AgentServer> agents = new ConcurrentHashMap<>();
@@ -236,7 +237,8 @@ public class MockLocalProvisioner implements Provisioner
         }
     }
 
-    private static class GetInstanceFunction implements Function<CoordinatorServer, Instance>
+    private static class GetInstanceFunction
+            implements Function<CoordinatorServer, Instance>
     {
         @Override
         public Instance apply(CoordinatorServer coordinatorServer)
@@ -447,7 +449,8 @@ public class MockLocalProvisioner implements Provisioner
         }
     }
 
-    private static class GetAgentInstanceFunction implements Function<AgentServer, Instance>
+    private static class GetAgentInstanceFunction
+            implements Function<AgentServer, Instance>
     {
         @Override
         public Instance apply(AgentServer agentServer)

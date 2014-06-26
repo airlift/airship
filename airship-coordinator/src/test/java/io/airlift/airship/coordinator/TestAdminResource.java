@@ -184,7 +184,6 @@ public class TestAdminResource
         assertEquals(coordinator.getCoordinator(instanceId).getExternalUri(), coordinatorStatus.getExternalUri());
         assertEquals(coordinator.getCoordinator(instanceId).getState(), CoordinatorLifecycleState.ONLINE);
 
-
         requestUri = URI.create("http://localhost/v1/admin/coordinator");
         response = resource.getAllCoordinators(MockUriInfo.from(requestUri));
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
@@ -294,7 +293,6 @@ public class TestAdminResource
         assertEquals(coordinator.getAgent(instanceId).getInternalUri(), expectedAgentStatus.getInternalUri());
         assertEquals(coordinator.getAgent(instanceId).getExternalUri(), expectedAgentStatus.getExternalUri());
         assertEquals(coordinator.getAgent(instanceId).getState(), AgentLifecycleState.ONLINE);
-
 
         requestUri = URI.create("http://localhost/v1/admin/agent");
         response = resource.getAllAgents(MockUriInfo.from(requestUri));
