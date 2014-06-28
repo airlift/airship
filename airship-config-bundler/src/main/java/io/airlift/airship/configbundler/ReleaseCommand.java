@@ -1,19 +1,18 @@
 package io.airlift.airship.configbundler;
 
-import com.google.common.base.Preconditions;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.util.FS;
 
-import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
-
 
 @Command(name = "release", description = "Build and release a config bundle")
 public class ReleaseCommand
@@ -30,13 +29,10 @@ public class ReleaseCommand
     {
         Model model = new Model(Git.wrap(new RepositoryBuilder().findGitDir().setFS(FS.DETECTED).build()));
         Metadata metadata = model.readMetadata();
-        Metadata.Repository releasesRepository = metadata.getReleasesRepository();
-        String groupId = metadata.getGroupId();
 
-        Preconditions.checkNotNull(releasesRepository, "Releases repository missing from .metadata file");
-        Preconditions.checkNotNull(groupId, "GroupId missing from .metadata file");
+        String groupId = checkNotNull(metadata.getGroupId(), "GroupId missing from .metadata file");
 
-        Preconditions.checkState(!model.isDirty(), "Cannot release with a dirty working tree");
+        checkState(!model.isDirty(), "Cannot deploy release with a dirty working tree");
 
         Bundle bundle;
 
@@ -52,7 +48,7 @@ public class ReleaseCommand
 
         if (!bundle.isSnapshot()) {
             if (maven.contains(groupId, bundle.getName(), bundle.getVersionString(), ARTIFACT_TYPE)) {
-                throw new RuntimeException(format("%s-%s has already been released", bundle.getName(), bundle.getVersionString()));
+                throw new RuntimeException(format("%s:%s-%s has already been released", groupId, bundle.getName(), bundle.getVersionString()));
             }
 
             // re-publish version that has already been tagged
@@ -62,18 +58,19 @@ public class ReleaseCommand
         }
 
         // get entries from tag
-        final Map<String, InputSupplier<InputStream>> entries = model.getEntries(bundle);
+        final Map<String, ByteSource> entries = model.getEntries(bundle);
 
         if (entries.isEmpty()) {
             throw new RuntimeException("Cannot build an empty config package");
         }
 
-        maven.upload(groupId, bundle.getName(), bundle.getVersionString(), ARTIFACT_TYPE, new ZipGenerator(entries));
-
-        System.out.println(format("Uploaded %s-%s", bundle.getName(), bundle.getVersionString()));
+        if (maven.upload(groupId, bundle.getName(), bundle.getVersionString(), ARTIFACT_TYPE, new ZipPackager(entries))) {
+            System.out.printf("Uploaded %s:%s-%s%n", groupId, bundle.getName(), bundle.getVersionString());
+        }
+        else {
+            System.out.printf("Installed %s:%s-%s locally%n", groupId, bundle.getName(), bundle.getVersionString());
+        }
 
         return null;
     }
-
-
 }

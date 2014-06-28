@@ -1,7 +1,7 @@
 package io.airlift.airship.configbundler;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.ByteSource;
 import org.apache.maven.repository.internal.DefaultArtifactDescriptorReader;
 import org.apache.maven.repository.internal.DefaultVersionRangeResolver;
 import org.apache.maven.repository.internal.DefaultVersionResolver;
@@ -39,6 +39,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 class Maven
 {
     private static final String USER_DIR = System.getProperty("user.dir", "");
@@ -60,7 +62,7 @@ class Maven
     {
         validateRepositoryMetadata(snapshotsRepositoryInfo, "snapshots");
         validateRepositoryMetadata(releasesRepositoryInfo, "releases");
-        
+
         final SettingsBuildingRequest request = new DefaultSettingsBuildingRequest()
                 .setGlobalSettingsFile(DEFAULT_GLOBAL_SETTINGS_FILE)
                 .setUserSettingsFile(DEFAULT_USER_SETTINGS_FILE)
@@ -88,32 +90,39 @@ class Maven
         session = new MavenRepositorySystemSession()
                 .setLocalRepositoryManager(repositorySystem.newLocalRepositoryManager(new LocalRepository(localRepository)));
 
-        releasesRepository = makeRemoteRepository(releasesRepositoryInfo, settings.getServer(releasesRepositoryInfo.getId()), false);
-        snapshotsRepository = makeRemoteRepository(snapshotsRepositoryInfo, settings.getServer(snapshotsRepositoryInfo.getId()), true);
+        releasesRepository = makeRemoteRepository(releasesRepositoryInfo, settings, false);
+        snapshotsRepository = makeRemoteRepository(snapshotsRepositoryInfo, settings, true);
     }
 
-    private static void validateRepositoryMetadata(Metadata.Repository info, String name)
+    private static void validateRepositoryMetadata(@Nullable Metadata.Repository info, String name)
     {
-        Preconditions.checkNotNull(info.getId(), "%s repository id is null", name);
-        Preconditions.checkNotNull(info.getUri(), "%s repository uri is null", name);
+        if (info != null) {
+            checkNotNull(info.getId(), "%s repository id is null", name);
+            checkNotNull(info.getUri(), "%s repository uri is null", name);
+        }
     }
-    
-    private static RemoteRepository makeRemoteRepository(Metadata.Repository info, Server server, boolean snapshot)
+
+    private static RemoteRepository makeRemoteRepository(@Nullable Metadata.Repository info, Settings settings, boolean snapshot)
     {
+        if (info == null) {
+            return null;
+        }
+
+        Server server = settings.getServer(info.getId());
         return new RemoteRepository(info.getId(), "default", info.getUri())
                 .setPolicy(true, new RepositoryPolicy(snapshot, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_FAIL))
                 .setPolicy(false, new RepositoryPolicy(!snapshot, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_FAIL))
                 .setAuthentication(new Authentication(server.getUsername(), server.getPassword()));
     }
 
-    public void upload(String groupId, String artifactId, String version, String extension, Generator writer)
+    public boolean upload(String groupId, String artifactId, String version, String extension, ByteSource source)
             throws Exception
     {
         File file = File.createTempFile(String.format("%s-%s-%s", groupId, artifactId, version), "." + extension);
         try {
             FileOutputStream out = new FileOutputStream(file);
             try {
-                writer.write(out);
+                source.copyTo(out);
             }
             finally {
                 out.close();
@@ -124,19 +133,21 @@ class Maven
             // Install the artifact locally
             repositorySystem.install(session, new InstallRequest().addArtifact(artifact));
 
-            // Deploy the artifact remotely
-            DeployRequest deployRequest = new DeployRequest()
-                    .addArtifact(artifact);
+            // Deploy the artifact remotely if a repository is configured.
 
-            if (artifact.isSnapshot()) {
-                Preconditions.checkNotNull(snapshotsRepository, "snapshots repository uri is null");
-                deployRequest.setRepository(snapshotsRepository);
+            RemoteRepository repository = artifact.isSnapshot() ? snapshotsRepository : releasesRepository;
+
+            if (repository != null) {
+                DeployRequest deployRequest = new DeployRequest()
+                        .addArtifact(artifact)
+                        .setRepository(repository);
+
+                repositorySystem.deploy(session, deployRequest);
+                return true; // Uploaded successfully.
             }
             else {
-                Preconditions.checkNotNull(releasesRepository, "releases repository uri is null");
-                deployRequest.setRepository(releasesRepository);
+                return false; // Only installed, not uploaded.
             }
-            repositorySystem.deploy(session, deployRequest);
         }
         finally {
             file.delete();
@@ -156,5 +167,4 @@ class Maven
 
         return true;
     }
-
 }

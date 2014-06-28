@@ -6,7 +6,7 @@ import org.eclipse.jgit.treewalk.filter.TreeFilter;
 import java.io.IOException;
 
 class IgnoreHiddenFilter
-    extends TreeFilter
+        extends TreeFilter
 {
     @Override
     public boolean include(TreeWalk walker)
@@ -26,5 +26,4 @@ class IgnoreHiddenFilter
     {
         return this;
     }
-
 }

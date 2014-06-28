@@ -18,12 +18,13 @@ public class ConfigBundler
     {
         initializeLogging(false);
 
-        Cli<Callable<Void>> cli = Cli.<Callable<Void>>builder("configgy")
+        Cli<Callable<Void>> cli = Cli.<Callable<Void>>builder("asconfig")
                 .withDefaultCommand(Help.class)
                 .withCommand(ReleaseCommand.class)
                 .withCommand(InitCommand.class)
                 .withCommand(AddComponentCommand.class)
                 .withCommand(SnapshotCommand.class)
+                .withCommand(InfoCommand.class)
                 .withCommand(Help.class)
                 .build();
 
