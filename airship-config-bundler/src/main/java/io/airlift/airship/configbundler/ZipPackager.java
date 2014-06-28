@@ -1,29 +1,44 @@
 package io.airlift.airship.configbundler;
 
+import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.InputSupplier;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 class ZipPackager
+        extends ByteSource
 {
-    public static void packageEntries(OutputStream output, Map<String, InputSupplier<InputStream>> entries)
+    public final Map<String, ByteSource> entries;
+
+    ZipPackager(Map<String, ByteSource> entries)
+    {
+        this.entries = checkNotNull(entries, "entries is null");
+    }
+
+    @Override
+    public InputStream openStream()
             throws IOException
     {
-        ZipOutputStream out = new ZipOutputStream(output);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        for (Map.Entry<String, InputSupplier<InputStream>> entry : entries.entrySet()) {
+        ZipOutputStream out = new ZipOutputStream(baos);
+
+        for (Map.Entry<String, ByteSource> entry : entries.entrySet()) {
             String path = entry.getKey();
             ZipEntry fileEntry = new ZipEntry(path);
             out.putNextEntry(fileEntry);
             ByteStreams.copy(entry.getValue(), out);
         }
         out.finish();
-    }
 
+        return new ByteArrayInputStream(baos.toByteArray());
+    }
 }

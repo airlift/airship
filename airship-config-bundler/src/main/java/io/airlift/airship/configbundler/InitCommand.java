@@ -1,6 +1,5 @@
 package io.airlift.airship.configbundler;
 
-import com.google.common.base.Preconditions;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
 import org.eclipse.jgit.api.Git;
@@ -8,6 +7,8 @@ import org.eclipse.jgit.errors.RepositoryNotFoundException;
 
 import java.io.File;
 import java.util.concurrent.Callable;
+
+import static com.google.common.base.Preconditions.checkState;
 
 @Command(name = "init", description = "Initialize a git config repository")
 public class InitCommand
@@ -46,13 +47,33 @@ public class InitCommand
             exists = false;
         }
 
-        Preconditions.checkState(!exists, "A git repository already exists in the current directory");
+        checkState(!exists, "A git repository already exists in the current directory");
 
         Model model = new Model(Git.init().call());
 
+        if (releasesRepositoryId != null) {
+            checkState(releasesRepositoryUri != null, "releaseRepositoryId requires releaseRepositoryUri!");
+
+            // If the same id is given for release repository and snapshot repository, then the snapshot uri can
+            // be empty (in that case, the release repository uri is used).
+            if (releasesRepositoryId.equals(snapshotsRepositoryId) && snapshotsRepositoryUri == null) {
+                snapshotsRepositoryUri = releasesRepositoryUri;
+            }
+        }
+        else {
+            System.out.println("No release repository id given! Releases can only be used locally!");
+        }
+
+        if (snapshotsRepositoryId != null) {
+            checkState(snapshotsRepositoryId != null, "snapshotsRepositoryId requires snapshotsRepositoryUri!");
+        }
+        else {
+            System.out.println("No snapshot repository id given! Snapshots can only be used locally!");
+        }
+
         Metadata metadata = new Metadata(groupId,
-                new Metadata.Repository(snapshotsRepositoryId, snapshotsRepositoryUri),
-                new Metadata.Repository(releasesRepositoryId, releasesRepositoryUri));
+                Metadata.Repository.getRepository(snapshotsRepositoryId, snapshotsRepositoryUri),
+                Metadata.Repository.getRepository(releasesRepositoryId, releasesRepositoryUri));
 
         model.initialize(metadata);
         model.checkoutTemplateBranch();

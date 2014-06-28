@@ -1,6 +1,6 @@
 package io.airlift.airship.configbundler;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 class Bundle
 {
@@ -10,9 +10,7 @@ class Bundle
 
     public Bundle(String name, int version, boolean snapshot)
     {
-        Preconditions.checkNotNull(name, "name is null");
-
-        this.name = name;
+        this.name = checkNotNull(name, "name is null");
         this.version = version;
         this.snapshot = snapshot;
     }
@@ -29,18 +27,13 @@ class Bundle
 
     public String getVersionString()
     {
-        if (snapshot) {
-            return version + "-SNAPSHOT";
-        }
-
-        return Integer.toString(version);
+        return Integer.toString(version) + (snapshot ? "-SNAPSHOT" : "");
     }
 
     public boolean isSnapshot()
     {
         return snapshot;
     }
-
 
     @Override
     public boolean equals(Object o)

@@ -3,12 +3,13 @@ package io.airlift.airship.configbundler;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Charsets;
-import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import io.airlift.json.JsonCodec;
 
 import java.io.File;
 import java.io.IOException;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Metadata
 {
@@ -57,12 +58,19 @@ public class Metadata
         private final String uri;
 
         @JsonCreator
-        public Repository(@JsonProperty("id") String id, @JsonProperty("uri") String uri)
+        public static Repository getRepository(@JsonProperty("id") String id, @JsonProperty("uri") String uri)
         {
-            Preconditions.checkNotNull(id, "id is null");
+            if (id == null) {
+                return null;
+            }
 
-            this.uri = uri;
-            this.id = id;
+            return new Repository(id, uri);
+        }
+
+        private Repository(@JsonProperty("id") String id, @JsonProperty("uri") String uri)
+        {
+            this.id = checkNotNull(id, "id is null");
+            this.uri = checkNotNull(uri, "uri is null");
         }
 
         @JsonProperty("id")
