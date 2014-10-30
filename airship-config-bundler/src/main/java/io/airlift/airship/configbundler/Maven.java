@@ -1,7 +1,10 @@
 package io.airlift.airship.configbundler;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
+
 import org.apache.maven.repository.internal.DefaultArtifactDescriptorReader;
 import org.apache.maven.repository.internal.DefaultVersionRangeResolver;
 import org.apache.maven.repository.internal.DefaultVersionResolver;
@@ -109,6 +112,9 @@ class Maven
         }
 
         Server server = settings.getServer(info.getId());
+
+        checkState(server != null, "Could not locate Server for repository %s! (missing maven settings.xml file?)", info.getId());
+
         return new RemoteRepository(info.getId(), "default", info.getUri())
                 .setPolicy(true, new RepositoryPolicy(snapshot, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_FAIL))
                 .setPolicy(false, new RepositoryPolicy(!snapshot, RepositoryPolicy.UPDATE_POLICY_ALWAYS, RepositoryPolicy.CHECKSUM_POLICY_FAIL))

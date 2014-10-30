@@ -53,10 +53,10 @@ public class SnapshotCommand
         }
 
         if (maven.upload(groupId, bundle.getName(), bundle.getVersionString(), ReleaseCommand.ARTIFACT_TYPE, new ZipPackager(entries))) {
-            System.out.printf("Uploaded %s:%s-%s%n", groupId, bundle.getName(), bundle.getVersionString());
+            System.out.printf("Uploaded %s:%s:%s%n", groupId, bundle.getName(), bundle.getVersionString());
         }
         else {
-            System.out.printf("Installed %s:%s-%s locally%n", groupId, bundle.getName(), bundle.getVersionString());
+            System.out.printf("Installed %s:%s:%s locally%n", groupId, bundle.getName(), bundle.getVersionString());
         }
 
         return null;
