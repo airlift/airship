@@ -2,10 +2,10 @@ package io.airlift.airship.shared;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
+import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
+
 import io.airlift.configuration.ConfigurationFactory;
 
 import java.io.BufferedInputStream;
@@ -106,10 +106,10 @@ public class ConfigUtils
         }
     }
 
-    public static void unpackConfig(InputSupplier<? extends InputStream> inputSupplier, File outputDir)
+    public static void unpackConfig(ByteSource inputSupplier, File outputDir)
             throws IOException
     {
-        ZipInputStream in = new ZipInputStream(inputSupplier.getInput());
+        ZipInputStream in = new ZipInputStream(inputSupplier.openStream());
         try {
             for (ZipEntry zipEntry = in.getNextEntry(); zipEntry != null; zipEntry = in.getNextEntry()) {
                 File file = new File(outputDir, zipEntry.getName());
@@ -119,7 +119,7 @@ public class ConfigUtils
                 }
                 else {
                     file.getParentFile().mkdirs();
-                    ByteStreams.copy(in, Files.newOutputStreamSupplier(file));
+                    Files.asByteSink(file).writeFrom(in);
                     file.setLastModified(zipEntry.getTime());
                 }
             }
@@ -129,7 +129,7 @@ public class ConfigUtils
         }
     }
 
-    public static InputSupplier<InputStream> newConfigEntrySupplier(Repository repository, String config, final String entryName)
+    public static ByteSource newConfigEntrySupplier(Repository repository, String config, final String entryName)
     {
         URI uri = repository.configToHttpUri(config);
         if (uri == null) {
@@ -144,15 +144,15 @@ public class ConfigUtils
             throw new RuntimeException("Invalid config bundle location " + uri);
         }
 
-        return ConfigUtils.newConfigEntrySupplier(Resources.newInputStreamSupplier(configUrl), entryName);
+        return ConfigUtils.newConfigEntrySupplier(Resources.asByteSource(configUrl), entryName);
     }
 
-    public static InputSupplier<InputStream> newConfigEntrySupplier(final URI configBundle, String entryName)
+    public static ByteSource newConfigEntrySupplier(final URI configBundle, String entryName)
     {
-        InputSupplier<InputStream> configBundleInput = new InputSupplier<InputStream>()
+        ByteSource configBundleInput = new ByteSource()
         {
             @Override
-            public InputStream getInput()
+            public InputStream openStream()
                     throws IOException
             {
                 URL url = configBundle.toURL();
@@ -169,16 +169,16 @@ public class ConfigUtils
         return newConfigEntrySupplier(configBundleInput, entryName);
     }
 
-    private static InputSupplier<InputStream> newConfigEntrySupplier(final InputSupplier<? extends InputStream> configBundle, final String entryName)
+    private static ByteSource newConfigEntrySupplier(final ByteSource configBundle, final String entryName)
     {
-        return new InputSupplier<InputStream>()
+        return new ByteSource()
         {
             @Override
-            public InputStream getInput()
+            public InputStream openStream()
                     throws IOException
             {
                 boolean success = false;
-                ZipInputStream in = new ZipInputStream(configBundle.getInput());
+                ZipInputStream in = new ZipInputStream(configBundle.openStream());
                 try {
                     ZipEntry zipEntry = in.getNextEntry();
                     while (zipEntry != null && !zipEntry.getName().equals(entryName)) {
@@ -220,11 +220,11 @@ public class ConfigUtils
         }
     }
 
-    private static Properties loadProperties(InputSupplier<InputStream> inputSupplier)
+    private static Properties loadProperties(ByteSource inputSupplier)
             throws IOException
     {
         Properties properties = new Properties();
-        try (InputStream input = inputSupplier.getInput()) {
+        try (InputStream input = inputSupplier.openStream()) {
             properties.load(input);
         }
         return properties;

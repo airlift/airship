@@ -16,8 +16,9 @@ import java.util.zip.ZipOutputStream;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.io.Files.asByteSink;
 import static com.google.common.io.Resources.getResource;
-import static com.google.common.io.Resources.newInputStreamSupplier;
+import static com.google.common.io.Resources.asByteSource;
 import static io.airlift.airship.shared.ArchiveHelper.createArchive;
 import static io.airlift.airship.shared.FileUtils.createTempDir;
 import static io.airlift.airship.shared.FileUtils.deleteRecursively;
@@ -162,11 +163,11 @@ public class TestingMavenRepository
             // copy maven-metadata.xml files
             File appleMavenMetadata = new File(targetRepo, "food/fruit/apple/maven-metadata.xml");
             appleMavenMetadata.getParentFile().mkdirs();
-            Files.copy(newInputStreamSupplier(getResource(TestingMavenRepository.class, "apple-maven-metadata.xml")), appleMavenMetadata);
+            asByteSource(getResource(TestingMavenRepository.class, "apple-maven-metadata.xml")).copyTo(asByteSink(appleMavenMetadata));
 
             File bananaMavenMetadata = new File(targetRepo, "food/fruit/banana/2.0-SNAPSHOT/maven-metadata.xml");
             bananaMavenMetadata.getParentFile().mkdirs();
-            Files.copy(newInputStreamSupplier(getResource(TestingMavenRepository.class, "banana-maven-metadata.xml")), bananaMavenMetadata);
+            asByteSource(getResource(TestingMavenRepository.class, "banana-maven-metadata.xml")).copyTo(asByteSink(bananaMavenMetadata));
 
             // tar up the archive and add them to the repository
             File appleArchiveV1 = new File(targetRepo, "food/fruit/apple/1.0/apple-1.0.tar.gz");
