@@ -130,7 +130,7 @@ public class DirectoryDeploymentManager
             // download the binary
             File binary = new File(tempDir, "airship-binary.tar.gz");
             try {
-                Files.copy(Resources.newInputStreamSupplier(installation.getBinaryFile().toURL()), binary);
+                Resources.asByteSource(installation.getBinaryFile().toURL()).copyTo(Files.asByteSink(binary));
             }
             catch (IOException e) {
                 throw new RuntimeException("Unable to download binary " + assignment.getBinary() + " from " + installation.getBinaryFile(), e);
@@ -156,7 +156,7 @@ public class DirectoryDeploymentManager
             // unpack config bundle
             try {
                 URL url = installation.getConfigFile().toURL();
-                ConfigUtils.unpackConfig(Resources.newInputStreamSupplier(url), binaryRootDir);
+                ConfigUtils.unpackConfig(Resources.asByteSource(url), binaryRootDir);
             }
             catch (Exception e) {
                 throw new RuntimeException("Unable to extract config bundle " + assignment.getConfig() + ": " + e.getMessage());

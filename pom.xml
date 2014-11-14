@@ -59,6 +59,7 @@
         <dep.leveldb.version>0.5</dep.leveldb.version>
         <dep.maven.version>3.0.3</dep.maven.version>
         <dep.aether.version>1.11</dep.aether.version>
+        <dep.guava.version>18.0</dep.guava.version>
     </properties>
 
     <modules>
@@ -218,7 +219,7 @@
             <dependency>
                 <groupId>io.airlift</groupId>
                 <artifactId>airline</artifactId>
-                <version>0.7-SNAPSHOT</version>
+                <version>0.7</version>
             </dependency>
 
             <dependency>

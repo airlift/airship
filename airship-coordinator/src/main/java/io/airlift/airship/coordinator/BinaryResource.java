@@ -56,6 +56,6 @@ public class BinaryResource
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        return Response.ok(new InputSupplierStreamingOutput(Resources.newInputStreamSupplier(binaryUrl))).build();
+        return Response.ok(new InputSupplierStreamingOutput(Resources.asByteSource(binaryUrl))).build();
     }
 }

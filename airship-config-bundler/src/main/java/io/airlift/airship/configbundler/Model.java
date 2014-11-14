@@ -4,9 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.common.io.CharStreams;
+import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 import com.google.common.primitives.Ints;
 import io.airlift.json.JsonCodec;
 import org.eclipse.jgit.api.Git;
@@ -27,15 +26,13 @@ import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Comparator;
 import java.util.Map;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.io.CharStreams.newReaderSupplier;
+import static io.airlift.airship.configbundler.GitUtils.byteSourceFunction;
 import static io.airlift.airship.configbundler.GitUtils.getBlob;
 import static io.airlift.airship.configbundler.GitUtils.getBranch;
-import static io.airlift.airship.configbundler.GitUtils.inputStreamSupplierFunction;
 
 class Model
 {
@@ -60,7 +57,7 @@ class Model
 
         ObjectId objectId = GitUtils.findFileObject(repository, head, METADATA_FILE);
 
-        String json = CharStreams.toString(newReaderSupplier(getBlob(repository, objectId), UTF_8));
+        String json = getBlob(repository, objectId).asCharSource(UTF_8).read();
         Metadata metadata = JsonCodec.jsonCodec(Metadata.class).fromJson(json);
 
         Preconditions.checkNotNull(metadata, ".metadata file not found in master branch");
@@ -151,7 +148,7 @@ class Model
         git.checkout().setName(bundle.getName()).call();
     }
 
-    public Map<String, InputSupplier<InputStream>> getEntries(Bundle bundle)
+    public Map<String, ByteSource> getEntries(Bundle bundle)
             throws IOException
     {
         Ref ref;
@@ -166,7 +163,7 @@ class Model
 
         RevCommit commit = GitUtils.getCommit(git.getRepository(), ref);
 
-        return Maps.transformValues(GitUtils.getEntries(git.getRepository(), commit.getTree()), inputStreamSupplierFunction(git.getRepository()));
+        return Maps.transformValues(GitUtils.getEntries(git.getRepository(), commit.getTree()), byteSourceFunction(git.getRepository()));
     }
 
     public Bundle createNewVersion(Bundle bundle)

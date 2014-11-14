@@ -1,14 +1,13 @@
 package io.airlift.airship.configbundler;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.util.FS;
 
-import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -61,7 +60,7 @@ public class ReleaseCommand
         }
 
         // get entries from tag
-        final Map<String, InputSupplier<InputStream>> entries = model.getEntries(bundle);
+        final Map<String, ByteSource> entries = model.getEntries(bundle);
 
         if (entries.isEmpty()) {
             throw new RuntimeException("Cannot build an empty config package");

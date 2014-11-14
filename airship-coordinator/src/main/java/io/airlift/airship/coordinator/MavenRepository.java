@@ -5,9 +5,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.io.ByteProcessor;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import io.airlift.airship.coordinator.MavenMetadata.SnapshotVersion;
@@ -20,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -394,10 +394,10 @@ public class MavenRepository
             throws IOException
     {
         final URL url = uri.toURL();
-        return CharStreams.toString(new InputSupplier<InputStreamReader>()
+        return new CharSource()
         {
             @Override
-            public InputStreamReader getInput()
+            public Reader openStream()
                     throws IOException
             {
                 URLConnection connection = url.openConnection();
@@ -408,15 +408,15 @@ public class MavenRepository
                 InputStream in = connection.getInputStream();
                 return new InputStreamReader(in, UTF_8);
             }
-        });
+        }.read();
     }
 
     private boolean isValidBinary(URI uri)
     {
         log.debug("validating URI: %s", uri);
         try {
-            InputSupplier<InputStream> inputSupplier = Resources.newInputStreamSupplier(uri.toURL());
-            ByteStreams.readBytes(inputSupplier, new ByteProcessor<Void>()
+            ByteSource byteSource = Resources.asByteSource(uri.toURL());
+            byteSource.read(new ByteProcessor<Void>()
             {
                 private int count;
 

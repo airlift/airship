@@ -17,10 +17,10 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.CharStreams;
+import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 import com.google.inject.Inject;
+
 import io.airlift.airship.shared.Assignment;
 import io.airlift.airship.shared.ConfigUtils;
 import io.airlift.airship.shared.DigestUtils;
@@ -34,7 +34,6 @@ import io.airlift.log.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +118,7 @@ public class HttpServiceInventory
         File cacheFile = getCacheFile(config);
         if (cacheFile.canRead()) {
             try {
-                String json = CharStreams.toString(Files.newReaderSupplier(cacheFile, Charsets.UTF_8));
+                String json = Files.asCharSource(cacheFile, Charsets.UTF_8).read();
                 List<ServiceDescriptor> descriptors = descriptorsJsonCodec.fromJson(json);
                 invalidServiceInventory.remove(config);
                 return descriptors;
@@ -130,7 +129,7 @@ public class HttpServiceInventory
             }
         }
 
-        InputSupplier<? extends InputStream> configFile = ConfigUtils.newConfigEntrySupplier(repository, config, "airship-service-inventory.json");
+        ByteSource configFile = ConfigUtils.newConfigEntrySupplier(repository, config, "airship-service-inventory.json");
         if (configFile == null) {
             return null;
         }
@@ -138,7 +137,7 @@ public class HttpServiceInventory
         try {
             String json;
             try {
-                json = CharStreams.toString(CharStreams.newReaderSupplier(configFile, Charsets.UTF_8));
+                json = configFile.asCharSource(Charsets.UTF_8).read();
             }
             catch (FileNotFoundException e) {
                 // no service inventory in the config, so replace with json null so caching works

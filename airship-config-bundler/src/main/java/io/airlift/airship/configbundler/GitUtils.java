@@ -4,7 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 class GitUtils
 {
@@ -44,14 +44,14 @@ class GitUtils
         }
     }
 
-    public static InputSupplier<InputStream> getBlob(final Repository repository, final ObjectId objectId)
+    public static ByteSource getBlob(final Repository repository, final ObjectId objectId)
     {
         Preconditions.checkArgument(repository.hasObject(objectId), "object id '%s' not found in git repository", objectId.getName());
 
-        return new InputSupplier<InputStream>()
+        return new ByteSource()
         {
             @Override
-            public InputStream getInput()
+            public InputStream openStream()
                     throws IOException
             {
                 return repository.open(objectId).openStream();
@@ -92,11 +92,11 @@ class GitUtils
         return null;
     }
 
-    public static Function<? super ObjectId, InputSupplier<InputStream>> inputStreamSupplierFunction(final Repository repository)
+    public static Function<? super ObjectId, ByteSource> byteSourceFunction(final Repository repository)
     {
-        return new Function<ObjectId, InputSupplier<InputStream>>()
+        return new Function<ObjectId, ByteSource>()
         {
-            public InputSupplier<InputStream> apply(ObjectId input)
+            public ByteSource apply(ObjectId input)
             {
                 return getBlob(repository, input);
             }

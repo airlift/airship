@@ -1,18 +1,17 @@
 package io.airlift.airship.configbundler;
 
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
 class ZipGenerator
         implements Generator
 {
-    private final Map<String, InputSupplier<InputStream>> entries;
+    private final Map<String, ByteSource> entries;
 
-    public ZipGenerator(Map<String, InputSupplier<InputStream>> entries)
+    public ZipGenerator(Map<String, ByteSource> entries)
     {
         this.entries = entries;
     }
