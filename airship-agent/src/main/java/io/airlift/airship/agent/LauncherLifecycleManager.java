@@ -2,11 +2,14 @@ package io.airlift.airship.agent;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.net.InetAddresses;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+
 import io.airlift.airship.shared.SlotLifecycleState;
 import io.airlift.command.Command;
 import io.airlift.command.CommandFailedException;
@@ -39,6 +42,7 @@ public class LauncherLifecycleManager
     private final Duration stopTimeout;
     private final String environment;
     private final InetAddress bindIp;
+    private final Optional<String> environmentFile;
     private final URI serviceInventoryUri;
 
     @Inject
@@ -50,6 +54,7 @@ public class LauncherLifecycleManager
                 nodeInfo.getBindIp(),
                 config.getLauncherTimeout(),
                 config.getLauncherStopTimeout(),
+                Optional.fromNullable(config.getEnvironmentFile()),
                 uriBuilderFrom(httpServerInfo.getHttpsUri() != null ? httpServerInfo.getHttpsUri() : httpServerInfo.getHttpUri()).appendPath("/v1/serviceInventory").build()
         );
     }
@@ -60,6 +65,7 @@ public class LauncherLifecycleManager
             InetAddress bindIp,
             Duration launcherTimeout,
             Duration launcherStopTimeout,
+            Optional<String> environmentFile,
             URI serviceInventoryUri)
     {
         this.launcherTimeout = launcherTimeout;
@@ -71,6 +77,7 @@ public class LauncherLifecycleManager
         this.externalAddress = externalAddress;
         this.bindIp = bindIp;
 
+        this.environmentFile = Preconditions.checkNotNull(environmentFile);
         this.serviceInventoryUri = serviceInventoryUri;
     }
 
@@ -167,6 +174,11 @@ public class LauncherLifecycleManager
         ImmutableMap.Builder<String, String> map = ImmutableMap.builder();
 
         map.put("node.environment", environment);
+
+        if (environmentFile.isPresent()) {
+            map.put("node.environment-file", environmentFile.get());
+        }
+
         map.put("node.id", deployment.getNodeId().toString());
         map.put("node.location", deployment.getLocation());
         map.put("node.data-dir", deployment.getDataDir().getAbsolutePath());

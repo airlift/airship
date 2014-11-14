@@ -2,6 +2,7 @@ package io.airlift.airship.cli;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -69,6 +70,7 @@ public class CommanderFactory
     private String externalAddress;
     private boolean useInternalAddress;
     private boolean allowDuplicateInstallations;
+    private Optional<String> environmentFile = Optional.absent();
 
     public CommanderFactory setEnvironment(String environment)
     {
@@ -148,6 +150,13 @@ public class CommanderFactory
         this.useInternalAddress = useInternalAddress;
     }
 
+    public CommanderFactory setEnvironmentFile(String environmentFile)
+    {
+        Preconditions.checkNotNull(environmentFile, "environmentFile is null");
+        this.environmentFile = Optional.of(environmentFile);
+        return this;
+    }
+
     public Commander build()
             throws IOException
     {
@@ -183,6 +192,7 @@ public class CommanderFactory
                 null,
                 COMMAND_TIMEOUT,
                 COMMAND_TIMEOUT,
+                environmentFile,
                 new File(slotsDir, "service-inventory.json").toURI());
 
         Agent agent = new Agent(agentId,

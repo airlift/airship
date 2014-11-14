@@ -264,6 +264,9 @@ public class Airship
             if (config.get("environment." + environmentRef + ".external-address") != null) {
                 commanderFactory.setExternalAddress(config.get("environment." + environmentRef + ".external-address"));
             }
+            if (config.get("environment." + environmentRef + ".environment-file") != null) {
+                commanderFactory.setEnvironmentFile(config.get("environment." + environmentRef + ".environment-file"));
+            }
             if (config.get("environment." + environmentRef + ".allow-duplicate-installations") != null) {
                 commanderFactory.setAllowDuplicateInstallations(parseBoolean(config.get("environment." + environmentRef + ".allow-duplicate-installations")));
             }
@@ -1020,6 +1023,9 @@ public class Airship
         @Option(name = "--external-address", description = "External address type for the local environment")
         public String externalAddress;
 
+        @Option(name = "--environment-file", description = "Environment specific properties file.")
+        public String environmentFile;
+
         @Option(name = "--allow-duplicate-installations", description = "Allow multiple installations of the same binary and configuration")
         public boolean allowDuplicateInstallations;
 
@@ -1076,6 +1082,9 @@ public class Airship
             }
             if (externalAddress != null) {
                 config.set("environment." + ref + ".external-address", externalAddress);
+            }
+            if (environmentFile != null) {
+                config.set("environment." + ref + ".environment-file", environmentFile);
             }
             if (allowDuplicateInstallations) {
                 config.set("environment." + ref + ".allow-duplicate-installations", String.valueOf(allowDuplicateInstallations));

@@ -25,6 +25,7 @@ public class AgentConfig
 {
     private String slotsDir = "slots";
     private String resourcesFile = "etc/resources.properties";
+    private String environmentFile = null;
     private Duration launcherTimeout = new Duration(5, TimeUnit.SECONDS);
     private Duration launcherStopTimeout = new Duration(15, TimeUnit.SECONDS);
     private Duration tarTimeout = new Duration(1, TimeUnit.MINUTES);
@@ -53,6 +54,18 @@ public class AgentConfig
     public AgentConfig setResourcesFile(String resourcesFile)
     {
         this.resourcesFile = resourcesFile;
+        return this;
+    }
+
+    public String getEnvironmentFile()
+    {
+        return environmentFile;
+    }
+
+    @Config("agent.environment-file")
+    public AgentConfig setEnvironmentFile(String environmentFile)
+    {
+        this.environmentFile = environmentFile;
         return this;
     }
 
