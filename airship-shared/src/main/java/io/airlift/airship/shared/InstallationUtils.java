@@ -3,10 +3,9 @@ package io.airlift.airship.shared;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -77,11 +76,11 @@ public class InstallationUtils
     {
         ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
 
-        InputSupplier<? extends InputStream> resourcesFile = newConfigEntrySupplier(repository, assignment.getConfig(), "airship-resources.properties");
+        ByteSource resourcesFile = newConfigEntrySupplier(repository, assignment.getConfig(), "airship-resources.properties");
         if (resourcesFile != null) {
             try {
                 Properties resources = new Properties();
-                resources.load(resourcesFile.getInput());
+                resources.load(resourcesFile.openStream());
                 for (Entry<Object, Object> entry : resources.entrySet()) {
                     builder.put((String) entry.getKey(), Integer.valueOf((String) entry.getValue()));
                 }

@@ -5,15 +5,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteProcessor;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
+
 import io.airlift.airship.shared.Repository;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
@@ -299,8 +298,8 @@ public class HttpRepository
     private boolean isValidLocation(URI uri)
     {
         try {
-            InputSupplier<InputStream> inputSupplier = Resources.newInputStreamSupplier(uri.toURL());
-            ByteStreams.readBytes(inputSupplier, new ByteProcessor<Void>()
+            ByteSource byteSource = Resources.asByteSource(uri.toURL());
+            byteSource.read(new ByteProcessor<Void>()
             {
                 private int count;
 

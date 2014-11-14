@@ -33,8 +33,9 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.io.Files.asByteSink;
 import static com.google.common.io.Resources.getResource;
-import static com.google.common.io.Resources.newInputStreamSupplier;
+import static com.google.common.io.Resources.asByteSource;
 import static io.airlift.airship.shared.AssignmentHelper.APPLE_ASSIGNMENT;
 import static io.airlift.airship.shared.AssignmentHelper.BANANA_ASSIGNMENT;
 import static io.airlift.airship.shared.FileUtils.deleteRecursively;
@@ -77,7 +78,7 @@ public class TestLauncherLifecycleManager
 
         // copy launcher script
         launcher.getParentFile().mkdirs();
-        Files.copy(newInputStreamSupplier(getResource(ArchiveHelper.class, "launcher")), launcher);
+        asByteSource(getResource(ArchiveHelper.class, "launcher")).copyTo(asByteSink(launcher));
         launcher.setExecutable(true, true);
 
         return new Deployment(UUID.randomUUID(), "location", deploymentDir, dataDir, assignment, ImmutableMap.<String, Integer>of("memory", 512));

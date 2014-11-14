@@ -5,6 +5,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.PeekingIterator;
+import com.google.common.io.CharSource;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -15,8 +16,6 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterators.peekingIterator;
-import static com.google.common.io.CharStreams.newReaderSupplier;
-import static com.google.common.io.CharStreams.readLines;
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 
 public class PemDecoder
@@ -72,7 +71,7 @@ public class PemDecoder
     public static Pem parsePem(String pemData)
             throws IOException
     {
-        List<String> lines = readLines(newReaderSupplier(pemData));
+        List<String> lines = CharSource.wrap(pemData).readLines();
         for (PeekingIterator<String> iterator = peekingIterator(lines.iterator()); iterator.hasNext(); ) {
             String line = iterator.next().trim();
             if (line.isEmpty()) {

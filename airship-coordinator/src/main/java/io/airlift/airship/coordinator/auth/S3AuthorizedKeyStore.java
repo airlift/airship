@@ -6,14 +6,13 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.AbstractSequentialIterator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.CharSource;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import io.airlift.airship.coordinator.AwsProvisionerConfig;
 import io.airlift.units.Duration;
 
@@ -22,7 +21,9 @@ import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.io.CharStreams.newReaderSupplier;
 
 public class S3AuthorizedKeyStore
         implements AuthorizedKeyStore
@@ -134,7 +134,7 @@ public class S3AuthorizedKeyStore
                     }
 
                     List<AuthorizedKey> keys = newArrayList();
-                    for (String line : CharStreams.readLines(newReaderSupplier(new S3InputSupplier(s3Client, bucketName, objectSummary.getKey()), Charsets.UTF_8))) {
+                    for (String line : new S3InputSupplier(s3Client, bucketName, objectSummary.getKey()).readLines()) {
                         line = line.trim();
                         if (!line.isEmpty()) {
                             PublicKey key = PublicKey.valueOf(line);
@@ -232,7 +232,7 @@ public class S3AuthorizedKeyStore
     }
 
     private static class S3InputSupplier
-            implements InputSupplier<InputStream>
+            extends CharSource
     {
         private final AmazonS3 s3Client;
         private final String bucketName;
@@ -246,11 +246,11 @@ public class S3AuthorizedKeyStore
         }
 
         @Override
-        public InputStream getInput()
+        public Reader openStream()
                 throws IOException
         {
             S3Object object = s3Client.getObject(bucketName, key);
-            return object.getObjectContent();
+            return new InputStreamReader(object.getObjectContent(), StandardCharsets.UTF_8);
         }
     }
 }

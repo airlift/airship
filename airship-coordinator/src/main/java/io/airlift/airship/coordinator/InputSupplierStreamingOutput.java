@@ -1,28 +1,26 @@
 package io.airlift.airship.coordinator;
 
-import com.google.common.io.ByteStreams;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSource;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.StreamingOutput;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 class InputSupplierStreamingOutput
         implements StreamingOutput
 {
-    private final InputSupplier<? extends InputStream> inputSupplier;
+    private final ByteSource byteSource;
 
-    public InputSupplierStreamingOutput(InputSupplier<? extends InputStream> inputSupplier)
+    public InputSupplierStreamingOutput(ByteSource byteSource)
     {
-        this.inputSupplier = inputSupplier;
+        this.byteSource = byteSource;
     }
 
     public void write(OutputStream output)
             throws IOException, WebApplicationException
     {
-        ByteStreams.copy(inputSupplier, output);
+        byteSource.copyTo(output);
     }
 }

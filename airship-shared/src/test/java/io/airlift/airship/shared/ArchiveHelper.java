@@ -5,8 +5,9 @@ import com.google.common.io.Files;
 import java.io.File;
 
 import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.io.Files.asByteSink;
 import static com.google.common.io.Resources.getResource;
-import static com.google.common.io.Resources.newInputStreamSupplier;
+import static com.google.common.io.Resources.asByteSource;
 import static io.airlift.airship.shared.FileUtils.createTar;
 import static io.airlift.airship.shared.FileUtils.createTempDir;
 
@@ -21,7 +22,7 @@ public class ArchiveHelper
             File binDir = new File(tempDir, "bin");
             binDir.mkdirs();
             File launcher = new File(binDir, "launcher");
-            Files.copy(newInputStreamSupplier(getResource(ArchiveHelper.class, "launcher")), launcher);
+            asByteSource(getResource(ArchiveHelper.class, "launcher")).copyTo(asByteSink(launcher));
 
             // make launcher executable
             launcher.setExecutable(true, true);
