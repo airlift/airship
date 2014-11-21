@@ -56,15 +56,18 @@ public class CoordinatorSlotResource
 
     private final Coordinator coordinator;
     private final Repository repository;
+    private final boolean allowDuplicateInstallationsOnAnAgent;
 
     @Inject
-    public CoordinatorSlotResource(Coordinator coordinator, Repository repository)
+    public CoordinatorSlotResource(Coordinator coordinator, Repository repository, CoordinatorConfig config)
     {
         Preconditions.checkNotNull(coordinator, "coordinator must not be null");
         Preconditions.checkNotNull(repository, "repository is null");
+        Preconditions.checkNotNull(config, "coordinatorConfig is null");
 
         this.coordinator = coordinator;
         this.repository = repository;
+        this.allowDuplicateInstallationsOnAnAgent = config.isAllowDuplicateInstallationsOnAnAgent();
     }
 
     @GET
@@ -102,7 +105,7 @@ public class CoordinatorSlotResource
         Predicate<AgentStatus> agentFilter = AgentFilterBuilder.build(uriInfo,
                 transform(coordinator.getAgents(), idGetter()),
                 transform(coordinator.getAllSlotStatus(), uuidGetter()),
-                false,
+                allowDuplicateInstallationsOnAnAgent,
                 repository);
         List<AgentStatus> agents = coordinator.getAgents(agentFilter);
 
