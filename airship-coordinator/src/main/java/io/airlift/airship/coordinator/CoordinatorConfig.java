@@ -41,6 +41,8 @@ public class CoordinatorConfig
     private String httpShortNamePattern = DEFAULT_HTTP_SHORT_NAME_PATTERN;
     private String httpRepoBinaryVersionPattern;
     private String httpRepoConfigVersionPattern;
+    private String s3RepoBucket;
+    private String s3RepoKeyPrefix;
 
     @NotNull
     public Duration getStatusExpiration()
@@ -153,5 +155,29 @@ public class CoordinatorConfig
     {
         this.httpRepoConfigVersionPattern = httpRepoConfigVersionPattern;
         return this;
+    }
+
+    @Config("coordinator.s3-repo.bucket")
+    public CoordinatorConfig setS3RepoBucket(String s3RepoBucket)
+    {
+        this.s3RepoBucket = s3RepoBucket;
+        return this;
+    }
+
+    public String getS3RepoBucket()
+    {
+        return s3RepoBucket;
+    }
+
+    @Config("coordinator.s3-repo.keyPrefix")
+    public CoordinatorConfig setS3RepoKeyPrefix(String s3RepoKeyPrefix)
+    {
+        this.s3RepoKeyPrefix = s3RepoKeyPrefix;
+        return this;
+    }
+
+    public String getS3RepoKeyPrefix()
+    {
+        return s3RepoKeyPrefix;
     }
 }

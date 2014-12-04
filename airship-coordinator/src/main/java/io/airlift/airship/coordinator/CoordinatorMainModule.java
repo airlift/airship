@@ -35,6 +35,7 @@ import io.airlift.json.JsonCodecBinder;
 
 import javax.servlet.Filter;
 
+import static io.airlift.airship.coordinator.ConditionalModule.installIfPropertyEquals;
 import static io.airlift.configuration.ConfigurationModule.bindConfig;
 import static io.airlift.http.client.HttpClientBinder.httpClientBinder;
 
@@ -58,9 +59,10 @@ public class CoordinatorMainModule
         binder.bind(RemoteCoordinatorFactory.class).to(HttpRemoteCoordinatorFactory.class).in(Scopes.SINGLETON);
         binder.bind(RemoteAgentFactory.class).to(HttpRemoteAgentFactory.class).in(Scopes.SINGLETON);
 
-        binder.bind(Repository.class).to(RepositorySet.class).in(Scopes.SINGLETON);
-        Multibinder.newSetBinder(binder, Repository.class).addBinding().to(MavenRepository.class).in(Scopes.SINGLETON);
-        Multibinder.newSetBinder(binder, Repository.class).addBinding().to(HttpRepository.class).in(Scopes.SINGLETON);
+        binder.install(
+            installIfPropertyEquals(new MavenRepositoryModule(), "coordinator.repo", "maven").withAllowUnset(true)
+        );
+        binder.install(installIfPropertyEquals(new S3RepositoryModule(), "coordinator.repo", "s3"));
 
         binder.bind(BinaryResource.class).in(Scopes.SINGLETON);
 
@@ -83,4 +85,24 @@ public class CoordinatorMainModule
 
         httpClientBinder(binder).bindAsyncHttpClient("global", Global.class);
     }
+
+  private static class MavenRepositoryModule implements Module
+  {
+    @Override
+    public void configure(Binder binder)
+    {
+      binder.bind(Repository.class).to(RepositorySet.class).in(Scopes.SINGLETON);
+      Multibinder.newSetBinder(binder, Repository.class).addBinding().to(MavenRepository.class).in(Scopes.SINGLETON);
+      Multibinder.newSetBinder(binder, Repository.class).addBinding().to(HttpRepository.class).in(Scopes.SINGLETON);
+    }
+  }
+
+  private static class S3RepositoryModule implements Module
+  {
+    @Override
+    public void configure(Binder binder)
+    {
+      binder.bind(Repository.class).to(S3Repository.class).in(Scopes.SINGLETON);
+    }
+  }
 }
