@@ -176,6 +176,23 @@
                     <excludedGroups>aws</excludedGroups>
                 </configuration>
             </plugin>
+            <!-- This is a workaround for a bug in airbase 3, which is fixed in airbase 4. -->
+            <!-- Remove the maven-jar-plugin code when switching to released airbase 4.    -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${main-class}</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <useUniqueVersions>false</useUniqueVersions>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!-- This is a workaround for a bug in airbase 3, which is fixed in airbase 4. -->
+            <!-- Remove the maven-jar-plugin code when switching to released airbase 4.    -->
         </plugins>
     </build>
 </project>
